@@ -29,7 +29,7 @@ __export(main_exports, {
   default: () => TeacherPlannerPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian16 = require("obsidian");
+var import_obsidian15 = require("obsidian");
 
 // src/settings.ts
 var DEFAULT_LESSON_TEMPLATE = `## Notes:
@@ -85,10 +85,12 @@ var DEFAULT_SETTINGS = {
   weekOverrides: [],
   activities: [
     { id: "activity-cover", label: "Cover", colour: "#e05555", activityType: "directed" },
+    { id: "activity-cpd", label: "CPD", colour: "#cba6f7", activityType: "directed" },
     { id: "activity-duty", label: "Duty", colour: "#d4903a", activityType: "directed" },
-    { id: "activity-meeting", label: "Meeting", colour: "#4a90d9", activityType: "directed", durationMinutes: 60 },
+    { id: "activity-meeting", label: "Meeting 1", colour: "#4a90d9", activityType: "directed" },
     { id: "activity-protected", label: "Protected time", colour: "#9070cc", activityType: "directed" },
-    { id: "activity-tutor", label: "Tutor", colour: "#f0956a", activityType: "directed", durationMinutes: 30 }
+    { id: "activity-trapped", label: "Trapped time", colour: "#89dceb", activityType: "directed" },
+    { id: "activity-tutor", label: "Tutor", colour: "#f0956a", activityType: "directed" }
   ],
   dateEvents: [],
   slotExclusions: [],
@@ -130,7 +132,7 @@ var CLASS_COLOUR_PALETTE = [
 ];
 
 // src/views/WeekView.ts
-var import_obsidian13 = require("obsidian");
+var import_obsidian12 = require("obsidian");
 
 // node_modules/svelte/src/runtime/internal/utils.js
 function noop() {
@@ -891,7 +893,7 @@ if (typeof window !== "undefined")
   (window.__svelte || (window.__svelte = { v: /* @__PURE__ */ new Set() })).v.add(PUBLIC_VERSION);
 
 // src/views/WeekView.svelte
-var import_obsidian12 = require("obsidian");
+var import_obsidian11 = require("obsidian");
 
 // src/utils/weekUtils.ts
 function getMondayOfWeek(date) {
@@ -26664,6 +26666,177 @@ var TeacherPlannerSettingTab = class extends import_obsidian8.PluginSettingTab {
         await this.plugin.saveSettings();
       });
     }
+    containerEl.createEl("h3", { text: "Directed Time Tracker" });
+    if (!this.plugin.settings.directedTime) {
+      this.plugin.settings.directedTime = { enabled: false, contractedHours: 1265, timetablePercentage: 100, defaultLessonDurationMinutes: 60 };
+    }
+    const dt = this.plugin.settings.directedTime;
+    new import_obsidian8.Setting(containerEl).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(dt.enabled).onChange(async (v) => {
+      dt.enabled = v;
+      await this.plugin.saveSettings();
+      if (v) await this.createDirectedTimeGuideNote();
+      this.display();
+    }));
+    if (dt.enabled) {
+      const callout = containerEl.createDiv("tp-dt-callout");
+      callout.createEl("p", { text: "\u2139\uFE0F  How it works: Directed time is counted only from items placed in your planner. The tracker shows hours accrued to today and a projection based on future planned events. Keep your planner up to date for accurate figures." });
+      callout.createEl("p", { text: "\u26A0\uFE0F  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice \u2014 always consult your union representative for formal disputes." });
+      new import_obsidian8.Setting(containerEl).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts.").addText((t) => t.setPlaceholder("1265").setValue(String(dt.contractedHours)).onChange(async (v) => {
+        const n = parseFloat(v);
+        if (!isNaN(n) && n > 0) {
+          dt.contractedHours = n;
+          await this.plugin.saveSettings();
+        }
+      }));
+      new import_obsidian8.Setting(containerEl).setName("Timetable fraction (%)").setDesc("For part-time teachers. Your directed time maximum = contracted hours \xD7 this %. Default: 100 (full-time).").addText((t) => t.setPlaceholder("100").setValue(String(dt.timetablePercentage)).onChange(async (v) => {
+        const n = parseFloat(v);
+        if (!isNaN(n) && n > 0 && n <= 100) {
+          dt.timetablePercentage = n;
+          await this.plugin.saveSettings();
+        }
+      }));
+      const lessonDurOptions = ["45", "50", "60"];
+      const lessonDurDropValue = lessonDurOptions.includes(String(dt.defaultLessonDurationMinutes)) ? String(dt.defaultLessonDurationMinutes) : "custom";
+      new import_obsidian8.Setting(containerEl).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden on individual slots.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange(async (v) => {
+        if (v !== "custom") {
+          dt.defaultLessonDurationMinutes = parseInt(v);
+          await this.plugin.saveSettings();
+        }
+        this.display();
+      }));
+      if (lessonDurDropValue === "custom") {
+        new import_obsidian8.Setting(containerEl).setName("Custom lesson duration (minutes)").addText((t) => t.setPlaceholder("e.g. 55").setValue(String(dt.defaultLessonDurationMinutes)).onChange(async (v) => {
+          const n = parseInt(v);
+          if (!isNaN(n) && n > 0) {
+            dt.defaultLessonDurationMinutes = n;
+            await this.plugin.saveSettings();
+          }
+        }));
+      }
+      new import_obsidian8.Setting(containerEl).setName("Export directed time").setDesc("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management.").addButton((btn) => btn.setButtonText("Export XLSX\u2026").setCta().onClick(() => new DirectedTimeExportModal(this.app, this.plugin).open()));
+      new import_obsidian8.Setting(containerEl).setName("Directed time guide").setDesc("Open the guide note explaining how the tracker works and your statutory rights.").addButton((btn) => btn.setButtonText("Open guide").onClick(async () => {
+        await this.createDirectedTimeGuideNote();
+        const path = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/Directed Time \u2014 Guide.md";
+        const file = this.app.vault.getAbstractFileByPath(path);
+        if (file instanceof import_obsidian9.TFile) await this.app.workspace.getLeaf(false).openFile(file);
+      }));
+    }
+    containerEl.createEl("h3", { text: "Holidays & INSET Days" });
+    containerEl.createEl("p", {
+      text: "Mark date ranges as holidays or INSET training days. Individual day columns are greyed out in the planner.",
+      cls: "setting-item-description"
+    });
+    const overridesContainer = containerEl.createDiv("tp-overrides-list");
+    this.renderWeekOverridesList(overridesContainer);
+    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET range").setCta().onClick(async () => {
+      var _a2;
+      const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+      const newOverride = { startDate: today, type: "holiday", label: "" };
+      this.plugin.settings.weekOverrides.push(newOverride);
+      await this.plugin.saveSettings();
+      (_a2 = overridesContainer.querySelector("p")) == null ? void 0 : _a2.remove();
+      this.renderWeekOverrideRow(overridesContainer, newOverride);
+    }));
+    containerEl.createEl("h3", { text: "School Day Blocks" });
+    containerEl.createEl("p", {
+      text: "Define the types of block that make up your school day \u2014 lessons, breaks, registration, admin time, and so on. Each block type has a colour that appears as a shaded band in the week view, making it easy to see your day structure at a glance. Assign block types to individual periods in School Timetable.",
+      cls: "setting-item-description"
+    });
+    if (!this.plugin.settings.periodTypes) this.plugin.settings.periodTypes = [];
+    const periodTypesContainer = containerEl.createDiv("tp-activities-list");
+    this.renderPeriodTypesList(periodTypesContainer);
+    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(async () => {
+      this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: "#b4befe" });
+      await this.plugin.saveSettings();
+      periodTypesContainer.empty();
+      this.renderPeriodTypesList(periodTypesContainer);
+    }));
+    containerEl.createEl("h3", { text: "School Timetable" });
+    containerEl.createEl("p", {
+      text: "All periods appear in the timetable editor. Colours and types are configured in School Day Blocks above.",
+      cls: "setting-item-description"
+    });
+    const periodsContainer = containerEl.createDiv("tp-periods-list");
+    this.renderPeriodsList(periodsContainer);
+    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
+      new AddPeriodModal(this.app, async (period) => {
+        this.plugin.settings.academicYear.periods.push(period);
+        this.sortPeriods();
+        await this.plugin.saveSettings();
+        periodsContainer.empty();
+        this.renderPeriodsList(periodsContainer);
+      }).open();
+    }));
+    new import_obsidian8.Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekEnabled).onChange(async (v) => {
+      this.plugin.settings.academicYear.abWeekEnabled = v;
+      await this.plugin.saveSettings();
+      this.display();
+    }));
+    if (this.plugin.settings.academicYear.abWeekEnabled) {
+      new import_obsidian8.Setting(containerEl).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.plugin.settings.academicYear.abWeekStartsOn).onChange(async (v) => {
+        this.plugin.settings.academicYear.abWeekStartsOn = v;
+        await this.plugin.saveSettings();
+      }));
+    }
+    containerEl.createEl("h3", { text: "Lessons" });
+    containerEl.createEl("p", {
+      text: "Define your subjects and class groups. Colours appear on lesson blocks in the week view.",
+      cls: "setting-item-description"
+    });
+    const classesContainer = containerEl.createDiv("tp-classes-list");
+    this.renderSubjectsList(classesContainer);
+    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(async () => {
+      const colour = CLASS_COLOUR_PALETTE[this.plugin.settings.subjects.length % CLASS_COLOUR_PALETTE.length];
+      this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour });
+      await this.plugin.saveSettings();
+      classesContainer.empty();
+      this.renderSubjectsList(classesContainer);
+    }));
+    containerEl.createEl("h3", { text: "Events \u2014 Directed time" });
+    containerEl.createEl("p", {
+      text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Set a default duration so the tracker can calculate your hours automatically \u2014 or leave it blank to enter the duration each time.",
+      cls: "setting-item-description"
+    });
+    if (!this.plugin.settings.activities) this.plugin.settings.activities = [];
+    const activityHeaders = containerEl.createDiv("tp-activity-row tp-activity-headers");
+    activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;";
+    const makeHeader = (text2, extraStyle = "") => {
+      const h = activityHeaders.createEl("span", { text: text2, cls: "tp-activity-header-label" });
+      if (extraStyle) h.style.cssText = extraStyle;
+      return h;
+    };
+    makeHeader("Name");
+    makeHeader("Info");
+    makeHeader("Classroom");
+    makeHeader("Duration", "flex:0 0 54px;width:54px;");
+    activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;";
+    activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;";
+    const activitiesContainer = containerEl.createDiv("tp-activities-list");
+    this.renderActivitiesList(activitiesContainer, "directed");
+    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(async () => {
+      this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Activity", colour: "#cba6f7", activityType: "directed" });
+      await this.plugin.saveSettings();
+      activitiesContainer.empty();
+      this.renderActivitiesList(activitiesContainer, "directed");
+    }));
+    containerEl.createEl("h3", { text: "Events \u2014 Other" });
+    const otherDesc = containerEl.createEl("p", {
+      text: "\u26A0\uFE0F  Items in this section appear in the planner but are excluded from the directed time count. Use these for personal appointments, reminders, or any non-directed activity.",
+      cls: "setting-item-description"
+    });
+    const otherContainer = containerEl.createDiv("tp-activities-list");
+    this.renderActivitiesList(otherContainer, "other");
+    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add other event").setCta().onClick(async () => {
+      this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Other Event", colour: "#888888", activityType: "other" });
+      await this.plugin.saveSettings();
+      otherContainer.empty();
+      this.renderActivitiesList(otherContainer, "other");
+    }));
+    containerEl.createEl("h3", { text: "Vault" });
+    new import_obsidian8.Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created").addText((t) => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder).onChange(async (v) => {
+      this.plugin.settings.plannerFolder = v;
+      await this.plugin.saveSettings();
+    }));
     containerEl.createEl("h3", { text: "Grid Visuals" });
     const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
     const blockColourSetting = new import_obsidian8.Setting(containerEl).setName("Period block border colour").setDesc("Border on the top and bottom edge of each period band.");
@@ -26744,165 +26917,6 @@ var TeacherPlannerSettingTab = class extends import_obsidian8.PluginSettingTab {
         await this.plugin.saveSettings();
       });
     });
-    containerEl.createEl("h3", { text: "Block Types" });
-    containerEl.createEl("p", {
-      text: "Define period types and their colours. These appear as shaded bands in the week view.",
-      cls: "setting-item-description"
-    });
-    if (!this.plugin.settings.periodTypes) this.plugin.settings.periodTypes = [];
-    const periodTypesContainer = containerEl.createDiv("tp-activities-list");
-    this.renderPeriodTypesList(periodTypesContainer);
-    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(async () => {
-      this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: "#b4befe" });
-      await this.plugin.saveSettings();
-      periodTypesContainer.empty();
-      this.renderPeriodTypesList(periodTypesContainer);
-    }));
-    containerEl.createEl("h3", { text: "School Timetable" });
-    containerEl.createEl("p", {
-      text: "All periods appear in the timetable editor. Colours and types are configured in Block Types above.",
-      cls: "setting-item-description"
-    });
-    const periodsContainer = containerEl.createDiv("tp-periods-list");
-    this.renderPeriodsList(periodsContainer);
-    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
-      new AddPeriodModal(this.app, async (period) => {
-        this.plugin.settings.academicYear.periods.push(period);
-        this.sortPeriods();
-        await this.plugin.saveSettings();
-        periodsContainer.empty();
-        this.renderPeriodsList(periodsContainer);
-      }).open();
-    }));
-    containerEl.createEl("h3", { text: "Lessons" });
-    containerEl.createEl("p", {
-      text: "Define your subjects and class groups. Colours appear on lesson blocks in the week view.",
-      cls: "setting-item-description"
-    });
-    const classesContainer = containerEl.createDiv("tp-classes-list");
-    this.renderSubjectsList(classesContainer);
-    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(async () => {
-      const colour = CLASS_COLOUR_PALETTE[this.plugin.settings.subjects.length % CLASS_COLOUR_PALETTE.length];
-      this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour });
-      await this.plugin.saveSettings();
-      classesContainer.empty();
-      this.renderSubjectsList(classesContainer);
-    }));
-    containerEl.createEl("h3", { text: "Directed Time Tracker" });
-    if (!this.plugin.settings.directedTime) {
-      this.plugin.settings.directedTime = { enabled: false, contractedHours: 1265, timetablePercentage: 100, defaultLessonDurationMinutes: 60 };
-    }
-    const dt = this.plugin.settings.directedTime;
-    new import_obsidian8.Setting(containerEl).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(dt.enabled).onChange(async (v) => {
-      dt.enabled = v;
-      await this.plugin.saveSettings();
-      if (v) await this.createDirectedTimeGuideNote();
-      this.display();
-    }));
-    if (dt.enabled) {
-      const callout = containerEl.createDiv("tp-dt-callout");
-      callout.createEl("p", { text: "\u2139\uFE0F  How it works: Directed time is counted only from items placed in your planner. The tracker shows hours accrued to today and a projection based on future planned events. Keep your planner up to date for accurate figures." });
-      callout.createEl("p", { text: "\u26A0\uFE0F  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice \u2014 always consult your union representative for formal disputes." });
-      new import_obsidian8.Setting(containerEl).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts.").addText((t) => t.setPlaceholder("1265").setValue(String(dt.contractedHours)).onChange(async (v) => {
-        const n = parseFloat(v);
-        if (!isNaN(n) && n > 0) {
-          dt.contractedHours = n;
-          await this.plugin.saveSettings();
-        }
-      }));
-      new import_obsidian8.Setting(containerEl).setName("Timetable fraction (%)").setDesc("For part-time teachers. Your directed time maximum = contracted hours \xD7 this %. Default: 100 (full-time).").addText((t) => t.setPlaceholder("100").setValue(String(dt.timetablePercentage)).onChange(async (v) => {
-        const n = parseFloat(v);
-        if (!isNaN(n) && n > 0 && n <= 100) {
-          dt.timetablePercentage = n;
-          await this.plugin.saveSettings();
-        }
-      }));
-      const lessonDurOptions = ["45", "50", "60"];
-      const lessonDurDropValue = lessonDurOptions.includes(String(dt.defaultLessonDurationMinutes)) ? String(dt.defaultLessonDurationMinutes) : "custom";
-      new import_obsidian8.Setting(containerEl).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden on individual slots.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange(async (v) => {
-        if (v !== "custom") {
-          dt.defaultLessonDurationMinutes = parseInt(v);
-          await this.plugin.saveSettings();
-        }
-        this.display();
-      }));
-      if (lessonDurDropValue === "custom") {
-        new import_obsidian8.Setting(containerEl).setName("Custom lesson duration (minutes)").addText((t) => t.setPlaceholder("e.g. 55").setValue(String(dt.defaultLessonDurationMinutes)).onChange(async (v) => {
-          const n = parseInt(v);
-          if (!isNaN(n) && n > 0) {
-            dt.defaultLessonDurationMinutes = n;
-            await this.plugin.saveSettings();
-          }
-        }));
-      }
-      new import_obsidian8.Setting(containerEl).setName("Export directed time").setDesc("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management.").addButton((btn) => btn.setButtonText("Export XLSX\u2026").setCta().onClick(() => new DirectedTimeExportModal(this.app, this.plugin).open()));
-      new import_obsidian8.Setting(containerEl).setName("Directed time guide").setDesc("Open the guide note explaining how the tracker works and your statutory rights.").addButton((btn) => btn.setButtonText("Open guide").onClick(async () => {
-        await this.createDirectedTimeGuideNote();
-        const path = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/Directed Time \u2014 Guide.md";
-        const file = this.app.vault.getAbstractFileByPath(path);
-        if (file instanceof import_obsidian9.TFile) await this.app.workspace.getLeaf(false).openFile(file);
-      }));
-    }
-    containerEl.createEl("h3", { text: "Directed time" });
-    containerEl.createEl("p", {
-      text: "Activities placed here count toward your directed time total when added to the planner.",
-      cls: "setting-item-description"
-    });
-    if (!this.plugin.settings.activities) this.plugin.settings.activities = [];
-    const activitiesContainer = containerEl.createDiv("tp-activities-list");
-    this.renderActivitiesList(activitiesContainer, "directed");
-    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(async () => {
-      this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Activity", colour: "#cba6f7", activityType: "directed" });
-      await this.plugin.saveSettings();
-      activitiesContainer.empty();
-      this.renderActivitiesList(activitiesContainer, "directed");
-    }));
-    containerEl.createEl("h3", { text: "Other Events" });
-    const otherDesc = containerEl.createEl("p", {
-      text: "\u26A0\uFE0F  Items in this section appear in the planner but are excluded from the directed time count. Use these for personal appointments, reminders, or any non-directed activity.",
-      cls: "setting-item-description"
-    });
-    const otherContainer = containerEl.createDiv("tp-activities-list");
-    this.renderActivitiesList(otherContainer, "other");
-    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add other event").setCta().onClick(async () => {
-      this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Other Event", colour: "#888888", activityType: "other" });
-      await this.plugin.saveSettings();
-      otherContainer.empty();
-      this.renderActivitiesList(otherContainer, "other");
-    }));
-    containerEl.createEl("h3", { text: "Holidays & INSET Days" });
-    containerEl.createEl("p", {
-      text: "Mark date ranges as holidays or INSET training days. Individual day columns are greyed out in the planner.",
-      cls: "setting-item-description"
-    });
-    const overridesContainer = containerEl.createDiv("tp-overrides-list");
-    this.renderWeekOverridesList(overridesContainer);
-    new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET range").setCta().onClick(async () => {
-      var _a2;
-      const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-      const newOverride = { startDate: today, type: "holiday", label: "" };
-      this.plugin.settings.weekOverrides.push(newOverride);
-      await this.plugin.saveSettings();
-      (_a2 = overridesContainer.querySelector("p")) == null ? void 0 : _a2.remove();
-      this.renderWeekOverrideRow(overridesContainer, newOverride);
-    }));
-    containerEl.createEl("h3", { text: "Timetable Rotation" });
-    new import_obsidian8.Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekEnabled).onChange(async (v) => {
-      this.plugin.settings.academicYear.abWeekEnabled = v;
-      await this.plugin.saveSettings();
-      this.display();
-    }));
-    if (this.plugin.settings.academicYear.abWeekEnabled) {
-      new import_obsidian8.Setting(containerEl).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.plugin.settings.academicYear.abWeekStartsOn).onChange(async (v) => {
-        this.plugin.settings.academicYear.abWeekStartsOn = v;
-        await this.plugin.saveSettings();
-      }));
-    }
-    containerEl.createEl("h3", { text: "Vault" });
-    new import_obsidian8.Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created").addText((t) => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder).onChange(async (v) => {
-      this.plugin.settings.plannerFolder = v;
-      await this.plugin.saveSettings();
-    }));
     containerEl.createEl("h3", { text: "Export" });
     new import_obsidian8.Setting(containerEl).setName("Export planner data").setDesc("Download timetable or date events as Excel or CSV into your Planner folder.").addButton((btn) => btn.setButtonText("Export data\u2026").setCta().onClick(() => new ExportModal(this.app, this.plugin).open()));
     containerEl.createEl("h3", { text: "Reset" });
@@ -26913,6 +26927,32 @@ var TeacherPlannerSettingTab = class extends import_obsidian8.PluginSettingTab {
       this.renderPeriodsList(periodsContainer);
       new import_obsidian8.Notice("Periods reset to defaults.");
     }));
+    this.wrapSectionsCollapsible(containerEl);
+  }
+  wrapSectionsCollapsible(container) {
+    const h3s = Array.from(container.querySelectorAll(":scope > h3"));
+    for (const h3 of h3s) {
+      const siblings = [];
+      let next = h3.nextElementSibling;
+      while (next && next.tagName !== "H3") {
+        siblings.push(next);
+        next = next.nextElementSibling;
+      }
+      const content = container.createDiv("tp-collapsible-content");
+      content.style.display = "none";
+      h3.after(content);
+      for (const s of siblings) content.appendChild(s);
+      const chevron = document.createElement("span");
+      chevron.className = "tp-collapsible-chevron";
+      chevron.textContent = "\u203A";
+      h3.insertBefore(chevron, h3.firstChild);
+      h3.addClass("tp-collapsible-header");
+      h3.addEventListener("click", () => {
+        const isOpen = content.style.display !== "none";
+        content.style.display = isOpen ? "none" : "block";
+        chevron.style.transform = isOpen ? "" : "rotate(90deg)";
+      });
+    }
   }
   sortPeriods() {
     this.plugin.settings.academicYear.periods.sort((a, b) => a.start.localeCompare(b.start));
@@ -27696,71 +27736,9 @@ var AddDateEventModal = class extends import_obsidian10.Modal {
   }
 };
 
-// src/modals/EventPickerModal.ts
-var import_obsidian11 = require("obsidian");
-var EventPickerModal = class extends import_obsidian11.Modal {
-  constructor(app, plugin, onPick) {
-    super(app);
-    this.plugin = plugin;
-    this.onPick = onPick;
-  }
-  onOpen() {
-    var _a, _b, _c;
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.addClass("tp-event-picker-modal");
-    contentEl.createEl("h3", { text: "Add Event", cls: "tp-epm-title" });
-    const classes = (_a = this.plugin.settings.classes) != null ? _a : [];
-    const activities = (_b = this.plugin.settings.activities) != null ? _b : [];
-    const subjects = (_c = this.plugin.settings.subjects) != null ? _c : [];
-    const list = contentEl.createDiv("tp-epm-list");
-    if (classes.length > 0) {
-      list.createEl("div", { text: "LESSONS", cls: "tp-epm-group-label" });
-      const sortedSubjects = [...subjects].sort((a, b) => a.name.localeCompare(b.name));
-      for (const subj of sortedSubjects) {
-        const subjClasses = classes.filter((c) => c.subjectId === subj.id).sort((a, b) => a.code.localeCompare(b.code));
-        for (const cls of subjClasses) {
-          const btn = list.createEl("button", { cls: "tp-epm-item" });
-          btn.style.borderLeft = `3px solid ${cls.colour}`;
-          btn.createEl("span", { text: cls.code, cls: "tp-epm-code" });
-          if (cls.classroom) {
-            btn.createEl("span", { text: cls.classroom, cls: "tp-epm-room" });
-          }
-          btn.addEventListener("click", () => {
-            this.onPick(cls.id);
-            this.close();
-          });
-        }
-      }
-    }
-    if (activities.length > 0) {
-      if (classes.length > 0) list.createEl("div", { cls: "tp-epm-divider" });
-      list.createEl("div", { text: "DIRECTED TIME", cls: "tp-epm-group-label" });
-      const sortedActs = [...activities].sort((a, b) => a.label.localeCompare(b.label));
-      for (const act of sortedActs) {
-        const btn = list.createEl("button", { cls: "tp-epm-item" });
-        btn.style.borderLeft = `3px solid ${act.colour}`;
-        btn.createEl("span", { text: act.label, cls: "tp-epm-code" });
-        if (act.classroom) {
-          btn.createEl("span", { text: act.classroom, cls: "tp-epm-room" });
-        }
-        btn.addEventListener("click", () => {
-          this.onPick(act.id);
-          this.close();
-        });
-      }
-    }
-    const footer = contentEl.createDiv("tp-epm-footer");
-    footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
-  }
-  onClose() {
-    this.contentEl.empty();
-  }
-};
-
 // src/views/WeekView.svelte
 function add_css3(target) {
-  append_styles(target, "svelte-10qy4kn", ".tp-week-view.svelte-10qy4kn.svelte-10qy4kn{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-10qy4kn.svelte-10qy4kn{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-10qy4kn.svelte-10qy4kn{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-10qy4kn.svelte-10qy4kn{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-10qy4kn.svelte-10qy4kn{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-10qy4kn.svelte-10qy4kn{display:flex;gap:4px}.tp-nav-arrow.svelte-10qy4kn.svelte-10qy4kn{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-10qy4kn.svelte-10qy4kn{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-10qy4kn.svelte-10qy4kn{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-10qy4kn.svelte-10qy4kn{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-10qy4kn.svelte-10qy4kn{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-10qy4kn.svelte-10qy4kn{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-10qy4kn.svelte-10qy4kn:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-10qy4kn.svelte-10qy4kn:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-10qy4kn.svelte-10qy4kn{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-10qy4kn.svelte-10qy4kn:hover{opacity:0.88}.tp-btn.svelte-10qy4kn svg,.tp-btn-icon.svelte-10qy4kn svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-10qy4kn.svelte-10qy4kn{padding:5px 8px}.tp-action-btn--icon-only.svelte-10qy4kn svg{width:15px;height:15px}.tp-overflow-btn.svelte-10qy4kn.svelte-10qy4kn{display:none}.tp-table-scroll.svelte-10qy4kn.svelte-10qy4kn{flex:1 1 0;overflow:auto;min-height:0}.tp-grid.svelte-10qy4kn.svelte-10qy4kn{width:100%;border-collapse:collapse;table-layout:fixed;align-self:start}.tp-col-time.svelte-10qy4kn.svelte-10qy4kn{width:48px}.tp-col-period.svelte-10qy4kn.svelte-10qy4kn{width:95px}.tp-head-row.svelte-10qy4kn.svelte-10qy4kn{position:sticky;top:0;z-index:10;background:var(--background-secondary)}.tp-th-time.svelte-10qy4kn.svelte-10qy4kn,.tp-th-period.svelte-10qy4kn.svelte-10qy4kn,.tp-th-day.svelte-10qy4kn.svelte-10qy4kn{padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);text-align:center;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));border-top:none;white-space:nowrap;background:var(--background-secondary)}.tp-th-time.svelte-10qy4kn.svelte-10qy4kn{text-align:left;padding-left:8px}.tp-th-period.svelte-10qy4kn.svelte-10qy4kn{text-align:left;padding-left:10px}.tp-th-day--today.svelte-10qy4kn.svelte-10qy4kn{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-10qy4kn.svelte-10qy4kn{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-10qy4kn.svelte-10qy4kn{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day.svelte-10qy4kn.svelte-10qy4kn{text-align:left !important}.tp-th-day-inner.svelte-10qy4kn.svelte-10qy4kn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-10qy4kn.svelte-10qy4kn{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-10qy4kn.svelte-10qy4kn{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-10qy4kn.svelte-10qy4kn{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-10qy4kn.svelte-10qy4kn{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-10qy4kn.svelte-10qy4kn{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-10qy4kn.svelte-10qy4kn{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-td-time.svelte-10qy4kn.svelte-10qy4kn{padding:4px 6px 0 8px;font-size:11px;color:var(--text-muted);vertical-align:top;white-space:nowrap;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));background:var(--background-secondary);height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-td-period.svelte-10qy4kn.svelte-10qy4kn{padding:0;vertical-align:top;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-period-inner.svelte-10qy4kn.svelte-10qy4kn{display:flex;flex-direction:column;justify-content:flex-start;gap:2px;height:100%;padding:5px 8px;box-sizing:border-box}.tp-period-name.svelte-10qy4kn.svelte-10qy4kn{font-size:13px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-period-time.svelte-10qy4kn.svelte-10qy4kn{font-size:11px;color:var(--text-muted);line-height:1.2;white-space:nowrap}.tp-td-cell.svelte-10qy4kn.svelte-10qy4kn{position:relative;padding:3px;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));vertical-align:top;transition:background 0.1s;overflow:hidden;height:var(--rh,64px);max-height:var(--rh,64px);box-sizing:border-box}.tp-td-cell--holiday.svelte-10qy4kn.svelte-10qy4kn{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent) !important}.tp-td-cell--inset.svelte-10qy4kn.svelte-10qy4kn{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent) !important}.tp-td-cell--dragover.svelte-10qy4kn.svelte-10qy4kn{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-td-cell--reject.svelte-10qy4kn.svelte-10qy4kn{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-chip.svelte-10qy4kn.svelte-10qy4kn{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal)}.tp-chip.svelte-10qy4kn.svelte-10qy4kn:hover{filter:brightness(1.08)}.tp-chip-code.svelte-10qy4kn.svelte-10qy4kn{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-10qy4kn.svelte-10qy4kn{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-10qy4kn.svelte-10qy4kn{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-10qy4kn.svelte-10qy4kn{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}.tp-now-line.svelte-10qy4kn.svelte-10qy4kn{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-badge.svelte-10qy4kn.svelte-10qy4kn{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-10qy4kn.svelte-10qy4kn{position:absolute;inset:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-10qy4kn .tp-chip.svelte-10qy4kn{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-10qy4kn.svelte-10qy4kn{display:none}@container (max-width: 680px){.tp-action-btn.svelte-10qy4kn.svelte-10qy4kn{display:none}.tp-overflow-btn.svelte-10qy4kn.svelte-10qy4kn{display:inline-flex !important}.tp-header.svelte-10qy4kn.svelte-10qy4kn{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-10qy4kn.svelte-10qy4kn{justify-content:center}.tp-header-identity.svelte-10qy4kn.svelte-10qy4kn{min-width:0;overflow:hidden}.tp-week-label.svelte-10qy4kn.svelte-10qy4kn{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-10qy4kn.svelte-10qy4kn{display:none}.tp-th-day.svelte-10qy4kn.svelte-10qy4kn{padding:5px 2px}.tp-th-day-inner.svelte-10qy4kn.svelte-10qy4kn{flex-direction:column;align-items:center;justify-content:center;gap:1px}.tp-day-label.svelte-10qy4kn.svelte-10qy4kn{flex-direction:column;align-items:center;gap:1px}.tp-day-name.svelte-10qy4kn.svelte-10qy4kn{font-size:12px}.tp-day-date.svelte-10qy4kn.svelte-10qy4kn{font-size:10px}.tp-day-override-badge.svelte-10qy4kn.svelte-10qy4kn{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-col-time.svelte-10qy4kn.svelte-10qy4kn{width:28px}.tp-col-period.svelte-10qy4kn.svelte-10qy4kn{width:42px}.tp-th-time.svelte-10qy4kn.svelte-10qy4kn{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-th-period.svelte-10qy4kn.svelte-10qy4kn{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-td-time.svelte-10qy4kn.svelte-10qy4kn{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:normal;vertical-align:middle}.tp-period-inner.svelte-10qy4kn.svelte-10qy4kn{writing-mode:vertical-rl;transform:rotate(180deg);align-items:center;padding:4px 2px}.tp-period-name.svelte-10qy4kn.svelte-10qy4kn{white-space:nowrap}.tp-period-time.svelte-10qy4kn.svelte-10qy4kn{white-space:nowrap}.tp-day-name.svelte-10qy4kn.svelte-10qy4kn{font-size:11px}.tp-day-date.svelte-10qy4kn.svelte-10qy4kn{font-size:10px}}");
+  append_styles(target, "svelte-erw17l", ".tp-week-view.svelte-erw17l.svelte-erw17l{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-erw17l.svelte-erw17l{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-erw17l.svelte-erw17l{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-erw17l.svelte-erw17l{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-erw17l.svelte-erw17l{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-erw17l.svelte-erw17l{display:flex;gap:4px}.tp-nav-arrow.svelte-erw17l.svelte-erw17l{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-erw17l.svelte-erw17l{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-erw17l.svelte-erw17l{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-erw17l.svelte-erw17l{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-erw17l.svelte-erw17l{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-erw17l.svelte-erw17l{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-erw17l.svelte-erw17l:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-erw17l.svelte-erw17l:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-erw17l.svelte-erw17l{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-erw17l.svelte-erw17l:hover{opacity:0.88}.tp-btn.svelte-erw17l svg,.tp-btn-icon.svelte-erw17l svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-erw17l.svelte-erw17l{padding:5px 8px}.tp-action-btn--icon-only.svelte-erw17l svg{width:15px;height:15px}.tp-overflow-btn.svelte-erw17l.svelte-erw17l{display:none}.tp-table-scroll.svelte-erw17l.svelte-erw17l{flex:1 1 0;overflow:auto;min-height:0}.tp-grid.svelte-erw17l.svelte-erw17l{width:100%;border-collapse:collapse;table-layout:fixed;align-self:start}.tp-col-time.svelte-erw17l.svelte-erw17l{width:48px}.tp-col-period.svelte-erw17l.svelte-erw17l{width:95px}.tp-head-row.svelte-erw17l.svelte-erw17l{position:sticky;top:0;z-index:10;background:var(--background-secondary)}.tp-th-time.svelte-erw17l.svelte-erw17l,.tp-th-period.svelte-erw17l.svelte-erw17l,.tp-th-day.svelte-erw17l.svelte-erw17l{padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);text-align:center;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));border-top:none;white-space:nowrap;background:var(--background-secondary)}.tp-th-time.svelte-erw17l.svelte-erw17l{text-align:left;padding-left:8px}.tp-th-period.svelte-erw17l.svelte-erw17l{text-align:left;padding-left:10px}.tp-th-day--today.svelte-erw17l.svelte-erw17l{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day.svelte-erw17l.svelte-erw17l{text-align:left !important}.tp-th-day-inner.svelte-erw17l.svelte-erw17l{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-erw17l.svelte-erw17l{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-erw17l.svelte-erw17l{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-erw17l.svelte-erw17l{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-erw17l.svelte-erw17l{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-erw17l.svelte-erw17l{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-erw17l.svelte-erw17l{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-td-time.svelte-erw17l.svelte-erw17l{padding:4px 6px 0 8px;font-size:11px;color:var(--text-muted);vertical-align:top;white-space:nowrap;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));background:var(--background-secondary);height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-td-period.svelte-erw17l.svelte-erw17l{padding:0;vertical-align:top;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-period-inner.svelte-erw17l.svelte-erw17l{display:flex;flex-direction:column;justify-content:flex-start;gap:2px;height:100%;padding:5px 8px;box-sizing:border-box}.tp-period-name.svelte-erw17l.svelte-erw17l{font-size:13px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-period-time.svelte-erw17l.svelte-erw17l{font-size:11px;color:var(--text-muted);line-height:1.2;white-space:nowrap}.tp-td-cell.svelte-erw17l.svelte-erw17l{position:relative;padding:3px;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));vertical-align:top;transition:background 0.1s;overflow:hidden;height:var(--rh,64px);max-height:var(--rh,64px);box-sizing:border-box}.tp-td-cell--holiday.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent) !important}.tp-td-cell--inset.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent) !important}.tp-td-cell--dragover.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-td-cell--reject.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-chip.svelte-erw17l.svelte-erw17l{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-erw17l.svelte-erw17l:hover{filter:brightness(1.08)}.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-erw17l.svelte-erw17l{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-erw17l.svelte-erw17l{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-erw17l.svelte-erw17l{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-erw17l.svelte-erw17l,.tp-chip-notes.svelte-erw17l.svelte-erw17l{display:none}.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:13px}.tp-chip-room.svelte-erw17l.svelte-erw17l{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:12px}.tp-chip-room.svelte-erw17l.svelte-erw17l{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-erw17l.svelte-erw17l{display:none}.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:13px}.tp-chip-room.svelte-erw17l.svelte-erw17l{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:11px}.tp-chip-room.svelte-erw17l.svelte-erw17l{font-size:9px}}.tp-now-line.svelte-erw17l.svelte-erw17l{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-badge.svelte-erw17l.svelte-erw17l{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-erw17l.svelte-erw17l{position:absolute;inset:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-erw17l .tp-chip.svelte-erw17l{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-erw17l.svelte-erw17l{display:none}@container (max-width: 680px){.tp-action-btn.svelte-erw17l.svelte-erw17l{display:none}.tp-overflow-btn.svelte-erw17l.svelte-erw17l{display:inline-flex !important}.tp-header.svelte-erw17l.svelte-erw17l{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-erw17l.svelte-erw17l{justify-content:center}.tp-header-identity.svelte-erw17l.svelte-erw17l{min-width:0;overflow:hidden}.tp-week-label.svelte-erw17l.svelte-erw17l{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-erw17l.svelte-erw17l{display:none}.tp-th-day.svelte-erw17l.svelte-erw17l{padding:5px 2px}.tp-th-day-inner.svelte-erw17l.svelte-erw17l{flex-direction:column;align-items:center;justify-content:center;gap:1px}.tp-day-label.svelte-erw17l.svelte-erw17l{flex-direction:column;align-items:center;gap:1px}.tp-day-name.svelte-erw17l.svelte-erw17l{font-size:12px}.tp-day-date.svelte-erw17l.svelte-erw17l{font-size:10px}.tp-day-override-badge.svelte-erw17l.svelte-erw17l{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-col-time.svelte-erw17l.svelte-erw17l{width:28px}.tp-col-period.svelte-erw17l.svelte-erw17l{width:42px}.tp-th-time.svelte-erw17l.svelte-erw17l{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-th-period.svelte-erw17l.svelte-erw17l{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-td-time.svelte-erw17l.svelte-erw17l{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:normal;vertical-align:middle}.tp-period-inner.svelte-erw17l.svelte-erw17l{writing-mode:vertical-rl;transform:rotate(180deg);align-items:center;padding:4px 2px}.tp-period-name.svelte-erw17l.svelte-erw17l{white-space:nowrap}.tp-period-time.svelte-erw17l.svelte-erw17l{white-space:nowrap}.tp-day-name.svelte-erw17l.svelte-erw17l{font-size:11px}.tp-day-date.svelte-erw17l.svelte-erw17l{font-size:10px}}");
 }
 function get_each_context3(ctx, list, i) {
   const child_ctx = ctx.slice();
@@ -27922,7 +27900,7 @@ function create_if_block_132(ctx) {
         ctx[3]
       );
       attr(span, "class", span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx[3].toLowerCase() + " svelte-10qy4kn");
+      ctx[3].toLowerCase() + " svelte-erw17l");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -27938,7 +27916,7 @@ function create_if_block_132(ctx) {
       );
       if (dirty[0] & /*abWeekType*/
       8 && span_class_value !== (span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx2[3].toLowerCase() + " svelte-10qy4kn")) {
+      ctx2[3].toLowerCase() + " svelte-erw17l")) {
         attr(span, "class", span_class_value);
       }
     },
@@ -27972,7 +27950,7 @@ function create_if_block_122(ctx) {
     c() {
       span = element("span");
       span.textContent = "Inset";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-10qy4kn");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-erw17l");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -27990,7 +27968,7 @@ function create_if_block_112(ctx) {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-10qy4kn");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-erw17l");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -28048,11 +28026,11 @@ function create_each_block_32(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-name svelte-10qy4kn");
-      attr(span1, "class", "tp-day-date svelte-10qy4kn");
-      attr(span2, "class", "tp-day-label svelte-10qy4kn");
-      attr(div, "class", "tp-th-day-inner svelte-10qy4kn");
-      attr(th, "class", "tp-th-day svelte-10qy4kn");
+      attr(span0, "class", "tp-day-name svelte-erw17l");
+      attr(span1, "class", "tp-day-date svelte-erw17l");
+      attr(span2, "class", "tp-day-label svelte-erw17l");
+      attr(div, "class", "tp-th-day-inner svelte-erw17l");
+      attr(th, "class", "tp-th-day svelte-erw17l");
       toggle_class(th, "tp-th-day--today", isToday(
         /*day*/
         ctx[95].offset,
@@ -28152,7 +28130,7 @@ function create_if_block_102(ctx) {
         /*currentTimeStr*/
         ctx[9]
       );
-      attr(div, "class", "tp-now-badge svelte-10qy4kn");
+      attr(div, "class", "tp-now-badge svelte-erw17l");
       set_style(
         div,
         "top",
@@ -28218,7 +28196,7 @@ function create_if_block_22(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-event-stack svelte-10qy4kn");
+      attr(div, "class", "tp-event-stack svelte-erw17l");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -28327,8 +28305,8 @@ function create_if_block_62(ctx) {
       if (if_block1) if_block1.c();
       t3 = space();
       if (if_block2) if_block2.c();
-      attr(span, "class", "tp-chip-code svelte-10qy4kn");
-      attr(div, "class", "tp-chip svelte-10qy4kn");
+      attr(span, "class", "tp-chip-code svelte-erw17l");
+      attr(div, "class", "tp-chip svelte-erw17l");
       attr(div, "draggable", "true");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
@@ -28460,7 +28438,7 @@ function create_if_block_92(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-10qy4kn");
+      attr(span, "class", "tp-chip-meta svelte-erw17l");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -28493,7 +28471,7 @@ function create_if_block_82(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-10qy4kn");
+      attr(span, "class", "tp-chip-room svelte-erw17l");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -28522,7 +28500,7 @@ function create_if_block_72(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-10qy4kn");
+      attr(span, "class", "tp-chip-notes svelte-erw17l");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -28551,7 +28529,7 @@ function create_if_block_52(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-10qy4kn");
+      attr(span, "class", "tp-chip-meta svelte-erw17l");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -28580,7 +28558,7 @@ function create_if_block_42(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-10qy4kn");
+      attr(span, "class", "tp-chip-room svelte-erw17l");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -28609,7 +28587,7 @@ function create_if_block_32(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-10qy4kn");
+      attr(span, "class", "tp-chip-notes svelte-erw17l");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -28691,8 +28669,8 @@ function create_each_block_22(key_2, ctx) {
       t3 = space();
       if (if_block2) if_block2.c();
       t4 = space();
-      attr(span, "class", "tp-chip-code svelte-10qy4kn");
-      attr(div, "class", "tp-chip tp-chip--event svelte-10qy4kn");
+      attr(span, "class", "tp-chip-code svelte-erw17l");
+      attr(div, "class", "tp-chip tp-chip--event svelte-erw17l");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
       attr(div, "draggable", "true");
@@ -28859,7 +28837,7 @@ function create_if_block2(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-now-line svelte-10qy4kn");
+      attr(div, "class", "tp-now-line svelte-erw17l");
       set_style(
         div,
         "top",
@@ -28939,7 +28917,7 @@ function create_each_block_12(ctx) {
       if (if_block1) if_block1.c();
       t1 = space();
       if (if_block2) if_block2.c();
-      attr(td, "class", "tp-td-cell svelte-10qy4kn");
+      attr(td, "class", "tp-td-cell svelte-erw17l");
       set_style(td, "background", hexToRgba3(
         /*tc*/
         ctx[90],
@@ -29180,12 +29158,12 @@ function create_each_block3(key_2, ctx) {
         each_blocks[i].c();
       }
       t9 = space();
-      attr(td0, "class", "tp-td-time svelte-10qy4kn");
+      attr(td0, "class", "tp-td-time svelte-erw17l");
       set_style(td0, "position", "relative");
-      attr(span0, "class", "tp-period-name svelte-10qy4kn");
-      attr(span1, "class", "tp-period-time svelte-10qy4kn");
-      attr(div, "class", "tp-period-inner svelte-10qy4kn");
-      attr(td1, "class", "tp-td-period svelte-10qy4kn");
+      attr(span0, "class", "tp-period-name svelte-erw17l");
+      attr(span1, "class", "tp-period-time svelte-erw17l");
+      attr(div, "class", "tp-period-inner svelte-erw17l");
+      attr(td1, "class", "tp-td-period svelte-erw17l");
       set_style(td1, "background", hexToRgba3(
         /*tc*/
         ctx[90],
@@ -29477,38 +29455,38 @@ function create_fragment3(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(span0, "class", "tp-week-label svelte-10qy4kn");
-      attr(span1, "class", "tp-date-range svelte-10qy4kn");
-      attr(div0, "class", "tp-header-identity svelte-10qy4kn");
-      attr(button0, "class", "tp-btn tp-nav-arrow svelte-10qy4kn");
+      attr(span0, "class", "tp-week-label svelte-erw17l");
+      attr(span1, "class", "tp-date-range svelte-erw17l");
+      attr(div0, "class", "tp-header-identity svelte-erw17l");
+      attr(button0, "class", "tp-btn tp-nav-arrow svelte-erw17l");
       attr(button0, "aria-label", "Previous week");
       button0.disabled = button0_disabled_value = !/*canGoPrev*/
       ctx[7];
-      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-10qy4kn");
-      attr(button2, "class", "tp-btn tp-nav-arrow svelte-10qy4kn");
+      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-erw17l");
+      attr(button2, "class", "tp-btn tp-nav-arrow svelte-erw17l");
       attr(button2, "aria-label", "Next week");
       button2.disabled = button2_disabled_value = !/*canGoNext*/
       ctx[6];
-      attr(nav, "class", "tp-nav svelte-10qy4kn");
+      attr(nav, "class", "tp-nav svelte-erw17l");
       attr(nav, "aria-label", "Week navigation");
-      attr(span2, "class", "tp-btn-icon svelte-10qy4kn");
-      attr(button3, "class", "tp-btn tp-action-btn svelte-10qy4kn");
+      attr(span2, "class", "tp-btn-icon svelte-erw17l");
+      attr(button3, "class", "tp-btn tp-action-btn svelte-erw17l");
       attr(button3, "aria-label", "Add event");
-      attr(span3, "class", "tp-btn-icon svelte-10qy4kn");
-      attr(button4, "class", "tp-btn tp-action-btn svelte-10qy4kn");
+      attr(span3, "class", "tp-btn-icon svelte-erw17l");
+      attr(button4, "class", "tp-btn tp-action-btn svelte-erw17l");
       attr(button4, "aria-label", "Edit timetable");
-      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-10qy4kn");
+      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-erw17l");
       attr(button5, "aria-label", "Settings");
-      attr(button6, "class", "tp-btn tp-overflow-btn svelte-10qy4kn");
+      attr(button6, "class", "tp-btn tp-overflow-btn svelte-erw17l");
       attr(button6, "aria-label", "More options");
-      attr(div1, "class", "tp-header-actions svelte-10qy4kn");
-      attr(header, "class", "tp-header svelte-10qy4kn");
-      attr(col0, "class", "tp-col-time svelte-10qy4kn");
-      attr(col1, "class", "tp-col-period svelte-10qy4kn");
-      attr(th0, "class", "tp-th-time svelte-10qy4kn");
-      attr(th1, "class", "tp-th-period svelte-10qy4kn");
-      attr(tr, "class", "tp-head-row svelte-10qy4kn");
-      attr(table, "class", "tp-grid svelte-10qy4kn");
+      attr(div1, "class", "tp-header-actions svelte-erw17l");
+      attr(header, "class", "tp-header svelte-erw17l");
+      attr(col0, "class", "tp-col-time svelte-erw17l");
+      attr(col1, "class", "tp-col-period svelte-erw17l");
+      attr(th0, "class", "tp-th-time svelte-erw17l");
+      attr(th1, "class", "tp-th-period svelte-erw17l");
+      attr(tr, "class", "tp-head-row svelte-erw17l");
+      attr(table, "class", "tp-grid svelte-erw17l");
       set_style(
         table,
         "--grid-colour",
@@ -29533,8 +29511,8 @@ function create_fragment3(ctx) {
         /*plugin*/
         ((_d = ctx[0].settings.blockBorderWeight) != null ? _d : 1) + "px"
       );
-      attr(div2, "class", "tp-table-scroll svelte-10qy4kn");
-      attr(div3, "class", "tp-week-view svelte-10qy4kn");
+      attr(div2, "class", "tp-table-scroll svelte-erw17l");
+      attr(div3, "class", "tp-week-view svelte-erw17l");
       attr(div3, "data-tp-theme", div3_data_tp_theme_value = /*plugin*/
       (_e = ctx[0].settings.theme) != null ? _e : "carbon");
       attr(div3, "data-tp-mode", div3_data_tp_mode_value = /*plugin*/
@@ -29884,10 +29862,10 @@ function instance3($$self, $$props, $$invalidate) {
   let canGoNext;
   var _a, _b, _c, _d, _e, _f, _g;
   function obsIcon(node, id) {
-    (0, import_obsidian12.setIcon)(node, id);
+    (0, import_obsidian11.setIcon)(node, id);
     return {
       update(newId) {
-        (0, import_obsidian12.setIcon)(node, newId);
+        (0, import_obsidian11.setIcon)(node, newId);
       }
     };
   }
@@ -30070,7 +30048,7 @@ function instance3($$self, $$props, $$invalidate) {
   }
   function openChipMenu(e, type, date, periodId, slot, event) {
     e.stopPropagation();
-    const menu = new import_obsidian12.Menu();
+    const menu = new import_obsidian11.Menu();
     const isClass = type === "slot" ? !!_classes.find((c) => c.id === (slot === null || slot === void 0 ? void 0 : slot.classId)) : !!_classes.find((c) => c.id === (event === null || event === void 0 ? void 0 : event.classId));
     if (type === "slot" && slot) {
       menu.addItem((i) => i.setTitle("Edit").setIcon("pencil").onClick(() => openNotesModal(slot, date, periodId)));
@@ -30120,21 +30098,7 @@ function instance3($$self, $$props, $$invalidate) {
     invalidate();
   }
   function openEventPickerDirect(dayDate, periodId) {
-    new EventPickerModal(
-      plugin.app,
-      plugin,
-      async (classOrActivityId) => {
-        const ev = {
-          id: "ev-" + Date.now(),
-          date: dayDate,
-          periodId,
-          classId: classOrActivityId
-        };
-        plugin.settings.dateEvents.push(ev);
-        await plugin.saveSettings();
-        invalidate();
-      }
-    ).open();
+    onAddEvent(dayDate, periodId);
   }
   function openNotesModal(slot, dayDate, periodId) {
     var _a2;
@@ -30198,7 +30162,7 @@ function instance3($$self, $$props, $$invalidate) {
   }
   function showOverflowMenu(e) {
     e.stopPropagation();
-    const menu = new import_obsidian12.Menu();
+    const menu = new import_obsidian11.Menu();
     menu.addItem((i) => i.setTitle("+ Event").setIcon("calendar-plus").onClick(() => onAddEvent()));
     menu.addItem((i) => i.setTitle("Timetable").setIcon("layout-grid").onClick(onOpenTimetable));
     menu.addItem((i) => i.setTitle("Settings").setIcon("settings").onClick(onOpenSettings));
@@ -30219,21 +30183,7 @@ function instance3($$self, $$props, $$invalidate) {
   }
   function openEventPicker(e, dayDate, periodId) {
     e.stopPropagation();
-    new EventPickerModal(
-      plugin.app,
-      plugin,
-      async (classOrActivityId) => {
-        const ev = {
-          id: "ev-" + Date.now(),
-          date: dayDate,
-          periodId,
-          classId: classOrActivityId
-        };
-        plugin.settings.dateEvents.push(ev);
-        await plugin.saveSettings();
-        invalidate();
-      }
-    ).open();
+    onAddEvent(dayDate, periodId);
   }
   async function openOrCreateLessonNote(slot, dayDate) {
     var _a2, _b2;
@@ -30243,7 +30193,7 @@ function instance3($$self, $$props, $$invalidate) {
     const fileName = `${dayDate} ${safeName}`;
     const filePath = `${folder}/${fileName}.md`;
     const existing = plugin.app.vault.getAbstractFileByPath(filePath);
-    if (existing instanceof import_obsidian12.TFile) {
+    if (existing instanceof import_obsidian11.TFile) {
       plugin.app.workspace.openLinkText(filePath, "", false);
       return;
     }
@@ -30290,7 +30240,7 @@ function instance3($$self, $$props, $$invalidate) {
     const safeName = cls.code.replace(/[\\/:*?"<>|]/g, "-");
     const filePath = `${folder}/${dayDate} ${safeName}.md`;
     const existing = plugin.app.vault.getAbstractFileByPath(filePath);
-    if (existing instanceof import_obsidian12.TFile) {
+    if (existing instanceof import_obsidian11.TFile) {
       plugin.app.workspace.openLinkText(filePath, "", false);
       return;
     }
@@ -30628,7 +30578,7 @@ var WeekView_default = WeekView;
 
 // src/views/WeekView.ts
 var WEEK_VIEW_TYPE = "teacher-planner-week-view";
-var WeekView2 = class extends import_obsidian13.ItemView {
+var WeekView2 = class extends import_obsidian12.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.component = null;
@@ -30692,10 +30642,10 @@ var WeekView2 = class extends import_obsidian13.ItemView {
 };
 
 // src/views/CalendarSidebarView.ts
-var import_obsidian15 = require("obsidian");
+var import_obsidian14 = require("obsidian");
 
 // src/views/CalendarSidebarComponent.svelte
-var import_obsidian14 = require("obsidian");
+var import_obsidian13 = require("obsidian");
 function add_css4(target) {
   append_styles(target, "svelte-1ay1088", ".tp-sidebar.svelte-1ay1088.svelte-1ay1088{display:flex;flex-direction:column;flex:1;height:100%;min-height:0;background:var(--background-primary);font-family:var(--font-interface);overflow:hidden}.tp-cal.svelte-1ay1088.svelte-1ay1088{padding:16px 12px 10px;flex-shrink:0}.tp-cal-header.svelte-1ay1088.svelte-1ay1088{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.tp-cal-title.svelte-1ay1088.svelte-1ay1088{font-size:20px;font-weight:700;color:var(--text-normal);margin:0;line-height:1.1}.tp-cal-year.svelte-1ay1088.svelte-1ay1088{color:var(--interactive-accent)}.tp-cal-nav-group.svelte-1ay1088.svelte-1ay1088{display:flex;align-items:center;gap:2px}.tp-cal-nav.svelte-1ay1088.svelte-1ay1088{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:20px;padding:2px 5px;border-radius:4px;line-height:1;transition:color 0.1s}.tp-cal-nav.svelte-1ay1088.svelte-1ay1088:hover:not(:disabled){color:var(--text-normal);background:var(--background-modifier-hover)}.tp-cal-nav.svelte-1ay1088.svelte-1ay1088:disabled{opacity:0.25;cursor:default}.tp-cal-today-btn.svelte-1ay1088.svelte-1ay1088{font-size:11px;font-weight:700;letter-spacing:0.05em;color:var(--text-muted);background:none;border:none;border-radius:4px;padding:3px 7px;cursor:pointer;transition:color 0.1s}.tp-cal-today-btn.svelte-1ay1088.svelte-1ay1088:hover{color:var(--text-normal)}.tp-cal-grid.svelte-1ay1088.svelte-1ay1088{display:grid;grid-template-columns:repeat(7, 1fr);gap:0;row-gap:2px}.tp-cal-dow.svelte-1ay1088.svelte-1ay1088{text-align:center;font-size:10px;font-weight:700;letter-spacing:0.06em;color:var(--text-faint);padding:0 0 8px}.tp-cal-day.svelte-1ay1088.svelte-1ay1088{text-align:center;font-size:13px;padding:3px 2px;color:var(--text-muted);line-height:1;min-height:28px;display:flex;align-items:center;justify-content:center}.tp-cal-day-num.svelte-1ay1088.svelte-1ay1088{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid transparent;border-radius:3px;transition:border-color 0.12s}.tp-cal-day--clickable.svelte-1ay1088.svelte-1ay1088{cursor:pointer}.tp-cal-day--clickable.svelte-1ay1088:hover .tp-cal-day-num.svelte-1ay1088{border-color:var(--interactive-accent)}.tp-cal-day--outside.svelte-1ay1088.svelte-1ay1088{color:var(--text-faint)}.tp-cal-day--faded.svelte-1ay1088.svelte-1ay1088{opacity:0.3;cursor:default;pointer-events:none}.tp-cal-day--today.svelte-1ay1088 .tp-cal-day-num.svelte-1ay1088{color:var(--interactive-accent);font-weight:700}.tp-sb-notes.svelte-1ay1088.svelte-1ay1088{flex:1;display:flex;flex-direction:column;margin:6px 12px 12px;border-radius:8px;background:var(--background-secondary);border:1px solid var(--background-modifier-border);overflow:hidden;min-height:60px}.tp-sb-notes-textarea.svelte-1ay1088.svelte-1ay1088{flex:1;resize:none;width:100%;box-sizing:border-box;padding:10px 12px;background:transparent;color:var(--text-normal);border:none;outline:none;overflow-y:auto;font-family:var(--font-text);font-size:13px;line-height:1.5}.tp-sb-notes-textarea.svelte-1ay1088.svelte-1ay1088::placeholder{color:var(--text-faint);font-style:italic;font-size:12px}.tp-sb-dt.svelte-1ay1088.svelte-1ay1088{margin:0 12px 12px;border-radius:8px;background:var(--background-secondary);border:1px solid var(--background-modifier-border);padding:10px 12px;flex-shrink:0}.tp-sb-dt-title.svelte-1ay1088.svelte-1ay1088{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);margin-bottom:8px;display:flex;align-items:center;gap:5px}.tp-sb-dt-icon.svelte-1ay1088.svelte-1ay1088{display:inline-flex;align-items:center;flex-shrink:0}.tp-sb-dt-icon.svelte-1ay1088 svg{width:12px;height:12px}.tp-sb-dt-rows.svelte-1ay1088.svelte-1ay1088{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}.tp-sb-dt-row.svelte-1ay1088.svelte-1ay1088{display:flex;justify-content:space-between;align-items:baseline;gap:6px}.tp-sb-dt-label.svelte-1ay1088.svelte-1ay1088{font-size:12px;color:var(--text-muted);white-space:nowrap}.tp-sb-dt-value.svelte-1ay1088.svelte-1ay1088{font-size:13px;font-weight:700;color:var(--text-normal);white-space:nowrap}.tp-sb-dt-value--over.svelte-1ay1088.svelte-1ay1088{color:var(--color-red, #f38ba8)}.tp-sb-dt-status.svelte-1ay1088.svelte-1ay1088{font-size:11px;font-weight:600;padding:5px 8px;border-radius:5px;line-height:1.4;display:flex;align-items:center;gap:5px}.tp-sb-dt-status--over.svelte-1ay1088.svelte-1ay1088{background:color-mix(in srgb, var(--color-red, #f38ba8) 15%, transparent);color:var(--color-red, #f38ba8)}.tp-sb-dt-status--under.svelte-1ay1088.svelte-1ay1088{background:color-mix(in srgb, var(--color-green, #a6e3a1) 12%, transparent);color:var(--color-green, #a6e3a1)}");
 }
@@ -31589,11 +31539,11 @@ function instance4($$self, $$props, $$invalidate) {
   let dtCalc;
   var _a, _b, _c, _d;
   function icon(node, name) {
-    (0, import_obsidian14.setIcon)(node, name);
+    (0, import_obsidian13.setIcon)(node, name);
     return {
       update(n) {
         node.innerHTML = "";
-        (0, import_obsidian14.setIcon)(node, n);
+        (0, import_obsidian13.setIcon)(node, n);
       }
     };
   }
@@ -31768,7 +31718,7 @@ var CalendarSidebarComponent_default = CalendarSidebarComponent;
 
 // src/views/CalendarSidebarView.ts
 var CALENDAR_SIDEBAR_VIEW_TYPE = "teacher-planner-calendar-sidebar";
-var CalendarSidebarView = class extends import_obsidian15.ItemView {
+var CalendarSidebarView = class extends import_obsidian14.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.component = null;
@@ -31818,7 +31768,7 @@ var CalendarSidebarView = class extends import_obsidian15.ItemView {
 };
 
 // src/main.ts
-var TeacherPlannerPlugin = class extends import_obsidian16.Plugin {
+var TeacherPlannerPlugin = class extends import_obsidian15.Plugin {
   async onload() {
     await this.loadSettings();
     this.registerView(WEEK_VIEW_TYPE, (leaf) => new WeekView2(leaf, this));
@@ -31886,6 +31836,7 @@ var TeacherPlannerPlugin = class extends import_obsidian16.Plugin {
   async loadSettings() {
     var _a, _b, _c, _d, _e;
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settings.lessonNoteTemplate = DEFAULT_SETTINGS.lessonNoteTemplate;
     this.settings.academicYear = Object.assign({}, DEFAULT_SETTINGS.academicYear, this.settings.academicYear);
     if (!this.settings.weekNotes) this.settings.weekNotes = {};
     if (!this.settings.activities) this.settings.activities = [

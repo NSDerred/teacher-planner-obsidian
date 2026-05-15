@@ -86,6 +86,9 @@ export default class TeacherPlannerPlugin extends Plugin {
 
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    // Always use the current default template — no user-editable UI exists for this field,
+    // so any saved value is from an older plugin version and should be discarded.
+    this.settings.lessonNoteTemplate = DEFAULT_SETTINGS.lessonNoteTemplate;
     this.settings.academicYear = Object.assign({}, DEFAULT_SETTINGS.academicYear, this.settings.academicYear);
     if (!this.settings.weekNotes) this.settings.weekNotes = {};
     if (!this.settings.activities) this.settings.activities = [

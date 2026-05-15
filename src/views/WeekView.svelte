@@ -16,7 +16,6 @@
   import { SlotNotesModal } from "../modals/SlotNotesModal";
   import { ColourPickerModal } from "../settings/SettingsTab";
   import { AddDateEventModal } from "../modals/AddDateEventModal";
-  import { EventPickerModal } from "../modals/EventPickerModal";
 
   export let plugin: TeacherPlannerPlugin;
   export let initialDate: Date = new Date();
@@ -354,17 +353,7 @@
   }
 
   function openEventPickerDirect(dayDate: string, periodId: string) {
-    new EventPickerModal(plugin.app, plugin, async (classOrActivityId) => {
-      const ev: DateEvent = {
-        id: "ev-" + Date.now(),
-        date: dayDate,
-        periodId,
-        classId: classOrActivityId,
-      };
-      plugin.settings.dateEvents.push(ev);
-      await plugin.saveSettings();
-      invalidate();
-    }).open();
+    onAddEvent(dayDate, periodId);
   }
 
   function openNotesModal(slot: TimetableSlot, dayDate: string, periodId: string) {
@@ -472,17 +461,7 @@
   // ── Event picker modal ────────────────────────────────────────────────────
   function openEventPicker(e: MouseEvent, dayDate: string, periodId: string) {
     e.stopPropagation();
-    new EventPickerModal(plugin.app, plugin, async (classOrActivityId) => {
-      const ev: DateEvent = {
-        id: "ev-" + Date.now(),
-        date: dayDate,
-        periodId,
-        classId: classOrActivityId,
-      };
-      plugin.settings.dateEvents.push(ev);
-      await plugin.saveSettings();
-      invalidate();
-    }).open();
+    onAddEvent(dayDate, periodId);
   }
 
   // ── Lesson note linking ────────────────────────────────────────────────────
@@ -836,12 +815,39 @@
   .tp-td-cell--reject   { background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important; transition:background 0s; }
 
   /* Lesson chip */
-  .tp-chip { position:absolute; inset:3px; border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; cursor:pointer; overflow:hidden; user-select:none; transition:filter 0.1s; box-sizing:border-box; color:var(--text-normal); }
+  .tp-chip { position:absolute; inset:3px; border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; cursor:pointer; overflow:hidden; user-select:none; transition:filter 0.1s; box-sizing:border-box; color:var(--text-normal); container-type:size; container-name:chip; }
   .tp-chip:hover { filter:brightness(1.08); }
   .tp-chip-code  { font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
   .tp-chip-meta  { font-size:13px; color:var(--text-normal); opacity:0.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
   .tp-chip-room  { font-size:12px; color:var(--text-normal); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; font-style:italic; }
   .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; }
+
+  /* Compact chip: hide meta + notes; start scaling fonts down */
+  @container chip (max-height: 58px) {
+    .tp-chip-meta,
+    .tp-chip-notes { display: none; }
+    .tp-chip-code  { font-size: 13px; }
+    .tp-chip-room  { font-size: 11px; }
+  }
+  /* Tight: shrink further so both code + room still fit */
+  @container chip (max-height: 44px) {
+    .tp-chip-code { font-size: 12px; }
+    .tp-chip-room { font-size: 10px; }
+  }
+  /* Very compact: hide room, show code only at minimum readable size */
+  @container chip (max-height: 34px) {
+    .tp-chip-room { display: none; }
+    .tp-chip-code { font-size: 11px; }
+  }
+  /* Narrow chip (multiple side-by-side events): scale fonts by width too */
+  @container chip (max-width: 90px) {
+    .tp-chip-code { font-size: 13px; }
+    .tp-chip-room { font-size: 10px; }
+  }
+  @container chip (max-width: 60px) {
+    .tp-chip-code { font-size: 11px; }
+    .tp-chip-room { font-size: 9px; }
+  }
 
   /* Current time indicator */
   .tp-now-line { position:absolute; left:0; right:0; height:0; border-top:2px dashed var(--interactive-accent); opacity:0.9; pointer-events:none; z-index:5; }

@@ -74,147 +74,6 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       });
     }
 
-    // ── Grid Visuals ───────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Grid Visuals" });
-    const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
-
-    const blockColourSetting = new Setting(containerEl)
-      .setName("Period block border colour")
-      .setDesc("Border on the top and bottom edge of each period band.");
-    blockColourSetting.controlEl.style.display = "flex";
-    blockColourSetting.controlEl.style.alignItems = "center";
-    blockColourSetting.controlEl.style.gap = "8px";
-    blockColourSetting.controlEl.style.flexWrap = "wrap";
-
-    const currentBlockColour = this.plugin.settings.blockBorderColour ?? "#444444";
-    const blockSwatchBtn = blockColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
-    blockSwatchBtn.style.background = currentBlockColour;
-
-    const blockPresetRow = blockColourSetting.controlEl.createDiv("tp-preset-swatches");
-    const blockPresetSwatches: HTMLElement[] = [];
-
-    const updateBlockBorderColour = async (colour: string) => {
-      this.plugin.settings.blockBorderColour = colour;
-      await this.plugin.saveSettings();
-      blockSwatchBtn.style.background = colour;
-      blockPresetSwatches.forEach(s => s.classList.toggle("tp-preset-swatch--active", s.dataset.colour === colour));
-    };
-
-    blockSwatchBtn.addEventListener("click", () => {
-      new ColourPickerModal(this.app, this.plugin.settings.blockBorderColour ?? "#444444", "Period block border", async colour => {
-        await updateBlockBorderColour(colour);
-      }).open();
-    });
-
-    for (const grey of GREY_PALETTE) {
-      const chip = blockPresetRow.createEl("button", { cls: "tp-preset-swatch", title: grey });
-      chip.style.background = grey;
-      chip.dataset.colour = grey;
-      if (grey === currentBlockColour) chip.classList.add("tp-preset-swatch--active");
-      chip.addEventListener("click", async () => { await updateBlockBorderColour(grey); });
-      blockPresetSwatches.push(chip);
-    }
-
-    new Setting(containerEl).setName("Period block border weight").setDesc("Thickness of period band borders in pixels (1-4).")
-      .addSlider(s => s.setLimits(1, 4, 1).setValue(this.plugin.settings.blockBorderWeight ?? 1)
-        .setDynamicTooltip()
-        .onChange(async v => { this.plugin.settings.blockBorderWeight = v; await this.plugin.saveSettings(); }));
-
-    const gridColourSetting = new Setting(containerEl)
-      .setName("Time grid line colour")
-      .setDesc("Colour of the day-column borders and row dividers.");
-    gridColourSetting.controlEl.style.display = "flex";
-    gridColourSetting.controlEl.style.alignItems = "center";
-    gridColourSetting.controlEl.style.gap = "8px";
-    gridColourSetting.controlEl.style.flexWrap = "wrap";
-
-    const currentGridColour = this.plugin.settings.gridLineColour ?? "#555555";
-    const gridSwatchBtn = gridColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
-    gridSwatchBtn.style.background = currentGridColour;
-
-    const gridPresetRow = gridColourSetting.controlEl.createDiv("tp-preset-swatches");
-    const gridPresetSwatches: HTMLElement[] = [];
-
-    const updateGridLineColour = async (colour: string) => {
-      this.plugin.settings.gridLineColour = colour;
-      await this.plugin.saveSettings();
-      gridSwatchBtn.style.background = colour;
-      gridPresetSwatches.forEach(s => s.classList.toggle("tp-preset-swatch--active", s.dataset.colour === colour));
-    };
-
-    gridSwatchBtn.addEventListener("click", () => {
-      new ColourPickerModal(this.app, this.plugin.settings.gridLineColour ?? "#555555", "Time grid line", async colour => {
-        await updateGridLineColour(colour);
-      }).open();
-    });
-
-    for (const grey of GREY_PALETTE) {
-      const chip = gridPresetRow.createEl("button", { cls: "tp-preset-swatch", title: grey });
-      chip.style.background = grey;
-      chip.dataset.colour = grey;
-      if (grey === currentGridColour) chip.classList.add("tp-preset-swatch--active");
-      chip.addEventListener("click", async () => { await updateGridLineColour(grey); });
-      gridPresetSwatches.push(chip);
-    }
-
-    new Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).")
-      .addSlider(s => s.setLimits(1, 4, 1).setValue(this.plugin.settings.gridLineWeight ?? 1)
-        .setDynamicTooltip()
-        .onChange(async v => { this.plugin.settings.gridLineWeight = v; await this.plugin.saveSettings(); }));
-
-    // ── Block Types ────────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Block Types" });
-    containerEl.createEl("p", {
-      text: "Define period types and their colours. These appear as shaded bands in the week view.",
-      cls: "setting-item-description"
-    });
-    if (!this.plugin.settings.periodTypes) this.plugin.settings.periodTypes = [];
-    const periodTypesContainer = containerEl.createDiv("tp-activities-list");
-    this.renderPeriodTypesList(periodTypesContainer);
-    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add block type").setCta()
-      .onClick(async () => {
-        this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: "#b4befe" });
-        await this.plugin.saveSettings();
-        periodTypesContainer.empty();
-        this.renderPeriodTypesList(periodTypesContainer);
-      }));
-
-    // ── Periods ────────────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "School Timetable" });
-    containerEl.createEl("p", {
-      text: "All periods appear in the timetable editor. Colours and types are configured in Block Types above.",
-      cls: "setting-item-description"
-    });
-    const periodsContainer = containerEl.createDiv("tp-periods-list");
-    this.renderPeriodsList(periodsContainer);
-    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add period").setCta()
-      .onClick(() => {
-        new AddPeriodModal(this.app, async (period) => {
-          this.plugin.settings.academicYear.periods.push(period);
-          this.sortPeriods();
-          await this.plugin.saveSettings();
-          periodsContainer.empty();
-          this.renderPeriodsList(periodsContainer);
-        }).open();
-      }));
-
-    // ── Lessons ────────────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Lessons" });
-    containerEl.createEl("p", {
-      text: "Define your subjects and class groups. Colours appear on lesson blocks in the week view.",
-      cls: "setting-item-description"
-    });
-    const classesContainer = containerEl.createDiv("tp-classes-list");
-    this.renderSubjectsList(classesContainer);
-    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add subject").setCta()
-      .onClick(async () => {
-        const colour = CLASS_COLOUR_PALETTE[this.plugin.settings.subjects.length % CLASS_COLOUR_PALETTE.length];
-        this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour });
-        await this.plugin.saveSettings();
-        classesContainer.empty();
-        this.renderSubjectsList(classesContainer);
-      }));
-
     // ── Directed Time Tracker ──────────────────────────────────────────────
     containerEl.createEl("h3", { text: "Directed Time Tracker" });
     if (!this.plugin.settings.directedTime) {
@@ -304,39 +163,6 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           }));
     }
 
-    // ── Directed time activities ───────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Directed time" });
-    containerEl.createEl("p", {
-      text: "Activities placed here count toward your directed time total when added to the planner.",
-      cls: "setting-item-description"
-    });
-    if (!this.plugin.settings.activities) this.plugin.settings.activities = [];
-    const activitiesContainer = containerEl.createDiv("tp-activities-list");
-    this.renderActivitiesList(activitiesContainer, "directed");
-    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add activity").setCta()
-      .onClick(async () => {
-        this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Activity", colour: "#cba6f7", activityType: "directed" });
-        await this.plugin.saveSettings();
-        activitiesContainer.empty();
-        this.renderActivitiesList(activitiesContainer, "directed");
-      }));
-
-    // ── Other Events ───────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Other Events" });
-    const otherDesc = containerEl.createEl("p", {
-      text: "⚠️  Items in this section appear in the planner but are excluded from the directed time count. Use these for personal appointments, reminders, or any non-directed activity.",
-      cls: "setting-item-description"
-    });
-    const otherContainer = containerEl.createDiv("tp-activities-list");
-    this.renderActivitiesList(otherContainer, "other");
-    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add other event").setCta()
-      .onClick(async () => {
-        this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Other Event", colour: "#888888", activityType: "other" });
-        await this.plugin.saveSettings();
-        otherContainer.empty();
-        this.renderActivitiesList(otherContainer, "other");
-      }));
-
     // ── Holidays & INSET Days ──────────────────────────────────────────────
     containerEl.createEl("h3", { text: "Holidays & INSET Days" });
     containerEl.createEl("p", {
@@ -356,8 +182,43 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         this.renderWeekOverrideRow(overridesContainer, newOverride);
       }));
 
-    // ── Rotation ───────────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Timetable Rotation" });
+    // ── Block Types ────────────────────────────────────────────────────────
+    containerEl.createEl("h3", { text: "School Day Blocks" });
+    containerEl.createEl("p", {
+      text: "Define the types of block that make up your school day — lessons, breaks, registration, admin time, and so on. Each block type has a colour that appears as a shaded band in the week view, making it easy to see your day structure at a glance. Assign block types to individual periods in School Timetable.",
+      cls: "setting-item-description"
+    });
+    if (!this.plugin.settings.periodTypes) this.plugin.settings.periodTypes = [];
+    const periodTypesContainer = containerEl.createDiv("tp-activities-list");
+    this.renderPeriodTypesList(periodTypesContainer);
+    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add block type").setCta()
+      .onClick(async () => {
+        this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: "#b4befe" });
+        await this.plugin.saveSettings();
+        periodTypesContainer.empty();
+        this.renderPeriodTypesList(periodTypesContainer);
+      }));
+
+    // ── Periods ────────────────────────────────────────────────────────────
+    containerEl.createEl("h3", { text: "School Timetable" });
+    containerEl.createEl("p", {
+      text: "All periods appear in the timetable editor. Colours and types are configured in School Day Blocks above.",
+      cls: "setting-item-description"
+    });
+    const periodsContainer = containerEl.createDiv("tp-periods-list");
+    this.renderPeriodsList(periodsContainer);
+    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add period").setCta()
+      .onClick(() => {
+        new AddPeriodModal(this.app, async (period) => {
+          this.plugin.settings.academicYear.periods.push(period);
+          this.sortPeriods();
+          await this.plugin.saveSettings();
+          periodsContainer.empty();
+          this.renderPeriodsList(periodsContainer);
+        }).open();
+      }));
+
+    // ── Timetable Rotation (within School Timetable section) ────────────
     new Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.")
       .addToggle(t => t.setValue(this.plugin.settings.academicYear.abWeekEnabled)
         .onChange(async v => { this.plugin.settings.academicYear.abWeekEnabled = v; await this.plugin.saveSettings(); this.display(); }));
@@ -368,11 +229,165 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           .onChange(async (v: string) => { this.plugin.settings.academicYear.abWeekStartsOn = v as "A" | "B"; await this.plugin.saveSettings(); }));
     }
 
+    // ── Lessons ────────────────────────────────────────────────────────────
+    containerEl.createEl("h3", { text: "Lessons" });
+    containerEl.createEl("p", {
+      text: "Define your subjects and class groups. Colours appear on lesson blocks in the week view.",
+      cls: "setting-item-description"
+    });
+    const classesContainer = containerEl.createDiv("tp-classes-list");
+    this.renderSubjectsList(classesContainer);
+    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add subject").setCta()
+      .onClick(async () => {
+        const colour = CLASS_COLOUR_PALETTE[this.plugin.settings.subjects.length % CLASS_COLOUR_PALETTE.length];
+        this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour });
+        await this.plugin.saveSettings();
+        classesContainer.empty();
+        this.renderSubjectsList(classesContainer);
+      }));
+
+    // ── Directed time activities ───────────────────────────────────────────
+    containerEl.createEl("h3", { text: "Events — Directed time" });
+    containerEl.createEl("p", {
+      text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Set a default duration so the tracker can calculate your hours automatically — or leave it blank to enter the duration each time.",
+      cls: "setting-item-description"
+    });
+    if (!this.plugin.settings.activities) this.plugin.settings.activities = [];
+
+    // Column headers
+    const activityHeaders = containerEl.createDiv("tp-activity-row tp-activity-headers");
+    activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;"; // colour swatch placeholder
+    const makeHeader = (text: string, extraStyle = "") => {
+      const h = activityHeaders.createEl("span", { text, cls: "tp-activity-header-label" });
+      if (extraStyle) h.style.cssText = extraStyle;
+      return h;
+    };
+    makeHeader("Name");
+    makeHeader("Info");
+    makeHeader("Classroom");
+    makeHeader("Duration", "flex:0 0 54px;width:54px;");
+    activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;"; // archive btn placeholder
+    activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;"; // delete btn placeholder
+
+    const activitiesContainer = containerEl.createDiv("tp-activities-list");
+    this.renderActivitiesList(activitiesContainer, "directed");
+    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add activity").setCta()
+      .onClick(async () => {
+        this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Activity", colour: "#cba6f7", activityType: "directed" });
+        await this.plugin.saveSettings();
+        activitiesContainer.empty();
+        this.renderActivitiesList(activitiesContainer, "directed");
+      }));
+
+    // ── Other Events ───────────────────────────────────────────────────────
+    containerEl.createEl("h3", { text: "Events — Other" });
+    const otherDesc = containerEl.createEl("p", {
+      text: "⚠️  Items in this section appear in the planner but are excluded from the directed time count. Use these for personal appointments, reminders, or any non-directed activity.",
+      cls: "setting-item-description"
+    });
+    const otherContainer = containerEl.createDiv("tp-activities-list");
+    this.renderActivitiesList(otherContainer, "other");
+    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add other event").setCta()
+      .onClick(async () => {
+        this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Other Event", colour: "#888888", activityType: "other" });
+        await this.plugin.saveSettings();
+        otherContainer.empty();
+        this.renderActivitiesList(otherContainer, "other");
+      }));
+
     // ── Vault ──────────────────────────────────────────────────────────────
     containerEl.createEl("h3", { text: "Vault" });
     new Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created")
       .addText(t => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder)
         .onChange(async v => { this.plugin.settings.plannerFolder = v; await this.plugin.saveSettings(); }));
+
+    // ── Grid Visuals ───────────────────────────────────────────────────────
+    containerEl.createEl("h3", { text: "Grid Visuals" });
+    const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
+
+    const blockColourSetting = new Setting(containerEl)
+      .setName("Period block border colour")
+      .setDesc("Border on the top and bottom edge of each period band.");
+    blockColourSetting.controlEl.style.display = "flex";
+    blockColourSetting.controlEl.style.alignItems = "center";
+    blockColourSetting.controlEl.style.gap = "8px";
+    blockColourSetting.controlEl.style.flexWrap = "wrap";
+
+    const currentBlockColour = this.plugin.settings.blockBorderColour ?? "#444444";
+    const blockSwatchBtn = blockColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
+    blockSwatchBtn.style.background = currentBlockColour;
+
+    const blockPresetRow = blockColourSetting.controlEl.createDiv("tp-preset-swatches");
+    const blockPresetSwatches: HTMLElement[] = [];
+
+    const updateBlockBorderColour = async (colour: string) => {
+      this.plugin.settings.blockBorderColour = colour;
+      await this.plugin.saveSettings();
+      blockSwatchBtn.style.background = colour;
+      blockPresetSwatches.forEach(s => s.classList.toggle("tp-preset-swatch--active", s.dataset.colour === colour));
+    };
+
+    blockSwatchBtn.addEventListener("click", () => {
+      new ColourPickerModal(this.app, this.plugin.settings.blockBorderColour ?? "#444444", "Period block border", async colour => {
+        await updateBlockBorderColour(colour);
+      }).open();
+    });
+
+    for (const grey of GREY_PALETTE) {
+      const chip = blockPresetRow.createEl("button", { cls: "tp-preset-swatch", title: grey });
+      chip.style.background = grey;
+      chip.dataset.colour = grey;
+      if (grey === currentBlockColour) chip.classList.add("tp-preset-swatch--active");
+      chip.addEventListener("click", async () => { await updateBlockBorderColour(grey); });
+      blockPresetSwatches.push(chip);
+    }
+
+    new Setting(containerEl).setName("Period block border weight").setDesc("Thickness of period band borders in pixels (1-4).")
+      .addSlider(s => s.setLimits(1, 4, 1).setValue(this.plugin.settings.blockBorderWeight ?? 1)
+        .setDynamicTooltip()
+        .onChange(async v => { this.plugin.settings.blockBorderWeight = v; await this.plugin.saveSettings(); }));
+
+    const gridColourSetting = new Setting(containerEl)
+      .setName("Time grid line colour")
+      .setDesc("Colour of the day-column borders and row dividers.");
+    gridColourSetting.controlEl.style.display = "flex";
+    gridColourSetting.controlEl.style.alignItems = "center";
+    gridColourSetting.controlEl.style.gap = "8px";
+    gridColourSetting.controlEl.style.flexWrap = "wrap";
+
+    const currentGridColour = this.plugin.settings.gridLineColour ?? "#555555";
+    const gridSwatchBtn = gridColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
+    gridSwatchBtn.style.background = currentGridColour;
+
+    const gridPresetRow = gridColourSetting.controlEl.createDiv("tp-preset-swatches");
+    const gridPresetSwatches: HTMLElement[] = [];
+
+    const updateGridLineColour = async (colour: string) => {
+      this.plugin.settings.gridLineColour = colour;
+      await this.plugin.saveSettings();
+      gridSwatchBtn.style.background = colour;
+      gridPresetSwatches.forEach(s => s.classList.toggle("tp-preset-swatch--active", s.dataset.colour === colour));
+    };
+
+    gridSwatchBtn.addEventListener("click", () => {
+      new ColourPickerModal(this.app, this.plugin.settings.gridLineColour ?? "#555555", "Time grid line", async colour => {
+        await updateGridLineColour(colour);
+      }).open();
+    });
+
+    for (const grey of GREY_PALETTE) {
+      const chip = gridPresetRow.createEl("button", { cls: "tp-preset-swatch", title: grey });
+      chip.style.background = grey;
+      chip.dataset.colour = grey;
+      if (grey === currentGridColour) chip.classList.add("tp-preset-swatch--active");
+      chip.addEventListener("click", async () => { await updateGridLineColour(grey); });
+      gridPresetSwatches.push(chip);
+    }
+
+    new Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).")
+      .addSlider(s => s.setLimits(1, 4, 1).setValue(this.plugin.settings.gridLineWeight ?? 1)
+        .setDynamicTooltip()
+        .onChange(async v => { this.plugin.settings.gridLineWeight = v; await this.plugin.saveSettings(); }));
 
     // ── Export ────────────────────────────────────────────────────────────
     containerEl.createEl("h3", { text: "Export" });
@@ -393,6 +408,39 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           this.renderPeriodsList(periodsContainer);
           new Notice("Periods reset to defaults.");
         }));
+    this.wrapSectionsCollapsible(containerEl);
+  }
+
+  private wrapSectionsCollapsible(container: HTMLElement): void {
+    const h3s = Array.from(container.querySelectorAll<HTMLElement>(":scope > h3"));
+    for (const h3 of h3s) {
+      // Collect all direct siblings until the next h3
+      const siblings: Element[] = [];
+      let next = h3.nextElementSibling;
+      while (next && next.tagName !== "H3") {
+        siblings.push(next);
+        next = next.nextElementSibling;
+      }
+
+      // Wrap siblings in a hidden content div (inline style required so toggle logic can read it)
+      const content = container.createDiv("tp-collapsible-content");
+      content.style.display = "none";
+      h3.after(content);
+      for (const s of siblings) content.appendChild(s);
+
+      // Add chevron before the heading text
+      const chevron = document.createElement("span");
+      chevron.className = "tp-collapsible-chevron";
+      chevron.textContent = "›";
+      h3.insertBefore(chevron, h3.firstChild);
+      h3.addClass("tp-collapsible-header");
+
+      h3.addEventListener("click", () => {
+        const isOpen = content.style.display !== "none";
+        content.style.display = isOpen ? "none" : "block";
+        chevron.style.transform = isOpen ? "" : "rotate(90deg)";
+      });
+    }
   }
 
   private sortPeriods() {

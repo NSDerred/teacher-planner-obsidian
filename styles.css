@@ -398,6 +398,48 @@
   margin-bottom: 4px;
 }
 
+.tp-activity-headers {
+  background: transparent;
+  padding: 0 8px 2px;
+  margin-bottom: 2px;
+}
+
+/* ── Collapsible settings sections ──────────────────────────────────────────  */
+
+.tp-collapsible-header {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  margin-top: 1.2em;
+}
+
+.tp-collapsible-header:hover {
+  color: var(--text-accent);
+}
+
+.tp-collapsible-chevron {
+  font-size: 1.1em;
+  line-height: 1;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+  display: inline-block;
+}
+
+.tp-collapsible-content {
+  display: none;
+}
+
+.tp-activity-header-label {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 /* ── Special events list (settings) ─────────────────────────────────────────  */
 
 .tp-special-events-list {
