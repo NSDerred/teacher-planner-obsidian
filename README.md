@@ -72,7 +72,7 @@ Choose between **Carbon** (dark) and **Paper** (light), each with full dark/ligh
 
 If Teacher Planner saves you time, consider buying me a coffee — it helps keep the project going.
 
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support%20this%20project-yellow?logo=buymeacoffee)](https://buymeacoffee.com/YOUR_USERNAME)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support%20this%20project-yellow?logo=buymeacoffee)](https://buymeacoffee.com/teacher.nsmith)
 
 Found a bug or have a feature request? [Open an issue](https://github.com/NSDerred/teacher-planner-obsidian/issues).
 
