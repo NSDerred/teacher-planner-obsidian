@@ -4,6 +4,9 @@ node_modules/
 # Source maps
 *.js.map
 
+# Obsidian sync conflict files
+*(# *#)*
+
 # OS files
 .DS_Store
 Thumbs.db
