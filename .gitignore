@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Source maps
+*.js.map
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*

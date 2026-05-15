@@ -1,0 +1,795 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   Teacher Planner — Obsidian Plugin Styles
+   All colours use Obsidian CSS variables so the plugin respects every theme.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Root container ─────────────────────────────────────────────────────────── */
+.tp-root {
+  height: 100%;
+  flex: 1 1 auto;      /* stretch inside Obsidian's leaf flex container on mobile */
+  min-height: 0;
+  padding: 0 !important;
+  overflow: hidden;
+  font-size: max(11px, var(--font-ui-small));
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Settings — Subjects & Classes ─────────────────────────────────────────── */
+
+.tp-classes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.tp-subject-block {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tp-subject-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+}
+
+.tp-class-rows {
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.tp-class-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 28px;
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
+.tp-class-row:first-child { border-top: none; }
+
+/* Swatch buttons */
+.tp-colour-swatch-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 2px solid var(--background-modifier-border);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.1s, transform 0.1s;
+}
+.tp-colour-swatch-btn:hover { border-color: var(--text-normal); transform: scale(1.1); }
+.tp-colour-swatch-btn--small { width: 18px; height: 18px; border-radius: 3px; }
+
+/* Text inputs */
+.tp-subject-name-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: var(--text-normal);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-interface);
+}
+
+.tp-year-input {
+  width: 72px;
+  flex-shrink: 0;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+}
+
+.tp-class-code-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+}
+
+/* Small buttons */
+.tp-btn-small {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 12px;
+  font-family: var(--font-interface);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s;
+}
+.tp-btn-small:hover { background: var(--background-modifier-hover); }
+.tp-btn-small--cta {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+.tp-btn-small--cta:hover { background: var(--interactive-accent-hover); }
+
+.tp-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: color 0.1s, background 0.1s;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tp-icon-btn:hover { color: var(--text-normal); background: var(--background-modifier-hover); }
+.tp-icon-btn svg { width: 14px; height: 14px; }
+
+/* ── Settings — Archived toggle ──────────────────────────────────────────────  */
+.tp-archived-mini {
+  margin-top: 4px;
+  padding: 0 0 4px 12px;
+}
+.tp-archived-toggle-small {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  transition: color 0.1s, background 0.1s;
+}
+.tp-archived-toggle-small:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+
+/* ── Settings — Periods ──────────────────────────────────────────────────────  */
+
+.tp-periods-list .setting-item {
+  border-top: 1px solid var(--background-modifier-border);
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.tp-periods-list .setting-item:first-child { border-top: none; }
+.tp-periods-list .setting-item-control input[type="text"] { width: 90px; }
+.tp-periods-list .setting-item-control select { min-width: 110px; }
+
+/* ── Timetable Editor Modal ──────────────────────────────────────────────────  */
+
+.tp-timetable-modal {
+  font-size: max(11px, var(--font-ui-small));
+}
+
+.tp-timetable-modal .modal-content {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px 24px 16px;
+  overflow: visible;
+}
+
+.tp-timetable-modal .tp-te-wrap {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tp-timetable-modal .tp-te-grid-wrap {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ── Slot Notes Modal ────────────────────────────────────────────────────────  */
+
+.tp-slot-notes-modal .modal-content { padding: 20px 24px; }
+.tp-modal-desc { font-size: 13px; color: var(--text-muted); margin: 0 0 10px; }
+.tp-slot-notes-meta { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 14px; }
+.tp-slot-notes-meta span { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+.tp-notes-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 5px;
+  padding: 8px 10px;
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+  resize: vertical;
+  min-height: 80px;
+}
+.tp-notes-textarea:focus { outline: none; border-color: var(--interactive-accent); }
+
+/* ── Colour Picker Modal ─────────────────────────────────────────────────────  */
+
+.tp-colour-picker-modal .modal-content { padding: 20px 24px; }
+
+/* ── Special Event Modal ─────────────────────────────────────────────────────  */
+
+.tp-special-event-modal .modal-content { padding: 20px 24px; }
+
+.tp-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.tp-modal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tp-modal-row--col {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+/* Searchable item picker */
+.tp-picker-wrap {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--background-modifier-form-field);
+}
+.tp-picker-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: none;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: transparent;
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+  outline: none;
+}
+.tp-picker-search:focus { border-bottom-color: var(--interactive-accent); }
+.tp-picker-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+.tp-picker-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--background-modifier-border-hover);
+  transition: background 0.1s;
+}
+.tp-picker-item:last-child { border-bottom: none; }
+.tp-picker-item:hover { background: var(--background-modifier-hover); }
+.tp-picker-item--active { background: color-mix(in srgb, var(--interactive-accent) 15%, transparent); }
+.tp-picker-item--active:hover { background: color-mix(in srgb, var(--interactive-accent) 22%, transparent); }
+.tp-picker-item-primary { font-size: 13px; font-weight: 600; color: var(--text-normal); }
+.tp-picker-item-secondary { font-size: 11px; color: var(--text-muted); }
+.tp-picker-empty { padding: 12px 10px; font-size: 13px; color: var(--text-muted); text-align: center; }
+
+.tp-modal-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.tp-modal-input {
+  flex: 1;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 5px 8px;
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+}
+.tp-modal-input:focus { outline: none; border-color: var(--interactive-accent); }
+.tp-modal-input--time { flex: 0 0 auto; width: 90px; }
+
+.tp-modal-time-fields { display: flex; align-items: center; gap: 8px; }
+.tp-modal-time-sep { font-size: 13px; color: var(--text-muted); }
+
+.tp-modal-colour-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.tp-modal-textarea {
+  flex: 1;
+  width: 100%;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 5px 8px;
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+  resize: vertical;
+  min-height: 60px;
+}
+.tp-modal-textarea:focus { outline: none; border-color: var(--interactive-accent); }
+
+/* ── Shared modal footer ─────────────────────────────────────────────────────  */
+
+.tp-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.tp-btn {
+  padding: 5px 16px;
+  border-radius: 5px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.tp-btn:hover { background: var(--background-modifier-hover); }
+.tp-btn--primary {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+.tp-btn--primary:hover { background: var(--interactive-accent-hover); }
+.tp-btn--danger {
+  background: transparent;
+  color: var(--color-red, #f38ba8);
+  border-color: var(--color-red, #f38ba8);
+}
+.tp-btn--danger:hover { background: color-mix(in srgb, var(--color-red,#f38ba8) 12%, transparent); }
+
+/* ── A/B week banner ─────────────────────────────────────────────────────────  */
+
+.tp-week-ab-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.tp-week-ab-badge--a {
+  background: color-mix(in srgb, var(--interactive-accent) 20%, transparent);
+  color: var(--interactive-accent);
+}
+.tp-week-ab-badge--b {
+  background: color-mix(in srgb, var(--color-yellow, #f9e2af) 25%, transparent);
+  color: var(--color-yellow, #d4a017);
+}
+
+/* ── Activity / Period type rows ─────────────────────────────────────────────  */
+
+.tp-activity-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: var(--background-secondary);
+  margin-bottom: 4px;
+}
+
+/* ── Special events list (settings) ─────────────────────────────────────────  */
+
+.tp-special-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+/* ── School days checkboxes ──────────────────────────────────────────────────  */
+
+.tp-school-days-wrap { display: flex; gap: 6px; flex-wrap: wrap; }
+.tp-school-day-label { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-normal); cursor: pointer; user-select: none; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--background-modifier-border); background: var(--background-modifier-form-field); }
+.tp-school-day-label input[type="checkbox"] { margin: 0; cursor: pointer; }
+
+/* ── Override row ────────────────────────────────────────────────────────────  */
+
+.tp-override-row .setting-item-control { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.tp-override-row .setting-item-info { display: none; }
+.tp-override-date-input { width: 130px; flex-shrink: 0; background: var(--background-modifier-form-field); border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 4px 6px; color: var(--text-normal); font-size: 13px; font-family: var(--font-interface); }
+.tp-override-sep { color: var(--text-muted); flex-shrink: 0; }
+.tp-override-type-select { width: 80px; flex-shrink: 0; background: var(--background-modifier-form-field); border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 4px 6px; color: var(--text-normal); font-size: 13px; font-family: var(--font-interface); }
+.tp-override-hours-wrap { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.tp-override-hours-input { width: 52px; background: var(--background-modifier-form-field); border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 4px 6px; color: var(--text-normal); font-size: 13px; font-family: var(--font-interface); }
+.tp-override-hours-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.tp-override-label-input { flex: 1; min-width: 80px; background: var(--background-modifier-form-field); border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 4px 6px; color: var(--text-normal); font-size: 13px; font-family: var(--font-interface); }
+
+/* ── Grid border preset swatches ─────────────────────────────────────────────  */
+
+.tp-preset-swatches { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.tp-preset-swatch { width: 18px; height: 18px; border-radius: 3px; border: 2px solid transparent; cursor: pointer; flex-shrink: 0; transition: transform 0.1s, border-color 0.1s; padding: 0; }
+.tp-preset-swatch:hover { transform: scale(1.15); border-color: var(--text-muted); }
+.tp-preset-swatch--active { border-color: var(--interactive-accent) !important; }
+
+/* ── Slate dark ── */
+[data-tp-theme="slate"][data-tp-mode="dark"] {
+  --background-primary:             #1e2330;
+  --background-secondary:           #252b3b;
+  --background-modifier-border:     #3a4155;
+  --background-modifier-hover:      rgba(94,129,244,0.12);
+  --background-modifier-form-field: #1a1f2e;
+  --text-normal:                    #d0d6e8;
+  --text-muted:                     #8892a8;
+  --text-faint:                     #5a6278;
+  --interactive-accent:             #5e81f4;
+  --interactive-accent-hover:       #6e8ff5;
+  --text-on-accent:                 #ffffff;
+  --color-red:                      #f38ba8;
+  --color-yellow:                   #f9e2af;
+  --tp-block-alpha:                 0.28;
+  color-scheme: dark;
+}
+
+/* ── Slate light ── */
+[data-tp-theme="slate"][data-tp-mode="light"] {
+  --background-primary:             #edf0f8;
+  --background-secondary:           #dde2f0;
+  --background-modifier-border:     #b8c2dd;
+  --background-modifier-hover:      rgba(50,80,220,0.09);
+  --background-modifier-form-field: #f5f7fc;
+  --text-normal:                    #1c2340;
+  --text-muted:                     #556090;
+  --text-faint:                     #8090bb;
+  --interactive-accent:             #3a5ce4;
+  --interactive-accent-hover:       #2a4cc8;
+  --text-on-accent:                 #ffffff;
+  --color-red:                      #c0392b;
+  --color-yellow:                   #9a7000;
+  --tp-block-alpha:                 0.18;
+  color-scheme: light;
+}
+
+/* ── Chalk dark ── */
+[data-tp-theme="chalk"][data-tp-mode="dark"] {
+  --background-primary:             #1e1e28;
+  --background-secondary:           #26262f;
+  --background-modifier-border:     #3c3c4a;
+  --background-modifier-hover:      rgba(120,140,255,0.12);
+  --background-modifier-form-field: #18181f;
+  --text-normal:                    #dcdce8;
+  --text-muted:                     #9090a8;
+  --text-faint:                     #606078;
+  --interactive-accent:             #7b8eff;
+  --interactive-accent-hover:       #8a9dff;
+  --text-on-accent:                 #ffffff;
+  --color-red:                      #f38ba8;
+  --color-yellow:                   #f9e2af;
+  --tp-block-alpha:                 0.28;
+  color-scheme: dark;
+}
+
+/* ── Chalk light (soft) ── */
+[data-tp-theme="chalk"][data-tp-mode="light"] {
+  --background-primary:             #f8f8f8;
+  --background-secondary:           #efefef;
+  --background-modifier-border:     #d4d4d4;
+  --background-modifier-hover:      rgba(74,108,247,0.08);
+  --background-modifier-form-field: #ffffff;
+  --text-normal:                    #1e1e1e;
+  --text-muted:                     #666666;
+  --text-faint:                     #999999;
+  --interactive-accent:             #4a6cf7;
+  --interactive-accent-hover:       #3558e8;
+  --text-on-accent:                 #ffffff;
+  --color-red:                      #d04040;
+  --color-yellow:                   #b58800;
+  --tp-block-alpha:                 0.18;
+  color-scheme: light;
+}
+
+/* ── Paper dark ── */
+[data-tp-theme="paper"][data-tp-mode="dark"] {
+  --background-primary:             #2a2318;
+  --background-secondary:           #322b1e;
+  --background-modifier-border:     #4a3f2e;
+  --background-modifier-hover:      rgba(200,150,60,0.12);
+  --background-modifier-form-field: #221c12;
+  --text-normal:                    #e8dcc8;
+  --text-muted:                     #a8967a;
+  --text-faint:                     #7a6a50;
+  --interactive-accent:             #d4a040;
+  --interactive-accent-hover:       #e0b050;
+  --text-on-accent:                 #1a1208;
+  --color-red:                      #e07060;
+  --color-yellow:                   #e5c07b;
+  --tp-block-alpha:                 0.28;
+  color-scheme: dark;
+}
+
+/* ── Paper light (warm cream) ── */
+[data-tp-theme="paper"][data-tp-mode="light"] {
+  --background-primary:             #fdf6e3;
+  --background-secondary:           #f5edda;
+  --background-modifier-border:     #d9c9a8;
+  --background-modifier-hover:      rgba(181,115,32,0.10);
+  --background-modifier-form-field: #fff8ee;
+  --text-normal:                    #3a2e1a;
+  --text-muted:                     #8a7a5a;
+  --text-faint:                     #b0a070;
+  --interactive-accent:             #b57320;
+  --interactive-accent-hover:       #9d6418;
+  --text-on-accent:                 #ffffff;
+  --color-red:                      #c0392b;
+  --color-yellow:                   #b58800;
+  --tp-block-alpha:                 0.18;
+  color-scheme: light;
+}
+
+/* ── Date event chips ────────────────────────────────────────────────────────
+   Events are wrapped in .tp-event-stack which fills the cell and arranges
+   events as equal-width columns (flex row). Each chip is flex:1 inside.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.tp-event-stack {
+  position: absolute;
+  inset: 3px;
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+  z-index: 3;
+}
+
+.tp-chip--event {
+  position: relative;
+  inset: auto;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Add-event button inside a cell ─────────────────────────────────────────
+   Hidden by default; fades in on cell hover so it doesn't clutter the view.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.tp-cell-add-event {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 10;
+  opacity: 0;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px dashed var(--background-modifier-border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+  font-family: var(--font-interface);
+}
+
+.tp-td-cell:hover .tp-cell-add-event {
+  opacity: 1;
+}
+
+.tp-cell-add-event:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--interactive-accent);
+  color: var(--interactive-accent);
+}
+
+/* ── Theme toggle button ─────────────────────────────────────────────────────
+   Slightly distinct from plain nav buttons so it reads as a mode control.
+   ────────────────────────────────────────────────────────────────────────── */
+
+
+/* ── Chip action bar ─────────────────────────────────────────────────────────
+   Compact row of icon buttons shown on chip hover (notes, open note, etc.)
+   ────────────────────────────────────────────────────────────────────────── */
+
+.tp-chip-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+  padding: 2px 3px;
+  background: color-mix(in srgb, var(--background-secondary) 90%, transparent);
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.tp-td-cell:hover .tp-chip-actions,
+.tp-chip:hover .tp-chip-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tp-chip-action-btn {
+  flex: 1;
+  padding: 2px 0;
+  border: none;
+  background: color-mix(in srgb, var(--background-modifier-hover) 70%, transparent);
+  color: var(--text-normal);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 3px;
+  line-height: 1;
+  transition: background 0.1s;
+}
+
+.tp-chip-action-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+/* ── Compact event picker (cell click) ───────────────────────────────────────
+   Compact floating list — no date/period picker needed (already from cell).
+   ────────────────────────────────────────────────────────────────────────── */
+
+.tp-event-picker {
+  position: fixed;
+  z-index: 1000;
+  min-width: 180px;
+  max-width: 240px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  padding: 6px 0;
+}
+
+.tp-event-picker-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 4px 12px 4px;
+}
+
+.tp-event-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+  transition: background 0.1s;
+}
+
+.tp-event-picker-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.tp-event-picker-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tp-event-picker-divider {
+  height: 1px;
+  background: var(--background-modifier-border);
+  margin: 4px 0;
+}
+
+/* ── Event Picker Modal ──────────────────────────────────────────────────────
+   Centred modal for picking a class/activity when adding a one-off event.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.tp-epm-title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-normal);
+}
+
+.tp-epm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.tp-epm-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 6px 4px 3px;
+}
+
+.tp-epm-divider {
+  height: 1px;
+  background: var(--background-modifier-border);
+  margin: 6px 0;
+}
+
+.tp-epm-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+  font-family: var(--font-interface);
+}
+
+.tp-epm-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.tp-epm-code {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.tp-epm-room {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* ── Export Modal ────────────────────────────────────────────────────────────
+   Radio-group option rows for dataset and format selection.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.tp-export-option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.tp-export-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+.tp-export-option input[type="radio"] {
+  accent-color: var(--interactive-accent);
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  c
