@@ -23,7 +23,8 @@ export interface AcademicYear {
 export interface Subject {
   id: string;
   name: string;
-  colour: string;
+  colour?: string;  // kept for class colour defaults; no longer shown in subject header UI
+  emoji?: string;   // displayed as subject identifier in settings and wizard
 }
 export interface ClassGroup {
   id: string;
@@ -165,3 +166,49 @@ export interface TeacherPlannerSettings {
    */
   schoolDays?: SchoolDay[];
 }
+
+// ── Multi-planner data model ───────────────────────────────────────────────────
+
+/**
+ * All settings that belong to a single planner instance.
+ * The active planner's fields are surfaced on plugin.settings (TeacherPlannerSettings)
+ * so that all existing views and modals require no changes.
+ */
+export interface PlannerRecord {
+  /** Unique stable identifier, e.g. "planner-1717000000000" */
+  id: string;
+  /** Display name, also used as the vault subfolder name, e.g. "2025-26" */
+  name: string;
+  /** Vault path for lesson notes. Migrated planners keep their original path; new planners get rootPlannerFolder/name. */
+  plannerFolder: string;
+  academicYear: AcademicYear;
+  periodTypes: PeriodTypeConfig[];
+  subjects: Subject[];
+  classes: ClassGroup[];
+  /** Legacy flat slot list — migrated to timetableTemplates on load. */
+  timetable: TimetableSlot[];
+  timetableTemplates: TimetableTemplate[];
+  weekOverrides: WeekOverride[];
+  activities: Activity[];
+  dateEvents: DateEvent[];
+  slotExclusions: SlotExclusion[];
+  weekNotes: Record<string, string>;
+  notesHeight: number;
+  lessonNoteTemplate: string;
+  directedTime: DirectedTimeSettings;
+  schoolDays: SchoolDay[];
+}
+
+/**
+ * Top-level structure persisted to data.json in the multi-planner format.
+ * Visual/vault preferences that apply across all planners live here.
+ */
+export interface GlobalPluginData {
+  /** Sentinel that distinguishes the new format from the legacy flat object. */
+  _version: 2;
+  activePlannerId: string;
+  /** Root vault folder. Subfolders per planner are created inside it. Default: "Teacher Planner". */
+  rootPlannerFolder: string;
+  /** These visual settings are global — shared across all planners. */
+  gridLineColour: string;
+  gridLineWeight: n

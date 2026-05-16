@@ -457,15 +457,19 @@
 
 /* ── Override row ────────────────────────────────────────────────────────────  */
 
+/* Wrapper stacks the Setting row + optional INSET sub-row */
+.tp-override-entry { display: flex; flex-direction: column; }
 .tp-override-row .setting-item-control { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
 .tp-override-row .setting-item-info { display: none; }
 .tp-override-date-input { width: 130px; flex-shrink: 0; background: var(--background-modifier-form-field); border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 4px 6px; color: var(--text-normal); font-size: 13px; font-family: var(--font-interface); }
 .tp-override-sep { color: var(--text-muted); flex-shrink: 0; }
 .tp-override-type-select { width: 80px; flex-shrink: 0; background: var(--background-modifier-form-field); border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 4px 6px; color: var(--text-normal); font-size: 13px; font-family: var(--font-interface); }
-.tp-override-hours-wrap { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.tp-override-label-input { flex: 1; min-width: 80px; background: var(--background-modifier-form-field); border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 4px 6px; color: var(--text-normal); font-size: 13px; font-family: var(--font-interface); }
+/* INSET hours sub-row — shown only when type = INSET */
+.tp-override-inset-row { display: flex; align-items: center; gap: 8px; padding: 2px 0 6px 8px; margin-top: -2px; }
+.tp-override-inset-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
 .tp-override-hours-input { width: 52px; background: var(--background-modifier-form-field); border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 4px 6px; color: var(--text-normal); font-size: 13px; font-family: var(--font-interface); }
 .tp-override-hours-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-.tp-override-label-input { flex: 1; min-width: 80px; background: var(--background-modifier-form-field); border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 4px 6px; color: var(--text-normal); font-size: 13px; font-family: var(--font-interface); }
 
 /* ── Grid border preset swatches ─────────────────────────────────────────────  */
 
@@ -834,4 +838,299 @@
   width: 14px;
   height: 14px;
   flex-shrink: 0;
-  c
+  cursor: pointer;
+}
+/* ══════════════════════════════════════════════════════════════════════════════
+   PLANNER CARDS (Settings → Planners section)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Unified box containing all planner rows */
+.tp-planner-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--background-secondary);
+  margin-bottom: 12px;
+}
+
+/* Single-row card: [accent strip] [name+dates] [→ buttons] */
+.tp-planner-card {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: transparent;
+  min-height: 52px;
+}
+
+.tp-planner-card:last-child {
+  border-bottom: none;
+}
+
+.tp-planner-card--active {
+  background: color-mix(in srgb, var(--interactive-accent) 5%, transparent);
+}
+
+/* Coloured left strip */
+.tp-planner-card-accent {
+  width: 4px;
+  align-self: stretch;
+  flex-shrink: 0;
+  background: var(--background-modifier-border);
+  border-radius: 0;
+}
+
+.tp-planner-card--active .tp-planner-card-accent {
+  background: var(--interactive-accent);
+}
+
+.tp-planner-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+/* Name + badge on the same line */
+.tp-planner-card-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tp-planner-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tp-planner-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--interactive-accent);
+  background: color-mix(in srgb, var(--interactive-accent) 15%, transparent);
+  padding: 1px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tp-planner-card-dates {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Buttons permanently right-aligned */
+.tp-planner-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 0 12px 0 8px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SETUP WIZARD MODAL
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+.tp-wizard-modal {
+  width: min(760px, 96vw);
+}
+
+.tp-wizard-modal .modal-content {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 540px;
+  max-height: 92vh;
+}
+
+/* Progress indicator */
+.tp-wizard-progress {
+  padding: 20px 28px 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.tp-wizard-bar-wrap {
+  flex: 1;
+  height: 4px;
+  background: var(--background-modifier-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.tp-wizard-bar-fill {
+  height: 100%;
+  background: var(--interactive-accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.tp-wizard-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--background-modifier-border);
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.tp-wizard-dot--done   { background: var(--interactive-accent); opacity: 0.5; }
+.tp-wizard-dot--active { background: var(--interactive-accent); }
+
+/* Step body */
+.tp-wizard-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 28px 20px;
+  gap: 14px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.tp-wizard-step-hdr { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+
+.tp-wizard-step-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.tp-wizard-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-normal);
+  margin: 0;
+}
+
+.tp-wizard-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Inputs */
+.tp-wizard-input {
+  box-sizing: border-box;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 5px 9px;
+  font-size: 13px;
+  color: var(--text-normal);
+  width: 100%;
+}
+
+.tp-wizard-input--sm   { width: auto; min-width: 80px;  flex-shrink: 0; }
+.tp-wizard-input--xs   { width: auto; min-width: 56px;  flex-shrink: 0; }
+.tp-wizard-input--date { width: auto; min-width: 130px; flex-shrink: 0; }
+
+.tp-wizard-label    { font-size: 13px; font-weight: 600; color: var(--text-normal); white-space: nowrap; }
+.tp-wizard-sublabel { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
+.tp-wizard-empty-note { font-size: 12px; color: var(--text-faint); margin: 0 0 4px; font-style: italic; }
+
+.tp-wizard-grid2 {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.tp-wizard-toggle-row  { display: flex; align-items: center; }
+.tp-wizard-ab-row      { display: flex; align-items: center; gap: 8px; }
+.tp-wizard-toggle-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-normal); cursor: pointer; }
+.tp-wizard-ab-options  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tp-wizard-sep         { color: var(--text-muted); flex-shrink: 0; font-size: 13px; }
+
+/* Duration wrapper (select + optional custom input inline) */
+.tp-wizard-dur-wrap { display: flex; align-items: center; gap: 6px; }
+
+/* Period list */
+.tp-wizard-period-list { display: flex; flex-direction: column; gap: 6px; }
+.tp-wizard-period-row  { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.tp-wizard-del-btn     { padding: 2px 8px; font-size: 14px; line-height: 1; flex-shrink: 0; }
+
+/* Directed time panel (step 2) */
+.tp-wizard-dt-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+}
+
+/* Directed time activity rows */
+.tp-wizard-act-list { display: flex; flex-direction: column; gap: 6px; }
+.tp-wizard-act-row  { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+
+/* Holidays & INSET override rows */
+.tp-wizard-override-list  { display: flex; flex-direction: column; gap: 8px; }
+.tp-wizard-override-row   { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.tp-wizard-override-hours { display: flex; align-items: center; gap: 4px; }
+
+/* Period type rows (school day blocks) */
+.tp-wizard-pt-list { display: flex; flex-direction: column; gap: 6px; }
+.tp-wizard-pt-row  { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+
+/* Subject/class list */
+.tp-wizard-subject-list  { display: flex; flex-direction: column; gap: 10px; }
+.tp-wizard-subject-block { display: flex; flex-direction: column; gap: 6px; padding: 10px; background: var(--background-secondary); border-radius: 6px; }
+.tp-wizard-subject-hdr   { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.tp-wizard-class-row     { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; padding-left: 30px; }
+
+/* Step 9 callout */
+.tp-wizard-callout {
+  background: color-mix(in srgb, var(--interactive-accent) 10%, var(--background-secondary));
+  border: 1px solid color-mix(in srgb, var(--interactive-accent) 30%, transparent);
+  border-radius: 6px;
+  padding: 12px 16px;
+}
+.tp-wizard-callout p { margin: 0; font-size: 13px; color: var(--text-normal); line-height: 1.5; }
+
+.tp-wizard-editor-btn { align-self: flex-start; margin-top: 16px; margin-bottom: 16px; }
+
+/* Step 10 summary */
+.tp-wizard-summary { display: flex; flex-direction: column; gap: 8px; }
+.tp-wizard-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background: var(--background-secondary);
+  font-size: 13px;
+}
+.tp-wizard-summary-label { color: var(--text-muted); flex-shrink: 0; margin-right: 12px; }
+.tp-wizard-summary-value { color: var(--text-normal); font-weight: 500; text-align: right; }
+
+/* Setting rows inside wizard body — flush left/right, no extra padding */
+.tp-wizard-body .setting-item {
+  padding: 8px 0;
+  border-top: 1px solid var(--background-modifier-border);
+}
+.tp-wizard-body .setting-item:first-child { border-top: none; }
+
+/* Period list inside wizard — each row is a setting-item */
+.tp-wizard-period-list .setting-item-control input { width: 70px; }
+
+/* Fo

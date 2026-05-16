@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView, WorkspaceLeaf, ViewStateResult } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import WeekViewComponent from "./WeekView.svelte";
 
@@ -22,21 +22,45 @@ export class WeekView extends ItemView {
     container.empty();
     container.addClass("tp-root");
 
-    const mount = () => {
-      if (this.component) return;
+    // Mount immediately — by the time onOpen() fires, loadSettings() has already
+    // completed (registerView is called after await loadSettings() in main.ts).
+    // We still defer one frame so the container is laid out before Svelte measures it,
+    // which prevents zero-dimension rendering on mobile and narrow panes.
+    if (!this.component) {
+      requestAnimationFrame(() => {
+        if (this.component) return; // guard against double-mount
+        this.component = new WeekViewComponent({
+          target: container,
+          props: { plugin: this.plugin, initialDate: new Date() },
+        });
+      });
+    }
+
+    this.registerEvent(this.app.workspace.on("layout-change", () => { this.component?.updateSize(); }));
+    this.registerEvent(this.app.workspace.on("resize", () => { this.component?.updateSize(); }));
+  }
+
+  /**
+   * Obsidian calls setState after placing a restored leaf in the workspace.
+   * By this point the container has real dimensions, so this is the safest
+   * place to ensure the component has mounted — it acts as a guaranteed
+   * fallback for any case where the requestAnimationFrame in onOpen() did not fire
+   * (e.g. the view was hidden / off-screen on mobile when onOpen ran).
+   */
+  async setState(state: unknown, result: ViewStateResult): Promise<void> {
+    await super.setState(state, result);
+    const container = this.containerEl.children[1] as HTMLElement;
+    if (!this.component) {
+      container.empty();
+      container.addClass("tp-root");
       this.component = new WeekViewComponent({
         target: container,
         props: { plugin: this.plugin, initialDate: new Date() },
       });
-    };
-
-    // onLayoutReady fires immediately if the workspace is already ready,
-    // otherwise queues until after Obsidian finishes restoring saved views.
-    // This prevents the blank-on-startup race condition.
-    this.app.workspace.onLayoutReady(mount);
-
-    this.registerEvent(this.app.workspace.on("layout-change", () => { this.component?.updateSize(); }));
-    this.registerEvent(this.app.workspace.on("resize", () => { this.component?.updateSize(); }));
+    } else {
+      // Already mounted — refresh so any stale reactive state updates
+      this.component.refreshEvents();
+    }
   }
 
   async onClose() {

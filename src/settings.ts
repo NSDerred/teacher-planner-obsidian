@@ -33,15 +33,15 @@ export const DEFAULT_SETTINGS: TeacherPlannerSettings = {
     ],
   },
   periodTypes: [
-    { id: "lesson",         label: "Lesson",         colour: "#6b8edd" },
-    { id: "break",          label: "Break",          colour: "#d4a84b" },
-    { id: "registration",   label: "Registration",   colour: "#6aaa72" },
-    { id: "administration", label: "Administration", colour: "#4badb5" },
+    { id: "lesson",         label: "Lesson",         colour: "#5a6a7a" },
+    { id: "break",          label: "Break",          colour: "#6a7a8a" },
+    { id: "registration",   label: "Registration",   colour: "#4a6060" },
+    { id: "administration", label: "Administration", colour: "#6a6a7a" },
   ],
   subjects: [
-    { id: "subj-biology", name: "Biology", colour: "#a6e3a1" },
-    { id: "subj-maths",   name: "Maths",   colour: "#cba6f7" },
-    { id: "subj-science", name: "Science", colour: "#89b4fa" },
+    { id: "subj-biology", name: "Biology", emoji: "🌱", colour: "#a6e3a1" },
+    { id: "subj-maths",   name: "Maths",   emoji: "🧮", colour: "#cba6f7" },
+    { id: "subj-science", name: "Science", emoji: "🔬", colour: "#89b4fa" },
   ],
   classes: [
     { id: "cls-ibdp1", year: "12", code: "IB DP1", subjectId: "subj-biology", colour: "#a6e3a1", colourOverridden: false, lessonCount: 0, classroom: "S3" },
@@ -90,3 +90,50 @@ export const CLASS_COLOUR_PALETTE = [
   "#b4befe", "#c3b1e1", "#cba6f7", "#d4a5c9",
   "#e8a2b8", "#f38ba8",
 ];
+
+import type { PlannerRecord, GlobalPluginData } from "./types";
+
+/**
+ * Default settings for a brand-new planner.
+ * The name and id are placeholders — overwritten by the wizard or migration.
+ */
+export const DEFAULT_PLANNER: PlannerRecord = {
+  id: "planner-default",
+  name: "2025-26",
+  plannerFolder: "Teacher Planner/2025-26",
+  academicYear: DEFAULT_SETTINGS.academicYear,
+  periodTypes: DEFAULT_SETTINGS.periodTypes,
+  subjects: DEFAULT_SETTINGS.subjects,
+  classes: DEFAULT_SETTINGS.classes,
+  timetable: [],
+  timetableTemplates: [],
+  weekOverrides: [],
+  activities: DEFAULT_SETTINGS.activities,
+  dateEvents: [],
+  slotExclusions: [],
+  weekNotes: {},
+  notesHeight: 120,
+  lessonNoteTemplate: DEFAULT_SETTINGS.lessonNoteTemplate,
+  directedTime: {
+    enabled: false,
+    contractedHours: 1265,
+    timetablePercentage: 100,
+    defaultLessonDurationMinutes: 60,
+  },
+  schoolDays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+};
+
+/**
+ * Default top-level global data used on a completely fresh install.
+ * loadSettings() will either populate this from disk or trigger the wizard.
+ */
+export const DEFAULT_GLOBAL_DATA: GlobalPluginData = {
+  _version: 2,
+  activePlannerId: "",
+  rootPlannerFolder: "Teacher Planner",
+  gridLineColour: "#555555",
+  gridLineWeight: 1,
+  blockBorderColour: "#444444",
+  blockBorderWeight: 1,
+  planners: [],
+};

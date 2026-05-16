@@ -232,6 +232,9 @@
   let pickerPeriodId: string | null = null;
   let pickerWeek:     "A" | "B" | null = null;
   let pickerEl:       HTMLElement | null = null;
+  let pickerSearch:   string = "";
+
+  function focusPicker(node: HTMLElement) { setTimeout(() => node.focus(), 30); }
 
   function getSlot(day: string, periodId: string, week: "A" | "B" | null): TimetableSlot | undefined {
     if (!abEnabled || !week) return slots.find(s => s.day === day && s.periodId === periodId);
@@ -261,6 +264,7 @@
 
   function closePicker() {
     pickerDay = null; pickerPeriodId = null; pickerWeek = null; pickerEl = null;
+    pickerSearch = "";
   }
 
   function assignItem(day: string, period: SchoolPeriod, itemId: string, week: "A" | "B" | null) {
@@ -360,6 +364,25 @@
   }
 
   $: sortedSubjects    = [...subjects].sort((a, b) => a.name.localeCompare(b.name));
+
+  // ── Picker search filters ───────────────────────────────────────────────────
+  $: pickerFilteredClasses = (() => {
+    const q = pickerSearch.toLowerCase();
+    if (!q) return visibleClasses;
+    return visibleClasses.filter(c => {
+      const subj = subjects.find(s => s.id === c.subjectId);
+      return c.code.toLowerCase().includes(q)
+        || (subj?.name ?? "").toLowerCase().includes(q)
+        || (c.year ?? "").toLowerCase().includes(q)
+        || (c.classroom ?? "").toLowerCase().includes(q);
+    });
+  })();
+  $: pickerFilteredDirected = pickerSearch
+    ? visibleDirected.filter(a => a.label.toLowerCase().includes(pickerSearch.toLowerCase()))
+    : visibleDirected;
+  $: pickerFilteredOther = pickerSearch
+    ? visibleOther.filter(a => a.label.toLowerCase().includes(pickerSearch.toLowerCase()))
+    : visibleOther;
 
   // ── Period type colours ────────────────────────────────────────────────────
   $: periodTypes = plugin.settings.periodTypes ?? [];
@@ -541,6 +564,16 @@
   {#if pickerDay && pickerPeriodId && pickerEl}
     <div class="tp-te-picker" style={getPickerStyle(pickerEl)}>
       <div class="tp-te-picker-inner">
+        <!-- svelte-ignore a11y-autofocus -->
+        <input
+          class="tp-te-picker-search"
+          type="text"
+          placeholder="Search…"
+          bind:value={pickerSearch}
+          use:focusPicker
+          on:click|stopPropagation
+        />
+
         {#if getSlot(pickerDay, pickerPeriodId, currentWeek)}
           <button
             class="tp-te-picker-clear"
@@ -549,11 +582,12 @@
           <div class="tp-te-picker-divider"></div>
         {/if}
 
-        {#if sortedSubjects.some(s => visibleClasses.some(c => c.subjectId === s.id))}
+        {#if sortedSubjects.some(s => pickerFilteredClasses.some(c => c.subjectId === s.id))}
           <div class="tp-te-picker-group-label">Classes</div>
           {#each sortedSubjects as subj}
-            {@const subjClasses = visibleClasses.filter(c => c.subjectId === subj.id).sort((a,b) => a.code.localeCompare(b.code))}
+            {@const subjClasses = pickerFilteredClasses.filter(c => c.subjectId === subj.id).sort((a,b) => a.code.localeCompare(b.code))}
             {#each subjClasses as cls}
+              {@const secondary = [cls.year, subj.name].filter(Boolean).join(" · ")}
               <div class="tp-te-picker-row">
                 <button
                   class="tp-te-picker-item"
@@ -562,7 +596,7 @@
                 >
                   <span class="tp-te-picker-item-text">
                     <span class="tp-te-picker-code">{cls.code}</span>
-                    {#if cls.classroom}<span class="tp-te-picker-room">{cls.classroom}</span>{/if}
+                    {#if secondary}<span class="tp-te-picker-room">{secondary}</span>{/if}
                   </span>
                 </button>
                 <button class="tp-te-archive-btn" title="Archive class" on:click|stopPropagation={() => toggleArchiveClass(cls.id)} use:icon={"archive"}></button>
@@ -571,10 +605,10 @@
           {/each}
         {/if}
 
-        {#if visibleDirected.length}
+        {#if pickerFilteredDirected.length}
           <div class="tp-te-picker-divider"></div>
           <div class="tp-te-picker-group-label">Directed time</div>
-          {#each visibleDirected as act}
+          {#each pickerFilteredDirected as act}
             <div class="tp-te-picker-row">
               <button
                 class="tp-te-picker-item"
@@ -591,10 +625,10 @@
           {/each}
         {/if}
 
-        {#if visibleOther.length}
+        {#if pickerFilteredOther.length}
           <div class="tp-te-picker-divider"></div>
           <div class="tp-te-picker-group-label">Other events</div>
-          {#each visibleOther as act}
+          {#each pickerFilteredOther as act}
             <div class="tp-te-picker-row">
               <button
                 class="tp-te-picker-item"
@@ -724,7 +758,9 @@
 
   /* ── Picker ───────────────────────────────────────────────────────────────── */
   .tp-te-picker { position: fixed; z-index: 1000; width: 240px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.3); overflow: hidden; }
-  .tp-te-picker-inner { max-height: 320px; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+  .tp-te-picker-inner { max-height: 360px; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+  .tp-te-picker-search { width: 100%; box-sizing: border-box; padding: 6px 10px; margin-bottom: 2px; border: 1px solid var(--background-modifier-border); border-radius: 6px; background: var(--background-secondary); color: var(--text-normal); font-size: 13px; outline: none; flex-shrink: 0; }
+  .tp-te-picker-search:focus { border-color: var(--interactive-accent); }
   .tp-te-picker-group-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-faint); padding: 4px 8px 2px; }
   .tp-te-picker-divider { height: 1px; background: var(--background-modifier-border); margin: 4px 0; }
   .tp-te-picker-row { display: flex; align-items: center; gap: 2px; }
@@ -744,7 +780,6 @@
   .tp-te-archive-btn:hover { opacity: 1 !important; background: var(--background-modifier-hover); }
   .tp-te-show-archived-btn { background: transparent; border: none; cursor: pointer; color: var(--text-faint); font-size: 12px; padding: 4px 8px; text-align: left; width: 100%; border-radius: 4px; }
   .tp-te-show-archived-btn:hover { background: var(--background-modifier-hover); color: var(--text-muted); }
-
   /* ── Unsaved changes dialog ──────────────────────────────────────────────── */
   .tp-te-unsaved-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:flex; align-items:center; justify-content:center; border-radius:8px; }
   .tp-te-unsaved-dialog { background:var(--background-primary); border:1px solid var(--background-modifier-border); border-radius:10px; padding:20px 24px; max-width:340px; width:100%; box-shadow:0 8px 28px rgba(0,0,0,0.35); display:flex; flex-direction:column; gap:14px; }

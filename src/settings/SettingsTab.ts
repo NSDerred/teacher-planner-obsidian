@@ -1,3 +1,4 @@
+
 import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity } from "../types";
@@ -7,6 +8,56 @@ import { AddPeriodModal } from "../modals/AddPeriodModal";
 import { ExportModal } from "../modals/ExportModal";
 import { DirectedTimeExportModal } from "../modals/DirectedTimeExportModal";
 import { TFile } from "obsidian";
+import { SetupWizardModal } from "../modals/SetupWizardModal";
+
+// ── Subject emoji picker ───────────────────────────────────────────────────────
+
+export const SUBJECT_EMOJIS = [
+  "🔬", "⚗️", "⚡", "🧮", "📚", "📖", "🌍", "🏛️", "🎨", "🎵",
+  "💻", "🏃", "🌐", "💰", "🎭", "📐", "🧠", "⚖️", "🌱", "📸",
+  "🎬", "🍳", "✝️", "🤝", "📊", "🔭", "🎸", "📝", "🌿", "🧬",
+];
+
+export function openEmojiPicker(
+  anchor: HTMLElement,
+  current: string,
+  onSelect: (emoji: string) => void,
+) {
+  // Remove any existing popup
+  document.querySelectorAll(".tp-emoji-popup").forEach(el => el.remove());
+
+  const popup = document.body.createDiv("tp-emoji-popup");
+
+  for (const emoji of SUBJECT_EMOJIS) {
+    const btn = popup.createEl("button", { text: emoji, cls: "tp-emoji-option" });
+    if (emoji === current) btn.addClass("tp-emoji-option--active");
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      onSelect(emoji);
+      popup.remove();
+    });
+  }
+
+  // Position: below anchor, flip up if near viewport bottom
+  const rect = anchor.getBoundingClientRect();
+  const popupWidth = 220;
+  const popupHeight = 180;
+  let top = rect.bottom + 4;
+  let left = rect.left;
+  if (top + popupHeight > window.innerHeight) top = rect.top - popupHeight - 4;
+  if (left + popupWidth > window.innerWidth) left = window.innerWidth - popupWidth - 8;
+  popup.style.top = top + "px";
+  popup.style.left = left + "px";
+
+  // Close on click outside
+  const close = (e: MouseEvent) => {
+    if (!popup.contains(e.target as Node)) {
+      popup.remove();
+      document.removeEventListener("click", close, true);
+    }
+  };
+  setTimeout(() => document.addEventListener("click", close, true), 0);
+}
 
 export class TeacherPlannerSettingTab extends PluginSettingTab {
   plugin: TeacherPlannerPlugin;
@@ -29,6 +80,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // Capture snapshot of current settings so hide() can detect changes
     this._snapshot = JSON.stringify(this.plugin.settings);
     containerEl.createEl("h2", { text: "Teacher Planner" });
+
+    // ── Planners ───────────────────────────────────────────────────────────
+    this.renderPlannersSection(containerEl);
 
     // ── Academic Year ──────────────────────────────────────────────────────
     containerEl.createEl("h3", { text: "Academic Year" });
@@ -89,16 +143,21 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           dt.enabled = v;
           await this.plugin.saveSettings();
           if (v) await this.createDirectedTimeGuideNote();
-          this.display();
+          // Show/hide the sub-settings panel in place — no full re-render
+          dtPanel.style.display = v ? "" : "none";
         }));
 
-    if (dt.enabled) {
+    // Sub-settings panel — always in DOM, visibility controlled by toggle
+    const dtPanel = containerEl.createDiv();
+    dtPanel.style.display = dt.enabled ? "" : "none";
+
+    {
       // Instructions callout
-      const callout = containerEl.createDiv("tp-dt-callout");
+      const callout = dtPanel.createDiv("tp-dt-callout");
       callout.createEl("p", { text: "ℹ️  How it works: Directed time is counted only from items placed in your planner. The tracker shows hours accrued to today and a projection based on future planned events. Keep your planner up to date for accurate figures." });
       callout.createEl("p", { text: "⚠️  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice — always consult your union representative for formal disputes." });
 
-      new Setting(containerEl)
+      new Setting(dtPanel)
         .setName("Contracted directed time (hours)")
         .setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts.")
         .addText(t => t.setPlaceholder("1265").setValue(String(dt.contractedHours))
@@ -107,7 +166,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
             if (!isNaN(n) && n > 0) { dt.contractedHours = n; await this.plugin.saveSettings(); }
           }));
 
-      new Setting(containerEl)
+      new Setting(dtPanel)
         .setName("Timetable fraction (%)")
         .setDesc("For part-time teachers. Your directed time maximum = contracted hours × this %. Default: 100 (full-time).")
         .addText(t => t.setPlaceholder("100").setValue(String(dt.timetablePercentage))
@@ -116,12 +175,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
             if (!isNaN(n) && n > 0 && n <= 100) { dt.timetablePercentage = n; await this.plugin.saveSettings(); }
           }));
 
-      // Default lesson duration: preset dropdown + optional custom input
+      // Default lesson duration: preset dropdown + optional custom input (inline show/hide)
       const lessonDurOptions = ["45", "50", "60"];
       const lessonDurDropValue = lessonDurOptions.includes(String(dt.defaultLessonDurationMinutes))
         ? String(dt.defaultLessonDurationMinutes) : "custom";
 
-      new Setting(containerEl)
+      new Setting(dtPanel)
         .setName("Default lesson duration")
         .setDesc("Applied to all timetable lessons unless overridden on individual slots.")
         .addDropdown(d => d
@@ -132,26 +191,27 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           .setValue(lessonDurDropValue)
           .onChange(async v => {
             if (v !== "custom") { dt.defaultLessonDurationMinutes = parseInt(v); await this.plugin.saveSettings(); }
-            this.display();
+            // Show/hide the custom input in place — no full re-render
+            customDurSetting.settingEl.style.display = v === "custom" ? "" : "none";
           }));
 
-      if (lessonDurDropValue === "custom") {
-        new Setting(containerEl)
-          .setName("Custom lesson duration (minutes)")
-          .addText(t => t.setPlaceholder("e.g. 55").setValue(String(dt.defaultLessonDurationMinutes))
-            .onChange(async v => {
-              const n = parseInt(v);
-              if (!isNaN(n) && n > 0) { dt.defaultLessonDurationMinutes = n; await this.plugin.saveSettings(); }
-            }));
-      }
+      // Custom duration input — always in DOM, shown only when dropdown = "custom"
+      const customDurSetting = new Setting(dtPanel)
+        .setName("Custom lesson duration (minutes)")
+        .addText(t => t.setPlaceholder("e.g. 55").setValue(String(dt.defaultLessonDurationMinutes))
+          .onChange(async v => {
+            const n = parseInt(v);
+            if (!isNaN(n) && n > 0) { dt.defaultLessonDurationMinutes = n; await this.plugin.saveSettings(); }
+          }));
+      customDurSetting.settingEl.style.display = lessonDurDropValue === "custom" ? "" : "none";
 
-      new Setting(containerEl)
+      new Setting(dtPanel)
         .setName("Export directed time")
         .setDesc("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management.")
         .addButton(btn => btn.setButtonText("Export XLSX…").setCta()
           .onClick(() => new DirectedTimeExportModal(this.app, this.plugin).open()));
 
-      new Setting(containerEl)
+      new Setting(dtPanel)
         .setName("Directed time guide")
         .setDesc("Open the guide note explaining how the tracker works and your statutory rights.")
         .addButton(btn => btn.setButtonText("Open guide")
@@ -221,13 +281,19 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // ── Timetable Rotation (within School Timetable section) ────────────
     new Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.")
       .addToggle(t => t.setValue(this.plugin.settings.academicYear.abWeekEnabled)
-        .onChange(async v => { this.plugin.settings.academicYear.abWeekEnabled = v; await this.plugin.saveSettings(); this.display(); }));
-    if (this.plugin.settings.academicYear.abWeekEnabled) {
-      new Setting(containerEl).setName("Academic year starts on")
-        .addDropdown(d => d.addOption("A", "Week A").addOption("B", "Week B")
-          .setValue(this.plugin.settings.academicYear.abWeekStartsOn)
-          .onChange(async (v: string) => { this.plugin.settings.academicYear.abWeekStartsOn = v as "A" | "B"; await this.plugin.saveSettings(); }));
-    }
+        .onChange(async v => {
+          this.plugin.settings.academicYear.abWeekEnabled = v;
+          await this.plugin.saveSettings();
+          // Show/hide the week-selector in place — no full re-render
+          abPanel.style.display = v ? "" : "none";
+        }));
+    // A/B start week — always in DOM, visibility controlled by toggle
+    const abPanel = containerEl.createDiv();
+    abPanel.style.display = this.plugin.settings.academicYear.abWeekEnabled ? "" : "none";
+    new Setting(abPanel).setName("Academic year starts on")
+      .addDropdown(d => d.addOption("A", "Week A").addOption("B", "Week B")
+        .setValue(this.plugin.settings.academicYear.abWeekStartsOn)
+        .onChange(async (v: string) => { this.plugin.settings.academicYear.abWeekStartsOn = v as "A" | "B"; await this.plugin.saveSettings(); }));
 
     // ── Lessons ────────────────────────────────────────────────────────────
     containerEl.createEl("h3", { text: "Lessons" });
@@ -240,7 +306,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add subject").setCta()
       .onClick(async () => {
         const colour = CLASS_COLOUR_PALETTE[this.plugin.settings.subjects.length % CLASS_COLOUR_PALETTE.length];
-        this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour });
+        this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour, emoji: "📚" });
         await this.plugin.saveSettings();
         classesContainer.empty();
         this.renderSubjectsList(classesContainer);
@@ -411,6 +477,69 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     this.wrapSectionsCollapsible(containerEl);
   }
 
+  // ── Planners section ──────────────────────────────────────────────────────
+
+  private renderPlannersSection(container: HTMLElement) {
+    container.createEl("h3", { text: "Planners" });
+    container.createEl("p", {
+      text: "Each planner has its own timetable, classes and academic year. Switch between planners here or create a new one.",
+      cls: "setting-item-description",
+    });
+
+    const { planners, activePlannerId } = this.plugin.plannerData;
+    const plannerList = container.createDiv("tp-planner-list");
+
+    for (const p of planners) {
+      const isActive = p.id === activePlannerId;
+      const card = plannerList.createDiv("tp-planner-card" + (isActive ? " tp-planner-card--active" : ""));
+
+      // Left accent strip — colour handled by CSS .tp-planner-card--active .tp-planner-card-accent
+      card.createDiv("tp-planner-card-accent");
+
+      // Centre: name row (name + active badge inline) + dates below
+      const info = card.createDiv("tp-planner-card-info");
+      const nameRow = info.createDiv("tp-planner-card-name-row");
+      nameRow.createEl("span", { text: p.name, cls: "tp-planner-card-name" });
+      if (isActive) nameRow.createEl("span", { text: "Active", cls: "tp-planner-badge" });
+      info.createEl("span", {
+        text: p.academicYear.startDate + " → " + p.academicYear.endDate,
+        cls: "tp-planner-card-dates",
+      });
+
+      // Right: action buttons — always on the same line
+      const actions = card.createDiv("tp-planner-card-actions");
+
+      if (!isActive) {
+        const switchBtn = actions.createEl("button", { text: "Switch", cls: "tp-btn tp-btn--primary" });
+        switchBtn.addEventListener("click", async () => {
+          await this.plugin.switchPlanner(p.id);
+          this.display();
+        });
+        const delBtn = actions.createEl("button", { text: "Delete", cls: "tp-btn tp-btn--danger" });
+        delBtn.addEventListener("click", () => {
+          const isLast = planners.length === 1;
+          new DeletePlannerModal(this.app, this.plugin, p.id, p.name, isLast, () => this.display()).open();
+        });
+      } else {
+        // Active planner — delete disabled with tooltip
+        const disabledDel = actions.createEl("button", {
+          text: "Delete",
+          cls: "tp-btn tp-btn--danger",
+          attr: { disabled: "true", title: "Switch to another planner before deleting this one" },
+        });
+        disabledDel.style.opacity = "0.35";
+        disabledDel.style.cursor  = "not-allowed";
+      }
+    }
+
+    // "+ New planner" button
+    new Setting(container).addButton(btn => btn.setButtonText("+ New planner").setCta()
+      .onClick(() => {
+        new SetupWizardModal(this.app, this.plugin, true).open();
+        this.close();
+      }));
+  }
+
   private wrapSectionsCollapsible(container: HTMLElement): void {
     const h3s = Array.from(container.querySelectorAll<HTMLElement>(":scope > h3"));
     for (const h3 of h3s) {
@@ -521,19 +650,15 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const block = container.createDiv("tp-subject-block");
     const header = block.createDiv("tp-subject-header");
 
-    const swatchBtn = header.createEl("button", { cls: "tp-colour-swatch-btn" });
-    swatchBtn.style.background = subject.colour;
-    swatchBtn.title = "Change subject colour";
-    swatchBtn.addEventListener("click", () => {
-      new ColourPickerModal(this.app, subject.colour, subject.name, async colour => {
-        subject.colour = colour;
-        for (const cls of this.plugin.settings.classes.filter(c => c.subjectId === subject.id && !c.colourOverridden)) {
-          cls.colour = colour;
-        }
+    const emojiBtn = header.createEl("button", { cls: "tp-emoji-picker-btn", text: subject.emoji ?? "📚" });
+    emojiBtn.title = "Change subject emoji";
+    emojiBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openEmojiPicker(emojiBtn, subject.emoji ?? "📚", async (emoji) => {
+        subject.emoji = emoji;
         await this.plugin.saveSettings();
-        container.empty();
-        this.renderSubjectsList(container);
-      }).open();
+        emojiBtn.textContent = emoji;
+      });
     });
 
     const nameInput = header.createEl("input", { type: "text", cls: "tp-subject-name-input" });
@@ -823,7 +948,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   private renderWeekOverrideRow(container: HTMLElement, override: WeekOverride) {
-    const row = new Setting(container).setName("").setDesc("");
+    // Wrapper div stacks the Setting row + optional INSET sub-row
+    const wrapper = container.createDiv("tp-override-entry");
+    const row = new Setting(wrapper).setName("").setDesc("");
     row.settingEl.addClass("tp-override-row");
 
     // ── From date ──────────────────────────────────────────────────────────
@@ -832,7 +959,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     fromInput.title = "First day of the holiday/INSET period";
     fromInput.addEventListener("change", async () => {
       override.startDate = fromInput.value;
-      // Keep endDate ≥ startDate
+      // Keep endDate >= startDate
       if (override.endDate && override.endDate < override.startDate) {
         override.endDate = override.startDate;
         toInput.value = override.startDate;
@@ -860,30 +987,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       if (override.type === val) opt.selected = true;
     }
 
-    // ── INSET hours (shown only for INSET type) ────────────────────────────
-    const hoursWrap = row.controlEl.createDiv("tp-override-hours-wrap");
-    hoursWrap.style.display = override.type === "inset" ? "flex" : "none";
-    const hoursInput = hoursWrap.createEl("input", { type: "number", cls: "tp-override-hours-input" });
-    hoursInput.placeholder = "0";
-    hoursInput.min = "0";
-    hoursInput.max = "80";
-    hoursInput.step = "0.5";
-    hoursInput.title = "Total directed hours for this entire INSET period";
-    hoursInput.value = override.insetHours != null ? String(override.insetHours) : "";
-    hoursWrap.createSpan({ text: "h directed", cls: "tp-override-hours-label" });
-    hoursInput.addEventListener("change", async () => {
-      const n = parseFloat(hoursInput.value);
-      override.insetHours = isNaN(n) || n <= 0 ? undefined : n;
-      await this.plugin.saveSettings();
-    });
-
-    typeSelect.addEventListener("change", async () => {
-      override.type = typeSelect.value as "holiday" | "inset" | "custom";
-      hoursWrap.style.display = override.type === "inset" ? "flex" : "none";
-      await this.plugin.saveSettings();
-    });
-
-    // ── Label ──────────────────────────────────────────────────────────────
+    // ── Label (always visible — used for both holidays and INSET) ──────────
     const labelInput = row.controlEl.createEl("input", { type: "text", cls: "tp-override-label-input" });
     labelInput.value = override.label ?? "";
     labelInput.placeholder = "Label (e.g. Christmas)";
@@ -896,11 +1000,33 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     new ButtonComponent(row.controlEl).setIcon("trash").setTooltip("Remove").onClick(async () => {
       this.plugin.settings.weekOverrides = this.plugin.settings.weekOverrides.filter(w => w !== override);
       await this.plugin.saveSettings();
-      // Remove only this row — leave all other rows intact
-      row.settingEl.remove();
+      // Remove the entire wrapper (Setting row + INSET sub-row)
+      wrapper.remove();
       if (this.plugin.settings.weekOverrides.length === 0) {
         container.createEl("p", { text: "No holidays or INSET days marked.", cls: "setting-item-description" });
       }
+    });
+
+    // ── INSET hours sub-row (shown only when type = INSET) ─────────────────
+    const insetRow = wrapper.createDiv("tp-override-inset-row");
+    insetRow.style.display = override.type === "inset" ? "flex" : "none";
+
+    insetRow.createSpan({ text: "Directed hours for this period:", cls: "tp-override-inset-label" });
+    const hoursInput = insetRow.createEl("input", { type: "number", cls: "tp-override-hours-input" });
+    hoursInput.placeholder = "0"; hoursInput.min = "0"; hoursInput.max = "80"; hoursInput.step = "0.5";
+    hoursInput.title = "Total directed hours for this entire INSET period";
+    hoursInput.value = override.insetHours != null ? String(override.insetHours) : "";
+    insetRow.createSpan({ text: "h", cls: "tp-override-hours-label" });
+    hoursInput.addEventListener("change", async () => {
+      const n = parseFloat(hoursInput.value);
+      override.insetHours = isNaN(n) || n <= 0 ? undefined : n;
+      await this.plugin.saveSettings();
+    });
+
+    typeSelect.addEventListener("change", async () => {
+      override.type = typeSelect.value as "holiday" | "inset" | "custom";
+      insetRow.style.display = override.type === "inset" ? "flex" : "none";
+      await this.plugin.saveSettings();
     });
   }
 
@@ -926,7 +1052,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
 In England, under the **School Teachers' Pay and Conditions Document (STPCD)**, a full-time teacher may be directed to work for up to **1,265 hours per year** across a maximum of 195 days (190 teaching days + 5 INSET days). This is the statutory maximum — your school cannot lawfully direct you to exceed it.
 
-> **Your current settings:** ${dt.contractedHours}h contracted × ${dt.timetablePercentage}% timetable fraction = **${effectiveHours}h effective maximum**
+> **Your current settings:** ${dt.contractedHours}h contracted \xd7 ${dt.timetablePercentage}% timetable fraction = **${effectiveHours}h effective maximum**
 
 ---
 
@@ -951,9 +1077,9 @@ The sidebar panel shows:
 
 ## Part-time teachers
 
-Set your **timetable fraction** in *Settings → Directed Time Tracker*. Your effective maximum = contracted hours × fraction.
+Set your **timetable fraction** in *Settings → Directed Time Tracker*. Your effective maximum = contracted hours \xd7 fraction.
 
-*Example:* A 0.6 FTE teacher: 1,265 × 60% = **759 hours maximum**.
+*Example:* A 0.6 FTE teacher: 1,265 \xd7 60% = **759 hours maximum**.
 
 ---
 
@@ -1075,4 +1201,53 @@ export class ColourPickerModal extends Modal {
     }
     this.contentEl.empty();
   }
+}
+
+
+// ── Delete planner confirmation modal ─────────────────────────────────────────
+class DeletePlannerModal extends Modal {
+  private plugin: TeacherPlannerPlugin;
+  private plannerId: string;
+  private plannerName: string;
+  private isLast: boolean;
+  private onDeleted: () => void;
+
+  constructor(app: App, plugin: TeacherPlannerPlugin, plannerId: string, plannerName: string, isLast: boolean, onDeleted: () => void) {
+    super(app);
+    this.plugin      = plugin;
+    this.plannerId   = plannerId;
+    this.plannerName = plannerName;
+    this.isLast      = isLast;
+    this.onDeleted   = onDeleted;
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    titleEl.setText(this.isLast ? "Delete last planner" : "Delete planner");
+
+    contentEl.createEl("p", {
+      text: this.isLast
+        ? `"${this.plannerName}" is your only planner. Deleting it will remove all planner data and relaunch the setup wizard. Lesson notes already created in your vault will not be affected.`
+        : `Delete "${this.plannerName}"? All planner data (timetable, classes, events) will be removed. Lesson notes already created in your vault will not be affected.`,
+      cls: "setting-item-description",
+    });
+
+    new Setting(contentEl)
+      .addButton(btn => btn.setButtonText("Cancel").onClick(() => this.close()))
+      .addButton(btn => btn
+        .setButtonText(this.isLast ? "Delete & restart wizard" : "Delete planner")
+        .setWarning()
+        .onClick(async () => {
+          await this.plugin.deletePlanner(this.plannerId);
+          this.close();
+          if (this.isLast) {
+            const { SetupWizardModal } = await import("../modals/SetupWizardModal");
+            new SetupWizardModal(this.app, this.plugin).open();
+          } else {
+            this.onDeleted();
+          }
+        }));
+  }
+
+  onClose() { this.contentEl.empty(); }
 }
