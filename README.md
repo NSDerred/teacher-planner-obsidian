@@ -16,29 +16,35 @@ It understands your world: periods, classes, A/B week rotations, cover lessons, 
 
 ## Features
 
+### 🧙 Guided Setup Wizard
+A 10-step wizard walks you through full planner configuration on first launch — name, academic year, school days, periods, block types, holidays, subjects, and classes. Pre-filled with sensible UK defaults (standard periods, England 2025–26 term dates) so you can be up and running in minutes. Each step is skippable and everything can be changed later in settings.
+
+### 🗂️ Multiple Planners
+Run more than one planner inside the same vault — useful if you teach across two schools, have a very different timetable each year, or want to keep a clean record of previous academic years. Switch between planners instantly; each has its own timetable, classes, and lesson notes in a separate subfolder.
+
 ### 📅 Week View
-A colour-coded weekly grid showing your full timetable at a glance. Navigate by week, see your classes, duties, and events laid out clearly, and jump straight into lesson notes with a single click.
+A colour-coded weekly grid showing your full timetable at a glance. Navigate forward and back by week, see classes, duties, and events laid out by period, and jump straight into a lesson note with a single click.
 
 ### 🗓️ Timetable Management
-Define your periods, set your daily schedule, and assign classes to slots. Full support for **A/B week rotation** — the plugin tracks which week you're on automatically.
+Build your timetable visually using the timetable editor. Define your periods, assign classes to slots, and set classrooms per slot. Full support for **A/B week rotation** — the plugin tracks which week you're on automatically based on your academic year start date.
 
-### 📚 Class & Subject Tracking
-Configure your subjects, classes, year groups, and classrooms. Colour-code by subject so you can read your week at a glance.
+### 📚 Subjects & Classes
+Configure subjects with an emoji identifier and nest class groups beneath them. Each class group has its own colour, year group, class code, and default classroom. Colours can be overridden at the class level independently of the subject.
+
+### 📌 Date Events
+Overlay one-off events onto any period on any date — cover lessons, duties, trips, meetings, parents' evenings, or any other one-off. Date events sit on top of your timetable without disrupting it and can be added directly by clicking an empty cell in the week view.
 
 ### 📝 Lesson Notes
-Open a per-lesson note directly from the week view. Each lesson gets its own note in your vault, built from a customisable template — keeping your planning and your notes in the same place.
+Each lesson in the week view has a dedicated note in your vault, built from a fully customisable template. Open, create, or edit a lesson note with a single click. Notes are stored in your planner folder and work with all standard Obsidian features — backlinks, search, graph view.
 
-### 📌 Special Events & Cover
-Overlay one-off events on any slot: cover lessons, duties, meetings, trips, or anything else. Special events sit on top of your timetable without disrupting it.
-
-### ⏱️ Directed Time Log
-Track your non-teaching directed time — meetings, duties, cover — across the academic year. Know what your week looks like beyond just lessons.
+### ⏱️ Directed Time Tracker
+Track your statutory directed time across the academic year against the STPCD 1,265-hour limit. The tracker counts timetabled lessons, directed-time activities, and date events, projects a year-end total, and excludes holidays and INSET days automatically. Supports part-time timetable fractions. Exports a detailed Excel report for union or management use. A plain-language guide note is created in your planner folder when the tracker is enabled.
 
 ### 📤 Export
-Export your timetable and planning data when you need it.
+Export your timetable and planning data to Excel (`.xlsx`) for sharing, reporting, or archiving.
 
-### 🎨 Themes
-Choose between **Carbon** (dark) and **Paper** (light), each with full dark/light mode support to match your Obsidian theme.
+### 🏫 School Day Blocks
+Define the types of slot that make up your school day — Lesson, Break, Registration, Administration, or any custom type — and assign them to your periods. Each block type has its own colour used to shade the week view grid.
 
 ---
 
