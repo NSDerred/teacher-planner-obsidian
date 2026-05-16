@@ -136,4 +136,6 @@ src/
 
 ## Licence
 
-MIT © Nick Smith
+[PolyForm Noncommercial License 1.0.0](LICENSE) © 2025 Nick Smith
+
+Free to use, fork, and modify for personal and non-commercial purposes. Commercial use requires a separate written licence — contact [nicholas.f.smith@pm.me](mailto:nicholas.f.smith@pm.me).
