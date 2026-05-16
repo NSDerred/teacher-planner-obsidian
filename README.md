@@ -136,6 +136,6 @@ src/
 
 ## Licence
 
-[PolyForm Noncommercial License 1.0.0](LICENSE) © 2025 Nick Smith
+[GPL-3.0](LICENSE) © 2026 Nick Smith — free to use and modify, but any distribution must remain open source under the same licence. Commercial use requires separate written permission from the author.
 
 Free to use, fork, and modify for personal and non-commercial purposes. Commercial use requires a separate written licence — contact [nicholas.f.smith@pm.me](mailto:nicholas.f.smith@pm.me).
