@@ -18,4 +18,4 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
-/docs
+/docs/advertising-posts.md
