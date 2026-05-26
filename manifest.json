@@ -5,6 +5,7 @@
   "minAppVersion": "1.4.0",
   "description": "Academic year planner for teachers — timetable management, lesson tracking, and weekly planning.",
   "author": "Nick Smith",
-  "authorUrl": "",
+  "authorUrl": "https://github.com/NSDerred",
+  "fundingUrl": "https://buymeacoffee.com/teacher.nsmith",
   "isDesktopOnly": false
 }
