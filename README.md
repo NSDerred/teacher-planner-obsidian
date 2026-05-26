@@ -8,7 +8,7 @@
 
 ## Why Teacher Planner?
 
-Most calendar tools are built for meetings. Teacher Planner is built for teachers.
+Teacher Planner is built for teachers.
 
 It understands your world: periods, classes, A/B week rotations, cover lessons, directed time, and the difference between a duty and a meeting. Everything lives inside Obsidian alongside your notes — no extra apps, no subscriptions, no data leaving your vault.
 
@@ -155,6 +155,16 @@ src/
 
 ## Licence
 
-[GPL-3.0](LICENSE) © 2026 Nick Smith — free to use and modify, but any distribution must remain open source under the same licence. Commercial use requires separate written permission from the author.
+**Teacher Planner is dual-licensed.** Pick whichever option suits you:
 
-Free to use, fork, and modify for personal and non-commercial purposes. Commercial use requires a separate written licence — contact [nicholas.f.smith@pm.me](mailto:nicholas.f.smith@pm.me).
+1. **[GPL-3.0](LICENSE)** © 2026 Nick Smith — free to use, fork, and modify.
+   If you distribute a modified version, the source for your version must
+   remain available under GPL-3.0 too. This is the right choice for individuals,
+   schools, and contributors.
+
+2. **[Commercial Licence](COMMERCIAL-LICENSE.md)** — for incorporating Teacher
+   Planner into a commercial product without GPL's copyleft requirements.
+   Contact [nicholas.f.smith@pm.me](mailto:nicholas.f.smith@pm.me) for terms.
+
+Both options grant the right to *use* the plugin; the difference is in how you
+can distribute modifications.
