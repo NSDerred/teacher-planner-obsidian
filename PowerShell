@@ -1,0 +1,72 @@
+[33mcommit cdfd1252fc62973ee35af74abdd288f1f46650c8[m
+Author: Nick Smith <nicholas.f.smith@pm.me>
+Date:   Sat May 16 23:27:23 2026 +0100
+
+    Multi-Planner Architecture, Setup Wizard & UI Overhaul
+    
+    Overview
+    This is a substantial rewrite introducing multi-planner support, a 10-step guided setup wizard, and a series of UI improvements across settings, the timetable editor, and event management.
+    
+    🏗️ Multi-Planner Data Model
+    
+    Introduced PlannerRecord and GlobalPluginData types to support multiple independent planners in a single Obsidian vault
+    Active planner's fields are surfaced onto plugin.settings so all existing views and modals require no changes
+    loadSettings() includes a migration guard that seamlessly upgrades legacy flat data.json to the new v2 format
+    Each planner gets its own subfolder inside a configurable root vault folder (Teacher Planner/<name>)
+    
+    🧙 Setup Wizard (10 Steps)
+    A new SetupWizardModal walks users through full planner configuration on first launch or when adding a new planner:
+    StepContent1Planner name2Directed time tracker (toggle + contract details + activities)3Academic year start/end dates4Holidays & INSET days (5 England 2025–26 term breaks pre-filled)5School days & A/B week rotation6School day block types (Lesson, Break, Registration, Administration)7School periods (pre-populated with a standard day)8Subjects & classes with emoji picker9Timetable editor launch10Summary
+    Additional wizard details:
+    
+    Close guard — attempting to exit on steps 1–8 triggers a confirmation modal; the planner is not committed until step 9
+    Directed time guide note — when the tracker is enabled, a detailed Directed Time — Guide.md is auto-created in the planner folder on wizard completion
+    Slate colour palette set as default for school day block types
+    Button spacing — gap between Back/Next/Save & continue buttons
+    
+    ⚙️ Settings Tab — Planners Section
+    
+    Planners displayed as a unified shaded box with one row per planner
+    Coloured left-accent strip (accent colour = active planner, muted = inactive)
+    Delete button permanently right-aligned; confirmation modal warns when deleting the last planner (resets to wizard)
+    Edit/switch planner buttons inline per row
+    
+    😀 Subject Emoji Picker
+    
+    Subject header now shows an emoji button instead of a colour swatch (colour was never surfaced in the planner UI)
+    Clicking opens a floating 6-column grid of 30 common subject emojis (🔬 🧮 📚 🌍 🏛️ 🎨 🎵 💻 🏃 🌐 ⚗️ ⚡ 💰 🎭 📐 🧠 ⚖️ 🌱 📸 🎬 🍳 ✝️ 🤝 📊 🔭 🎸 📝 🌿 🧬)
+    Active emoji highlighted with accent border; closes on outside click
+    Class-level colour selection unchanged
+    Applied in both the wizard (step 8) and settings tab
+    
+    📅 Timetable Editor — Slot Picker Improvements
+    
+    Added a search input at the top of the floating slot picker with auto-focus on open
+    Classes now show Year · Subject as secondary text, matching the +Events picker style
+    Picker list filtered reactively as you type; groups (Classes / Directed time / Other) all searchable
+    
+    ➕ Add Date Event Modal
+    
+    Replaced EventPickerModal with the richer AddDateEventModal for empty-slot clicks in the week view
+    Flat alphabetical item list with search, date pre-fill, and duration field for directed-time activities
+    
+    🐛 Bug Fixes
+    
+    Fixed collapse of directed time and A/B rotation panels after toggle (settings tab was re-rendering the full page)
+    Fixed blank screen on reload and mobile (Svelte mount target resolution)
+    Fixed WizardCloseConfirmModal constructor corruption (nfirm → this.onConfirm = onConfirm)
+    Fixed truncated CSS (cursor: pointer missing from export option radio input)
+    
+    🎨 Style Changes
+    
+    .tp-wizard-footer — gap: 8px added so nav buttons don't touch
+    .tp-planner-list / .tp-planner-card — unified shaded-box layout with separator lines and right-aligned actions
+    .tp-emoji-picker-btn — emoji subject button (28×28px, with hover scale)
+    .tp-emoji-popup — fixed-position grid popup for emoji selection
+    Slate default palette for period types (#5a6a7a, #6a7a8a, #4a6060, #6a6a7a)
+
+[33mcommit 4e37255b681ad5f66a7fd7c5905fdd405db4cb3a[m
+Author: Nick Smith <nicholas.f.smith@pm.me>
+Date:   Fri May 15 19:30:09 2026 +0100
+
+    Initial commit

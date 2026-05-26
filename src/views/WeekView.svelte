@@ -117,7 +117,7 @@
       if (!tmpl) continue;
       const visible = !_ab || !_wt
         ? tmpl.slots
-        : tmpl.slots.filter(s => s.weekType === _wt || s.weekType === "both");
+        : tmpl.slots.filter(s => s.weekType === _wt || s.weekType === "both" || s.weekType == null);
       for (const s of visible) {
         if (s.day === day.key) m[day.key + ":" + s.periodId] = s;
       }
@@ -411,8 +411,8 @@
   // ── Academic-year bounds ──────────────────────────────────────────────────
   function _ayStart(): Date { return new Date(plugin.settings.academicYear.startDate + "T00:00:00"); }
   function _ayEnd():   Date { return new Date(plugin.settings.academicYear.endDate   + "T23:59:59"); }
-  $: canGoPrev = getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart();
-  $: canGoNext = getMondayOfWeek(addWeeks(currentDate,  1)) <= _ayEnd();
+  $: canGoPrev = (_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart());
+  $: canGoNext = (_tick, getMondayOfWeek(addWeeks(currentDate,  1)) <= _ayEnd());
 
   // Sync sidebar notes to the current planner week whenever it changes
   $: (plugin as any).notifySidebar(currentMonday);
@@ -484,20 +484,6 @@
     if (cls) { cls.lessonCount = lessonNum; await plugin.saveSettings(); }
 
     const template = plugin.settings.lessonNoteTemplate ?? "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
-    const frontmatter = [
-      "---",
-      `classId: ${slot.classId}`,
-      `classCode: ${lbl.code}`,
-      `date: ${dayDate}`,
-      `lessonNumber: ${lessonNum}`,
-      `topic: ""`,
-      `colour: "${lbl.colour}"`,
-      `modified: false`,
-      `slotId: ${slot.id}`,
-      "---",
-      "",
-      "",
-    ].join("\n");
 
     // Ensure folder exists
     const folderObj = plugin.app.vault.getAbstractFileByPath(folder);
@@ -506,7 +492,7 @@
     }
 
     try {
-      await plugin.app.vault.create(filePath, frontmatter + template);
+      await plugin.app.vault.create(filePath, template);
       plugin.app.workspace.openLinkText(filePath, "", false);
     } catch (err) {
       console.error("Lesson note error:", err);
@@ -531,28 +517,13 @@
     cls.lessonCount = lessonNum;
     await plugin.saveSettings();
 
-    const lbl = getDateEventLabel(ev);
     const template = plugin.settings.lessonNoteTemplate ?? "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
-    const frontmatter = [
-      "---",
-      `classId: ${ev.classId}`,
-      `classCode: ${cls.code}`,
-      `date: ${dayDate}`,
-      `lessonNumber: ${lessonNum}`,
-      `topic: ""`,
-      `colour: "${lbl.colour}"`,
-      `modified: false`,
-      `slotId: ${ev.id}`,
-      "---",
-      "",
-      "",
-    ].join("\n");
 
     const folderObj = plugin.app.vault.getAbstractFileByPath(folder);
     if (!folderObj) { try { await plugin.app.vault.createFolder(folder); } catch {} }
 
     try {
-      await plugin.app.vault.create(filePath, frontmatter + template);
+      await plugin.app.vault.create(filePath, template);
       plugin.app.workspace.openLinkText(filePath, "", false);
     } catch (err) { console.error("Lesson note error:", err); }
   }
@@ -763,7 +734,7 @@
   .tp-btn:hover { background:var(--background-modifier-hover); }
   .tp-btn:disabled { opacity:0.38; cursor:default; pointer-events:none; }
   .tp-btn-accent { background:var(--interactive-accent); color:var(--text-on-accent); border-color:var(--interactive-accent); }
-  .tp-btn-accent:hover { opacity:0.88; }
+  .tp-btn-accent:hover { background:var(--interactive-accent); opacity:0.88; }
   /* Icon sizing inside buttons */
   .tp-btn :global(svg), .tp-btn-icon :global(svg) { width:14px; height:14px; flex-shrink:0; }
   /* Icon-only button (Settings) */

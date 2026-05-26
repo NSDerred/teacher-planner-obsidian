@@ -1,6 +1,12 @@
 import { App, Modal, Notice, TFile } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import * as XLSX from "xlsx";
+import {
+  ExportDestination,
+  renderDestinationPicker,
+  writeSystemFile,
+  joinSystemPath,
+} from "../utils/exportDestination";
 
 type ExportDataset = "timetable" | "events" | "both";
 type ExportFormat  = "csv" | "xlsx";
@@ -9,6 +15,7 @@ export class ExportModal extends Modal {
   private plugin: TeacherPlannerPlugin;
   private dataset: ExportDataset = "both";
   private format:  ExportFormat  = "xlsx";
+  private destination: ExportDestination = { mode: "vault", vaultPath: "", systemPath: null };
 
   constructor(app: App, plugin: TeacherPlannerPlugin) {
     super(app);
@@ -56,6 +63,10 @@ export class ExportModal extends Modal {
       inp.addEventListener("change", () => { if (inp.checked) this.format = val; });
       lbl.createSpan({ text: label });
     }
+
+    // Destination (vault or computer)
+    this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
+    renderDestinationPicker(form, this.destination, (this.app as any).isMobile === true);
 
     // Footer
     const footer = contentEl.createDiv("tp-modal-footer");
@@ -172,22 +183,33 @@ export class ExportModal extends Modal {
   }
 
   private async exportCSV() {
-    const folder = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
-    await this.ensureFolder(folder);
-    const files: [string, string][] = [];
+    const targets: [string, string][] = [];
+    const filenames: string[] = [];
     if (this.dataset !== "events") {
-      files.push([`${folder}/timetable.csv`, this.toCSV(this.buildTimetableRows())]);
+      filenames.push("timetable.csv");
+      targets.push(["timetable.csv", this.toCSV(this.buildTimetableRows())]);
     }
     if (this.dataset !== "timetable") {
-      files.push([`${folder}/date-events.csv`, this.toCSV(this.buildEventsRows())]);
+      filenames.push("date-events.csv");
+      targets.push(["date-events.csv", this.toCSV(this.buildEventsRows())]);
     }
-    for (const [path, content] of files) await this.writeText(path, content);
-    new Notice(`Exported ${files.length} file(s) to ${folder}`);
+
+    if (this.destination.mode === "system" && this.destination.systemPath) {
+      for (const [name, content] of targets) {
+        await writeSystemFile(joinSystemPath(this.destination.systemPath, name), content);
+      }
+      new Notice(`Exported ${targets.length} file(s) to ${this.destination.systemPath}`);
+    } else {
+      const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
+      await this.ensureFolder(folder);
+      for (const [name, content] of targets) {
+        await this.writeText(`${folder}/${name}`, content);
+      }
+      new Notice(`Exported ${targets.length} file(s) to ${folder}`);
+    }
   }
 
   private async exportXLSX() {
-    const folder = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
-    await this.ensureFolder(folder);
     const wb = XLSX.utils.book_new();
     if (this.dataset !== "events") {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(this.buildTimetableRows()), "Timetable");
@@ -195,10 +217,20 @@ export class ExportModal extends Modal {
     if (this.dataset !== "timetable") {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(this.buildEventsRows()), "Date Events");
     }
-    const buf  = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as Uint8Array;
-    const path = `${folder}/planner-export.xlsx`;
-    await (this.app.vault.adapter as any).writeBinary(path, buf.buffer);
-    new Notice(`Exported to ${path}`);
+    const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+    const filename = "planner-export.xlsx";
+
+    if (this.destination.mode === "system" && this.destination.systemPath) {
+      const absPath = joinSystemPath(this.destination.systemPath, filename);
+      await writeSystemFile(absPath, buf);
+      new Notice(`Exported to ${absPath}`);
+    } else {
+      const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
+      await this.ensureFolder(folder);
+      const path = `${folder}/${filename}`;
+      await (this.app.vault.adapter as any).writeBinary(path, buf);
+      new Notice(`Exported to ${path}`);
+    }
   }
 
   onClose() { this.contentEl.empty(); }

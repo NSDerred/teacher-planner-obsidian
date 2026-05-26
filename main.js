@@ -1341,120 +1341,120 @@ var init_AddTimetableTemplateModal = __esm({
 
 // src/modals/TimetableEditorComponent.svelte
 function add_css(target) {
-  append_styles(target, "svelte-wnmi8g", ".tp-te-wrap.svelte-wnmi8g.svelte-wnmi8g{display:flex;flex-direction:column;width:100%;box-sizing:border-box;height:auto;overflow:visible;font-size:14px;position:relative}.tp-te-tmpl-bar.svelte-wnmi8g.svelte-wnmi8g{display:flex;align-items:flex-start;gap:8px;padding:8px 48px 12px 0;flex-shrink:0;flex-wrap:wrap}.tp-te-tmpl-tabs.svelte-wnmi8g.svelte-wnmi8g{display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:0}.tp-te-tmpl-tab-wrap.svelte-wnmi8g.svelte-wnmi8g{display:flex;align-items:center;gap:2px}.tp-te-tmpl-tab.svelte-wnmi8g.svelte-wnmi8g{display:flex;flex-direction:column;align-items:flex-start;padding:10px 14px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-muted);font-size:13px;cursor:pointer;transition:all 0.15s;text-align:left}.tp-te-tmpl-tab--active.svelte-wnmi8g.svelte-wnmi8g{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-tmpl-tab--past.svelte-wnmi8g.svelte-wnmi8g:not(.tp-te-tmpl-tab--active){opacity:0.65}.tp-te-tmpl-name.svelte-wnmi8g.svelte-wnmi8g{font-weight:600;line-height:1.2}.tp-te-tmpl-dates.svelte-wnmi8g.svelte-wnmi8g{font-size:11px;opacity:0.75;line-height:1.2;margin-top:1px}.tp-te-tmpl-rename-btn.svelte-wnmi8g.svelte-wnmi8g{background:transparent;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:0.6;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-rename-btn.svelte-wnmi8g.svelte-wnmi8g:hover{opacity:1}.tp-te-tmpl-rename-btn.svelte-wnmi8g svg{width:13px;height:13px}.tp-te-rename-input.svelte-wnmi8g.svelte-wnmi8g{font-size:13px;font-weight:600;padding:4px 8px;border:1px solid var(--interactive-accent);border-radius:6px;background:var(--background-primary);color:var(--text-normal);width:140px}.tp-te-tmpl-actions.svelte-wnmi8g.svelte-wnmi8g{display:flex;align-items:center;gap:6px;flex-shrink:0}.tp-te-tmpl-add-btn.svelte-wnmi8g.svelte-wnmi8g{padding:10px 16px;border-radius:6px;border:1.5px dashed var(--interactive-accent);background:transparent;color:var(--interactive-accent);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap}.tp-te-tmpl-add-btn.svelte-wnmi8g.svelte-wnmi8g:hover{background:color-mix(in srgb, var(--interactive-accent) 10%, transparent)}.tp-te-tmpl-del-btn.svelte-wnmi8g.svelte-wnmi8g{background:transparent;border:none;cursor:pointer;font-size:16px;padding:4px;opacity:0.5;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-del-btn.svelte-wnmi8g.svelte-wnmi8g:hover{opacity:1}.tp-te-tmpl-del-btn.svelte-wnmi8g svg{width:15px;height:15px}.tp-te-past-warn.svelte-wnmi8g.svelte-wnmi8g{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;margin-bottom:12px;background:color-mix(in srgb, var(--color-yellow, #f59e0b) 12%, transparent);border:1px solid var(--color-yellow, #f59e0b);border-radius:6px;font-size:13px;color:var(--text-normal);flex-shrink:0}.tp-te-past-confirm-btn.svelte-wnmi8g.svelte-wnmi8g{padding:4px 12px;border-radius:4px;border:none;background:var(--color-red, #f38ba8);color:#fff;font-size:12px;cursor:pointer}.tp-te-past-cancel-btn.svelte-wnmi8g.svelte-wnmi8g{padding:4px 12px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-week-tabs.svelte-wnmi8g.svelte-wnmi8g{display:flex;gap:6px;margin-bottom:14px;flex-shrink:0}.tp-te-week-tab.svelte-wnmi8g.svelte-wnmi8g{padding:6px 20px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-muted);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}.tp-te-week-tab--active.svelte-wnmi8g.svelte-wnmi8g{background:var(--interactive-accent);color:#fff;border-color:var(--interactive-accent)}.tp-te-grid-wrap.svelte-wnmi8g.svelte-wnmi8g{overflow:auto;max-height:55vh;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-te-grid.svelte-wnmi8g.svelte-wnmi8g{width:100%;border-collapse:collapse;table-layout:fixed}.tp-te-th.svelte-wnmi8g.svelte-wnmi8g{padding:10px 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);text-align:center;background:var(--background-secondary);border-bottom:1px solid var(--background-modifier-border);position:sticky;top:0;z-index:2}.tp-te-th--period.svelte-wnmi8g.svelte-wnmi8g{text-align:left;width:130px}.tp-te-period-cell.svelte-wnmi8g.svelte-wnmi8g{padding:6px 10px;border-bottom:1px solid var(--background-modifier-border);vertical-align:middle}.tp-te-period-name.svelte-wnmi8g.svelte-wnmi8g{display:block;font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-period-time.svelte-wnmi8g.svelte-wnmi8g{display:block;font-size:11px;color:var(--text-faint);margin-top:1px}.tp-te-cell.svelte-wnmi8g.svelte-wnmi8g{height:52px;padding:4px;border-bottom:1px solid var(--background-modifier-border);border-left:1px solid var(--background-modifier-border);vertical-align:middle;position:relative}.tp-te-cell.svelte-wnmi8g:hover .tp-te-add.svelte-wnmi8g{opacity:1}.tp-te-add.svelte-wnmi8g.svelte-wnmi8g{opacity:0;width:100%;height:100%;border:1.5px dashed var(--background-modifier-border);border-radius:6px;background:transparent;color:var(--text-faint);font-size:18px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center}.tp-te-add.svelte-wnmi8g.svelte-wnmi8g:hover{border-color:var(--interactive-accent);color:var(--interactive-accent);background:var(--background-modifier-hover)}.tp-te-chip.svelte-wnmi8g.svelte-wnmi8g{width:100%;height:100%;border-radius:6px;border:none;cursor:pointer;padding:4px 6px;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden;transition:filter 0.1s}.tp-te-chip.svelte-wnmi8g.svelte-wnmi8g:hover{filter:brightness(1.1)}.tp-te-chip-code.svelte-wnmi8g.svelte-wnmi8g{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-chip-sub.svelte-wnmi8g.svelte-wnmi8g{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-duration-badge.svelte-wnmi8g.svelte-wnmi8g{position:absolute;bottom:3px;right:4px;font-size:10px;font-weight:700;background:rgba(0,0,0,0.30);color:#fff;border-radius:3px;padding:1px 4px;cursor:pointer;line-height:1.4;transition:background 0.1s;z-index:1;pointer-events:all}.tp-te-duration-badge.svelte-wnmi8g.svelte-wnmi8g:hover{background:rgba(0,0,0,0.50)}.tp-te-duration-input.svelte-wnmi8g.svelte-wnmi8g{position:absolute;bottom:3px;right:4px;width:46px;font-size:10px;padding:1px 3px;border:1px solid var(--interactive-accent);border-radius:3px;background:var(--background-primary);color:var(--text-normal);z-index:2;text-align:center}.tp-te-picker.svelte-wnmi8g.svelte-wnmi8g{position:fixed;z-index:1000;width:240px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.3);overflow:hidden}.tp-te-picker-inner.svelte-wnmi8g.svelte-wnmi8g{max-height:360px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:2px}.tp-te-picker-search.svelte-wnmi8g.svelte-wnmi8g{width:100%;box-sizing:border-box;padding:6px 10px;margin-bottom:2px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-secondary);color:var(--text-normal);font-size:13px;outline:none;flex-shrink:0}.tp-te-picker-search.svelte-wnmi8g.svelte-wnmi8g:focus{border-color:var(--interactive-accent)}.tp-te-picker-group-label.svelte-wnmi8g.svelte-wnmi8g{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);padding:4px 8px 2px}.tp-te-picker-divider.svelte-wnmi8g.svelte-wnmi8g{height:1px;background:var(--background-modifier-border);margin:4px 0}.tp-te-picker-row.svelte-wnmi8g.svelte-wnmi8g{display:flex;align-items:center;gap:2px}.tp-te-picker-item.svelte-wnmi8g.svelte-wnmi8g{flex:1;display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;text-align:left;width:100%;transition:background 0.1s;min-width:0}.tp-te-picker-item.svelte-wnmi8g.svelte-wnmi8g:hover{background:var(--background-modifier-hover)}.tp-te-picker-item--archived.svelte-wnmi8g.svelte-wnmi8g{cursor:default;pointer-events:none}.tp-te-picker-item-text.svelte-wnmi8g.svelte-wnmi8g{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1;min-width:0}.tp-te-picker-code.svelte-wnmi8g.svelte-wnmi8g{font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-room.svelte-wnmi8g.svelte-wnmi8g{font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-clear.svelte-wnmi8g.svelte-wnmi8g{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-red, #f38ba8);font-size:13px;width:100%;transition:background 0.1s}.tp-te-picker-clear.svelte-wnmi8g svg{width:13px;height:13px;flex-shrink:0}.tp-te-picker-clear.svelte-wnmi8g.svelte-wnmi8g:hover{background:var(--background-modifier-hover)}.tp-te-archive-btn.svelte-wnmi8g.svelte-wnmi8g{background:transparent;border:none;cursor:pointer;font-size:14px;padding:4px 5px;opacity:0;flex-shrink:0;border-radius:4px;transition:opacity 0.1s, background 0.1s;display:inline-flex;align-items:center}.tp-te-archive-btn.svelte-wnmi8g svg{width:13px;height:13px}.tp-te-picker-row.svelte-wnmi8g:hover .tp-te-archive-btn.svelte-wnmi8g{opacity:0.6}.tp-te-picker-row--archived.svelte-wnmi8g .tp-te-archive-btn.svelte-wnmi8g{opacity:0.7}.tp-te-archive-btn.svelte-wnmi8g.svelte-wnmi8g:hover{opacity:1 !important;background:var(--background-modifier-hover)}.tp-te-show-archived-btn.svelte-wnmi8g.svelte-wnmi8g{background:transparent;border:none;cursor:pointer;color:var(--text-faint);font-size:12px;padding:4px 8px;text-align:left;width:100%;border-radius:4px}.tp-te-show-archived-btn.svelte-wnmi8g.svelte-wnmi8g:hover{background:var(--background-modifier-hover);color:var(--text-muted)}.tp-te-unsaved-overlay.svelte-wnmi8g.svelte-wnmi8g{position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;border-radius:8px}.tp-te-unsaved-dialog.svelte-wnmi8g.svelte-wnmi8g{background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;padding:20px 24px;max-width:340px;width:100%;box-shadow:0 8px 28px rgba(0,0,0,0.35);display:flex;flex-direction:column;gap:14px}.tp-te-unsaved-msg.svelte-wnmi8g.svelte-wnmi8g{font-size:14px;color:var(--text-normal);margin:0;line-height:1.4}.tp-te-unsaved-actions.svelte-wnmi8g.svelte-wnmi8g{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.tp-te-btn-danger.svelte-wnmi8g.svelte-wnmi8g{background:var(--color-red,#f38ba8);color:var(--text-on-accent);border-color:var(--color-red,#f38ba8)}.tp-te-btn-danger.svelte-wnmi8g.svelte-wnmi8g:hover{filter:brightness(1.1)}.tp-te-footer.svelte-wnmi8g.svelte-wnmi8g{display:flex;justify-content:flex-end;gap:8px;padding-top:14px;flex-shrink:0}.tp-te-btn.svelte-wnmi8g.svelte-wnmi8g{padding:8px 18px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:14px;cursor:pointer;transition:background 0.1s}.tp-te-btn.svelte-wnmi8g.svelte-wnmi8g:hover{background:var(--background-modifier-hover)}.tp-te-btn-primary.svelte-wnmi8g.svelte-wnmi8g{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-btn-primary.svelte-wnmi8g.svelte-wnmi8g:hover{filter:brightness(1.08)}");
+  append_styles(target, "svelte-iy9knz", ".tp-te-wrap.svelte-iy9knz.svelte-iy9knz{display:flex;flex-direction:column;width:100%;box-sizing:border-box;height:auto;overflow:visible;font-size:14px;position:relative}.tp-te-tmpl-bar.svelte-iy9knz.svelte-iy9knz{display:flex;align-items:flex-start;gap:8px;padding:8px 48px 12px 0;flex-shrink:0;flex-wrap:wrap}.tp-te-tmpl-tabs.svelte-iy9knz.svelte-iy9knz{display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:0}.tp-te-tmpl-tab-wrap.svelte-iy9knz.svelte-iy9knz{display:flex;align-items:center;gap:2px}.tp-te-tmpl-tab.svelte-iy9knz.svelte-iy9knz{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 16px 11px;min-height:54px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;cursor:pointer;transition:all 0.15s;text-align:left}.tp-te-tmpl-tab--active.svelte-iy9knz.svelte-iy9knz{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-tmpl-tab--past.svelte-iy9knz.svelte-iy9knz:not(.tp-te-tmpl-tab--active){opacity:0.65}.tp-te-tmpl-name.svelte-iy9knz.svelte-iy9knz{font-weight:600;line-height:1.2}.tp-te-tmpl-dates.svelte-iy9knz.svelte-iy9knz{font-size:11px;opacity:0.75;line-height:1.2;margin-top:1px}.tp-te-tmpl-rename-btn.svelte-iy9knz.svelte-iy9knz{background:transparent;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:0.6;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-rename-btn.svelte-iy9knz.svelte-iy9knz:hover{opacity:1}.tp-te-tmpl-rename-btn.svelte-iy9knz svg{width:13px;height:13px}.tp-te-rename-input.svelte-iy9knz.svelte-iy9knz{font-size:13px;font-weight:600;padding:4px 8px;border:1px solid var(--interactive-accent);border-radius:6px;background:var(--background-primary);color:var(--text-normal);width:140px}.tp-te-tmpl-actions.svelte-iy9knz.svelte-iy9knz{display:flex;align-items:center;gap:6px;flex-shrink:0}.tp-te-tmpl-add-btn.svelte-iy9knz.svelte-iy9knz{padding:10px 16px;border-radius:6px;border:1.5px dashed var(--interactive-accent);background:transparent;color:var(--interactive-accent);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap}.tp-te-tmpl-add-btn.svelte-iy9knz.svelte-iy9knz:hover{background:color-mix(in srgb, var(--interactive-accent) 10%, transparent)}.tp-te-tmpl-del-btn.svelte-iy9knz.svelte-iy9knz{background:transparent;border:none;cursor:pointer;font-size:16px;padding:4px;opacity:0.5;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-del-btn.svelte-iy9knz.svelte-iy9knz:hover{opacity:1}.tp-te-tmpl-del-btn.svelte-iy9knz svg{width:15px;height:15px}.tp-te-edit-warn.svelte-iy9knz.svelte-iy9knz{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;margin-bottom:12px;background:color-mix(in srgb, var(--color-yellow, #f59e0b) 12%, transparent);border:1px solid var(--color-yellow, #f59e0b);border-radius:6px;font-size:13px;color:var(--text-normal);flex-shrink:0}.tp-te-edit-warn--collapsed.svelte-iy9knz.svelte-iy9knz{align-items:center;padding:6px 12px}.tp-te-edit-warn--confirm.svelte-iy9knz.svelte-iy9knz{align-items:center}.tp-te-edit-warn-body.svelte-iy9knz.svelte-iy9knz{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0}.tp-te-edit-warn-icon.svelte-iy9knz.svelte-iy9knz{flex-shrink:0}.tp-te-edit-warn-text.svelte-iy9knz.svelte-iy9knz{line-height:1.5}.tp-te-edit-warn-actions.svelte-iy9knz.svelte-iy9knz{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:2px}.tp-te-edit-warn-pill.svelte-iy9knz.svelte-iy9knz{color:var(--text-muted);font-size:12px}.tp-te-edit-warn-show-btn.svelte-iy9knz.svelte-iy9knz{padding:3px 10px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-past-confirm-btn.svelte-iy9knz.svelte-iy9knz{padding:4px 12px;border-radius:4px;border:none;background:var(--color-red, #f38ba8);color:#fff;font-size:12px;cursor:pointer}.tp-te-past-cancel-btn.svelte-iy9knz.svelte-iy9knz{padding:4px 12px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-week-tabs.svelte-iy9knz.svelte-iy9knz{display:flex;gap:6px;margin-bottom:14px;flex-shrink:0}.tp-te-week-tab.svelte-iy9knz.svelte-iy9knz{padding:6px 20px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}.tp-te-week-tab--active.svelte-iy9knz.svelte-iy9knz{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-grid-wrap.svelte-iy9knz.svelte-iy9knz{overflow:auto;max-height:55vh;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-te-grid.svelte-iy9knz.svelte-iy9knz{width:100%;border-collapse:collapse;table-layout:fixed}.tp-te-th.svelte-iy9knz.svelte-iy9knz{padding:10px 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);text-align:center;background:var(--background-secondary);border-bottom:1px solid var(--background-modifier-border);position:sticky;top:0;z-index:2}.tp-te-th--period.svelte-iy9knz.svelte-iy9knz{text-align:left;width:130px}.tp-te-period-cell.svelte-iy9knz.svelte-iy9knz{padding:6px 10px;border-bottom:1px solid var(--background-modifier-border);vertical-align:middle}.tp-te-period-name.svelte-iy9knz.svelte-iy9knz{display:block;font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-period-time.svelte-iy9knz.svelte-iy9knz{display:block;font-size:11px;color:var(--text-faint);margin-top:1px}.tp-te-cell.svelte-iy9knz.svelte-iy9knz{height:52px;padding:4px;border-bottom:1px solid var(--background-modifier-border);border-left:1px solid var(--background-modifier-border);vertical-align:middle;position:relative}.tp-te-cell.svelte-iy9knz:hover .tp-te-add.svelte-iy9knz{opacity:1}.tp-te-add.svelte-iy9knz.svelte-iy9knz{opacity:0;width:100%;height:100%;border:1.5px dashed var(--background-modifier-border);border-radius:6px;background:transparent;color:var(--text-faint);font-size:18px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center}.tp-te-add.svelte-iy9knz.svelte-iy9knz:hover{border-color:var(--interactive-accent);color:var(--interactive-accent);background:var(--background-modifier-hover)}.tp-te-chip.svelte-iy9knz.svelte-iy9knz{width:100%;height:100%;border-radius:6px;border:none;cursor:pointer;padding:4px 6px;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden;transition:filter 0.1s}.tp-te-chip.svelte-iy9knz.svelte-iy9knz:hover{filter:brightness(1.1)}.tp-te-chip-code.svelte-iy9knz.svelte-iy9knz{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-chip-sub.svelte-iy9knz.svelte-iy9knz{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-duration-badge.svelte-iy9knz.svelte-iy9knz{position:absolute;bottom:3px;right:4px;font-size:10px;font-weight:700;background:rgba(0,0,0,0.30);color:#fff;border-radius:3px;padding:1px 4px;cursor:pointer;line-height:1.4;transition:background 0.1s;z-index:1;pointer-events:all}.tp-te-duration-badge.svelte-iy9knz.svelte-iy9knz:hover{background:rgba(0,0,0,0.50)}.tp-te-duration-input.svelte-iy9knz.svelte-iy9knz{position:absolute;bottom:3px;right:4px;width:46px;font-size:10px;padding:1px 3px;border:1px solid var(--interactive-accent);border-radius:3px;background:var(--background-primary);color:var(--text-normal);z-index:2;text-align:center}.tp-te-picker.svelte-iy9knz.svelte-iy9knz{position:fixed;z-index:1000;width:240px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.3);overflow:hidden}.tp-te-picker-inner.svelte-iy9knz.svelte-iy9knz{max-height:360px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:2px}.tp-te-picker-search.svelte-iy9knz.svelte-iy9knz{width:100%;box-sizing:border-box;padding:6px 10px;margin-bottom:2px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-secondary);color:var(--text-normal);font-size:13px;outline:none;flex-shrink:0}.tp-te-picker-search.svelte-iy9knz.svelte-iy9knz:focus{border-color:var(--interactive-accent)}.tp-te-picker-group-label.svelte-iy9knz.svelte-iy9knz{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);padding:4px 8px 2px}.tp-te-picker-divider.svelte-iy9knz.svelte-iy9knz{height:1px;background:var(--background-modifier-border);margin:4px 0}.tp-te-picker-row.svelte-iy9knz.svelte-iy9knz{display:flex;align-items:center;gap:2px}.tp-te-picker-item.svelte-iy9knz.svelte-iy9knz{flex:1;display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;text-align:left;width:100%;transition:background 0.1s;min-width:0}.tp-te-picker-item.svelte-iy9knz.svelte-iy9knz:hover{background:var(--background-modifier-hover)}.tp-te-picker-item--archived.svelte-iy9knz.svelte-iy9knz{cursor:default;pointer-events:none}.tp-te-picker-item-text.svelte-iy9knz.svelte-iy9knz{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1;min-width:0}.tp-te-picker-code.svelte-iy9knz.svelte-iy9knz{font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-room.svelte-iy9knz.svelte-iy9knz{font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-clear.svelte-iy9knz.svelte-iy9knz{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-red, #f38ba8);font-size:13px;width:100%;transition:background 0.1s}.tp-te-picker-clear.svelte-iy9knz svg{width:13px;height:13px;flex-shrink:0}.tp-te-picker-clear.svelte-iy9knz.svelte-iy9knz:hover{background:var(--background-modifier-hover)}.tp-te-archive-btn.svelte-iy9knz.svelte-iy9knz{background:transparent;border:none;cursor:pointer;font-size:14px;padding:4px 5px;opacity:0;flex-shrink:0;border-radius:4px;transition:opacity 0.1s, background 0.1s;display:inline-flex;align-items:center}.tp-te-archive-btn.svelte-iy9knz svg{width:13px;height:13px}.tp-te-picker-row.svelte-iy9knz:hover .tp-te-archive-btn.svelte-iy9knz{opacity:0.6}.tp-te-picker-row--archived.svelte-iy9knz .tp-te-archive-btn.svelte-iy9knz{opacity:0.7}.tp-te-archive-btn.svelte-iy9knz.svelte-iy9knz:hover{opacity:1 !important;background:var(--background-modifier-hover)}.tp-te-show-archived-btn.svelte-iy9knz.svelte-iy9knz{background:transparent;border:none;cursor:pointer;color:var(--text-faint);font-size:12px;padding:4px 8px;text-align:left;width:100%;border-radius:4px}.tp-te-show-archived-btn.svelte-iy9knz.svelte-iy9knz:hover{background:var(--background-modifier-hover);color:var(--text-muted)}.tp-te-unsaved-overlay.svelte-iy9knz.svelte-iy9knz{position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;border-radius:8px}.tp-te-unsaved-dialog.svelte-iy9knz.svelte-iy9knz{background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;padding:20px 24px;max-width:340px;width:100%;box-shadow:0 8px 28px rgba(0,0,0,0.35);display:flex;flex-direction:column;gap:14px}.tp-te-unsaved-msg.svelte-iy9knz.svelte-iy9knz{font-size:14px;color:var(--text-normal);margin:0;line-height:1.4}.tp-te-unsaved-actions.svelte-iy9knz.svelte-iy9knz{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.tp-te-btn-danger.svelte-iy9knz.svelte-iy9knz{background:var(--color-red,#f38ba8);color:var(--text-on-accent);border-color:var(--color-red,#f38ba8)}.tp-te-btn-danger.svelte-iy9knz.svelte-iy9knz:hover{filter:brightness(1.1)}.tp-te-footer.svelte-iy9knz.svelte-iy9knz{display:flex;justify-content:flex-end;gap:8px;padding-top:14px;flex-shrink:0}.tp-te-btn.svelte-iy9knz.svelte-iy9knz{padding:8px 18px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:14px;cursor:pointer;transition:background 0.1s}.tp-te-btn.svelte-iy9knz.svelte-iy9knz:hover{background:var(--background-modifier-hover)}.tp-te-btn-primary.svelte-iy9knz.svelte-iy9knz{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-btn-primary.svelte-iy9knz.svelte-iy9knz:hover{filter:brightness(1.08)}");
 }
 function get_each_context(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[121] = list[i];
-  return child_ctx;
-}
-function get_each_context_1(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[124] = list[i];
   return child_ctx;
 }
+function get_each_context_1(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[127] = list[i];
+  return child_ctx;
+}
 function get_each_context_2(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[121] = list[i];
+  child_ctx[124] = list[i];
   return child_ctx;
 }
 function get_each_context_3(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[121] = list[i];
+  child_ctx[124] = list[i];
   return child_ctx;
 }
 function get_each_context_4(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[131] = list[i];
+  child_ctx[134] = list[i];
   const constants_0 = (
     /*pickerFilteredClasses*/
-    child_ctx[23].filter(function func_1(...args) {
+    child_ctx[24].filter(function func_1(...args) {
       return (
         /*func_1*/
-        ctx[96](
+        ctx[99](
           /*subj*/
-          child_ctx[131],
+          child_ctx[134],
           ...args
         )
       );
     }).sort((a, b) => a.code.localeCompare(b.code))
   );
-  child_ctx[132] = constants_0;
+  child_ctx[135] = constants_0;
   return child_ctx;
 }
 function get_each_context_5(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[124] = list[i];
+  child_ctx[127] = list[i];
   const constants_0 = [
     /*cls*/
-    child_ctx[124].year,
+    child_ctx[127].year,
     /*subj*/
-    child_ctx[131].name
+    child_ctx[134].name
   ].filter(Boolean).join(" \xB7 ");
-  child_ctx[135] = constants_0;
+  child_ctx[138] = constants_0;
   return child_ctx;
 }
 function get_each_context_6(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[138] = list[i];
+  child_ctx[141] = list[i];
   const constants_0 = (
     /*getPeriodTypeColour*/
-    child_ctx[54](
+    child_ctx[55](
       /*period*/
-      child_ctx[138].type
+      child_ctx[141].type
     )
   );
-  child_ctx[139] = constants_0;
+  child_ctx[142] = constants_0;
   return child_ctx;
 }
 function get_each_context_7(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[142] = list[i];
+  child_ctx[145] = list[i];
   const constants_0 = (
     /*_slotGrid*/
-    child_ctx[26][
+    child_ctx[27][
       /*day*/
-      child_ctx[142].key + ":" + /*period*/
-      child_ctx[138].id
+      child_ctx[145].key + ":" + /*period*/
+      child_ctx[141].id
     ]
   );
-  child_ctx[143] = constants_0;
+  child_ctx[146] = constants_0;
   const constants_1 = (
     /*pickerDay*/
-    child_ctx[18] === /*day*/
-    child_ctx[142].key && /*pickerPeriodId*/
-    child_ctx[19] === /*period*/
-    child_ctx[138].id
+    child_ctx[19] === /*day*/
+    child_ctx[145].key && /*pickerPeriodId*/
+    child_ctx[20] === /*period*/
+    child_ctx[141].id
   );
-  child_ctx[144] = constants_1;
+  child_ctx[147] = constants_1;
   const constants_2 = (
     /*day*/
-    child_ctx[142].key + ":" + /*period*/
-    child_ctx[138].id
+    child_ctx[145].key + ":" + /*period*/
+    child_ctx[141].id
   );
-  child_ctx[145] = constants_2;
+  child_ctx[148] = constants_2;
   return child_ctx;
 }
 function get_if_ctx(ctx) {
   const child_ctx = ctx.slice();
   const constants_0 = (
     /*getLabel*/
-    child_ctx[45](
+    child_ctx[46](
       /*slot*/
-      child_ctx[143]
+      child_ctx[146]
     )
   );
-  child_ctx[148] = constants_0;
+  child_ctx[151] = constants_0;
   return child_ctx;
 }
 function get_each_context_8(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[142] = list[i];
+  child_ctx[145] = list[i];
   return child_ctx;
 }
 function get_each_context_9(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[151] = list[i];
+  child_ctx[154] = list[i];
   return child_ctx;
 }
 function create_else_block_3(ctx) {
@@ -1462,20 +1462,20 @@ function create_else_block_3(ctx) {
   let span0;
   let t0_value = (
     /*tmpl*/
-    ctx[151].name + ""
+    ctx[154].name + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = fmtDate2(
     /*tmpl*/
-    ctx[151].startDate
+    ctx[154].startDate
   ) + "";
   let t2;
   let t3;
   let t4_value = fmtDate2(
     /*tmpl*/
-    ctx[151].endDate
+    ctx[154].endDate
   ) + "";
   let t4;
   let t5;
@@ -1485,16 +1485,16 @@ function create_else_block_3(ctx) {
   function click_handler_2() {
     return (
       /*click_handler_2*/
-      ctx[81](
+      ctx[82](
         /*tmpl*/
-        ctx[151]
+        ctx[154]
       )
     );
   }
   let if_block = (
     /*tmpl*/
-    ctx[151].id === /*activeTemplateId*/
-    ctx[0] && create_if_block_20(ctx)
+    ctx[154].id === /*activeTemplateId*/
+    ctx[0] && create_if_block_22(ctx)
   );
   return {
     c() {
@@ -1509,22 +1509,22 @@ function create_else_block_3(ctx) {
       t5 = space();
       if (if_block) if_block.c();
       if_block_anchor = empty();
-      attr(span0, "class", "tp-te-tmpl-name svelte-wnmi8g");
-      attr(span1, "class", "tp-te-tmpl-dates svelte-wnmi8g");
-      attr(button, "class", "tp-te-tmpl-tab svelte-wnmi8g");
+      attr(span0, "class", "tp-te-tmpl-name svelte-iy9knz");
+      attr(span1, "class", "tp-te-tmpl-dates svelte-iy9knz");
+      attr(button, "class", "tp-te-tmpl-tab svelte-iy9knz");
       toggle_class(
         button,
         "tp-te-tmpl-tab--active",
         /*tmpl*/
-        ctx[151].id === /*activeTemplateId*/
+        ctx[154].id === /*activeTemplateId*/
         ctx[0]
       );
       toggle_class(
         button,
         "tp-te-tmpl-tab--past",
         /*tmpl*/
-        ctx[151].endDate < /*today*/
-        ctx[35]
+        ctx[154].endDate < /*today*/
+        ctx[36]
       );
     },
     m(target, anchor) {
@@ -1548,16 +1548,16 @@ function create_else_block_3(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*allTemplates*/
       16 && t0_value !== (t0_value = /*tmpl*/
-      ctx[151].name + "")) set_data(t0, t0_value);
+      ctx[154].name + "")) set_data(t0, t0_value);
       if (dirty[0] & /*allTemplates*/
       16 && t2_value !== (t2_value = fmtDate2(
         /*tmpl*/
-        ctx[151].startDate
+        ctx[154].startDate
       ) + "")) set_data(t2, t2_value);
       if (dirty[0] & /*allTemplates*/
       16 && t4_value !== (t4_value = fmtDate2(
         /*tmpl*/
-        ctx[151].endDate
+        ctx[154].endDate
       ) + "")) set_data(t4, t4_value);
       if (dirty[0] & /*allTemplates, activeTemplateId*/
       17) {
@@ -1565,30 +1565,30 @@ function create_else_block_3(ctx) {
           button,
           "tp-te-tmpl-tab--active",
           /*tmpl*/
-          ctx[151].id === /*activeTemplateId*/
+          ctx[154].id === /*activeTemplateId*/
           ctx[0]
         );
       }
       if (dirty[0] & /*allTemplates*/
       16 | dirty[1] & /*today*/
-      16) {
+      32) {
         toggle_class(
           button,
           "tp-te-tmpl-tab--past",
           /*tmpl*/
-          ctx[151].endDate < /*today*/
-          ctx[35]
+          ctx[154].endDate < /*today*/
+          ctx[36]
         );
       }
       if (
         /*tmpl*/
-        ctx[151].id === /*activeTemplateId*/
+        ctx[154].id === /*activeTemplateId*/
         ctx[0]
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
         } else {
-          if_block = create_if_block_20(ctx);
+          if_block = create_if_block_22(ctx);
           if_block.c();
           if_block.m(if_block_anchor.parentNode, if_block_anchor);
         }
@@ -1609,14 +1609,14 @@ function create_else_block_3(ctx) {
     }
   };
 }
-function create_if_block_19(ctx) {
+function create_if_block_21(ctx) {
   let input;
   let mounted;
   let dispose;
   return {
     c() {
       input = element("input");
-      attr(input, "class", "tp-te-rename-input svelte-wnmi8g");
+      attr(input, "class", "tp-te-rename-input svelte-iy9knz");
       input.autofocus = true;
     },
     m(target, anchor) {
@@ -1624,7 +1624,7 @@ function create_if_block_19(ctx) {
       set_input_value(
         input,
         /*renameValue*/
-        ctx[16]
+        ctx[17]
       );
       input.focus();
       if (!mounted) {
@@ -1633,13 +1633,13 @@ function create_if_block_19(ctx) {
             input,
             "input",
             /*input_input_handler*/
-            ctx[79]
+            ctx[80]
           ),
           listen(
             input,
             "keydown",
             /*keydown_handler_1*/
-            ctx[80]
+            ctx[81]
           )
         ];
         mounted = true;
@@ -1647,12 +1647,12 @@ function create_if_block_19(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*renameValue*/
-      65536 && input.value !== /*renameValue*/
-      ctx2[16]) {
+      131072 && input.value !== /*renameValue*/
+      ctx2[17]) {
         set_input_value(
           input,
           /*renameValue*/
-          ctx2[16]
+          ctx2[17]
         );
       }
     },
@@ -1665,7 +1665,7 @@ function create_if_block_19(ctx) {
     }
   };
 }
-function create_if_block_20(ctx) {
+function create_if_block_22(ctx) {
   let button;
   let icon_action;
   let mounted;
@@ -1673,16 +1673,16 @@ function create_if_block_20(ctx) {
   function click_handler_3() {
     return (
       /*click_handler_3*/
-      ctx[82](
+      ctx[83](
         /*tmpl*/
-        ctx[151]
+        ctx[154]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-te-tmpl-rename-btn svelte-wnmi8g");
+      attr(button, "class", "tp-te-tmpl-rename-btn svelte-iy9knz");
       attr(button, "title", "Rename");
     },
     m(target, anchor) {
@@ -1691,7 +1691,7 @@ function create_if_block_20(ctx) {
         dispose = [
           listen(button, "click", click_handler_3),
           action_destroyer(icon_action = /*icon*/
-          ctx[29].call(null, button, "pencil"))
+          ctx[30].call(null, button, "pencil"))
         ];
         mounted = true;
       }
@@ -1714,12 +1714,12 @@ function create_each_block_9(key_1, ctx) {
   function select_block_type(ctx2, dirty) {
     if (
       /*renamingId*/
-      ctx2[15] === /*tmpl*/
-      ctx2[151].id
-    ) return create_if_block_19;
+      ctx2[16] === /*tmpl*/
+      ctx2[154].id
+    ) return create_if_block_21;
     return create_else_block_3;
   }
-  let current_block_type = select_block_type(ctx, [-1, -1, -1, -1, -1]);
+  let current_block_type = select_block_type(ctx, [-1, -1, -1, -1, -1, -1]);
   let if_block = current_block_type(ctx);
   return {
     key: key_1,
@@ -1728,7 +1728,7 @@ function create_each_block_9(key_1, ctx) {
       div = element("div");
       if_block.c();
       t = space();
-      attr(div, "class", "tp-te-tmpl-tab-wrap svelte-wnmi8g");
+      attr(div, "class", "tp-te-tmpl-tab-wrap svelte-iy9knz");
       this.first = div;
     },
     m(target, anchor) {
@@ -1757,7 +1757,7 @@ function create_each_block_9(key_1, ctx) {
     }
   };
 }
-function create_if_block_18(ctx) {
+function create_if_block_20(ctx) {
   let button;
   let icon_action;
   let mounted;
@@ -1765,7 +1765,7 @@ function create_if_block_18(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-te-tmpl-del-btn svelte-wnmi8g");
+      attr(button, "class", "tp-te-tmpl-del-btn svelte-iy9knz");
       attr(button, "title", "Delete this template");
     },
     m(target, anchor) {
@@ -1776,10 +1776,10 @@ function create_if_block_18(ctx) {
             button,
             "click",
             /*deleteTemplate*/
-            ctx[53]
+            ctx[54]
           ),
           action_destroyer(icon_action = /*icon*/
-          ctx[29].call(null, button, "trash-2"))
+          ctx[30].call(null, button, "trash-2"))
         ];
         mounted = true;
       }
@@ -1795,25 +1795,28 @@ function create_if_block_18(ctx) {
   };
 }
 function create_if_block_16(ctx) {
-  let div;
+  let if_block_anchor;
   function select_block_type_1(ctx2, dirty) {
+    if (
+      /*warnCollapsed*/
+      ctx2[15]
+    ) return create_if_block_17;
     if (
       /*showPastConfirm*/
       ctx2[14]
-    ) return create_if_block_17;
+    ) return create_if_block_18;
     return create_else_block_2;
   }
-  let current_block_type = select_block_type_1(ctx, [-1, -1, -1, -1, -1]);
+  let current_block_type = select_block_type_1(ctx, [-1, -1, -1, -1, -1, -1]);
   let if_block = current_block_type(ctx);
   return {
     c() {
-      div = element("div");
       if_block.c();
-      attr(div, "class", "tp-te-past-warn svelte-wnmi8g");
+      if_block_anchor = empty();
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      if_block.m(div, null);
+      if_block.m(target, anchor);
+      insert(target, if_block_anchor, anchor);
     },
     p(ctx2, dirty) {
       if (current_block_type === (current_block_type = select_block_type_1(ctx2, dirty)) && if_block) {
@@ -1823,19 +1826,106 @@ function create_if_block_16(ctx) {
         if_block = current_block_type(ctx2);
         if (if_block) {
           if_block.c();
-          if_block.m(div, null);
+          if_block.m(if_block_anchor.parentNode, if_block_anchor);
         }
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(if_block_anchor);
       }
-      if_block.d();
+      if_block.d(detaching);
     }
   };
 }
 function create_else_block_2(ctx) {
+  let div3;
+  let div1;
+  let span;
+  let t1;
+  let div0;
+  let t2;
+  let t3;
+  let div2;
+  let button;
+  let mounted;
+  let dispose;
+  let if_block = (
+    /*isPast*/
+    ctx[26] && create_if_block_19(ctx)
+  );
+  return {
+    c() {
+      div3 = element("div");
+      div1 = element("div");
+      span = element("span");
+      span.textContent = "\u26A0\uFE0F";
+      t1 = space();
+      div0 = element("div");
+      if (if_block) if_block.c();
+      t2 = text("\n            Editing this template affects your directed time records for all weeks it covers. If your timetable has changed, create a new template from the date of the change to keep records accurate.");
+      t3 = space();
+      div2 = element("div");
+      button = element("button");
+      button.textContent = "Dismiss";
+      attr(span, "class", "tp-te-edit-warn-icon svelte-iy9knz");
+      attr(div0, "class", "tp-te-edit-warn-text svelte-iy9knz");
+      attr(div1, "class", "tp-te-edit-warn-body svelte-iy9knz");
+      attr(button, "class", "tp-te-past-cancel-btn svelte-iy9knz");
+      attr(button, "title", "Dismiss warning");
+      attr(div2, "class", "tp-te-edit-warn-actions svelte-iy9knz");
+      attr(div3, "class", "tp-te-edit-warn svelte-iy9knz");
+    },
+    m(target, anchor) {
+      insert(target, div3, anchor);
+      append(div3, div1);
+      append(div1, span);
+      append(div1, t1);
+      append(div1, div0);
+      if (if_block) if_block.m(div0, null);
+      append(div0, t2);
+      append(div3, t3);
+      append(div3, div2);
+      append(div2, button);
+      if (!mounted) {
+        dispose = listen(
+          button,
+          "click",
+          /*click_handler_6*/
+          ctx[86]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (
+        /*isPast*/
+        ctx2[26]
+      ) {
+        if (if_block) {
+          if_block.p(ctx2, dirty);
+        } else {
+          if_block = create_if_block_19(ctx2);
+          if_block.c();
+          if_block.m(div0, t2);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div3);
+      }
+      if (if_block) if_block.d();
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_18(ctx) {
+  let div1;
   let span;
   let t0;
   let t1_value = fmtDate2(
@@ -1844,18 +1934,60 @@ function create_else_block_2(ctx) {
   ) + "";
   let t1;
   let t2;
+  let t3;
+  let div0;
+  let button0;
+  let t5;
+  let button1;
+  let mounted;
+  let dispose;
   return {
     c() {
+      div1 = element("div");
       span = element("span");
-      t0 = text("\u26A0\uFE0F This timetable ended ");
+      t0 = text("\u26A0\uFE0F This template ended ");
       t1 = text(t1_value);
-      t2 = text(". Editing will affect historical records.");
+      t2 = text(". Saving will change historical records. Continue?");
+      t3 = space();
+      div0 = element("div");
+      button0 = element("button");
+      button0.textContent = "Yes, save anyway";
+      t5 = space();
+      button1 = element("button");
+      button1.textContent = "Cancel";
+      attr(button0, "class", "tp-te-past-confirm-btn svelte-iy9knz");
+      attr(button1, "class", "tp-te-past-cancel-btn svelte-iy9knz");
+      attr(div0, "class", "tp-te-edit-warn-actions svelte-iy9knz");
+      attr(div1, "class", "tp-te-edit-warn tp-te-edit-warn--confirm svelte-iy9knz");
     },
     m(target, anchor) {
-      insert(target, span, anchor);
+      insert(target, div1, anchor);
+      append(div1, span);
       append(span, t0);
       append(span, t1);
       append(span, t2);
+      append(div1, t3);
+      append(div1, div0);
+      append(div0, button0);
+      append(div0, t5);
+      append(div0, button1);
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*confirmPastSave*/
+            ctx[52]
+          ),
+          listen(
+            button1,
+            "click",
+            /*click_handler_5*/
+            ctx[85]
+          )
+        ];
+        mounted = true;
+      }
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*activeTemplate*/
@@ -1866,67 +1998,95 @@ function create_else_block_2(ctx) {
     },
     d(detaching) {
       if (detaching) {
-        detach(span);
+        detach(div1);
       }
+      mounted = false;
+      run_all(dispose);
     }
   };
 }
 function create_if_block_17(ctx) {
+  let div;
   let span;
   let t1;
-  let button0;
-  let t3;
-  let button1;
+  let button;
   let mounted;
   let dispose;
   return {
     c() {
+      div = element("div");
       span = element("span");
-      span.textContent = "\u26A0\uFE0F Saving will change historical records. Continue?";
+      span.textContent = "\u26A0\uFE0F Warning hidden";
       t1 = space();
-      button0 = element("button");
-      button0.textContent = "Yes, save anyway";
-      t3 = space();
-      button1 = element("button");
-      button1.textContent = "Cancel";
-      attr(button0, "class", "tp-te-past-confirm-btn svelte-wnmi8g");
-      attr(button1, "class", "tp-te-past-cancel-btn svelte-wnmi8g");
+      button = element("button");
+      button.textContent = "Show";
+      attr(span, "class", "tp-te-edit-warn-pill svelte-iy9knz");
+      attr(button, "class", "tp-te-edit-warn-show-btn svelte-iy9knz");
+      attr(div, "class", "tp-te-edit-warn tp-te-edit-warn--collapsed svelte-iy9knz");
     },
     m(target, anchor) {
-      insert(target, span, anchor);
-      insert(target, t1, anchor);
-      insert(target, button0, anchor);
-      insert(target, t3, anchor);
-      insert(target, button1, anchor);
+      insert(target, div, anchor);
+      append(div, span);
+      append(div, t1);
+      append(div, button);
       if (!mounted) {
-        dispose = [
-          listen(
-            button0,
-            "click",
-            /*confirmPastSave*/
-            ctx[51]
-          ),
-          listen(
-            button1,
-            "click",
-            /*click_handler_4*/
-            ctx[83]
-          )
-        ];
+        dispose = listen(
+          button,
+          "click",
+          /*click_handler_4*/
+          ctx[84]
+        );
         mounted = true;
       }
     },
     p: noop,
     d(detaching) {
       if (detaching) {
-        detach(span);
-        detach(t1);
-        detach(button0);
-        detach(t3);
-        detach(button1);
+        detach(div);
       }
       mounted = false;
-      run_all(dispose);
+      dispose();
+    }
+  };
+}
+function create_if_block_19(ctx) {
+  let strong;
+  let t0;
+  let t1_value = fmtDate2(
+    /*activeTemplate*/
+    ctx[5].endDate
+  ) + "";
+  let t1;
+  let t2;
+  let t3_value = " ";
+  let t3;
+  return {
+    c() {
+      strong = element("strong");
+      t0 = text("This template ended ");
+      t1 = text(t1_value);
+      t2 = text(".");
+      t3 = text(t3_value);
+    },
+    m(target, anchor) {
+      insert(target, strong, anchor);
+      append(strong, t0);
+      append(strong, t1);
+      append(strong, t2);
+      insert(target, t3, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*activeTemplate*/
+      32 && t1_value !== (t1_value = fmtDate2(
+        /*activeTemplate*/
+        ctx2[5].endDate
+      ) + "")) set_data(t1, t1_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(strong);
+        detach(t3);
+      }
     }
   };
 }
@@ -1945,21 +2105,21 @@ function create_if_block_15(ctx) {
       t1 = space();
       button1 = element("button");
       button1.textContent = "Week B";
-      attr(button0, "class", "tp-te-week-tab svelte-wnmi8g");
+      attr(button0, "class", "tp-te-week-tab svelte-iy9knz");
       toggle_class(
         button0,
         "tp-te-week-tab--active",
         /*activeWeek*/
         ctx[2] === "A"
       );
-      attr(button1, "class", "tp-te-week-tab tp-te-week-tab--b svelte-wnmi8g");
+      attr(button1, "class", "tp-te-week-tab tp-te-week-tab--b svelte-iy9knz");
       toggle_class(
         button1,
         "tp-te-week-tab--active",
         /*activeWeek*/
         ctx[2] === "B"
       );
-      attr(div, "class", "tp-te-week-tabs svelte-wnmi8g");
+      attr(div, "class", "tp-te-week-tabs svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -1971,14 +2131,14 @@ function create_if_block_15(ctx) {
           listen(
             button0,
             "click",
-            /*click_handler_5*/
-            ctx[84]
+            /*click_handler_7*/
+            ctx[87]
           ),
           listen(
             button1,
             "click",
-            /*click_handler_6*/
-            ctx[85]
+            /*click_handler_8*/
+            ctx[88]
           )
         ];
         mounted = true;
@@ -2017,14 +2177,14 @@ function create_each_block_8(ctx) {
   let th;
   let t_value = (
     /*day*/
-    ctx[142].label + ""
+    ctx[145].label + ""
   );
   let t;
   return {
     c() {
       th = element("th");
       t = text(t_value);
-      attr(th, "class", "tp-te-th svelte-wnmi8g");
+      attr(th, "class", "tp-te-th svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, th, anchor);
@@ -2033,7 +2193,7 @@ function create_each_block_8(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*DAYS*/
       1024 && t_value !== (t_value = /*day*/
-      ctx2[142].label + "")) set_data(t, t_value);
+      ctx2[145].label + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -2046,14 +2206,14 @@ function create_else_block_1(ctx) {
   let button;
   let mounted;
   let dispose;
-  function click_handler_9(...args) {
+  function click_handler_11(...args) {
     return (
-      /*click_handler_9*/
-      ctx[91](
+      /*click_handler_11*/
+      ctx[94](
         /*day*/
-        ctx[142],
+        ctx[145],
         /*period*/
-        ctx[138],
+        ctx[141],
         ...args
       )
     );
@@ -2062,13 +2222,13 @@ function create_else_block_1(ctx) {
     c() {
       button = element("button");
       button.textContent = "+";
-      attr(button, "class", "tp-te-add svelte-wnmi8g");
+      attr(button, "class", "tp-te-add svelte-iy9knz");
       attr(button, "aria-label", "Assign");
     },
     m(target, anchor) {
       insert(target, button, anchor);
       if (!mounted) {
-        dispose = listen(button, "click", click_handler_9);
+        dispose = listen(button, "click", click_handler_11);
         mounted = true;
       }
     },
@@ -2089,7 +2249,7 @@ function create_if_block_11(ctx) {
   let span;
   let t0_value = (
     /*lbl*/
-    ctx[148].code + ""
+    ctx[151].code + ""
   );
   let t0;
   let t1;
@@ -2097,10 +2257,10 @@ function create_if_block_11(ctx) {
   let t2;
   let show_if = (
     /*directedTimeEnabled*/
-    ctx[28] && /*isDirectedSlot*/
-    ctx[31](
+    ctx[29] && /*isDirectedSlot*/
+    ctx[32](
       /*slot*/
-      ctx[143]
+      ctx[146]
     )
   );
   let if_block1_anchor;
@@ -2108,17 +2268,17 @@ function create_if_block_11(ctx) {
   let dispose;
   let if_block0 = (
     /*lbl*/
-    (ctx[148].sub || /*lbl*/
-    ctx[148].classroom) && create_if_block_14(ctx)
+    (ctx[151].sub || /*lbl*/
+    ctx[151].classroom) && create_if_block_14(ctx)
   );
-  function click_handler_7(...args) {
+  function click_handler_9(...args) {
     return (
-      /*click_handler_7*/
-      ctx[86](
+      /*click_handler_9*/
+      ctx[89](
         /*day*/
-        ctx[142],
+        ctx[145],
         /*period*/
-        ctx[138],
+        ctx[141],
         ...args
       )
     );
@@ -2134,26 +2294,26 @@ function create_if_block_11(ctx) {
       t2 = space();
       if (if_block1) if_block1.c();
       if_block1_anchor = empty();
-      attr(span, "class", "tp-te-chip-code svelte-wnmi8g");
+      attr(span, "class", "tp-te-chip-code svelte-iy9knz");
       set_style(
         span,
         "color",
         /*lbl*/
-        ctx[148].colour
+        ctx[151].colour
       );
-      attr(button, "class", "tp-te-chip svelte-wnmi8g");
+      attr(button, "class", "tp-te-chip svelte-iy9knz");
       set_style(button, "border-left", "3px solid " + /*lbl*/
-      ctx[148].colour);
+      ctx[151].colour);
       set_style(
         button,
         "background",
         /*lbl*/
-        ctx[148].colour + "22"
+        ctx[151].colour + "22"
       );
       attr(button, "title", button_title_value = /*lbl*/
-      ctx[148].code + /*lbl*/
-      (ctx[148].classroom ? " \xB7 " + /*lbl*/
-      ctx[148].classroom : ""));
+      ctx[151].code + /*lbl*/
+      (ctx[151].classroom ? " \xB7 " + /*lbl*/
+      ctx[151].classroom : ""));
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -2165,28 +2325,28 @@ function create_if_block_11(ctx) {
       if (if_block1) if_block1.m(target, anchor);
       insert(target, if_block1_anchor, anchor);
       if (!mounted) {
-        dispose = listen(button, "click", click_handler_7);
+        dispose = listen(button, "click", click_handler_9);
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      67110400 && t0_value !== (t0_value = /*lbl*/
-      ctx[148].code + "")) set_data(t0, t0_value);
+      134219264 && t0_value !== (t0_value = /*lbl*/
+      ctx[151].code + "")) set_data(t0, t0_value);
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      67110400) {
+      134219264) {
         set_style(
           span,
           "color",
           /*lbl*/
-          ctx[148].colour
+          ctx[151].colour
         );
       }
       if (
         /*lbl*/
-        ctx[148].sub || /*lbl*/
-        ctx[148].classroom
+        ctx[151].sub || /*lbl*/
+        ctx[151].classroom
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -2200,32 +2360,32 @@ function create_if_block_11(ctx) {
         if_block0 = null;
       }
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      67110400) {
+      134219264) {
         set_style(button, "border-left", "3px solid " + /*lbl*/
-        ctx[148].colour);
+        ctx[151].colour);
       }
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      67110400) {
+      134219264) {
         set_style(
           button,
           "background",
           /*lbl*/
-          ctx[148].colour + "22"
+          ctx[151].colour + "22"
         );
       }
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      67110400 && button_title_value !== (button_title_value = /*lbl*/
-      ctx[148].code + /*lbl*/
-      (ctx[148].classroom ? " \xB7 " + /*lbl*/
-      ctx[148].classroom : ""))) {
+      134219264 && button_title_value !== (button_title_value = /*lbl*/
+      ctx[151].code + /*lbl*/
+      (ctx[151].classroom ? " \xB7 " + /*lbl*/
+      ctx[151].classroom : ""))) {
         attr(button, "title", button_title_value);
       }
       if (dirty[0] & /*directedTimeEnabled, _slotGrid, DAYS, periods*/
-      335545856) show_if = /*directedTimeEnabled*/
-      ctx[28] && /*isDirectedSlot*/
-      ctx[31](
+      671090176) show_if = /*directedTimeEnabled*/
+      ctx[29] && /*isDirectedSlot*/
+      ctx[32](
         /*slot*/
-        ctx[143]
+        ctx[146]
       );
       if (show_if) {
         if (if_block1) {
@@ -2257,16 +2417,16 @@ function create_if_block_14(ctx) {
   let span;
   let t_value = [
     /*lbl*/
-    ctx[148].sub,
+    ctx[151].sub,
     /*lbl*/
-    ctx[148].classroom
+    ctx[151].classroom
   ].filter(Boolean).join(" \xB7 ") + "";
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-chip-sub svelte-wnmi8g");
+      attr(span, "class", "tp-te-chip-sub svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -2274,11 +2434,11 @@ function create_if_block_14(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      67110400 && t_value !== (t_value = [
+      134219264 && t_value !== (t_value = [
         /*lbl*/
-        ctx2[148].sub,
+        ctx2[151].sub,
         /*lbl*/
-        ctx2[148].classroom
+        ctx2[151].classroom
       ].filter(Boolean).join(" \xB7 ") + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -2294,11 +2454,11 @@ function create_if_block_12(ctx) {
     if (
       /*durationEditKey*/
       ctx2[12] === /*cellKey*/
-      ctx2[145]
+      ctx2[148]
     ) return create_if_block_13;
     return create_else_block;
   }
-  let current_block_type = select_block_type_3(ctx, [-1, -1, -1, -1, -1]);
+  let current_block_type = select_block_type_3(ctx, [-1, -1, -1, -1, -1, -1]);
   let if_block = current_block_type(ctx);
   return {
     c() {
@@ -2333,9 +2493,9 @@ function create_else_block(ctx) {
   let span;
   let t0_value = (
     /*getSlotDuration*/
-    ctx[30](
+    ctx[31](
       /*slot*/
-      ctx[143]
+      ctx[146]
     ) + ""
   );
   let t0;
@@ -2343,14 +2503,14 @@ function create_else_block(ctx) {
   let span_title_value;
   let mounted;
   let dispose;
-  function click_handler_8(...args) {
+  function click_handler_10(...args) {
     return (
-      /*click_handler_8*/
-      ctx[90](
+      /*click_handler_10*/
+      ctx[93](
         /*slot*/
-        ctx[143],
+        ctx[146],
         /*cellKey*/
-        ctx[145],
+        ctx[148],
         ...args
       )
     );
@@ -2360,11 +2520,11 @@ function create_else_block(ctx) {
       span = element("span");
       t0 = text(t0_value);
       t1 = text("m");
-      attr(span, "class", "tp-te-duration-badge svelte-wnmi8g");
+      attr(span, "class", "tp-te-duration-badge svelte-iy9knz");
       attr(span, "title", span_title_value = "Duration: " + /*getSlotDuration*/
-      ctx[30](
+      ctx[31](
         /*slot*/
-        ctx[143]
+        ctx[146]
       ) + " min \u2014 click to edit");
     },
     m(target, anchor) {
@@ -2372,23 +2532,23 @@ function create_else_block(ctx) {
       append(span, t0);
       append(span, t1);
       if (!mounted) {
-        dispose = listen(span, "click", stop_propagation(click_handler_8));
+        dispose = listen(span, "click", stop_propagation(click_handler_10));
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      67110400 && t0_value !== (t0_value = /*getSlotDuration*/
-      ctx[30](
+      134219264 && t0_value !== (t0_value = /*getSlotDuration*/
+      ctx[31](
         /*slot*/
-        ctx[143]
+        ctx[146]
       ) + "")) set_data(t0, t0_value);
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      67110400 && span_title_value !== (span_title_value = "Duration: " + /*getSlotDuration*/
-      ctx[30](
+      134219264 && span_title_value !== (span_title_value = "Duration: " + /*getSlotDuration*/
+      ctx[31](
         /*slot*/
-        ctx[143]
+        ctx[146]
       ) + " min \u2014 click to edit")) {
         attr(span, "title", span_title_value);
       }
@@ -2409,9 +2569,9 @@ function create_if_block_13(ctx) {
   function keydown_handler_2(...args) {
     return (
       /*keydown_handler_2*/
-      ctx[88](
+      ctx[91](
         /*slot*/
-        ctx[143],
+        ctx[146],
         ...args
       )
     );
@@ -2419,16 +2579,16 @@ function create_if_block_13(ctx) {
   function blur_handler() {
     return (
       /*blur_handler*/
-      ctx[89](
+      ctx[92](
         /*slot*/
-        ctx[143]
+        ctx[146]
       )
     );
   }
   return {
     c() {
       input = element("input");
-      attr(input, "class", "tp-te-duration-input svelte-wnmi8g");
+      attr(input, "class", "tp-te-duration-input svelte-iy9knz");
       attr(input, "type", "number");
       attr(input, "min", "1");
       attr(input, "max", "480");
@@ -2448,11 +2608,11 @@ function create_if_block_13(ctx) {
             input,
             "input",
             /*input_input_handler_1*/
-            ctx[87]
+            ctx[90]
           ),
           listen(input, "click", stop_propagation(
             /*click_handler*/
-            ctx[76]
+            ctx[77]
           )),
           listen(input, "keydown", keydown_handler_2),
           listen(input, "blur", blur_handler)
@@ -2486,7 +2646,7 @@ function create_each_block_7(ctx) {
   function select_block_type_2(ctx2, dirty) {
     if (
       /*slot*/
-      ctx2[143]
+      ctx2[146]
     ) return create_if_block_11;
     return create_else_block_1;
   }
@@ -2494,20 +2654,20 @@ function create_each_block_7(ctx) {
     if (type === create_if_block_11) return get_if_ctx(ctx2);
     return ctx2;
   }
-  let current_block_type = select_block_type_2(ctx, [-1, -1, -1, -1, -1]);
+  let current_block_type = select_block_type_2(ctx, [-1, -1, -1, -1, -1, -1]);
   let if_block = current_block_type(select_block_ctx(ctx, current_block_type));
   return {
     c() {
       td = element("td");
       if_block.c();
-      attr(td, "class", "tp-te-cell svelte-wnmi8g");
+      attr(td, "class", "tp-te-cell svelte-iy9knz");
       toggle_class(td, "tp-te-cell--filled", !!/*slot*/
-      ctx[143]);
+      ctx[146]);
       toggle_class(
         td,
         "tp-te-cell--open",
         /*isOpen*/
-        ctx[144]
+        ctx[147]
       );
     },
     m(target, anchor) {
@@ -2526,17 +2686,17 @@ function create_each_block_7(ctx) {
         }
       }
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      67110400) {
+      134219264) {
         toggle_class(td, "tp-te-cell--filled", !!/*slot*/
-        ctx2[143]);
+        ctx2[146]);
       }
       if (dirty[0] & /*pickerDay, DAYS, pickerPeriodId, periods*/
-      787968) {
+      1574400) {
         toggle_class(
           td,
           "tp-te-cell--open",
           /*isOpen*/
-          ctx2[144]
+          ctx2[147]
         );
       }
     },
@@ -2554,20 +2714,20 @@ function create_each_block_6(ctx) {
   let span0;
   let t0_value = (
     /*period*/
-    ctx[138].name + ""
+    ctx[141].name + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = (
     /*period*/
-    ctx[138].start + ""
+    ctx[141].start + ""
   );
   let t2;
   let t3;
   let t4_value = (
     /*period*/
-    ctx[138].end + ""
+    ctx[141].end + ""
   );
   let t4;
   let t5;
@@ -2596,19 +2756,19 @@ function create_each_block_6(ctx) {
         each_blocks[i].c();
       }
       t6 = space();
-      attr(span0, "class", "tp-te-period-name svelte-wnmi8g");
-      attr(span1, "class", "tp-te-period-time svelte-wnmi8g");
-      attr(td, "class", "tp-te-period-cell svelte-wnmi8g");
+      attr(span0, "class", "tp-te-period-name svelte-iy9knz");
+      attr(span1, "class", "tp-te-period-time svelte-iy9knz");
+      attr(td, "class", "tp-te-period-cell svelte-iy9knz");
       set_style(td, "background", hexToRgba(
         /*tc*/
-        ctx[139],
+        ctx[142],
         0.25
       ));
       set_style(td, "border-left", "3px solid " + /*tc*/
-      ctx[139]);
+      ctx[142]);
       set_style(tr, "background", hexToRgba(
         /*tc*/
-        ctx[139],
+        ctx[142],
         0.05
       ));
     },
@@ -2633,29 +2793,29 @@ function create_each_block_6(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*periods*/
       512 && t0_value !== (t0_value = /*period*/
-      ctx2[138].name + "")) set_data(t0, t0_value);
+      ctx2[141].name + "")) set_data(t0, t0_value);
       if (dirty[0] & /*periods*/
       512 && t2_value !== (t2_value = /*period*/
-      ctx2[138].start + "")) set_data(t2, t2_value);
+      ctx2[141].start + "")) set_data(t2, t2_value);
       if (dirty[0] & /*periods*/
       512 && t4_value !== (t4_value = /*period*/
-      ctx2[138].end + "")) set_data(t4, t4_value);
+      ctx2[141].end + "")) set_data(t4, t4_value);
       if (dirty[0] & /*periods*/
       512) {
         set_style(td, "background", hexToRgba(
           /*tc*/
-          ctx2[139],
+          ctx2[142],
           0.25
         ));
       }
       if (dirty[0] & /*periods*/
       512) {
         set_style(td, "border-left", "3px solid " + /*tc*/
-        ctx2[139]);
+        ctx2[142]);
       }
-      if (dirty[0] & /*_slotGrid, DAYS, periods, pickerDay, pickerPeriodId, durationEditValue, durationEditKey, getSlotDuration, directedTimeEnabled, currentWeek*/
-      1410088448 | dirty[1] & /*commitDurationEdit, startDurationEdit, isDirectedSlot, getLabel, openPicker*/
-      49159) {
+      if (dirty[0] & /*_slotGrid, DAYS, periods, pickerDay, pickerPeriodId, durationEditValue, durationEditKey, directedTimeEnabled, currentWeek*/
+      672677376 | dirty[1] & /*commitDurationEdit, getSlotDuration, startDurationEdit, isDirectedSlot, getLabel, openPicker*/
+      98319) {
         each_value_7 = ensure_array_like(
           /*DAYS*/
           ctx2[10]
@@ -2680,7 +2840,7 @@ function create_each_block_6(ctx) {
       512) {
         set_style(tr, "background", hexToRgba(
           /*tc*/
-          ctx2[139],
+          ctx2[142],
           0.05
         ));
       }
@@ -2701,11 +2861,11 @@ function create_if_block_1(ctx) {
   let t0;
   let show_if_1 = (
     /*getSlot*/
-    ctx[44](
+    ctx[45](
       /*pickerDay*/
-      ctx[18],
-      /*pickerPeriodId*/
       ctx[19],
+      /*pickerPeriodId*/
+      ctx[20],
       /*currentWeek*/
       ctx[11]
     )
@@ -2713,9 +2873,9 @@ function create_if_block_1(ctx) {
   let t1;
   let show_if = (
     /*sortedSubjects*/
-    ctx[24].some(
+    ctx[25].some(
       /*func*/
-      ctx[74]
+      ctx[75]
     )
   );
   let t2;
@@ -2728,15 +2888,15 @@ function create_if_block_1(ctx) {
   let if_block1 = show_if && create_if_block_8(ctx);
   let if_block2 = (
     /*pickerFilteredDirected*/
-    ctx[22].length && create_if_block_6(ctx)
+    ctx[23].length && create_if_block_6(ctx)
   );
   let if_block3 = (
     /*pickerFilteredOther*/
-    ctx[21].length && create_if_block_4(ctx)
+    ctx[22].length && create_if_block_4(ctx)
   );
   let if_block4 = (
     /*archivedCount*/
-    ctx[27] > 0 && create_if_block_2(ctx)
+    ctx[28] > 0 && create_if_block_2(ctx)
   );
   return {
     c() {
@@ -2753,14 +2913,14 @@ function create_if_block_1(ctx) {
       if (if_block3) if_block3.c();
       t4 = space();
       if (if_block4) if_block4.c();
-      attr(input, "class", "tp-te-picker-search svelte-wnmi8g");
+      attr(input, "class", "tp-te-picker-search svelte-iy9knz");
       attr(input, "type", "text");
       attr(input, "placeholder", "Search\u2026");
-      attr(div0, "class", "tp-te-picker-inner svelte-wnmi8g");
-      attr(div1, "class", "tp-te-picker svelte-wnmi8g");
+      attr(div0, "class", "tp-te-picker-inner svelte-iy9knz");
+      attr(div1, "class", "tp-te-picker svelte-iy9knz");
       attr(div1, "style", div1_style_value = getPickerStyle(
         /*pickerEl*/
-        ctx[20]
+        ctx[21]
       ));
     },
     m(target, anchor) {
@@ -2788,12 +2948,12 @@ function create_if_block_1(ctx) {
             input,
             "input",
             /*input_input_handler_2*/
-            ctx[92]
+            ctx[95]
           ),
           action_destroyer(focusPicker_action = focusPicker.call(null, input)),
           listen(input, "click", stop_propagation(
             /*click_handler_1*/
-            ctx[75]
+            ctx[76]
           ))
         ];
         mounted = true;
@@ -2810,12 +2970,12 @@ function create_if_block_1(ctx) {
         );
       }
       if (dirty[0] & /*pickerDay, pickerPeriodId, currentWeek*/
-      788480) show_if_1 = /*getSlot*/
-      ctx2[44](
+      1574912) show_if_1 = /*getSlot*/
+      ctx2[45](
         /*pickerDay*/
-        ctx2[18],
-        /*pickerPeriodId*/
         ctx2[19],
+        /*pickerPeriodId*/
+        ctx2[20],
         /*currentWeek*/
         ctx2[11]
       );
@@ -2832,10 +2992,10 @@ function create_if_block_1(ctx) {
         if_block0 = null;
       }
       if (dirty[0] & /*sortedSubjects, pickerFilteredClasses*/
-      25165824) show_if = /*sortedSubjects*/
-      ctx2[24].some(
+      50331648) show_if = /*sortedSubjects*/
+      ctx2[25].some(
         /*func*/
-        ctx2[74]
+        ctx2[75]
       );
       if (show_if) {
         if (if_block1) {
@@ -2851,7 +3011,7 @@ function create_if_block_1(ctx) {
       }
       if (
         /*pickerFilteredDirected*/
-        ctx2[22].length
+        ctx2[23].length
       ) {
         if (if_block2) {
           if_block2.p(ctx2, dirty);
@@ -2866,7 +3026,7 @@ function create_if_block_1(ctx) {
       }
       if (
         /*pickerFilteredOther*/
-        ctx2[21].length
+        ctx2[22].length
       ) {
         if (if_block3) {
           if_block3.p(ctx2, dirty);
@@ -2881,7 +3041,7 @@ function create_if_block_1(ctx) {
       }
       if (
         /*archivedCount*/
-        ctx2[27] > 0
+        ctx2[28] > 0
       ) {
         if (if_block4) {
           if_block4.p(ctx2, dirty);
@@ -2895,9 +3055,9 @@ function create_if_block_1(ctx) {
         if_block4 = null;
       }
       if (dirty[0] & /*pickerEl*/
-      1048576 && div1_style_value !== (div1_style_value = getPickerStyle(
+      2097152 && div1_style_value !== (div1_style_value = getPickerStyle(
         /*pickerEl*/
-        ctx2[20]
+        ctx2[21]
       ))) {
         attr(div1, "style", div1_style_value);
       }
@@ -2932,8 +3092,8 @@ function create_if_block_10(ctx) {
       t0 = text(" Remove");
       t1 = space();
       div = element("div");
-      attr(button, "class", "tp-te-picker-clear svelte-wnmi8g");
-      attr(div, "class", "tp-te-picker-divider svelte-wnmi8g");
+      attr(button, "class", "tp-te-picker-clear svelte-iy9knz");
+      attr(div, "class", "tp-te-picker-divider svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -2944,12 +3104,12 @@ function create_if_block_10(ctx) {
       if (!mounted) {
         dispose = [
           action_destroyer(icon_action = /*icon*/
-          ctx[29].call(null, span, "x")),
+          ctx[30].call(null, span, "x")),
           listen(
             button,
             "click",
-            /*click_handler_10*/
-            ctx[93]
+            /*click_handler_12*/
+            ctx[96]
           )
         ];
         mounted = true;
@@ -2973,7 +3133,7 @@ function create_if_block_8(ctx) {
   let each_1_anchor;
   let each_value_4 = ensure_array_like(
     /*sortedSubjects*/
-    ctx[24]
+    ctx[25]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_4.length; i += 1) {
@@ -2988,7 +3148,7 @@ function create_if_block_8(ctx) {
         each_blocks[i].c();
       }
       each_1_anchor = empty();
-      attr(div, "class", "tp-te-picker-group-label svelte-wnmi8g");
+      attr(div, "class", "tp-te-picker-group-label svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -3002,11 +3162,11 @@ function create_if_block_8(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredClasses, sortedSubjects, periods, pickerPeriodId, pickerDay, currentWeek*/
-      25954816 | dirty[1] & /*toggleArchiveClass, assignItem, closePicker*/
-      196736) {
+      51907072 | dirty[1] & /*toggleArchiveClass, assignItem, closePicker*/
+      393472) {
         each_value_4 = ensure_array_like(
           /*sortedSubjects*/
-          ctx2[24]
+          ctx2[25]
         );
         let i;
         for (i = 0; i < each_value_4.length; i += 1) {
@@ -3039,14 +3199,14 @@ function create_if_block_9(ctx) {
   let span;
   let t_value = (
     /*secondary*/
-    ctx[135] + ""
+    ctx[138] + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-wnmi8g");
+      attr(span, "class", "tp-te-picker-room svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -3054,8 +3214,8 @@ function create_if_block_9(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
-      25165824 && t_value !== (t_value = /*secondary*/
-      ctx2[135] + "")) set_data(t, t_value);
+      50331648 && t_value !== (t_value = /*secondary*/
+      ctx2[138] + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -3071,7 +3231,7 @@ function create_each_block_5(ctx) {
   let span0;
   let t0_value = (
     /*cls*/
-    ctx[124].code + ""
+    ctx[127].code + ""
   );
   let t0;
   let t1;
@@ -3083,23 +3243,23 @@ function create_each_block_5(ctx) {
   let dispose;
   let if_block = (
     /*secondary*/
-    ctx[135] && create_if_block_9(ctx)
+    ctx[138] && create_if_block_9(ctx)
   );
-  function click_handler_11() {
+  function click_handler_13() {
     return (
-      /*click_handler_11*/
-      ctx[94](
+      /*click_handler_13*/
+      ctx[97](
         /*cls*/
-        ctx[124]
+        ctx[127]
       )
     );
   }
-  function click_handler_12() {
+  function click_handler_14() {
     return (
-      /*click_handler_12*/
-      ctx[95](
+      /*click_handler_14*/
+      ctx[98](
         /*cls*/
-        ctx[124]
+        ctx[127]
       )
     );
   }
@@ -3115,14 +3275,14 @@ function create_each_block_5(ctx) {
       t2 = space();
       button1 = element("button");
       t3 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-wnmi8g");
-      attr(span1, "class", "tp-te-picker-item-text svelte-wnmi8g");
-      attr(button0, "class", "tp-te-picker-item svelte-wnmi8g");
+      attr(span0, "class", "tp-te-picker-code svelte-iy9knz");
+      attr(span1, "class", "tp-te-picker-item-text svelte-iy9knz");
+      attr(button0, "class", "tp-te-picker-item svelte-iy9knz");
       set_style(button0, "border-left", "3px solid " + /*cls*/
-      ctx[124].colour);
-      attr(button1, "class", "tp-te-archive-btn svelte-wnmi8g");
+      ctx[127].colour);
+      attr(button1, "class", "tp-te-archive-btn svelte-iy9knz");
       attr(button1, "title", "Archive class");
-      attr(div, "class", "tp-te-picker-row svelte-wnmi8g");
+      attr(div, "class", "tp-te-picker-row svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -3137,10 +3297,10 @@ function create_each_block_5(ctx) {
       append(div, t3);
       if (!mounted) {
         dispose = [
-          listen(button0, "click", click_handler_11),
-          listen(button1, "click", stop_propagation(click_handler_12)),
+          listen(button0, "click", click_handler_13),
+          listen(button1, "click", stop_propagation(click_handler_14)),
           action_destroyer(icon_action = /*icon*/
-          ctx[29].call(null, button1, "archive"))
+          ctx[30].call(null, button1, "archive"))
         ];
         mounted = true;
       }
@@ -3148,11 +3308,11 @@ function create_each_block_5(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
-      25165824 && t0_value !== (t0_value = /*cls*/
-      ctx[124].code + "")) set_data(t0, t0_value);
+      50331648 && t0_value !== (t0_value = /*cls*/
+      ctx[127].code + "")) set_data(t0, t0_value);
       if (
         /*secondary*/
-        ctx[135]
+        ctx[138]
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
@@ -3166,9 +3326,9 @@ function create_each_block_5(ctx) {
         if_block = null;
       }
       if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
-      25165824) {
+      50331648) {
         set_style(button0, "border-left", "3px solid " + /*cls*/
-        ctx[124].colour);
+        ctx[127].colour);
       }
     },
     d(detaching) {
@@ -3185,7 +3345,7 @@ function create_each_block_4(ctx) {
   let each_1_anchor;
   let each_value_5 = ensure_array_like(
     /*subjClasses*/
-    ctx[132]
+    ctx[135]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_5.length; i += 1) {
@@ -3208,11 +3368,11 @@ function create_each_block_4(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredClasses, sortedSubjects, periods, pickerPeriodId, pickerDay, currentWeek*/
-      25954816 | dirty[1] & /*toggleArchiveClass, assignItem, closePicker*/
-      196736) {
+      51907072 | dirty[1] & /*toggleArchiveClass, assignItem, closePicker*/
+      393472) {
         each_value_5 = ensure_array_like(
           /*subjClasses*/
-          ctx2[132]
+          ctx2[135]
         );
         let i;
         for (i = 0; i < each_value_5.length; i += 1) {
@@ -3247,7 +3407,7 @@ function create_if_block_6(ctx) {
   let each_1_anchor;
   let each_value_3 = ensure_array_like(
     /*pickerFilteredDirected*/
-    ctx[22]
+    ctx[23]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_3.length; i += 1) {
@@ -3264,8 +3424,8 @@ function create_if_block_6(ctx) {
         each_blocks[i].c();
       }
       each_1_anchor = empty();
-      attr(div0, "class", "tp-te-picker-divider svelte-wnmi8g");
-      attr(div1, "class", "tp-te-picker-group-label svelte-wnmi8g");
+      attr(div0, "class", "tp-te-picker-divider svelte-iy9knz");
+      attr(div1, "class", "tp-te-picker-group-label svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -3281,11 +3441,11 @@ function create_if_block_6(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredDirected, periods, pickerPeriodId, pickerDay, currentWeek*/
-      4983296 | dirty[1] & /*toggleArchiveActivity, assignItem, closePicker*/
-      196864) {
+      9964032 | dirty[1] & /*toggleArchiveActivity, assignItem, closePicker*/
+      393728) {
         each_value_3 = ensure_array_like(
           /*pickerFilteredDirected*/
-          ctx2[22]
+          ctx2[23]
         );
         let i;
         for (i = 0; i < each_value_3.length; i += 1) {
@@ -3320,14 +3480,14 @@ function create_if_block_7(ctx) {
   let span;
   let t_value = (
     /*act*/
-    ctx[121].classroom + ""
+    ctx[124].classroom + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-wnmi8g");
+      attr(span, "class", "tp-te-picker-room svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -3335,8 +3495,8 @@ function create_if_block_7(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredDirected*/
-      4194304 && t_value !== (t_value = /*act*/
-      ctx2[121].classroom + "")) set_data(t, t_value);
+      8388608 && t_value !== (t_value = /*act*/
+      ctx2[124].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -3352,7 +3512,7 @@ function create_each_block_3(ctx) {
   let span0;
   let t0_value = (
     /*act*/
-    ctx[121].label + ""
+    ctx[124].label + ""
   );
   let t0;
   let t1;
@@ -3364,23 +3524,23 @@ function create_each_block_3(ctx) {
   let dispose;
   let if_block = (
     /*act*/
-    ctx[121].classroom && create_if_block_7(ctx)
+    ctx[124].classroom && create_if_block_7(ctx)
   );
-  function click_handler_13() {
+  function click_handler_15() {
     return (
-      /*click_handler_13*/
-      ctx[97](
+      /*click_handler_15*/
+      ctx[100](
         /*act*/
-        ctx[121]
+        ctx[124]
       )
     );
   }
-  function click_handler_14() {
+  function click_handler_16() {
     return (
-      /*click_handler_14*/
-      ctx[98](
+      /*click_handler_16*/
+      ctx[101](
         /*act*/
-        ctx[121]
+        ctx[124]
       )
     );
   }
@@ -3396,14 +3556,14 @@ function create_each_block_3(ctx) {
       t2 = space();
       button1 = element("button");
       t3 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-wnmi8g");
-      attr(span1, "class", "tp-te-picker-item-text svelte-wnmi8g");
-      attr(button0, "class", "tp-te-picker-item svelte-wnmi8g");
+      attr(span0, "class", "tp-te-picker-code svelte-iy9knz");
+      attr(span1, "class", "tp-te-picker-item-text svelte-iy9knz");
+      attr(button0, "class", "tp-te-picker-item svelte-iy9knz");
       set_style(button0, "border-left", "3px solid " + /*act*/
-      ctx[121].colour);
-      attr(button1, "class", "tp-te-archive-btn svelte-wnmi8g");
+      ctx[124].colour);
+      attr(button1, "class", "tp-te-archive-btn svelte-iy9knz");
       attr(button1, "title", "Archive activity");
-      attr(div, "class", "tp-te-picker-row svelte-wnmi8g");
+      attr(div, "class", "tp-te-picker-row svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -3418,10 +3578,10 @@ function create_each_block_3(ctx) {
       append(div, t3);
       if (!mounted) {
         dispose = [
-          listen(button0, "click", click_handler_13),
-          listen(button1, "click", stop_propagation(click_handler_14)),
+          listen(button0, "click", click_handler_15),
+          listen(button1, "click", stop_propagation(click_handler_16)),
           action_destroyer(icon_action = /*icon*/
-          ctx[29].call(null, button1, "archive"))
+          ctx[30].call(null, button1, "archive"))
         ];
         mounted = true;
       }
@@ -3429,11 +3589,11 @@ function create_each_block_3(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*pickerFilteredDirected*/
-      4194304 && t0_value !== (t0_value = /*act*/
-      ctx[121].label + "")) set_data(t0, t0_value);
+      8388608 && t0_value !== (t0_value = /*act*/
+      ctx[124].label + "")) set_data(t0, t0_value);
       if (
         /*act*/
-        ctx[121].classroom
+        ctx[124].classroom
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
@@ -3447,9 +3607,9 @@ function create_each_block_3(ctx) {
         if_block = null;
       }
       if (dirty[0] & /*pickerFilteredDirected*/
-      4194304) {
+      8388608) {
         set_style(button0, "border-left", "3px solid " + /*act*/
-        ctx[121].colour);
+        ctx[124].colour);
       }
     },
     d(detaching) {
@@ -3470,7 +3630,7 @@ function create_if_block_4(ctx) {
   let each_1_anchor;
   let each_value_2 = ensure_array_like(
     /*pickerFilteredOther*/
-    ctx[21]
+    ctx[22]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_2.length; i += 1) {
@@ -3487,8 +3647,8 @@ function create_if_block_4(ctx) {
         each_blocks[i].c();
       }
       each_1_anchor = empty();
-      attr(div0, "class", "tp-te-picker-divider svelte-wnmi8g");
-      attr(div1, "class", "tp-te-picker-group-label svelte-wnmi8g");
+      attr(div0, "class", "tp-te-picker-divider svelte-iy9knz");
+      attr(div1, "class", "tp-te-picker-group-label svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -3504,11 +3664,11 @@ function create_if_block_4(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredOther, periods, pickerPeriodId, pickerDay, currentWeek*/
-      2886144 | dirty[1] & /*toggleArchiveActivity, assignItem, closePicker*/
-      196864) {
+      5769728 | dirty[1] & /*toggleArchiveActivity, assignItem, closePicker*/
+      393728) {
         each_value_2 = ensure_array_like(
           /*pickerFilteredOther*/
-          ctx2[21]
+          ctx2[22]
         );
         let i;
         for (i = 0; i < each_value_2.length; i += 1) {
@@ -3543,14 +3703,14 @@ function create_if_block_5(ctx) {
   let span;
   let t_value = (
     /*act*/
-    ctx[121].classroom + ""
+    ctx[124].classroom + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-wnmi8g");
+      attr(span, "class", "tp-te-picker-room svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -3558,8 +3718,8 @@ function create_if_block_5(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredOther*/
-      2097152 && t_value !== (t_value = /*act*/
-      ctx2[121].classroom + "")) set_data(t, t_value);
+      4194304 && t_value !== (t_value = /*act*/
+      ctx2[124].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -3575,7 +3735,7 @@ function create_each_block_2(ctx) {
   let span0;
   let t0_value = (
     /*act*/
-    ctx[121].label + ""
+    ctx[124].label + ""
   );
   let t0;
   let t1;
@@ -3587,23 +3747,23 @@ function create_each_block_2(ctx) {
   let dispose;
   let if_block = (
     /*act*/
-    ctx[121].classroom && create_if_block_5(ctx)
+    ctx[124].classroom && create_if_block_5(ctx)
   );
-  function click_handler_15() {
+  function click_handler_17() {
     return (
-      /*click_handler_15*/
-      ctx[99](
+      /*click_handler_17*/
+      ctx[102](
         /*act*/
-        ctx[121]
+        ctx[124]
       )
     );
   }
-  function click_handler_16() {
+  function click_handler_18() {
     return (
-      /*click_handler_16*/
-      ctx[100](
+      /*click_handler_18*/
+      ctx[103](
         /*act*/
-        ctx[121]
+        ctx[124]
       )
     );
   }
@@ -3619,14 +3779,14 @@ function create_each_block_2(ctx) {
       t2 = space();
       button1 = element("button");
       t3 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-wnmi8g");
-      attr(span1, "class", "tp-te-picker-item-text svelte-wnmi8g");
-      attr(button0, "class", "tp-te-picker-item svelte-wnmi8g");
+      attr(span0, "class", "tp-te-picker-code svelte-iy9knz");
+      attr(span1, "class", "tp-te-picker-item-text svelte-iy9knz");
+      attr(button0, "class", "tp-te-picker-item svelte-iy9knz");
       set_style(button0, "border-left", "3px solid " + /*act*/
-      ctx[121].colour);
-      attr(button1, "class", "tp-te-archive-btn svelte-wnmi8g");
+      ctx[124].colour);
+      attr(button1, "class", "tp-te-archive-btn svelte-iy9knz");
       attr(button1, "title", "Archive activity");
-      attr(div, "class", "tp-te-picker-row svelte-wnmi8g");
+      attr(div, "class", "tp-te-picker-row svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -3641,10 +3801,10 @@ function create_each_block_2(ctx) {
       append(div, t3);
       if (!mounted) {
         dispose = [
-          listen(button0, "click", click_handler_15),
-          listen(button1, "click", stop_propagation(click_handler_16)),
+          listen(button0, "click", click_handler_17),
+          listen(button1, "click", stop_propagation(click_handler_18)),
           action_destroyer(icon_action = /*icon*/
-          ctx[29].call(null, button1, "archive"))
+          ctx[30].call(null, button1, "archive"))
         ];
         mounted = true;
       }
@@ -3652,11 +3812,11 @@ function create_each_block_2(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*pickerFilteredOther*/
-      2097152 && t0_value !== (t0_value = /*act*/
-      ctx[121].label + "")) set_data(t0, t0_value);
+      4194304 && t0_value !== (t0_value = /*act*/
+      ctx[124].label + "")) set_data(t0, t0_value);
       if (
         /*act*/
-        ctx[121].classroom
+        ctx[124].classroom
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
@@ -3670,9 +3830,9 @@ function create_each_block_2(ctx) {
         if_block = null;
       }
       if (dirty[0] & /*pickerFilteredOther*/
-      2097152) {
+      4194304) {
         set_style(button0, "border-left", "3px solid " + /*act*/
-        ctx[121].colour);
+        ctx[124].colour);
       }
     },
     d(detaching) {
@@ -3692,7 +3852,7 @@ function create_if_block_2(ctx) {
   let t1_value = (
     /*showArchived*/
     ctx[1] ? "Hide archived" : `Show archived (${/*archivedCount*/
-    ctx[27]})`
+    ctx[28]})`
   );
   let t1;
   let t2;
@@ -3712,8 +3872,8 @@ function create_if_block_2(ctx) {
       t2 = space();
       if (if_block) if_block.c();
       if_block_anchor = empty();
-      attr(div, "class", "tp-te-picker-divider svelte-wnmi8g");
-      attr(button, "class", "tp-te-show-archived-btn svelte-wnmi8g");
+      attr(div, "class", "tp-te-picker-divider svelte-iy9knz");
+      attr(button, "class", "tp-te-show-archived-btn svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -3727,17 +3887,17 @@ function create_if_block_2(ctx) {
         dispose = listen(
           button,
           "click",
-          /*click_handler_17*/
-          ctx[101]
+          /*click_handler_19*/
+          ctx[104]
         );
         mounted = true;
       }
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*showArchived, archivedCount*/
-      134217730 && t1_value !== (t1_value = /*showArchived*/
+      268435458 && t1_value !== (t1_value = /*showArchived*/
       ctx2[1] ? "Hide archived" : `Show archived (${/*archivedCount*/
-      ctx2[27]})`)) set_data(t1, t1_value);
+      ctx2[28]})`)) set_data(t1, t1_value);
       if (
         /*showArchived*/
         ctx2[1]
@@ -3815,7 +3975,7 @@ function create_if_block_3(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*classes*/
       256 | dirty[1] & /*toggleArchiveClass*/
-      128) {
+      256) {
         each_value_1 = ensure_array_like(
           /*classes*/
           ctx2[8].filter(func_3)
@@ -3838,7 +3998,7 @@ function create_if_block_3(ctx) {
       }
       if (dirty[0] & /*activities*/
       128 | dirty[1] & /*toggleArchiveActivity*/
-      256) {
+      512) {
         each_value = ensure_array_like(
           /*activities*/
           ctx2[7].filter(func_4)
@@ -3877,7 +4037,7 @@ function create_each_block_1(ctx) {
   let span0;
   let t0_value = (
     /*cls*/
-    ctx[124].code + ""
+    ctx[127].code + ""
   );
   let t0;
   let t1;
@@ -3885,12 +4045,12 @@ function create_each_block_1(ctx) {
   let icon_action;
   let mounted;
   let dispose;
-  function click_handler_18() {
+  function click_handler_20() {
     return (
-      /*click_handler_18*/
-      ctx[102](
+      /*click_handler_20*/
+      ctx[105](
         /*cls*/
-        ctx[124]
+        ctx[127]
       )
     );
   }
@@ -3903,15 +4063,15 @@ function create_each_block_1(ctx) {
       t0 = text(t0_value);
       t1 = space();
       button = element("button");
-      attr(span0, "class", "tp-te-picker-code svelte-wnmi8g");
-      attr(span1, "class", "tp-te-picker-item-text svelte-wnmi8g");
-      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-wnmi8g");
+      attr(span0, "class", "tp-te-picker-code svelte-iy9knz");
+      attr(span1, "class", "tp-te-picker-item-text svelte-iy9knz");
+      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-iy9knz");
       set_style(span2, "border-left", "3px solid " + /*cls*/
-      ctx[124].colour);
+      ctx[127].colour);
       set_style(span2, "opacity", "0.5");
-      attr(button, "class", "tp-te-archive-btn svelte-wnmi8g");
+      attr(button, "class", "tp-te-archive-btn svelte-iy9knz");
       attr(button, "title", "Restore");
-      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-wnmi8g");
+      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -3923,9 +4083,9 @@ function create_each_block_1(ctx) {
       append(div, button);
       if (!mounted) {
         dispose = [
-          listen(button, "click", click_handler_18),
+          listen(button, "click", click_handler_20),
           action_destroyer(icon_action = /*icon*/
-          ctx[29].call(null, button, "rotate-ccw"))
+          ctx[30].call(null, button, "rotate-ccw"))
         ];
         mounted = true;
       }
@@ -3934,11 +4094,11 @@ function create_each_block_1(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*classes*/
       256 && t0_value !== (t0_value = /*cls*/
-      ctx[124].code + "")) set_data(t0, t0_value);
+      ctx[127].code + "")) set_data(t0, t0_value);
       if (dirty[0] & /*classes*/
       256) {
         set_style(span2, "border-left", "3px solid " + /*cls*/
-        ctx[124].colour);
+        ctx[127].colour);
       }
     },
     d(detaching) {
@@ -3957,7 +4117,7 @@ function create_each_block(ctx) {
   let span0;
   let t0_value = (
     /*act*/
-    ctx[121].label + ""
+    ctx[124].label + ""
   );
   let t0;
   let t1;
@@ -3966,12 +4126,12 @@ function create_each_block(ctx) {
   let t2;
   let mounted;
   let dispose;
-  function click_handler_19() {
+  function click_handler_21() {
     return (
-      /*click_handler_19*/
-      ctx[103](
+      /*click_handler_21*/
+      ctx[106](
         /*act*/
-        ctx[121]
+        ctx[124]
       )
     );
   }
@@ -3985,15 +4145,15 @@ function create_each_block(ctx) {
       t1 = space();
       button = element("button");
       t2 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-wnmi8g");
-      attr(span1, "class", "tp-te-picker-item-text svelte-wnmi8g");
-      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-wnmi8g");
+      attr(span0, "class", "tp-te-picker-code svelte-iy9knz");
+      attr(span1, "class", "tp-te-picker-item-text svelte-iy9knz");
+      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-iy9knz");
       set_style(span2, "border-left", "3px solid " + /*act*/
-      ctx[121].colour);
+      ctx[124].colour);
       set_style(span2, "opacity", "0.5");
-      attr(button, "class", "tp-te-archive-btn svelte-wnmi8g");
+      attr(button, "class", "tp-te-archive-btn svelte-iy9knz");
       attr(button, "title", "Restore");
-      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-wnmi8g");
+      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -4006,9 +4166,9 @@ function create_each_block(ctx) {
       append(div, t2);
       if (!mounted) {
         dispose = [
-          listen(button, "click", click_handler_19),
+          listen(button, "click", click_handler_21),
           action_destroyer(icon_action = /*icon*/
-          ctx[29].call(null, button, "rotate-ccw"))
+          ctx[30].call(null, button, "rotate-ccw"))
         ];
         mounted = true;
       }
@@ -4017,11 +4177,11 @@ function create_each_block(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*activities*/
       128 && t0_value !== (t0_value = /*act*/
-      ctx[121].label + "")) set_data(t0, t0_value);
+      ctx[124].label + "")) set_data(t0, t0_value);
       if (dirty[0] & /*activities*/
       128) {
         set_style(span2, "border-left", "3px solid " + /*act*/
-        ctx[121].colour);
+        ctx[124].colour);
       }
     },
     d(detaching) {
@@ -4062,13 +4222,13 @@ function create_if_block(ctx) {
       t5 = space();
       button2 = element("button");
       button2.textContent = "Keep editing";
-      attr(p, "class", "tp-te-unsaved-msg svelte-wnmi8g");
-      attr(button0, "class", "tp-te-btn tp-te-btn-primary svelte-wnmi8g");
-      attr(button1, "class", "tp-te-btn tp-te-btn-danger svelte-wnmi8g");
-      attr(button2, "class", "tp-te-btn svelte-wnmi8g");
-      attr(div0, "class", "tp-te-unsaved-actions svelte-wnmi8g");
-      attr(div1, "class", "tp-te-unsaved-dialog svelte-wnmi8g");
-      attr(div2, "class", "tp-te-unsaved-overlay svelte-wnmi8g");
+      attr(p, "class", "tp-te-unsaved-msg svelte-iy9knz");
+      attr(button0, "class", "tp-te-btn tp-te-btn-primary svelte-iy9knz");
+      attr(button1, "class", "tp-te-btn tp-te-btn-danger svelte-iy9knz");
+      attr(button2, "class", "tp-te-btn svelte-iy9knz");
+      attr(div0, "class", "tp-te-unsaved-actions svelte-iy9knz");
+      attr(div1, "class", "tp-te-unsaved-dialog svelte-iy9knz");
+      attr(div2, "class", "tp-te-unsaved-overlay svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div2, anchor);
@@ -4087,19 +4247,19 @@ function create_if_block(ctx) {
             button0,
             "click",
             /*confirmUnsaved_save*/
-            ctx[40]
+            ctx[41]
           ),
           listen(
             button1,
             "click",
             /*confirmUnsaved_discard*/
-            ctx[41]
+            ctx[42]
           ),
           listen(
             button2,
             "click",
             /*confirmUnsaved_cancel*/
-            ctx[42]
+            ctx[43]
           )
         ];
         mounted = true;
@@ -4151,7 +4311,7 @@ function create_fragment(ctx) {
   );
   const get_key = (ctx2) => (
     /*tmpl*/
-    ctx2[151].id
+    ctx2[154].id
   );
   for (let i = 0; i < each_value_9.length; i += 1) {
     let child_ctx = get_each_context_9(ctx, each_value_9, i);
@@ -4160,11 +4320,11 @@ function create_fragment(ctx) {
   }
   let if_block0 = (
     /*allTemplates*/
-    ctx[4].length > 1 && create_if_block_18(ctx)
+    ctx[4].length > 1 && create_if_block_20(ctx)
   );
   let if_block1 = (
-    /*isPast*/
-    ctx[25] && create_if_block_16(ctx)
+    /*activeTemplate*/
+    ctx[5] && create_if_block_16(ctx)
   );
   let if_block2 = (
     /*abEnabled*/
@@ -4188,13 +4348,13 @@ function create_fragment(ctx) {
   }
   let if_block3 = (
     /*pickerDay*/
-    ctx[18] && /*pickerPeriodId*/
-    ctx[19] && /*pickerEl*/
-    ctx[20] && create_if_block_1(ctx)
+    ctx[19] && /*pickerPeriodId*/
+    ctx[20] && /*pickerEl*/
+    ctx[21] && create_if_block_1(ctx)
   );
   let if_block4 = (
     /*showUnsavedConfirm*/
-    ctx[17] && create_if_block(ctx)
+    ctx[18] && create_if_block(ctx)
   );
   return {
     c() {
@@ -4241,17 +4401,17 @@ function create_fragment(ctx) {
       t13 = space();
       button2 = element("button");
       button2.textContent = "Save Timetable";
-      attr(div0, "class", "tp-te-tmpl-tabs svelte-wnmi8g");
-      attr(button0, "class", "tp-te-tmpl-add-btn svelte-wnmi8g");
-      attr(div1, "class", "tp-te-tmpl-actions svelte-wnmi8g");
-      attr(div2, "class", "tp-te-tmpl-bar svelte-wnmi8g");
-      attr(th, "class", "tp-te-th tp-te-th--period svelte-wnmi8g");
-      attr(table, "class", "tp-te-grid svelte-wnmi8g");
-      attr(div3, "class", "tp-te-grid-wrap svelte-wnmi8g");
-      attr(button1, "class", "tp-te-btn svelte-wnmi8g");
-      attr(button2, "class", "tp-te-btn tp-te-btn-primary svelte-wnmi8g");
-      attr(div4, "class", "tp-te-footer svelte-wnmi8g");
-      attr(div5, "class", "tp-te-wrap svelte-wnmi8g");
+      attr(div0, "class", "tp-te-tmpl-tabs svelte-iy9knz");
+      attr(button0, "class", "tp-te-tmpl-add-btn svelte-iy9knz");
+      attr(div1, "class", "tp-te-tmpl-actions svelte-iy9knz");
+      attr(div2, "class", "tp-te-tmpl-bar svelte-iy9knz");
+      attr(th, "class", "tp-te-th tp-te-th--period svelte-iy9knz");
+      attr(table, "class", "tp-te-grid svelte-iy9knz");
+      attr(div3, "class", "tp-te-grid-wrap svelte-iy9knz");
+      attr(button1, "class", "tp-te-btn svelte-iy9knz");
+      attr(button2, "class", "tp-te-btn tp-te-btn-primary svelte-iy9knz");
+      attr(div4, "class", "tp-te-footer svelte-iy9knz");
+      attr(div5, "class", "tp-te-wrap svelte-iy9knz");
     },
     m(target, anchor) {
       insert(target, div5, anchor);
@@ -4305,31 +4465,31 @@ function create_fragment(ctx) {
             window_1,
             "keydown",
             /*keydown_handler*/
-            ctx[77]
+            ctx[78]
           ),
           listen(
             window_1,
             "mousedown",
             /*mousedown_handler*/
-            ctx[78]
+            ctx[79]
           ),
           listen(
             button0,
             "click",
             /*openAddTemplate*/
-            ctx[52]
+            ctx[53]
           ),
           listen(
             button1,
             "click",
             /*onCancel*/
-            ctx[43]
+            ctx[44]
           ),
           listen(
             button2,
             "click",
             /*save*/
-            ctx[50]
+            ctx[51]
           )
         ];
         mounted = true;
@@ -4337,8 +4497,8 @@ function create_fragment(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*renameValue, renamingId, allTemplates, activeTemplateId*/
-      98321 | dirty[1] & /*commitRename, startRename, today, switchTemplate*/
-      120) {
+      196625 | dirty[1] & /*commitRename, startRename, today, switchTemplate*/
+      240) {
         each_value_9 = ensure_array_like(
           /*allTemplates*/
           ctx2[4]
@@ -4352,7 +4512,7 @@ function create_fragment(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_18(ctx2);
+          if_block0 = create_if_block_20(ctx2);
           if_block0.c();
           if_block0.m(div1, null);
         }
@@ -4361,8 +4521,8 @@ function create_fragment(ctx) {
         if_block0 = null;
       }
       if (
-        /*isPast*/
-        ctx2[25]
+        /*activeTemplate*/
+        ctx2[5]
       ) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
@@ -4412,9 +4572,9 @@ function create_fragment(ctx) {
         }
         each_blocks_1.length = each_value_8.length;
       }
-      if (dirty[0] & /*periods, DAYS, _slotGrid, pickerDay, pickerPeriodId, durationEditValue, durationEditKey, getSlotDuration, directedTimeEnabled, currentWeek*/
-      1410088448 | dirty[1] & /*getPeriodTypeColour, commitDurationEdit, startDurationEdit, isDirectedSlot, getLabel, openPicker*/
-      8437767) {
+      if (dirty[0] & /*periods, DAYS, _slotGrid, pickerDay, pickerPeriodId, durationEditValue, durationEditKey, directedTimeEnabled, currentWeek*/
+      672677376 | dirty[1] & /*getPeriodTypeColour, commitDurationEdit, getSlotDuration, startDurationEdit, isDirectedSlot, getLabel, openPicker*/
+      16875535) {
         each_value_6 = ensure_array_like(
           /*periods*/
           ctx2[9]
@@ -4437,9 +4597,9 @@ function create_fragment(ctx) {
       }
       if (
         /*pickerDay*/
-        ctx2[18] && /*pickerPeriodId*/
-        ctx2[19] && /*pickerEl*/
-        ctx2[20]
+        ctx2[19] && /*pickerPeriodId*/
+        ctx2[20] && /*pickerEl*/
+        ctx2[21]
       ) {
         if (if_block3) {
           if_block3.p(ctx2, dirty);
@@ -4454,7 +4614,7 @@ function create_fragment(ctx) {
       }
       if (
         /*showUnsavedConfirm*/
-        ctx2[17]
+        ctx2[18]
       ) {
         if (if_block4) {
           if_block4.p(ctx2, dirty);
@@ -4565,7 +4725,7 @@ function instance($$self, $$props, $$invalidate) {
   ];
   let _tick = 0;
   function invalidate() {
-    $$invalidate(67, _tick++, _tick);
+    $$invalidate(68, _tick++, _tick);
   }
   let durationEditKey = null;
   let durationEditValue = 60;
@@ -4589,7 +4749,7 @@ function instance($$self, $$props, $$invalidate) {
   function commitDurationEdit(slot) {
     if (durationEditValue >= 1 && durationEditValue <= 480) {
       slot.durationMinutes = durationEditValue;
-      $$invalidate(68, slots = [...slots]);
+      $$invalidate(69, slots = [...slots]);
       markDirty();
     }
     $$invalidate(12, durationEditKey = null);
@@ -4602,7 +4762,7 @@ function instance($$self, $$props, $$invalidate) {
     var _a2, _b2;
     $$invalidate(0, activeTemplateId = id);
     const tmpl = ((_a2 = plugin.settings.timetableTemplates) !== null && _a2 !== void 0 ? _a2 : []).find((t) => t.id === id);
-    $$invalidate(68, slots = JSON.parse(JSON.stringify((_b2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b2 !== void 0 ? _b2 : [])));
+    $$invalidate(69, slots = JSON.parse(JSON.stringify((_b2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b2 !== void 0 ? _b2 : [])));
     $$invalidate(2, activeWeek = plugin.settings.academicYear.abWeekEnabled ? "A" : null);
     closePicker();
     $$invalidate(14, showPastConfirm = false);
@@ -4613,18 +4773,19 @@ function instance($$self, $$props, $$invalidate) {
     if (isDirty) {
       pendingSwitchId = id;
       unsavedAction = "switch";
-      $$invalidate(17, showUnsavedConfirm = true);
+      $$invalidate(18, showUnsavedConfirm = true);
       return;
     }
     doSwitchTemplate(id);
   }
   const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
   let showPastConfirm = false;
+  let warnCollapsed = false;
   let renamingId = null;
   let renameValue = "";
   function startRename(tmpl) {
-    $$invalidate(15, renamingId = tmpl.id);
-    $$invalidate(16, renameValue = tmpl.name);
+    $$invalidate(16, renamingId = tmpl.id);
+    $$invalidate(17, renameValue = tmpl.name);
   }
   async function commitRename() {
     const tmpl = allTemplates.find((t) => t.id === renamingId);
@@ -4632,7 +4793,7 @@ function instance($$self, $$props, $$invalidate) {
       tmpl.name = renameValue.trim();
       await plugin.saveSettings();
     }
-    $$invalidate(15, renamingId = null);
+    $$invalidate(16, renamingId = null);
   }
   let showArchived = false;
   async function toggleArchiveClass(id) {
@@ -4667,7 +4828,7 @@ function instance($$self, $$props, $$invalidate) {
     isDirty = false;
   }
   async function confirmUnsaved_save() {
-    $$invalidate(17, showUnsavedConfirm = false);
+    $$invalidate(18, showUnsavedConfirm = false);
     if (unsavedAction === "switch" && pendingSwitchId) {
       await saveWithoutClose();
       doSwitchTemplate(pendingSwitchId);
@@ -4677,7 +4838,7 @@ function instance($$self, $$props, $$invalidate) {
     }
   }
   function confirmUnsaved_discard() {
-    $$invalidate(17, showUnsavedConfirm = false);
+    $$invalidate(18, showUnsavedConfirm = false);
     isDirty = false;
     if (unsavedAction === "switch" && pendingSwitchId) {
       doSwitchTemplate(pendingSwitchId);
@@ -4687,13 +4848,13 @@ function instance($$self, $$props, $$invalidate) {
     }
   }
   function confirmUnsaved_cancel() {
-    $$invalidate(17, showUnsavedConfirm = false);
+    $$invalidate(18, showUnsavedConfirm = false);
     pendingSwitchId = null;
   }
   function onCancel() {
     if (isDirty) {
       unsavedAction = "close";
-      $$invalidate(17, showUnsavedConfirm = true);
+      $$invalidate(18, showUnsavedConfirm = true);
       return;
     }
     modal.close();
@@ -4738,16 +4899,16 @@ function instance($$self, $$props, $$invalidate) {
       closePicker();
       return;
     }
-    $$invalidate(18, pickerDay = day);
-    $$invalidate(19, pickerPeriodId = periodId);
+    $$invalidate(19, pickerDay = day);
+    $$invalidate(20, pickerPeriodId = periodId);
     pickerWeek = week;
-    $$invalidate(20, pickerEl = el);
+    $$invalidate(21, pickerEl = el);
   }
   function closePicker() {
-    $$invalidate(18, pickerDay = null);
-    $$invalidate(19, pickerPeriodId = null);
+    $$invalidate(19, pickerDay = null);
+    $$invalidate(20, pickerPeriodId = null);
     pickerWeek = null;
-    $$invalidate(20, pickerEl = null);
+    $$invalidate(21, pickerEl = null);
     $$invalidate(3, pickerSearch = "");
   }
   function assignItem(day, period, itemId, week) {
@@ -4755,9 +4916,9 @@ function instance($$self, $$props, $$invalidate) {
       const exact = slots.find((s) => s.day === day && s.periodId === period.id && s.weekType === week);
       if (exact) {
         exact.classId = itemId;
-        $$invalidate(68, slots = [...slots]);
+        $$invalidate(69, slots = [...slots]);
       } else {
-        $$invalidate(68, slots = [
+        $$invalidate(69, slots = [
           ...slots,
           {
             id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
@@ -4774,9 +4935,9 @@ function instance($$self, $$props, $$invalidate) {
       const exact = slots.find((s) => s.day === day && s.periodId === period.id);
       if (exact) {
         exact.classId = itemId;
-        $$invalidate(68, slots = [...slots]);
+        $$invalidate(69, slots = [...slots]);
       } else {
-        $$invalidate(68, slots = [
+        $$invalidate(69, slots = [
           ...slots,
           {
             id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
@@ -4794,9 +4955,9 @@ function instance($$self, $$props, $$invalidate) {
   }
   function clearSlot(day, periodId, week) {
     if (abEnabled && week) {
-      $$invalidate(68, slots = slots.filter((s) => !(s.day === day && s.periodId === periodId && (s.weekType === week || s.weekType == null))));
+      $$invalidate(69, slots = slots.filter((s) => !(s.day === day && s.periodId === periodId && (s.weekType === week || s.weekType == null))));
     } else {
-      $$invalidate(68, slots = slots.filter((s) => !(s.day === day && s.periodId === periodId)));
+      $$invalidate(69, slots = slots.filter((s) => !(s.day === day && s.periodId === periodId)));
     }
     markDirty();
   }
@@ -4827,7 +4988,7 @@ function instance($$self, $$props, $$invalidate) {
         invalidate();
         $$invalidate(0, activeTemplateId = newId);
         const tmpl = (_a2 = plugin.settings.timetableTemplates) === null || _a2 === void 0 ? void 0 : _a2.find((t) => t.id === newId);
-        $$invalidate(68, slots = JSON.parse(JSON.stringify((_b2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b2 !== void 0 ? _b2 : [])));
+        $$invalidate(69, slots = JSON.parse(JSON.stringify((_b2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b2 !== void 0 ? _b2 : [])));
         $$invalidate(2, activeWeek = plugin.settings.academicYear.abWeekEnabled ? "A" : null);
         isDirty = false;
       }
@@ -4837,12 +4998,12 @@ function instance($$self, $$props, $$invalidate) {
     var _a2, _b2, _c2;
     if (allTemplates.length <= 1) return;
     if (!confirm(`Delete "${activeTemplate === null || activeTemplate === void 0 ? void 0 : activeTemplate.name}"? This cannot be undone.`)) return;
-    $$invalidate(55, plugin.settings.timetableTemplates = allTemplates.filter((t) => t.id !== activeTemplateId), plugin);
+    $$invalidate(56, plugin.settings.timetableTemplates = allTemplates.filter((t) => t.id !== activeTemplateId), plugin);
     await plugin.saveSettings();
     const remaining = plugin.settings.timetableTemplates;
     $$invalidate(0, activeTemplateId = (_b2 = (_a2 = remaining[remaining.length - 1]) === null || _a2 === void 0 ? void 0 : _a2.id) !== null && _b2 !== void 0 ? _b2 : "");
     const tmpl = remaining.find((t) => t.id === activeTemplateId);
-    $$invalidate(68, slots = JSON.parse(JSON.stringify((_c2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _c2 !== void 0 ? _c2 : [])));
+    $$invalidate(69, slots = JSON.parse(JSON.stringify((_c2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _c2 !== void 0 ? _c2 : [])));
   }
   function getPeriodTypeColour(typeId) {
     var _a2, _b2;
@@ -4855,7 +5016,7 @@ function instance($$self, $$props, $$invalidate) {
   function click_handler(event) {
     bubble.call(this, $$self, event);
   }
-  const keydown_handler = (e) => e.key === "Escape" && (renamingId ? $$invalidate(15, renamingId = null) : durationEditKey ? $$invalidate(12, durationEditKey = null) : closePicker());
+  const keydown_handler = (e) => e.key === "Escape" && (renamingId ? $$invalidate(16, renamingId = null) : durationEditKey ? $$invalidate(12, durationEditKey = null) : closePicker());
   const mousedown_handler = (e) => {
     var _a2, _b2, _c2;
     const t = (
@@ -4867,24 +5028,26 @@ function instance($$self, $$props, $$invalidate) {
   };
   function input_input_handler() {
     renameValue = this.value;
-    $$invalidate(16, renameValue);
+    $$invalidate(17, renameValue);
   }
   const keydown_handler_1 = (e) => {
     if (e.key === "Enter") commitRename();
-    if (e.key === "Escape") $$invalidate(15, renamingId = null);
+    if (e.key === "Escape") $$invalidate(16, renamingId = null);
   };
   const click_handler_2 = (tmpl) => switchTemplate(tmpl.id);
   const click_handler_3 = (tmpl) => startRename(tmpl);
-  const click_handler_4 = () => $$invalidate(14, showPastConfirm = false);
-  const click_handler_5 = () => {
+  const click_handler_4 = () => $$invalidate(15, warnCollapsed = false);
+  const click_handler_5 = () => $$invalidate(14, showPastConfirm = false);
+  const click_handler_6 = () => $$invalidate(15, warnCollapsed = true);
+  const click_handler_7 = () => {
     $$invalidate(2, activeWeek = "A");
     closePicker();
   };
-  const click_handler_6 = () => {
+  const click_handler_8 = () => {
     $$invalidate(2, activeWeek = "B");
     closePicker();
   };
-  const click_handler_7 = (day, period, e) => openPicker(day.key, period.id, currentWeek, e.currentTarget);
+  const click_handler_9 = (day, period, e) => openPicker(day.key, period.id, currentWeek, e.currentTarget);
   function input_input_handler_1() {
     durationEditValue = to_number(this.value);
     $$invalidate(13, durationEditValue);
@@ -4894,33 +5057,25 @@ function instance($$self, $$props, $$invalidate) {
     if (e.key === "Escape") $$invalidate(12, durationEditKey = null);
   };
   const blur_handler = (slot) => commitDurationEdit(slot);
-  const click_handler_8 = (slot, cellKey2, e) => startDurationEdit(slot, cellKey2, e);
-  const click_handler_9 = (day, period, e) => openPicker(day.key, period.id, currentWeek, e.currentTarget);
+  const click_handler_10 = (slot, cellKey2, e) => startDurationEdit(slot, cellKey2, e);
+  const click_handler_11 = (day, period, e) => openPicker(day.key, period.id, currentWeek, e.currentTarget);
   function input_input_handler_2() {
     pickerSearch = this.value;
     $$invalidate(3, pickerSearch);
   }
-  const click_handler_10 = () => {
+  const click_handler_12 = () => {
     clearSlot(pickerDay, pickerPeriodId, currentWeek);
     closePicker();
   };
-  const click_handler_11 = (cls) => {
+  const click_handler_13 = (cls) => {
     const p = periods.find((p2) => p2.id === pickerPeriodId);
     if (p) {
       assignItem(pickerDay, p, cls.id, currentWeek);
       closePicker();
     }
   };
-  const click_handler_12 = (cls) => toggleArchiveClass(cls.id);
+  const click_handler_14 = (cls) => toggleArchiveClass(cls.id);
   const func_1 = (subj, c) => c.subjectId === subj.id;
-  const click_handler_13 = (act) => {
-    const p = periods.find((p2) => p2.id === pickerPeriodId);
-    if (p) {
-      assignItem(pickerDay, p, act.id, currentWeek);
-      closePicker();
-    }
-  };
-  const click_handler_14 = (act) => toggleArchiveActivity(act.id);
   const click_handler_15 = (act) => {
     const p = periods.find((p2) => p2.id === pickerPeriodId);
     if (p) {
@@ -4929,91 +5084,100 @@ function instance($$self, $$props, $$invalidate) {
     }
   };
   const click_handler_16 = (act) => toggleArchiveActivity(act.id);
-  const click_handler_17 = () => $$invalidate(1, showArchived = !showArchived);
-  const click_handler_18 = (cls) => toggleArchiveClass(cls.id);
-  const click_handler_19 = (act) => toggleArchiveActivity(act.id);
+  const click_handler_17 = (act) => {
+    const p = periods.find((p2) => p2.id === pickerPeriodId);
+    if (p) {
+      assignItem(pickerDay, p, act.id, currentWeek);
+      closePicker();
+    }
+  };
+  const click_handler_18 = (act) => toggleArchiveActivity(act.id);
+  const click_handler_19 = () => $$invalidate(1, showArchived = !showArchived);
+  const click_handler_20 = (cls) => toggleArchiveClass(cls.id);
+  const click_handler_21 = (act) => toggleArchiveActivity(act.id);
   $$self.$$set = ($$props2) => {
-    if ("plugin" in $$props2) $$invalidate(55, plugin = $$props2.plugin);
-    if ("modal" in $$props2) $$invalidate(56, modal = $$props2.modal);
+    if ("plugin" in $$props2) $$invalidate(56, plugin = $$props2.plugin);
+    if ("modal" in $$props2) $$invalidate(57, modal = $$props2.modal);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[1] & /*plugin*/
-    16777216 | $$self.$$.dirty[2] & /*_tick*/
-    32) {
+    33554432 | $$self.$$.dirty[2] & /*_tick*/
+    64) {
       $: $$invalidate(10, DAYS2 = (_tick, ALL_DAYS.filter((d) => {
         var _a2;
         return ((_a2 = plugin.settings.schoolDays) !== null && _a2 !== void 0 ? _a2 : ["monday", "tuesday", "wednesday", "thursday", "friday"]).includes(d.key);
       })));
     }
     if ($$self.$$.dirty[1] & /*plugin, _a*/
-    83886080 | $$self.$$.dirty[2] & /*_tick*/
-    32) {
-      $: $$invalidate(4, allTemplates = (_tick, $$invalidate(57, _a = plugin.settings.timetableTemplates) !== null && _a !== void 0 ? _a : []));
+    167772160 | $$self.$$.dirty[2] & /*_tick*/
+    64) {
+      $: $$invalidate(4, allTemplates = (_tick, $$invalidate(58, _a = plugin.settings.timetableTemplates) !== null && _a !== void 0 ? _a : []));
     }
     if ($$self.$$.dirty[1] & /*plugin, _b*/
-    150994944) {
-      $: $$invalidate(8, classes = $$invalidate(58, _b = plugin.settings.classes) !== null && _b !== void 0 ? _b : []);
+    301989888) {
+      $: $$invalidate(8, classes = $$invalidate(59, _b = plugin.settings.classes) !== null && _b !== void 0 ? _b : []);
     }
     if ($$self.$$.dirty[1] & /*plugin, _c*/
-    285212672) {
-      $: $$invalidate(71, subjects = $$invalidate(59, _c = plugin.settings.subjects) !== null && _c !== void 0 ? _c : []);
+    570425344) {
+      $: $$invalidate(72, subjects = $$invalidate(60, _c = plugin.settings.subjects) !== null && _c !== void 0 ? _c : []);
     }
     if ($$self.$$.dirty[1] & /*plugin, _d*/
-    553648128) {
-      $: $$invalidate(7, activities = $$invalidate(60, _d = plugin.settings.activities) !== null && _d !== void 0 ? _d : []);
+    1107296256) {
+      $: $$invalidate(7, activities = $$invalidate(61, _d = plugin.settings.activities) !== null && _d !== void 0 ? _d : []);
     }
     if ($$self.$$.dirty[1] & /*plugin*/
-    16777216) {
+    33554432) {
       $: $$invalidate(6, abEnabled = plugin.settings.academicYear.abWeekEnabled);
     }
     if ($$self.$$.dirty[1] & /*plugin*/
-    16777216) {
+    33554432) {
       $: $$invalidate(9, periods = plugin.settings.academicYear.periods);
     }
-    if ($$self.$$.dirty[1] & /*plugin, _e*/
-    1090519040 | $$self.$$.dirty[2] & /*_f*/
-    1) {
-      $: $$invalidate(28, directedTimeEnabled = $$invalidate(62, _f = $$invalidate(61, _e = plugin.settings.directedTime) === null || _e === void 0 ? void 0 : _e.enabled) !== null && _f !== void 0 ? _f : false);
+    if ($$self.$$.dirty[1] & /*plugin*/
+    33554432 | $$self.$$.dirty[2] & /*_e, _f*/
+    3) {
+      $: $$invalidate(29, directedTimeEnabled = $$invalidate(63, _f = $$invalidate(62, _e = plugin.settings.directedTime) === null || _e === void 0 ? void 0 : _e.enabled) !== null && _f !== void 0 ? _f : false);
     }
     if ($$self.$$.dirty[1] & /*plugin*/
-    16777216 | $$self.$$.dirty[2] & /*_g, _h*/
-    6) {
-      $: defaultDuration = $$invalidate(64, _h = $$invalidate(63, _g = plugin.settings.directedTime) === null || _g === void 0 ? void 0 : _g.defaultLessonDurationMinutes) !== null && _h !== void 0 ? _h : 60;
+    33554432 | $$self.$$.dirty[2] & /*_g, _h*/
+    12) {
+      $: defaultDuration = $$invalidate(65, _h = $$invalidate(64, _g = plugin.settings.directedTime) === null || _g === void 0 ? void 0 : _g.defaultLessonDurationMinutes) !== null && _h !== void 0 ? _h : 60;
     }
     if ($$self.$$.dirty[0] & /*allTemplates, activeTemplateId*/
     17 | $$self.$$.dirty[2] & /*_m*/
-    8) {
-      $: $$invalidate(5, activeTemplate = $$invalidate(65, _m = allTemplates.find((t) => t.id === activeTemplateId)) !== null && _m !== void 0 ? _m : allTemplates[0]);
+    16) {
+      $: $$invalidate(5, activeTemplate = $$invalidate(66, _m = allTemplates.find((t) => t.id === activeTemplateId)) !== null && _m !== void 0 ? _m : allTemplates[0]);
     }
     if ($$self.$$.dirty[0] & /*activeTemplate*/
     32) {
-      $: $$invalidate(25, isPast = activeTemplate ? activeTemplate.endDate < today : false);
+      $: $$invalidate(26, isPast = activeTemplate ? activeTemplate.endDate < today : false);
     }
     if ($$self.$$.dirty[0] & /*activeTemplateId*/
     1) {
       $: if (activeTemplateId) {
         $$invalidate(14, showPastConfirm = false);
+        $$invalidate(15, warnCollapsed = false);
       }
     }
     if ($$self.$$.dirty[0] & /*showArchived, classes*/
     258) {
-      $: $$invalidate(72, visibleClasses = showArchived ? classes : classes.filter((c) => !c.archived));
+      $: $$invalidate(73, visibleClasses = showArchived ? classes : classes.filter((c) => !c.archived));
     }
     if ($$self.$$.dirty[0] & /*showArchived, activities*/
     130) {
-      $: $$invalidate(73, visibleActivities = showArchived ? activities : activities.filter((a) => !a.archived));
+      $: $$invalidate(74, visibleActivities = showArchived ? activities : activities.filter((a) => !a.archived));
     }
     if ($$self.$$.dirty[2] & /*visibleActivities*/
-    2048) {
-      $: $$invalidate(70, visibleDirected = visibleActivities.filter((a) => a.activityType !== "other"));
+    4096) {
+      $: $$invalidate(71, visibleDirected = visibleActivities.filter((a) => a.activityType !== "other"));
     }
     if ($$self.$$.dirty[2] & /*visibleActivities*/
-    2048) {
-      $: $$invalidate(69, visibleOther = visibleActivities.filter((a) => a.activityType === "other"));
+    4096) {
+      $: $$invalidate(70, visibleOther = visibleActivities.filter((a) => a.activityType === "other"));
     }
     if ($$self.$$.dirty[0] & /*classes, activities*/
     384) {
-      $: $$invalidate(27, archivedCount = classes.filter((c) => !!c.archived).length + activities.filter((a) => !!a.archived).length);
+      $: $$invalidate(28, archivedCount = classes.filter((c) => !!c.archived).length + activities.filter((a) => !!a.archived).length);
     }
     if ($$self.$$.dirty[0] & /*abEnabled, activeWeek*/
     68) {
@@ -5021,8 +5185,8 @@ function instance($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*currentWeek, abEnabled, DAYS, periods*/
     3648 | $$self.$$.dirty[2] & /*slots*/
-    64) {
-      $: $$invalidate(26, _slotGrid = (() => {
+    128) {
+      $: $$invalidate(27, _slotGrid = (() => {
         const _s = slots;
         const _w = currentWeek;
         const _ab = abEnabled;
@@ -5040,13 +5204,13 @@ function instance($$self, $$props, $$invalidate) {
       })());
     }
     if ($$self.$$.dirty[2] & /*subjects*/
-    512) {
-      $: $$invalidate(24, sortedSubjects = [...subjects].sort((a, b) => a.name.localeCompare(b.name)));
+    1024) {
+      $: $$invalidate(25, sortedSubjects = [...subjects].sort((a, b) => a.name.localeCompare(b.name)));
     }
     if ($$self.$$.dirty[0] & /*pickerSearch*/
     8 | $$self.$$.dirty[2] & /*visibleClasses, subjects*/
-    1536) {
-      $: $$invalidate(23, pickerFilteredClasses = (() => {
+    3072) {
+      $: $$invalidate(24, pickerFilteredClasses = (() => {
         const q = pickerSearch.toLowerCase();
         if (!q) return visibleClasses;
         return visibleClasses.filter((c) => {
@@ -5058,18 +5222,18 @@ function instance($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*pickerSearch*/
     8 | $$self.$$.dirty[2] & /*visibleDirected*/
-    256) {
-      $: $$invalidate(22, pickerFilteredDirected = pickerSearch ? visibleDirected.filter((a) => a.label.toLowerCase().includes(pickerSearch.toLowerCase())) : visibleDirected);
+    512) {
+      $: $$invalidate(23, pickerFilteredDirected = pickerSearch ? visibleDirected.filter((a) => a.label.toLowerCase().includes(pickerSearch.toLowerCase())) : visibleDirected);
     }
     if ($$self.$$.dirty[0] & /*pickerSearch*/
     8 | $$self.$$.dirty[2] & /*visibleOther*/
-    128) {
-      $: $$invalidate(21, pickerFilteredOther = pickerSearch ? visibleOther.filter((a) => a.label.toLowerCase().includes(pickerSearch.toLowerCase())) : visibleOther);
+    256) {
+      $: $$invalidate(22, pickerFilteredOther = pickerSearch ? visibleOther.filter((a) => a.label.toLowerCase().includes(pickerSearch.toLowerCase())) : visibleOther);
     }
     if ($$self.$$.dirty[1] & /*plugin*/
-    16777216 | $$self.$$.dirty[2] & /*_p*/
-    16) {
-      $: periodTypes = $$invalidate(66, _p = plugin.settings.periodTypes) !== null && _p !== void 0 ? _p : [];
+    33554432 | $$self.$$.dirty[2] & /*_p*/
+    32) {
+      $: periodTypes = $$invalidate(67, _p = plugin.settings.periodTypes) !== null && _p !== void 0 ? _p : [];
     }
   };
   return [
@@ -5088,6 +5252,7 @@ function instance($$self, $$props, $$invalidate) {
     durationEditKey,
     durationEditValue,
     showPastConfirm,
+    warnCollapsed,
     renamingId,
     renameValue,
     showUnsavedConfirm,
@@ -5160,23 +5325,25 @@ function instance($$self, $$props, $$invalidate) {
     click_handler_5,
     click_handler_6,
     click_handler_7,
+    click_handler_8,
+    click_handler_9,
     input_input_handler_1,
     keydown_handler_2,
     blur_handler,
-    click_handler_8,
-    click_handler_9,
-    input_input_handler_2,
     click_handler_10,
     click_handler_11,
+    input_input_handler_2,
     click_handler_12,
-    func_1,
     click_handler_13,
     click_handler_14,
+    func_1,
     click_handler_15,
     click_handler_16,
     click_handler_17,
     click_handler_18,
-    click_handler_19
+    click_handler_19,
+    click_handler_20,
+    click_handler_21
   ];
 }
 var import_obsidian2, window_1, func_3, func_4, TimetableEditorComponent, TimetableEditorComponent_default;
@@ -5192,7 +5359,7 @@ var init_TimetableEditorComponent = __esm({
     TimetableEditorComponent = class extends SvelteComponent {
       constructor(options) {
         super();
-        init(this, options, instance, create_fragment, safe_not_equal, { plugin: 55, modal: 56 }, add_css, [-1, -1, -1, -1, -1]);
+        init(this, options, instance, create_fragment, safe_not_equal, { plugin: 56, modal: 57 }, add_css, [-1, -1, -1, -1, -1, -1]);
       }
     };
     TimetableEditorComponent_default = TimetableEditorComponent;
@@ -26344,17 +26511,114 @@ var init_xlsx = __esm({
   }
 });
 
+// src/utils/exportDestination.ts
+function renderDestinationPicker(container, state, isMobile) {
+  container.createEl("p", { text: "Destination", cls: "tp-modal-label" });
+  const wrap = container.createDiv("tp-export-destination");
+  const vaultRow = wrap.createDiv("tp-export-dest-row");
+  vaultRow.createEl("span", { text: "Vault folder", cls: "tp-export-dest-sublabel" });
+  const vaultInput = vaultRow.createEl("input", { type: "text", cls: "tp-export-dest-input" });
+  vaultInput.value = state.vaultPath;
+  vaultInput.placeholder = "Teacher Planner/exports";
+  vaultInput.addEventListener("input", () => {
+    state.vaultPath = vaultInput.value;
+    state.mode = "vault";
+    state.systemPath = null;
+    updateSummary();
+  });
+  if (!isMobile) {
+    const browseRow = wrap.createDiv("tp-export-dest-row");
+    const browseBtn = browseRow.createEl("button", {
+      text: "Browse on computer\u2026",
+      cls: "tp-btn"
+    });
+    browseBtn.addEventListener("click", async () => {
+      const picked = await openOSFolderPicker();
+      if (picked) {
+        state.systemPath = picked;
+        state.mode = "system";
+        updateSummary();
+      }
+    });
+  }
+  const summary = wrap.createEl("p", { cls: "tp-export-dest-summary setting-item-description" });
+  function updateSummary() {
+    if (state.mode === "system" && state.systemPath) {
+      summary.textContent = `Will save to: ${state.systemPath}  (on your computer)`;
+    } else {
+      summary.textContent = `Will save to: ${state.vaultPath}  (in your vault)`;
+    }
+  }
+  updateSummary();
+}
+async function openOSFolderPicker() {
+  var _a;
+  try {
+    const electron = (_a = window.require) == null ? void 0 : _a.call(window, "electron");
+    if (!electron) {
+      new import_obsidian6.Notice("Folder picker is not available in this environment.");
+      return null;
+    }
+    let remote = electron.remote;
+    if (!remote) {
+      try {
+        remote = window.require("@electron/remote");
+      } catch (e) {
+        new import_obsidian6.Notice("Folder picker is not available \u2014 please use a vault path.");
+        return null;
+      }
+    }
+    const result = await remote.dialog.showOpenDialog({
+      title: "Choose export folder",
+      properties: ["openDirectory", "createDirectory"]
+    });
+    if (result.canceled || !result.filePaths || result.filePaths.length === 0) return null;
+    return result.filePaths[0];
+  } catch (err) {
+    console.error("OS folder picker failed:", err);
+    new import_obsidian6.Notice("Could not open folder picker \u2014 please use a vault path.");
+    return null;
+  }
+}
+async function writeSystemFile(absolutePath, data) {
+  var _a;
+  const fs = (_a = window.require) == null ? void 0 : _a.call(window, "fs/promises");
+  if (!fs) throw new Error("System filesystem not available on this platform.");
+  if (typeof data === "string") {
+    await fs.writeFile(absolutePath, data, "utf8");
+  } else {
+    await fs.writeFile(absolutePath, Buffer.from(data));
+  }
+}
+function joinSystemPath(...parts) {
+  var _a;
+  try {
+    const path = (_a = window.require) == null ? void 0 : _a.call(window, "path");
+    if (path) return path.join(...parts);
+  } catch (e) {
+  }
+  return parts.filter(Boolean).join("/");
+}
+var import_obsidian6;
+var init_exportDestination = __esm({
+  "src/utils/exportDestination.ts"() {
+    import_obsidian6 = require("obsidian");
+  }
+});
+
 // src/modals/ExportModal.ts
-var import_obsidian6, ExportModal;
+var import_obsidian7, ExportModal;
 var init_ExportModal = __esm({
   "src/modals/ExportModal.ts"() {
-    import_obsidian6 = require("obsidian");
+    import_obsidian7 = require("obsidian");
     init_xlsx();
-    ExportModal = class extends import_obsidian6.Modal {
+    init_exportDestination();
+    ExportModal = class extends import_obsidian7.Modal {
       constructor(app, plugin) {
         super(app);
         this.dataset = "both";
         this.format = "xlsx";
+        this.destination = { mode: "vault", vaultPath: "", systemPath: null };
         this.plugin = plugin;
       }
       onOpen() {
@@ -26396,6 +26660,8 @@ var init_ExportModal = __esm({
           });
           lbl.createSpan({ text: label });
         }
+        this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
+        renderDestinationPicker(form, this.destination, this.app.isMobile === true);
         const footer = contentEl.createDiv("tp-modal-footer");
         footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
         const exportBtn = footer.createEl("button", { text: "Export", cls: "tp-btn tp-btn--primary" });
@@ -26408,7 +26674,7 @@ var init_ExportModal = __esm({
             this.close();
           } catch (err) {
             console.error("Export error:", err);
-            new import_obsidian6.Notice("Export failed - see console for details.");
+            new import_obsidian7.Notice("Export failed - see console for details.");
             exportBtn.disabled = false;
             exportBtn.textContent = "Export";
           }
@@ -26502,28 +26768,38 @@ var init_ExportModal = __esm({
       }
       async writeText(path, content) {
         const existing = this.app.vault.getAbstractFileByPath(path);
-        if (existing instanceof import_obsidian6.TFile) {
+        if (existing instanceof import_obsidian7.TFile) {
           await this.app.vault.modify(existing, content);
         } else {
           await this.app.vault.create(path, content);
         }
       }
       async exportCSV() {
-        const folder = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
-        await this.ensureFolder(folder);
-        const files = [];
+        const targets = [];
+        const filenames = [];
         if (this.dataset !== "events") {
-          files.push([`${folder}/timetable.csv`, this.toCSV(this.buildTimetableRows())]);
+          filenames.push("timetable.csv");
+          targets.push(["timetable.csv", this.toCSV(this.buildTimetableRows())]);
         }
         if (this.dataset !== "timetable") {
-          files.push([`${folder}/date-events.csv`, this.toCSV(this.buildEventsRows())]);
+          filenames.push("date-events.csv");
+          targets.push(["date-events.csv", this.toCSV(this.buildEventsRows())]);
         }
-        for (const [path, content] of files) await this.writeText(path, content);
-        new import_obsidian6.Notice(`Exported ${files.length} file(s) to ${folder}`);
+        if (this.destination.mode === "system" && this.destination.systemPath) {
+          for (const [name, content] of targets) {
+            await writeSystemFile(joinSystemPath(this.destination.systemPath, name), content);
+          }
+          new import_obsidian7.Notice(`Exported ${targets.length} file(s) to ${this.destination.systemPath}`);
+        } else {
+          const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
+          await this.ensureFolder(folder);
+          for (const [name, content] of targets) {
+            await this.writeText(`${folder}/${name}`, content);
+          }
+          new import_obsidian7.Notice(`Exported ${targets.length} file(s) to ${folder}`);
+        }
       }
       async exportXLSX() {
-        const folder = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
-        await this.ensureFolder(folder);
         const wb = utils.book_new();
         if (this.dataset !== "events") {
           utils.book_append_sheet(wb, utils.aoa_to_sheet(this.buildTimetableRows()), "Timetable");
@@ -26532,9 +26808,18 @@ var init_ExportModal = __esm({
           utils.book_append_sheet(wb, utils.aoa_to_sheet(this.buildEventsRows()), "Date Events");
         }
         const buf = writeSync(wb, { type: "array", bookType: "xlsx" });
-        const path = `${folder}/planner-export.xlsx`;
-        await this.app.vault.adapter.writeBinary(path, buf.buffer);
-        new import_obsidian6.Notice(`Exported to ${path}`);
+        const filename = "planner-export.xlsx";
+        if (this.destination.mode === "system" && this.destination.systemPath) {
+          const absPath = joinSystemPath(this.destination.systemPath, filename);
+          await writeSystemFile(absPath, buf);
+          new import_obsidian7.Notice(`Exported to ${absPath}`);
+        } else {
+          const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
+          await this.ensureFolder(folder);
+          const path = `${folder}/${filename}`;
+          await this.app.vault.adapter.writeBinary(path, buf);
+          new import_obsidian7.Notice(`Exported to ${path}`);
+        }
       }
       onClose() {
         this.contentEl.empty();
@@ -26740,15 +27025,17 @@ var init_directedTimeUtils = __esm({
 });
 
 // src/modals/DirectedTimeExportModal.ts
-var import_obsidian7, DirectedTimeExportModal;
+var import_obsidian8, DirectedTimeExportModal;
 var init_DirectedTimeExportModal = __esm({
   "src/modals/DirectedTimeExportModal.ts"() {
-    import_obsidian7 = require("obsidian");
+    import_obsidian8 = require("obsidian");
     init_xlsx();
+    init_exportDestination();
     init_directedTimeUtils();
-    DirectedTimeExportModal = class extends import_obsidian7.Modal {
+    DirectedTimeExportModal = class extends import_obsidian8.Modal {
       constructor(app, plugin) {
         super(app);
+        this.destination = { mode: "vault", vaultPath: "", systemPath: null };
         this.plugin = plugin;
       }
       onOpen() {
@@ -26766,6 +27053,8 @@ var init_DirectedTimeExportModal = __esm({
           text: `Effective contracted maximum: ${effectiveHours.toFixed(1)}h  (${dt.contractedHours}h \xD7 ${dt.timetablePercentage}%)`,
           cls: "tp-modal-label"
         });
+        this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
+        renderDestinationPicker(body, this.destination, this.app.isMobile === true);
         const footer = contentEl.createDiv("tp-modal-footer");
         footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
         const exportBtn = footer.createEl("button", { text: "Export XLSX\u2026", cls: "tp-btn tp-btn--primary" });
@@ -26777,7 +27066,7 @@ var init_DirectedTimeExportModal = __esm({
             this.close();
           } catch (err) {
             console.error("Directed time export error:", err);
-            new import_obsidian7.Notice("Export failed \u2014 see console for details.");
+            new import_obsidian8.Notice("Export failed \u2014 see console for details.");
             exportBtn.disabled = false;
             exportBtn.textContent = "Export XLSX\u2026";
           }
@@ -26846,9 +27135,23 @@ var init_DirectedTimeExportModal = __esm({
         utils.book_append_sheet(wb, utils.aoa_to_sheet(breakdownData), "Weekly Breakdown");
         const buf = writeSync(wb, { type: "array", bookType: "xlsx" });
         const safeName = ayName.replace(/[^a-z0-9]/gi, "-");
-        const path = `${folder}/directed-time-${safeName}.xlsx`;
-        await this.app.vault.adapter.writeBinary(path, buf.buffer);
-        new import_obsidian7.Notice(`Directed time exported to ${path}`);
+        const filename = `directed-time-${safeName}.xlsx`;
+        if (this.destination.mode === "system" && this.destination.systemPath) {
+          const absPath = joinSystemPath(this.destination.systemPath, filename);
+          await writeSystemFile(absPath, buf);
+          new import_obsidian8.Notice(`Directed time exported to ${absPath}`);
+        } else {
+          const vaultFolder = this.destination.vaultPath || folder;
+          if (!this.app.vault.getAbstractFileByPath(vaultFolder)) {
+            try {
+              await this.app.vault.createFolder(vaultFolder);
+            } catch (e) {
+            }
+          }
+          const path = `${vaultFolder}/${filename}`;
+          await this.app.vault.adapter.writeBinary(path, buf);
+          new import_obsidian8.Notice(`Directed time exported to ${path}`);
+        }
       }
       onClose() {
         this.contentEl.empty();
@@ -26862,10 +27165,10 @@ var SetupWizardModal_exports = {};
 __export(SetupWizardModal_exports, {
   SetupWizardModal: () => SetupWizardModal
 });
-var import_obsidian8, DAYS, TOTAL_STEPS, SetupWizardModal, WizardCloseConfirmModal;
+var import_obsidian9, DAYS, TOTAL_STEPS, SetupWizardModal, WizardCloseConfirmModal;
 var init_SetupWizardModal = __esm({
   "src/modals/SetupWizardModal.ts"() {
-    import_obsidian8 = require("obsidian");
+    import_obsidian9 = require("obsidian");
     init_settings();
     init_TimetableEditorModal();
     init_SettingsTab();
@@ -26879,7 +27182,7 @@ var init_SetupWizardModal = __esm({
       { key: "sunday", label: "Sun" }
     ];
     TOTAL_STEPS = 10;
-    SetupWizardModal = class extends import_obsidian8.Modal {
+    SetupWizardModal = class extends import_obsidian9.Modal {
       constructor(app, plugin, isNewPlanner = false) {
         super(app);
         this.step = 1;
@@ -27009,7 +27312,7 @@ var init_SetupWizardModal = __esm({
           "Give this planner a name \u2014 usually the academic year. It will also be used as the vault subfolder."
         );
         let nameInput;
-        new import_obsidian8.Setting(body).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => {
+        new import_obsidian9.Setting(body).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => {
           t.setPlaceholder("2025-26").setValue(this.state.name);
           t.inputEl.maxLength = 60;
           nameInput = t.inputEl;
@@ -27018,7 +27321,7 @@ var init_SetupWizardModal = __esm({
         this.footer(body, () => {
           const v = nameInput.value.trim();
           if (!v) {
-            new import_obsidian8.Notice("Please enter a planner name.");
+            new import_obsidian9.Notice("Please enter a planner name.");
             return false;
           }
           this.state.name = v;
@@ -27033,7 +27336,7 @@ var init_SetupWizardModal = __esm({
           "Track your statutory directed time (STPCD). Enable this to configure your contract details and add directed time activity types."
         );
         let dtPanel;
-        new import_obsidian8.Setting(body).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(this.state.directedTimeEnabled).onChange((v) => {
+        new import_obsidian9.Setting(body).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(this.state.directedTimeEnabled).onChange((v) => {
           this.state.directedTimeEnabled = v;
           dtPanel.style.display = v ? "" : "none";
         }));
@@ -27042,14 +27345,14 @@ var init_SetupWizardModal = __esm({
         const dtCallout = dtPanel.createDiv("tp-dt-callout");
         dtCallout.createEl("p", { text: "\u2139\uFE0F  How it works: Directed time is counted only from items placed in your planner. The tracker shows hours accrued to today and a projection based on future planned events. Keep your planner up to date for accurate figures." });
         dtCallout.createEl("p", { text: "\u26A0\uFE0F  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice \u2014 always consult your union representative for formal disputes." });
-        new import_obsidian8.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD).").addText((t) => {
+        new import_obsidian9.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD).").addText((t) => {
           t.setPlaceholder("1265").setValue(String(this.state.contractedHours));
           t.onChange((v) => {
             const n = parseFloat(v);
             if (!isNaN(n) && n > 0) this.state.contractedHours = n;
           });
         });
-        new import_obsidian8.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Default: 100 (full-time).").addText((t) => {
+        new import_obsidian9.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Default: 100 (full-time).").addText((t) => {
           t.setPlaceholder("100").setValue(String(this.state.timetablePercentage));
           t.onChange((v) => {
             const n = parseFloat(v);
@@ -27059,13 +27362,13 @@ var init_SetupWizardModal = __esm({
         const lessonDurOptions = ["45", "50", "60"];
         const lessonDurDropValue = lessonDurOptions.includes(String(this.state.defaultLessonDurationMinutes)) ? String(this.state.defaultLessonDurationMinutes) : "custom";
         let customDurSetting;
-        new import_obsidian8.Setting(dtPanel).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange((v) => {
+        new import_obsidian9.Setting(dtPanel).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange((v) => {
           if (v !== "custom") {
             this.state.defaultLessonDurationMinutes = parseInt(v);
           }
           customDurSetting.settingEl.style.display = v === "custom" ? "" : "none";
         }));
-        customDurSetting = new import_obsidian8.Setting(dtPanel).setName("Custom lesson duration (minutes)").addText((t) => {
+        customDurSetting = new import_obsidian9.Setting(dtPanel).setName("Custom lesson duration (minutes)").addText((t) => {
           t.setPlaceholder("e.g. 55").setValue(lessonDurDropValue === "custom" ? String(this.state.defaultLessonDurationMinutes) : "");
           t.onChange((v) => {
             const n = parseInt(v);
@@ -27117,13 +27420,13 @@ var init_SetupWizardModal = __esm({
               act.durationMinutes = isNaN(n) || durIn.value === "" ? void 0 : n;
             });
             const delBtn = row.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian8.setIcon)(delBtn, "trash-2");
+            (0, import_obsidian9.setIcon)(delBtn, "trash-2");
             delBtn.addEventListener("click", () => {
               this.state.activities = this.state.activities.filter((a) => a.id !== act.id);
               renderActs();
             });
           }
-          new import_obsidian8.Setting(actList).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(() => {
+          new import_obsidian9.Setting(actList).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(() => {
             const colour = CLASS_COLOUR_PALETTE[this.state.activities.length % CLASS_COLOUR_PALETTE.length];
             this.state.activities.push({ id: "act-" + Date.now(), label: "New Activity", colour, activityType: "directed" });
             renderActs();
@@ -27143,20 +27446,20 @@ var init_SetupWizardModal = __esm({
         );
         let startInput;
         let endInput;
-        const startSetting = new import_obsidian8.Setting(body).setName("Start date").setDesc("YYYY-MM-DD");
+        const startSetting = new import_obsidian9.Setting(body).setName("Start date").setDesc("YYYY-MM-DD");
         startInput = startSetting.controlEl.createEl("input", { type: "date" });
         startInput.value = this.state.startDate;
-        const endSetting = new import_obsidian8.Setting(body).setName("End date").setDesc("YYYY-MM-DD");
+        const endSetting = new import_obsidian9.Setting(body).setName("End date").setDesc("YYYY-MM-DD");
         endInput = endSetting.controlEl.createEl("input", { type: "date" });
         endInput.value = this.state.endDate;
         this.footer(body, () => {
           const s = startInput.value, e = endInput.value;
           if (!s || !e) {
-            new import_obsidian8.Notice("Please enter both dates.");
+            new import_obsidian9.Notice("Please enter both dates.");
             return false;
           }
           if (s >= e) {
-            new import_obsidian8.Notice("End date must be after start date.");
+            new import_obsidian9.Notice("End date must be after start date.");
             return false;
           }
           this.state.startDate = s;
@@ -27180,7 +27483,7 @@ var init_SetupWizardModal = __esm({
           }
           for (const ov of this.state.weekOverrides) {
             const wrapper = listEl.createDiv("tp-override-entry");
-            const row = new import_obsidian8.Setting(wrapper).setName("").setDesc("");
+            const row = new import_obsidian9.Setting(wrapper).setName("").setDesc("");
             row.settingEl.addClass("tp-override-row");
             const fromInput = row.controlEl.createEl("input", { type: "date", cls: "tp-override-date-input" });
             fromInput.value = ov.startDate;
@@ -27209,7 +27512,7 @@ var init_SetupWizardModal = __esm({
               ov.label = labelInput.value || void 0;
             });
             const delBtn = row.controlEl.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian8.setIcon)(delBtn, "trash");
+            (0, import_obsidian9.setIcon)(delBtn, "trash");
             delBtn.addEventListener("click", () => {
               this.state.weekOverrides = this.state.weekOverrides.filter((w) => w !== ov);
               renderOverrides();
@@ -27234,7 +27537,7 @@ var init_SetupWizardModal = __esm({
               insetRow.style.display = ov.type === "inset" ? "flex" : "none";
             });
           }
-          new import_obsidian8.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET").setCta().onClick(() => {
+          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET").setCta().onClick(() => {
             const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
             this.state.weekOverrides.push({ startDate: today, type: "holiday" });
             renderOverrides();
@@ -27268,18 +27571,18 @@ var init_SetupWizardModal = __esm({
           });
         }
         let abPanel;
-        new import_obsidian8.Setting(body).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.state.abWeekEnabled).onChange((v) => {
+        new import_obsidian9.Setting(body).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.state.abWeekEnabled).onChange((v) => {
           this.state.abWeekEnabled = v;
           abPanel.style.display = v ? "" : "none";
         }));
         abPanel = body.createDiv();
         abPanel.style.display = this.state.abWeekEnabled ? "" : "none";
-        new import_obsidian8.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.state.abWeekStartsOn).onChange((v) => {
+        new import_obsidian9.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.state.abWeekStartsOn).onChange((v) => {
           this.state.abWeekStartsOn = v;
         }));
         this.footer(body, () => {
           if (this.state.schoolDays.length === 0) {
-            new import_obsidian8.Notice("Please select at least one school day.");
+            new import_obsidian9.Notice("Please select at least one school day.");
             return false;
           }
         });
@@ -27316,13 +27619,13 @@ var init_SetupWizardModal = __esm({
               pt.label = labelIn.value;
             });
             const delBtn = row.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian8.setIcon)(delBtn, "trash-2");
+            (0, import_obsidian9.setIcon)(delBtn, "trash-2");
             delBtn.addEventListener("click", () => {
               this.state.periodTypes = this.state.periodTypes.filter((t) => t.id !== pt.id);
               renderList();
             });
           }
-          new import_obsidian8.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(() => {
+          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(() => {
             this.state.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: "#b4befe" });
             renderList();
           }));
@@ -27343,7 +27646,7 @@ var init_SetupWizardModal = __esm({
         const renderList = () => {
           listEl.empty();
           for (const p of this.state.periods) {
-            const s = new import_obsidian8.Setting(listEl).setName(p.name).setDesc(`${p.start} \u2013 ${p.end}`);
+            const s = new import_obsidian9.Setting(listEl).setName(p.name).setDesc(`${p.start} \u2013 ${p.end}`);
             s.addText((t) => {
               t.setPlaceholder("Name").setValue(p.name);
               t.inputEl.addEventListener("change", () => {
@@ -27372,7 +27675,7 @@ var init_SetupWizardModal = __esm({
               renderList();
             }));
           }
-          new import_obsidian8.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
+          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
             this.state.periods.push({ id: "p-" + Date.now(), name: "New Period", start: "09:00", end: "10:00", type: "lesson" });
             renderList();
           }));
@@ -27380,7 +27683,7 @@ var init_SetupWizardModal = __esm({
         renderList();
         this.footer(body, () => {
           if (this.state.periods.length === 0) {
-            new import_obsidian8.Notice("Add at least one period.");
+            new import_obsidian9.Notice("Add at least one period.");
             return false;
           }
         });
@@ -27430,7 +27733,7 @@ var init_SetupWizardModal = __esm({
               renderList();
             });
             const delSubj = hdr.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian8.setIcon)(delSubj, "trash-2");
+            (0, import_obsidian9.setIcon)(delSubj, "trash-2");
             delSubj.addEventListener("click", () => {
               this.state.subjects = this.state.subjects.filter((s) => s.id !== subj.id);
               this.state.classes = this.state.classes.filter((c) => c.subjectId !== subj.id);
@@ -27471,7 +27774,7 @@ var init_SetupWizardModal = __esm({
                   cls.classroom = roomIn.value;
                 });
                 const delCls = row.createEl("button", { cls: "tp-icon-btn" });
-                (0, import_obsidian8.setIcon)(delCls, "trash-2");
+                (0, import_obsidian9.setIcon)(delCls, "trash-2");
                 delCls.addEventListener("click", () => {
                   this.state.classes = this.state.classes.filter((c) => c.id !== cls.id);
                   renderList();
@@ -27479,7 +27782,7 @@ var init_SetupWizardModal = __esm({
               }
             }
           }
-          new import_obsidian8.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(() => {
+          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(() => {
             const colour = CLASS_COLOUR_PALETTE[this.state.subjects.length % CLASS_COLOUR_PALETTE.length];
             this.state.subjects.push({ id: "subj-" + Date.now(), name: "New Subject", colour, emoji: "\u{1F4DA}" });
             renderList();
@@ -27682,7 +27985,7 @@ var init_SetupWizardModal = __esm({
         }
       }
     };
-    WizardCloseConfirmModal = class extends import_obsidian8.Modal {
+    WizardCloseConfirmModal = class extends import_obsidian9.Modal {
       constructor(app, onConfirm) {
         super(app);
         this.onConfirm = onConfirm;
@@ -27694,7 +27997,7 @@ var init_SetupWizardModal = __esm({
           text: "Your planner has not been saved yet. If you exit now, all progress will be lost and you will need to start the setup again.",
           cls: "setting-item-description"
         });
-        new import_obsidian8.Setting(contentEl).addButton((btn) => btn.setButtonText("Continue setup").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Exit without saving").setWarning().onClick(() => {
+        new import_obsidian9.Setting(contentEl).addButton((btn) => btn.setButtonText("Continue setup").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Exit without saving").setWarning().onClick(() => {
           this.close();
           this.onConfirm();
         }));
@@ -27743,16 +28046,16 @@ function openEmojiPicker(anchor, current, onSelect) {
   };
   setTimeout(() => document.addEventListener("click", close, true), 0);
 }
-var import_obsidian9, import_obsidian10, SUBJECT_EMOJIS2, TeacherPlannerSettingTab, SettingsAppliedModal, ColourPickerModal, DeletePlannerModal;
+var import_obsidian10, import_obsidian11, SUBJECT_EMOJIS2, TeacherPlannerSettingTab, SettingsAppliedModal, ColourPickerModal, DeletePlannerModal;
 var init_SettingsTab = __esm({
   "src/settings/SettingsTab.ts"() {
-    import_obsidian9 = require("obsidian");
+    import_obsidian10 = require("obsidian");
     init_settings();
     init_ColourPickerComponent();
     init_AddPeriodModal();
     init_ExportModal();
     init_DirectedTimeExportModal();
-    import_obsidian10 = require("obsidian");
+    import_obsidian11 = require("obsidian");
     init_SetupWizardModal();
     SUBJECT_EMOJIS2 = [
       "\u{1F52C}",
@@ -27786,7 +28089,7 @@ var init_SettingsTab = __esm({
       "\u{1F33F}",
       "\u{1F9EC}"
     ];
-    TeacherPlannerSettingTab = class extends import_obsidian9.PluginSettingTab {
+    TeacherPlannerSettingTab = class extends import_obsidian10.PluginSettingTab {
       constructor(app, plugin) {
         super(app, plugin);
         /** JSON snapshot taken when the tab opens — used to detect unsaved changes on close. */
@@ -27795,6 +28098,9 @@ var init_SettingsTab = __esm({
       }
       /** Called by Obsidian when the settings tab is navigated away from or closed. */
       hide() {
+        this.plugin.flushPendingSave().catch((err) => {
+          console.error("Teacher Planner: flushPendingSave on settings hide failed.", err);
+        });
         const snapshot = this._snapshot;
         this._snapshot = "";
         if (!snapshot || JSON.stringify(this.plugin.settings) === snapshot) return;
@@ -27808,17 +28114,17 @@ var init_SettingsTab = __esm({
         containerEl.createEl("h2", { text: "Teacher Planner" });
         this.renderPlannersSection(containerEl);
         containerEl.createEl("h3", { text: "Academic Year" });
-        new import_obsidian9.Setting(containerEl).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => t.setPlaceholder("2025-26").setValue(this.plugin.settings.academicYear.name).onChange(async (v) => {
+        new import_obsidian10.Setting(containerEl).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => t.setPlaceholder("2025-26").setValue(this.plugin.settings.academicYear.name).onChange((v) => {
           this.plugin.settings.academicYear.name = v;
-          await this.plugin.saveSettings();
+          this.plugin.requestSave();
         }));
-        new import_obsidian9.Setting(containerEl).setName("Start date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2025-09-01").setValue(this.plugin.settings.academicYear.startDate).onChange(async (v) => {
+        new import_obsidian10.Setting(containerEl).setName("Start date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2025-09-01").setValue(this.plugin.settings.academicYear.startDate).onChange((v) => {
           this.plugin.settings.academicYear.startDate = v;
-          await this.plugin.saveSettings();
+          this.plugin.requestSave();
         }));
-        new import_obsidian9.Setting(containerEl).setName("End date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2026-07-15").setValue(this.plugin.settings.academicYear.endDate).onChange(async (v) => {
+        new import_obsidian10.Setting(containerEl).setName("End date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2026-07-15").setValue(this.plugin.settings.academicYear.endDate).onChange((v) => {
           this.plugin.settings.academicYear.endDate = v;
-          await this.plugin.saveSettings();
+          this.plugin.requestSave();
         }));
         const schoolDayOptions = [
           { key: "monday", label: "Mon" },
@@ -27829,7 +28135,7 @@ var init_SettingsTab = __esm({
           { key: "saturday", label: "Sat" },
           { key: "sunday", label: "Sun" }
         ];
-        const schoolDaysSetting = new import_obsidian9.Setting(containerEl).setName("School days").setDesc("Enable Saturday or Sunday for boarding or Saturday schools.");
+        const schoolDaysSetting = new import_obsidian10.Setting(containerEl).setName("School days").setDesc("Enable Saturday or Sunday for boarding or Saturday schools.");
         const sdWrap = schoolDaysSetting.controlEl.createDiv("tp-school-days-wrap");
         for (const opt of schoolDayOptions) {
           const lbl = sdWrap.createEl("label", { cls: "tp-school-day-label" });
@@ -27854,7 +28160,7 @@ var init_SettingsTab = __esm({
           this.plugin.settings.directedTime = { enabled: false, contractedHours: 1265, timetablePercentage: 100, defaultLessonDurationMinutes: 60 };
         }
         const dt = this.plugin.settings.directedTime;
-        new import_obsidian9.Setting(containerEl).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(dt.enabled).onChange(async (v) => {
+        new import_obsidian10.Setting(containerEl).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(dt.enabled).onChange(async (v) => {
           dt.enabled = v;
           await this.plugin.saveSettings();
           if (v) await this.createDirectedTimeGuideNote();
@@ -27866,43 +28172,43 @@ var init_SettingsTab = __esm({
           const callout = dtPanel.createDiv("tp-dt-callout");
           callout.createEl("p", { text: "\u2139\uFE0F  How it works: Directed time is counted only from items placed in your planner. The tracker shows hours accrued to today and a projection based on future planned events. Keep your planner up to date for accurate figures." });
           callout.createEl("p", { text: "\u26A0\uFE0F  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice \u2014 always consult your union representative for formal disputes." });
-          new import_obsidian9.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts.").addText((t) => t.setPlaceholder("1265").setValue(String(dt.contractedHours)).onChange(async (v) => {
+          new import_obsidian10.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts.").addText((t) => t.setPlaceholder("1265").setValue(String(dt.contractedHours)).onChange((v) => {
             const n = parseFloat(v);
             if (!isNaN(n) && n > 0) {
               dt.contractedHours = n;
-              await this.plugin.saveSettings();
+              this.plugin.requestSave();
             }
           }));
-          new import_obsidian9.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Your directed time maximum = contracted hours \xD7 this %. Default: 100 (full-time).").addText((t) => t.setPlaceholder("100").setValue(String(dt.timetablePercentage)).onChange(async (v) => {
+          new import_obsidian10.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Your directed time maximum = contracted hours \xD7 this %. Default: 100 (full-time).").addText((t) => t.setPlaceholder("100").setValue(String(dt.timetablePercentage)).onChange((v) => {
             const n = parseFloat(v);
             if (!isNaN(n) && n > 0 && n <= 100) {
               dt.timetablePercentage = n;
-              await this.plugin.saveSettings();
+              this.plugin.requestSave();
             }
           }));
           const lessonDurOptions = ["45", "50", "60"];
           const lessonDurDropValue = lessonDurOptions.includes(String(dt.defaultLessonDurationMinutes)) ? String(dt.defaultLessonDurationMinutes) : "custom";
-          new import_obsidian9.Setting(dtPanel).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden on individual slots.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange(async (v) => {
+          new import_obsidian10.Setting(dtPanel).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden on individual slots.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange(async (v) => {
             if (v !== "custom") {
               dt.defaultLessonDurationMinutes = parseInt(v);
               await this.plugin.saveSettings();
             }
             customDurSetting.settingEl.style.display = v === "custom" ? "" : "none";
           }));
-          const customDurSetting = new import_obsidian9.Setting(dtPanel).setName("Custom lesson duration (minutes)").addText((t) => t.setPlaceholder("e.g. 55").setValue(String(dt.defaultLessonDurationMinutes)).onChange(async (v) => {
+          const customDurSetting = new import_obsidian10.Setting(dtPanel).setName("Custom lesson duration (minutes)").addText((t) => t.setPlaceholder("e.g. 55").setValue(String(dt.defaultLessonDurationMinutes)).onChange((v) => {
             const n = parseInt(v);
             if (!isNaN(n) && n > 0) {
               dt.defaultLessonDurationMinutes = n;
-              await this.plugin.saveSettings();
+              this.plugin.requestSave();
             }
           }));
           customDurSetting.settingEl.style.display = lessonDurDropValue === "custom" ? "" : "none";
-          new import_obsidian9.Setting(dtPanel).setName("Export directed time").setDesc("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management.").addButton((btn) => btn.setButtonText("Export XLSX\u2026").setCta().onClick(() => new DirectedTimeExportModal(this.app, this.plugin).open()));
-          new import_obsidian9.Setting(dtPanel).setName("Directed time guide").setDesc("Open the guide note explaining how the tracker works and your statutory rights.").addButton((btn) => btn.setButtonText("Open guide").onClick(async () => {
+          new import_obsidian10.Setting(dtPanel).setName("Export directed time").setDesc("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management.").addButton((btn) => btn.setButtonText("Export XLSX\u2026").setCta().onClick(() => new DirectedTimeExportModal(this.app, this.plugin).open()));
+          new import_obsidian10.Setting(dtPanel).setName("Directed time guide").setDesc("Open the guide note explaining how the tracker works and your statutory rights.").addButton((btn) => btn.setButtonText("Open guide").onClick(async () => {
             await this.createDirectedTimeGuideNote();
             const path = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/Directed Time \u2014 Guide.md";
             const file = this.app.vault.getAbstractFileByPath(path);
-            if (file instanceof import_obsidian10.TFile) await this.app.workspace.getLeaf(false).openFile(file);
+            if (file instanceof import_obsidian11.TFile) await this.app.workspace.getLeaf(false).openFile(file);
           }));
         }
         containerEl.createEl("h3", { text: "Holidays & INSET Days" });
@@ -27912,7 +28218,7 @@ var init_SettingsTab = __esm({
         });
         const overridesContainer = containerEl.createDiv("tp-overrides-list");
         this.renderWeekOverridesList(overridesContainer);
-        new import_obsidian9.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET range").setCta().onClick(async () => {
+        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET range").setCta().onClick(async () => {
           var _a2;
           const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
           const newOverride = { startDate: today, type: "holiday", label: "" };
@@ -27929,7 +28235,7 @@ var init_SettingsTab = __esm({
         if (!this.plugin.settings.periodTypes) this.plugin.settings.periodTypes = [];
         const periodTypesContainer = containerEl.createDiv("tp-activities-list");
         this.renderPeriodTypesList(periodTypesContainer);
-        new import_obsidian9.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(async () => {
+        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(async () => {
           this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: "#b4befe" });
           await this.plugin.saveSettings();
           periodTypesContainer.empty();
@@ -27942,7 +28248,7 @@ var init_SettingsTab = __esm({
         });
         const periodsContainer = containerEl.createDiv("tp-periods-list");
         this.renderPeriodsList(periodsContainer);
-        new import_obsidian9.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
+        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
           new AddPeriodModal(this.app, async (period) => {
             this.plugin.settings.academicYear.periods.push(period);
             this.sortPeriods();
@@ -27951,14 +28257,14 @@ var init_SettingsTab = __esm({
             this.renderPeriodsList(periodsContainer);
           }).open();
         }));
-        new import_obsidian9.Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekEnabled).onChange(async (v) => {
+        new import_obsidian10.Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekEnabled).onChange(async (v) => {
           this.plugin.settings.academicYear.abWeekEnabled = v;
           await this.plugin.saveSettings();
           abPanel.style.display = v ? "" : "none";
         }));
         const abPanel = containerEl.createDiv();
         abPanel.style.display = this.plugin.settings.academicYear.abWeekEnabled ? "" : "none";
-        new import_obsidian9.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.plugin.settings.academicYear.abWeekStartsOn).onChange(async (v) => {
+        new import_obsidian10.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.plugin.settings.academicYear.abWeekStartsOn).onChange(async (v) => {
           this.plugin.settings.academicYear.abWeekStartsOn = v;
           await this.plugin.saveSettings();
         }));
@@ -27969,7 +28275,7 @@ var init_SettingsTab = __esm({
         });
         const classesContainer = containerEl.createDiv("tp-classes-list");
         this.renderSubjectsList(classesContainer);
-        new import_obsidian9.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(async () => {
+        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(async () => {
           const colour = CLASS_COLOUR_PALETTE[this.plugin.settings.subjects.length % CLASS_COLOUR_PALETTE.length];
           this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour, emoji: "\u{1F4DA}" });
           await this.plugin.saveSettings();
@@ -27983,21 +28289,20 @@ var init_SettingsTab = __esm({
         });
         if (!this.plugin.settings.activities) this.plugin.settings.activities = [];
         const activityHeaders = containerEl.createDiv("tp-activity-row tp-activity-headers");
-        activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;";
-        const makeHeader = (text2, extraStyle = "") => {
-          const h = activityHeaders.createEl("span", { text: text2, cls: "tp-activity-header-label" });
-          if (extraStyle) h.style.cssText = extraStyle;
-          return h;
+        activityHeaders.createDiv("tp-activity-header-spacer");
+        const makeHeader = (text2, extraCls = "") => {
+          const cls = "tp-activity-header-label" + (extraCls ? " " + extraCls : "");
+          return activityHeaders.createEl("span", { text: text2, cls });
         };
         makeHeader("Name");
         makeHeader("Info");
         makeHeader("Classroom");
-        makeHeader("Duration", "flex:0 0 54px;width:54px;");
-        activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;";
-        activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;";
+        makeHeader("Duration", "tp-activity-header-label--dur");
+        activityHeaders.createDiv("tp-activity-header-spacer");
+        activityHeaders.createDiv("tp-activity-header-spacer");
         const activitiesContainer = containerEl.createDiv("tp-activities-list");
         this.renderActivitiesList(activitiesContainer, "directed");
-        new import_obsidian9.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(async () => {
+        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(async () => {
           this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Activity", colour: "#cba6f7", activityType: "directed" });
           await this.plugin.saveSettings();
           activitiesContainer.empty();
@@ -28010,20 +28315,20 @@ var init_SettingsTab = __esm({
         });
         const otherContainer = containerEl.createDiv("tp-activities-list");
         this.renderActivitiesList(otherContainer, "other");
-        new import_obsidian9.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add other event").setCta().onClick(async () => {
+        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add other event").setCta().onClick(async () => {
           this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Other Event", colour: "#888888", activityType: "other" });
           await this.plugin.saveSettings();
           otherContainer.empty();
           this.renderActivitiesList(otherContainer, "other");
         }));
         containerEl.createEl("h3", { text: "Vault" });
-        new import_obsidian9.Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created").addText((t) => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder).onChange(async (v) => {
+        new import_obsidian10.Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created").addText((t) => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder).onChange((v) => {
           this.plugin.settings.plannerFolder = v;
-          await this.plugin.saveSettings();
+          this.plugin.requestSave();
         }));
         containerEl.createEl("h3", { text: "Grid Visuals" });
         const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
-        const blockColourSetting = new import_obsidian9.Setting(containerEl).setName("Period block border colour").setDesc("Border on the top and bottom edge of each period band.");
+        const blockColourSetting = new import_obsidian10.Setting(containerEl).setName("Period block border colour").setDesc("Border on the top and bottom edge of each period band.");
         blockColourSetting.controlEl.style.display = "flex";
         blockColourSetting.controlEl.style.alignItems = "center";
         blockColourSetting.controlEl.style.gap = "8px";
@@ -28055,14 +28360,14 @@ var init_SettingsTab = __esm({
           });
           blockPresetSwatches.push(chip);
         }
-        new import_obsidian9.Setting(containerEl).setName("Period block border weight").setDesc("Thickness of period band borders in pixels (1-4).").addSlider((s) => {
+        new import_obsidian10.Setting(containerEl).setName("Period block border weight").setDesc("Thickness of period band borders in pixels (1-4).").addSlider((s) => {
           var _a2;
-          return s.setLimits(1, 4, 1).setValue((_a2 = this.plugin.settings.blockBorderWeight) != null ? _a2 : 1).setDynamicTooltip().onChange(async (v) => {
+          return s.setLimits(1, 4, 1).setValue((_a2 = this.plugin.settings.blockBorderWeight) != null ? _a2 : 1).setDynamicTooltip().onChange((v) => {
             this.plugin.settings.blockBorderWeight = v;
-            await this.plugin.saveSettings();
+            this.plugin.requestSave();
           });
         });
-        const gridColourSetting = new import_obsidian9.Setting(containerEl).setName("Time grid line colour").setDesc("Colour of the day-column borders and row dividers.");
+        const gridColourSetting = new import_obsidian10.Setting(containerEl).setName("Time grid line colour").setDesc("Colour of the day-column borders and row dividers.");
         gridColourSetting.controlEl.style.display = "flex";
         gridColourSetting.controlEl.style.alignItems = "center";
         gridColourSetting.controlEl.style.gap = "8px";
@@ -28094,22 +28399,22 @@ var init_SettingsTab = __esm({
           });
           gridPresetSwatches.push(chip);
         }
-        new import_obsidian9.Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).").addSlider((s) => {
+        new import_obsidian10.Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).").addSlider((s) => {
           var _a2;
-          return s.setLimits(1, 4, 1).setValue((_a2 = this.plugin.settings.gridLineWeight) != null ? _a2 : 1).setDynamicTooltip().onChange(async (v) => {
+          return s.setLimits(1, 4, 1).setValue((_a2 = this.plugin.settings.gridLineWeight) != null ? _a2 : 1).setDynamicTooltip().onChange((v) => {
             this.plugin.settings.gridLineWeight = v;
-            await this.plugin.saveSettings();
+            this.plugin.requestSave();
           });
         });
         containerEl.createEl("h3", { text: "Export" });
-        new import_obsidian9.Setting(containerEl).setName("Export planner data").setDesc("Download timetable or date events as Excel or CSV into your Planner folder.").addButton((btn) => btn.setButtonText("Export data\u2026").setCta().onClick(() => new ExportModal(this.app, this.plugin).open()));
+        new import_obsidian10.Setting(containerEl).setName("Export planner data").setDesc("Download timetable or date events as Excel or CSV into your Planner folder.").addButton((btn) => btn.setButtonText("Export data\u2026").setCta().onClick(() => new ExportModal(this.app, this.plugin).open()));
         containerEl.createEl("h3", { text: "Reset" });
-        new import_obsidian9.Setting(containerEl).setName("Reset periods to defaults").addButton((btn) => btn.setButtonText("Reset periods").setWarning().onClick(async () => {
+        new import_obsidian10.Setting(containerEl).setName("Reset periods to defaults").addButton((btn) => btn.setButtonText("Reset periods").setWarning().onClick(async () => {
           this.plugin.settings.academicYear.periods = [...DEFAULT_SETTINGS.academicYear.periods];
           await this.plugin.saveSettings();
           periodsContainer.empty();
           this.renderPeriodsList(periodsContainer);
-          new import_obsidian9.Notice("Periods reset to defaults.");
+          new import_obsidian10.Notice("Periods reset to defaults.");
         }));
         this.wrapSectionsCollapsible(containerEl);
       }
@@ -28156,7 +28461,7 @@ var init_SettingsTab = __esm({
             disabledDel.style.cursor = "not-allowed";
           }
         }
-        new import_obsidian9.Setting(container).addButton((btn) => btn.setButtonText("+ New planner").setCta().onClick(() => {
+        new import_obsidian10.Setting(container).addButton((btn) => btn.setButtonText("+ New planner").setCta().onClick(() => {
           new SetupWizardModal(this.app, this.plugin, true).open();
           this.close();
         }));
@@ -28198,7 +28503,7 @@ var init_SettingsTab = __esm({
         for (let i = 0; i < periods.length; i++) this.renderPeriodRow(container, periods[i], i);
       }
       renderPeriodRow(container, period, index) {
-        new import_obsidian9.Setting(container).setName(period.name).setDesc(`${period.start} - ${period.end}`).addText((t) => {
+        new import_obsidian10.Setting(container).setName(period.name).setDesc(`${period.start} - ${period.end}`).addText((t) => {
           t.setPlaceholder("Name").setValue(period.name);
           t.inputEl.addEventListener("blur", async () => {
             period.name = t.inputEl.value;
@@ -28294,7 +28599,7 @@ var init_SettingsTab = __esm({
           this.renderSubjectsList(container);
         });
         const delSubjectBtn = header.createEl("button", { cls: "tp-icon-btn" });
-        (0, import_obsidian9.setIcon)(delSubjectBtn, "trash-2");
+        (0, import_obsidian10.setIcon)(delSubjectBtn, "trash-2");
         delSubjectBtn.title = "Delete subject and all its classes";
         delSubjectBtn.addEventListener("click", async () => {
           this.plugin.settings.subjects = this.plugin.settings.subjects.filter((s) => s.id !== subject.id);
@@ -28365,7 +28670,7 @@ var init_SettingsTab = __esm({
         });
         if (cls.colourOverridden && !isArchived) {
           const resetBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Reset to subject colour" });
-          (0, import_obsidian9.setIcon)(resetBtn, "rotate-ccw");
+          (0, import_obsidian10.setIcon)(resetBtn, "rotate-ccw");
           resetBtn.addEventListener("click", async () => {
             cls.colour = subject.colour;
             cls.colourOverridden = false;
@@ -28378,7 +28683,7 @@ var init_SettingsTab = __esm({
           cls: "tp-icon-btn",
           title: isArchived ? "Restore class" : "Archive class (hides from timetable editor)"
         });
-        (0, import_obsidian9.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
+        (0, import_obsidian10.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
         archiveBtn.addEventListener("click", async () => {
           cls.archived = !isArchived;
           await this.plugin.saveSettings();
@@ -28386,7 +28691,7 @@ var init_SettingsTab = __esm({
           this.renderSubjectsList(parentContainer);
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete class" });
-        (0, import_obsidian9.setIcon)(delBtn, "trash-2");
+        (0, import_obsidian10.setIcon)(delBtn, "trash-2");
         delBtn.addEventListener("click", async () => {
           this.plugin.settings.classes = this.plugin.settings.classes.filter((c) => c.id !== cls.id);
           this.plugin.settings.timetable = this.plugin.settings.timetable.filter((t) => t.classId !== cls.id);
@@ -28477,7 +28782,6 @@ var init_SettingsTab = __esm({
           durInput.min = "1";
           durInput.max = "480";
           durInput.title = "Default duration for this activity (minutes)";
-          durInput.style.width = "54px";
           durInput.addEventListener("change", async () => {
             const n = parseInt(durInput.value);
             activity.durationMinutes = isNaN(n) || durInput.value === "" ? void 0 : n;
@@ -28488,7 +28792,7 @@ var init_SettingsTab = __esm({
           cls: "tp-icon-btn",
           title: isArchived ? "Restore" : "Archive (hides from timetable editor)"
         });
-        (0, import_obsidian9.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
+        (0, import_obsidian10.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
         archiveBtn.addEventListener("click", async () => {
           activity.archived = !isArchived;
           await this.plugin.saveSettings();
@@ -28496,7 +28800,7 @@ var init_SettingsTab = __esm({
           this.renderActivitiesList(outerContainer, typeFilter);
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete" });
-        (0, import_obsidian9.setIcon)(delBtn, "trash-2");
+        (0, import_obsidian10.setIcon)(delBtn, "trash-2");
         delBtn.addEventListener("click", async () => {
           this.plugin.settings.activities = this.plugin.settings.activities.filter((a) => a.id !== activity.id);
           await this.plugin.saveSettings();
@@ -28532,7 +28836,7 @@ var init_SettingsTab = __esm({
           await this.plugin.saveSettings();
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete type" });
-        (0, import_obsidian9.setIcon)(delBtn, "trash-2");
+        (0, import_obsidian10.setIcon)(delBtn, "trash-2");
         delBtn.addEventListener("click", async () => {
           this.plugin.settings.periodTypes = this.plugin.settings.periodTypes.filter((t) => t.id !== pt.id);
           await this.plugin.saveSettings();
@@ -28560,7 +28864,7 @@ var init_SettingsTab = __esm({
       renderWeekOverrideRow(container, override) {
         var _a, _b;
         const wrapper = container.createDiv("tp-override-entry");
-        const row = new import_obsidian9.Setting(wrapper).setName("").setDesc("");
+        const row = new import_obsidian10.Setting(wrapper).setName("").setDesc("");
         row.settingEl.addClass("tp-override-row");
         const fromInput = row.controlEl.createEl("input", { type: "date", cls: "tp-override-date-input" });
         fromInput.value = override.startDate;
@@ -28594,7 +28898,7 @@ var init_SettingsTab = __esm({
           override.label = labelInput.value;
           await this.plugin.saveSettings();
         });
-        new import_obsidian9.ButtonComponent(row.controlEl).setIcon("trash").setTooltip("Remove").onClick(async () => {
+        new import_obsidian10.ButtonComponent(row.controlEl).setIcon("trash").setTooltip("Remove").onClick(async () => {
           this.plugin.settings.weekOverrides = this.plugin.settings.weekOverrides.filter((w) => w !== override);
           await this.plugin.saveSettings();
           wrapper.remove();
@@ -28713,7 +29017,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         }
       }
     };
-    SettingsAppliedModal = class extends import_obsidian9.Modal {
+    SettingsAppliedModal = class extends import_obsidian10.Modal {
       constructor(app, plugin, snapshot) {
         super(app);
         this.plugin = plugin;
@@ -28726,7 +29030,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
           text: "Your changes have been saved and the planner has been updated.",
           cls: "setting-item-description"
         });
-        new import_obsidian9.Setting(contentEl).addButton((btn) => btn.setButtonText("Got it").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Revert changes").setWarning().onClick(async () => {
+        new import_obsidian10.Setting(contentEl).addButton((btn) => btn.setButtonText("Got it").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Revert changes").setWarning().onClick(async () => {
           const original = JSON.parse(this.snapshot);
           Object.assign(this.plugin.settings, original);
           await this.plugin.saveSettings();
@@ -28737,7 +29041,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         this.contentEl.empty();
       }
     };
-    ColourPickerModal = class extends import_obsidian9.Modal {
+    ColourPickerModal = class extends import_obsidian10.Modal {
       constructor(app, initialColour, label, onSave) {
         super(app);
         this.initialColour = initialColour;
@@ -28771,7 +29075,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         this.contentEl.empty();
       }
     };
-    DeletePlannerModal = class extends import_obsidian9.Modal {
+    DeletePlannerModal = class extends import_obsidian10.Modal {
       constructor(app, plugin, plannerId, plannerName, isLast, onDeleted) {
         super(app);
         this.plugin = plugin;
@@ -28787,7 +29091,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
           text: this.isLast ? `"${this.plannerName}" is your only planner. Deleting it will remove all planner data and relaunch the setup wizard. Lesson notes already created in your vault will not be affected.` : `Delete "${this.plannerName}"? All planner data (timetable, classes, events) will be removed. Lesson notes already created in your vault will not be affected.`,
           cls: "setting-item-description"
         });
-        new import_obsidian9.Setting(contentEl).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close())).addButton((btn) => btn.setButtonText(this.isLast ? "Delete & restart wizard" : "Delete planner").setWarning().onClick(async () => {
+        new import_obsidian10.Setting(contentEl).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close())).addButton((btn) => btn.setButtonText(this.isLast ? "Delete & restart wizard" : "Delete planner").setWarning().onClick(async () => {
           await this.plugin.deletePlanner(this.plannerId);
           this.close();
           if (this.isLast) {
@@ -28811,16 +29115,16 @@ __export(main_exports, {
   default: () => TeacherPlannerPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian16 = require("obsidian");
+var import_obsidian17 = require("obsidian");
 init_settings();
 
 // src/views/WeekView.ts
-var import_obsidian13 = require("obsidian");
+var import_obsidian14 = require("obsidian");
 
 // src/views/WeekView.svelte
 init_internal();
 init_disclose_version();
-var import_obsidian12 = require("obsidian");
+var import_obsidian13 = require("obsidian");
 init_weekUtils();
 init_TimetableEditorModal();
 
@@ -28933,8 +29237,8 @@ var SlotNotesModal = class extends import_obsidian4.Modal {
 init_SettingsTab();
 
 // src/modals/AddDateEventModal.ts
-var import_obsidian11 = require("obsidian");
-var AddDateEventModal = class extends import_obsidian11.Modal {
+var import_obsidian12 = require("obsidian");
+var AddDateEventModal = class extends import_obsidian12.Modal {
   constructor(app, plugin, existingEvent, onSaved, prefillDate, prefillPeriodId) {
     super(app);
     this.plugin = plugin;
@@ -29092,7 +29396,7 @@ var AddDateEventModal = class extends import_obsidian11.Modal {
     });
     saveBtn.addEventListener("click", async () => {
       if (!date || !periodId || !classId) {
-        new import_obsidian11.Notice("Please select a date, period, and item.");
+        new import_obsidian12.Notice("Please select a date, period, and item.");
         return;
       }
       if (!this.plugin.settings.dateEvents) this.plugin.settings.dateEvents = [];
@@ -29131,7 +29435,7 @@ var AddDateEventModal = class extends import_obsidian11.Modal {
 // src/views/WeekView.svelte
 init_runtime();
 function add_css3(target) {
-  append_styles(target, "svelte-erw17l", ".tp-week-view.svelte-erw17l.svelte-erw17l{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-erw17l.svelte-erw17l{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-erw17l.svelte-erw17l{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-erw17l.svelte-erw17l{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-erw17l.svelte-erw17l{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-erw17l.svelte-erw17l{display:flex;gap:4px}.tp-nav-arrow.svelte-erw17l.svelte-erw17l{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-erw17l.svelte-erw17l{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-erw17l.svelte-erw17l{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-erw17l.svelte-erw17l{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-erw17l.svelte-erw17l{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-erw17l.svelte-erw17l{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-erw17l.svelte-erw17l:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-erw17l.svelte-erw17l:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-erw17l.svelte-erw17l{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-erw17l.svelte-erw17l:hover{opacity:0.88}.tp-btn.svelte-erw17l svg,.tp-btn-icon.svelte-erw17l svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-erw17l.svelte-erw17l{padding:5px 8px}.tp-action-btn--icon-only.svelte-erw17l svg{width:15px;height:15px}.tp-overflow-btn.svelte-erw17l.svelte-erw17l{display:none}.tp-table-scroll.svelte-erw17l.svelte-erw17l{flex:1 1 0;overflow:auto;min-height:0}.tp-grid.svelte-erw17l.svelte-erw17l{width:100%;border-collapse:collapse;table-layout:fixed;align-self:start}.tp-col-time.svelte-erw17l.svelte-erw17l{width:48px}.tp-col-period.svelte-erw17l.svelte-erw17l{width:95px}.tp-head-row.svelte-erw17l.svelte-erw17l{position:sticky;top:0;z-index:10;background:var(--background-secondary)}.tp-th-time.svelte-erw17l.svelte-erw17l,.tp-th-period.svelte-erw17l.svelte-erw17l,.tp-th-day.svelte-erw17l.svelte-erw17l{padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);text-align:center;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));border-top:none;white-space:nowrap;background:var(--background-secondary)}.tp-th-time.svelte-erw17l.svelte-erw17l{text-align:left;padding-left:8px}.tp-th-period.svelte-erw17l.svelte-erw17l{text-align:left;padding-left:10px}.tp-th-day--today.svelte-erw17l.svelte-erw17l{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day.svelte-erw17l.svelte-erw17l{text-align:left !important}.tp-th-day-inner.svelte-erw17l.svelte-erw17l{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-erw17l.svelte-erw17l{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-erw17l.svelte-erw17l{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-erw17l.svelte-erw17l{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-erw17l.svelte-erw17l{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-erw17l.svelte-erw17l{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-erw17l.svelte-erw17l{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-td-time.svelte-erw17l.svelte-erw17l{padding:4px 6px 0 8px;font-size:11px;color:var(--text-muted);vertical-align:top;white-space:nowrap;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));background:var(--background-secondary);height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-td-period.svelte-erw17l.svelte-erw17l{padding:0;vertical-align:top;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-period-inner.svelte-erw17l.svelte-erw17l{display:flex;flex-direction:column;justify-content:flex-start;gap:2px;height:100%;padding:5px 8px;box-sizing:border-box}.tp-period-name.svelte-erw17l.svelte-erw17l{font-size:13px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-period-time.svelte-erw17l.svelte-erw17l{font-size:11px;color:var(--text-muted);line-height:1.2;white-space:nowrap}.tp-td-cell.svelte-erw17l.svelte-erw17l{position:relative;padding:3px;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));vertical-align:top;transition:background 0.1s;overflow:hidden;height:var(--rh,64px);max-height:var(--rh,64px);box-sizing:border-box}.tp-td-cell--holiday.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent) !important}.tp-td-cell--inset.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent) !important}.tp-td-cell--dragover.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-td-cell--reject.svelte-erw17l.svelte-erw17l{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-chip.svelte-erw17l.svelte-erw17l{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-erw17l.svelte-erw17l:hover{filter:brightness(1.08)}.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-erw17l.svelte-erw17l{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-erw17l.svelte-erw17l{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-erw17l.svelte-erw17l{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-erw17l.svelte-erw17l,.tp-chip-notes.svelte-erw17l.svelte-erw17l{display:none}.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:13px}.tp-chip-room.svelte-erw17l.svelte-erw17l{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:12px}.tp-chip-room.svelte-erw17l.svelte-erw17l{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-erw17l.svelte-erw17l{display:none}.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:13px}.tp-chip-room.svelte-erw17l.svelte-erw17l{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-erw17l.svelte-erw17l{font-size:11px}.tp-chip-room.svelte-erw17l.svelte-erw17l{font-size:9px}}.tp-now-line.svelte-erw17l.svelte-erw17l{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-badge.svelte-erw17l.svelte-erw17l{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-erw17l.svelte-erw17l{position:absolute;inset:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-erw17l .tp-chip.svelte-erw17l{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-erw17l.svelte-erw17l{display:none}@container (max-width: 680px){.tp-action-btn.svelte-erw17l.svelte-erw17l{display:none}.tp-overflow-btn.svelte-erw17l.svelte-erw17l{display:inline-flex !important}.tp-header.svelte-erw17l.svelte-erw17l{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-erw17l.svelte-erw17l{justify-content:center}.tp-header-identity.svelte-erw17l.svelte-erw17l{min-width:0;overflow:hidden}.tp-week-label.svelte-erw17l.svelte-erw17l{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-erw17l.svelte-erw17l{display:none}.tp-th-day.svelte-erw17l.svelte-erw17l{padding:5px 2px}.tp-th-day-inner.svelte-erw17l.svelte-erw17l{flex-direction:column;align-items:center;justify-content:center;gap:1px}.tp-day-label.svelte-erw17l.svelte-erw17l{flex-direction:column;align-items:center;gap:1px}.tp-day-name.svelte-erw17l.svelte-erw17l{font-size:12px}.tp-day-date.svelte-erw17l.svelte-erw17l{font-size:10px}.tp-day-override-badge.svelte-erw17l.svelte-erw17l{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-col-time.svelte-erw17l.svelte-erw17l{width:28px}.tp-col-period.svelte-erw17l.svelte-erw17l{width:42px}.tp-th-time.svelte-erw17l.svelte-erw17l{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-th-period.svelte-erw17l.svelte-erw17l{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-td-time.svelte-erw17l.svelte-erw17l{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:normal;vertical-align:middle}.tp-period-inner.svelte-erw17l.svelte-erw17l{writing-mode:vertical-rl;transform:rotate(180deg);align-items:center;padding:4px 2px}.tp-period-name.svelte-erw17l.svelte-erw17l{white-space:nowrap}.tp-period-time.svelte-erw17l.svelte-erw17l{white-space:nowrap}.tp-day-name.svelte-erw17l.svelte-erw17l{font-size:11px}.tp-day-date.svelte-erw17l.svelte-erw17l{font-size:10px}}");
+  append_styles(target, "svelte-rdty2b", ".tp-week-view.svelte-rdty2b.svelte-rdty2b{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-rdty2b.svelte-rdty2b{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-rdty2b.svelte-rdty2b{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-rdty2b.svelte-rdty2b{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-rdty2b.svelte-rdty2b{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-rdty2b.svelte-rdty2b{display:flex;gap:4px}.tp-nav-arrow.svelte-rdty2b.svelte-rdty2b{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-rdty2b.svelte-rdty2b{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-rdty2b.svelte-rdty2b{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-rdty2b.svelte-rdty2b{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-rdty2b.svelte-rdty2b{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-rdty2b.svelte-rdty2b{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-rdty2b.svelte-rdty2b:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-rdty2b.svelte-rdty2b:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-rdty2b.svelte-rdty2b{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-rdty2b.svelte-rdty2b:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-rdty2b svg,.tp-btn-icon.svelte-rdty2b svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-rdty2b.svelte-rdty2b{padding:5px 8px}.tp-action-btn--icon-only.svelte-rdty2b svg{width:15px;height:15px}.tp-overflow-btn.svelte-rdty2b.svelte-rdty2b{display:none}.tp-table-scroll.svelte-rdty2b.svelte-rdty2b{flex:1 1 0;overflow:auto;min-height:0}.tp-grid.svelte-rdty2b.svelte-rdty2b{width:100%;border-collapse:collapse;table-layout:fixed;align-self:start}.tp-col-time.svelte-rdty2b.svelte-rdty2b{width:48px}.tp-col-period.svelte-rdty2b.svelte-rdty2b{width:95px}.tp-head-row.svelte-rdty2b.svelte-rdty2b{position:sticky;top:0;z-index:10;background:var(--background-secondary)}.tp-th-time.svelte-rdty2b.svelte-rdty2b,.tp-th-period.svelte-rdty2b.svelte-rdty2b,.tp-th-day.svelte-rdty2b.svelte-rdty2b{padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);text-align:center;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));border-top:none;white-space:nowrap;background:var(--background-secondary)}.tp-th-time.svelte-rdty2b.svelte-rdty2b{text-align:left;padding-left:8px}.tp-th-period.svelte-rdty2b.svelte-rdty2b{text-align:left;padding-left:10px}.tp-th-day--today.svelte-rdty2b.svelte-rdty2b{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day.svelte-rdty2b.svelte-rdty2b{text-align:left !important}.tp-th-day-inner.svelte-rdty2b.svelte-rdty2b{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-rdty2b.svelte-rdty2b{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-rdty2b.svelte-rdty2b{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-rdty2b.svelte-rdty2b{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-rdty2b.svelte-rdty2b{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-rdty2b.svelte-rdty2b{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-rdty2b.svelte-rdty2b{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-td-time.svelte-rdty2b.svelte-rdty2b{padding:4px 6px 0 8px;font-size:11px;color:var(--text-muted);vertical-align:top;white-space:nowrap;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));background:var(--background-secondary);height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-td-period.svelte-rdty2b.svelte-rdty2b{padding:0;vertical-align:top;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-period-inner.svelte-rdty2b.svelte-rdty2b{display:flex;flex-direction:column;justify-content:flex-start;gap:2px;height:100%;padding:5px 8px;box-sizing:border-box}.tp-period-name.svelte-rdty2b.svelte-rdty2b{font-size:13px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-period-time.svelte-rdty2b.svelte-rdty2b{font-size:11px;color:var(--text-muted);line-height:1.2;white-space:nowrap}.tp-td-cell.svelte-rdty2b.svelte-rdty2b{position:relative;padding:3px;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));vertical-align:top;transition:background 0.1s;overflow:hidden;height:var(--rh,64px);max-height:var(--rh,64px);box-sizing:border-box}.tp-td-cell--holiday.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent) !important}.tp-td-cell--inset.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent) !important}.tp-td-cell--dragover.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-td-cell--reject.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-chip.svelte-rdty2b.svelte-rdty2b{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-rdty2b.svelte-rdty2b:hover{filter:brightness(1.08)}.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-rdty2b.svelte-rdty2b{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-rdty2b.svelte-rdty2b{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-rdty2b.svelte-rdty2b{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-rdty2b.svelte-rdty2b,.tp-chip-notes.svelte-rdty2b.svelte-rdty2b{display:none}.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:13px}.tp-chip-room.svelte-rdty2b.svelte-rdty2b{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:12px}.tp-chip-room.svelte-rdty2b.svelte-rdty2b{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-rdty2b.svelte-rdty2b{display:none}.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:13px}.tp-chip-room.svelte-rdty2b.svelte-rdty2b{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:11px}.tp-chip-room.svelte-rdty2b.svelte-rdty2b{font-size:9px}}.tp-now-line.svelte-rdty2b.svelte-rdty2b{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-badge.svelte-rdty2b.svelte-rdty2b{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-rdty2b.svelte-rdty2b{position:absolute;inset:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-rdty2b .tp-chip.svelte-rdty2b{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-rdty2b.svelte-rdty2b{display:none}@container (max-width: 680px){.tp-action-btn.svelte-rdty2b.svelte-rdty2b{display:none}.tp-overflow-btn.svelte-rdty2b.svelte-rdty2b{display:inline-flex !important}.tp-header.svelte-rdty2b.svelte-rdty2b{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-rdty2b.svelte-rdty2b{justify-content:center}.tp-header-identity.svelte-rdty2b.svelte-rdty2b{min-width:0;overflow:hidden}.tp-week-label.svelte-rdty2b.svelte-rdty2b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-rdty2b.svelte-rdty2b{display:none}.tp-th-day.svelte-rdty2b.svelte-rdty2b{padding:5px 2px}.tp-th-day-inner.svelte-rdty2b.svelte-rdty2b{flex-direction:column;align-items:center;justify-content:center;gap:1px}.tp-day-label.svelte-rdty2b.svelte-rdty2b{flex-direction:column;align-items:center;gap:1px}.tp-day-name.svelte-rdty2b.svelte-rdty2b{font-size:12px}.tp-day-date.svelte-rdty2b.svelte-rdty2b{font-size:10px}.tp-day-override-badge.svelte-rdty2b.svelte-rdty2b{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-col-time.svelte-rdty2b.svelte-rdty2b{width:28px}.tp-col-period.svelte-rdty2b.svelte-rdty2b{width:42px}.tp-th-time.svelte-rdty2b.svelte-rdty2b{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-th-period.svelte-rdty2b.svelte-rdty2b{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-td-time.svelte-rdty2b.svelte-rdty2b{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:normal;vertical-align:middle}.tp-period-inner.svelte-rdty2b.svelte-rdty2b{writing-mode:vertical-rl;transform:rotate(180deg);align-items:center;padding:4px 2px}.tp-period-name.svelte-rdty2b.svelte-rdty2b{white-space:nowrap}.tp-period-time.svelte-rdty2b.svelte-rdty2b{white-space:nowrap}.tp-day-name.svelte-rdty2b.svelte-rdty2b{font-size:11px}.tp-day-date.svelte-rdty2b.svelte-rdty2b{font-size:10px}}");
 }
 function get_each_context3(ctx, list, i) {
   const child_ctx = ctx.slice();
@@ -29293,7 +29597,7 @@ function create_if_block_132(ctx) {
         ctx[3]
       );
       attr(span, "class", span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx[3].toLowerCase() + " svelte-erw17l");
+      ctx[3].toLowerCase() + " svelte-rdty2b");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -29309,7 +29613,7 @@ function create_if_block_132(ctx) {
       );
       if (dirty[0] & /*abWeekType*/
       8 && span_class_value !== (span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx2[3].toLowerCase() + " svelte-erw17l")) {
+      ctx2[3].toLowerCase() + " svelte-rdty2b")) {
         attr(span, "class", span_class_value);
       }
     },
@@ -29343,7 +29647,7 @@ function create_if_block_122(ctx) {
     c() {
       span = element("span");
       span.textContent = "Inset";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-erw17l");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-rdty2b");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -29361,7 +29665,7 @@ function create_if_block_112(ctx) {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-erw17l");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-rdty2b");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -29419,11 +29723,11 @@ function create_each_block_32(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-name svelte-erw17l");
-      attr(span1, "class", "tp-day-date svelte-erw17l");
-      attr(span2, "class", "tp-day-label svelte-erw17l");
-      attr(div, "class", "tp-th-day-inner svelte-erw17l");
-      attr(th, "class", "tp-th-day svelte-erw17l");
+      attr(span0, "class", "tp-day-name svelte-rdty2b");
+      attr(span1, "class", "tp-day-date svelte-rdty2b");
+      attr(span2, "class", "tp-day-label svelte-rdty2b");
+      attr(div, "class", "tp-th-day-inner svelte-rdty2b");
+      attr(th, "class", "tp-th-day svelte-rdty2b");
       toggle_class(th, "tp-th-day--today", isToday(
         /*day*/
         ctx[95].offset,
@@ -29523,7 +29827,7 @@ function create_if_block_102(ctx) {
         /*currentTimeStr*/
         ctx[9]
       );
-      attr(div, "class", "tp-now-badge svelte-erw17l");
+      attr(div, "class", "tp-now-badge svelte-rdty2b");
       set_style(
         div,
         "top",
@@ -29559,7 +29863,7 @@ function create_if_block_102(ctx) {
     }
   };
 }
-function create_if_block_22(ctx) {
+function create_if_block_23(ctx) {
   let div;
   let t;
   let each_blocks = [];
@@ -29589,7 +29893,7 @@ function create_if_block_22(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-event-stack svelte-erw17l");
+      attr(div, "class", "tp-event-stack svelte-rdty2b");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -29698,8 +30002,8 @@ function create_if_block_62(ctx) {
       if (if_block1) if_block1.c();
       t3 = space();
       if (if_block2) if_block2.c();
-      attr(span, "class", "tp-chip-code svelte-erw17l");
-      attr(div, "class", "tp-chip svelte-erw17l");
+      attr(span, "class", "tp-chip-code svelte-rdty2b");
+      attr(div, "class", "tp-chip svelte-rdty2b");
       attr(div, "draggable", "true");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
@@ -29831,7 +30135,7 @@ function create_if_block_92(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-erw17l");
+      attr(span, "class", "tp-chip-meta svelte-rdty2b");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -29864,7 +30168,7 @@ function create_if_block_82(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-erw17l");
+      attr(span, "class", "tp-chip-room svelte-rdty2b");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -29893,7 +30197,7 @@ function create_if_block_72(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-erw17l");
+      attr(span, "class", "tp-chip-notes svelte-rdty2b");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -29922,7 +30226,7 @@ function create_if_block_52(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-erw17l");
+      attr(span, "class", "tp-chip-meta svelte-rdty2b");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -29951,7 +30255,7 @@ function create_if_block_42(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-erw17l");
+      attr(span, "class", "tp-chip-room svelte-rdty2b");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -29980,7 +30284,7 @@ function create_if_block_32(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-erw17l");
+      attr(span, "class", "tp-chip-notes svelte-rdty2b");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -30062,8 +30366,8 @@ function create_each_block_22(key_2, ctx) {
       t3 = space();
       if (if_block2) if_block2.c();
       t4 = space();
-      attr(span, "class", "tp-chip-code svelte-erw17l");
-      attr(div, "class", "tp-chip tp-chip--event svelte-erw17l");
+      attr(span, "class", "tp-chip-code svelte-rdty2b");
+      attr(div, "class", "tp-chip tp-chip--event svelte-rdty2b");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
       attr(div, "draggable", "true");
@@ -30230,7 +30534,7 @@ function create_if_block2(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-now-line svelte-erw17l");
+      attr(div, "class", "tp-now-line svelte-rdty2b");
       set_style(
         div,
         "top",
@@ -30268,7 +30572,7 @@ function create_each_block_12(ctx) {
   let if_block0 = (
     /*slot*/
     (ctx[99] || /*devEvents*/
-    ctx[100].length > 0) && create_if_block_22(ctx)
+    ctx[100].length > 0) && create_if_block_23(ctx)
   );
   let if_block1 = !/*slot*/
   ctx[99] && /*devEvents*/
@@ -30310,7 +30614,7 @@ function create_each_block_12(ctx) {
       if (if_block1) if_block1.c();
       t1 = space();
       if (if_block2) if_block2.c();
-      attr(td, "class", "tp-td-cell svelte-erw17l");
+      attr(td, "class", "tp-td-cell svelte-rdty2b");
       set_style(td, "background", hexToRgba3(
         /*tc*/
         ctx[90],
@@ -30378,7 +30682,7 @@ function create_each_block_12(ctx) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_22(ctx);
+          if_block0 = create_if_block_23(ctx);
           if_block0.c();
           if_block0.m(td, t0);
         }
@@ -30551,12 +30855,12 @@ function create_each_block3(key_2, ctx) {
         each_blocks[i].c();
       }
       t9 = space();
-      attr(td0, "class", "tp-td-time svelte-erw17l");
+      attr(td0, "class", "tp-td-time svelte-rdty2b");
       set_style(td0, "position", "relative");
-      attr(span0, "class", "tp-period-name svelte-erw17l");
-      attr(span1, "class", "tp-period-time svelte-erw17l");
-      attr(div, "class", "tp-period-inner svelte-erw17l");
-      attr(td1, "class", "tp-td-period svelte-erw17l");
+      attr(span0, "class", "tp-period-name svelte-rdty2b");
+      attr(span1, "class", "tp-period-time svelte-rdty2b");
+      attr(div, "class", "tp-period-inner svelte-rdty2b");
+      attr(td1, "class", "tp-td-period svelte-rdty2b");
       set_style(td1, "background", hexToRgba3(
         /*tc*/
         ctx[90],
@@ -30848,38 +31152,38 @@ function create_fragment3(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(span0, "class", "tp-week-label svelte-erw17l");
-      attr(span1, "class", "tp-date-range svelte-erw17l");
-      attr(div0, "class", "tp-header-identity svelte-erw17l");
-      attr(button0, "class", "tp-btn tp-nav-arrow svelte-erw17l");
+      attr(span0, "class", "tp-week-label svelte-rdty2b");
+      attr(span1, "class", "tp-date-range svelte-rdty2b");
+      attr(div0, "class", "tp-header-identity svelte-rdty2b");
+      attr(button0, "class", "tp-btn tp-nav-arrow svelte-rdty2b");
       attr(button0, "aria-label", "Previous week");
       button0.disabled = button0_disabled_value = !/*canGoPrev*/
       ctx[7];
-      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-erw17l");
-      attr(button2, "class", "tp-btn tp-nav-arrow svelte-erw17l");
+      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-rdty2b");
+      attr(button2, "class", "tp-btn tp-nav-arrow svelte-rdty2b");
       attr(button2, "aria-label", "Next week");
       button2.disabled = button2_disabled_value = !/*canGoNext*/
       ctx[6];
-      attr(nav, "class", "tp-nav svelte-erw17l");
+      attr(nav, "class", "tp-nav svelte-rdty2b");
       attr(nav, "aria-label", "Week navigation");
-      attr(span2, "class", "tp-btn-icon svelte-erw17l");
-      attr(button3, "class", "tp-btn tp-action-btn svelte-erw17l");
+      attr(span2, "class", "tp-btn-icon svelte-rdty2b");
+      attr(button3, "class", "tp-btn tp-action-btn svelte-rdty2b");
       attr(button3, "aria-label", "Add event");
-      attr(span3, "class", "tp-btn-icon svelte-erw17l");
-      attr(button4, "class", "tp-btn tp-action-btn svelte-erw17l");
+      attr(span3, "class", "tp-btn-icon svelte-rdty2b");
+      attr(button4, "class", "tp-btn tp-action-btn svelte-rdty2b");
       attr(button4, "aria-label", "Edit timetable");
-      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-erw17l");
+      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-rdty2b");
       attr(button5, "aria-label", "Settings");
-      attr(button6, "class", "tp-btn tp-overflow-btn svelte-erw17l");
+      attr(button6, "class", "tp-btn tp-overflow-btn svelte-rdty2b");
       attr(button6, "aria-label", "More options");
-      attr(div1, "class", "tp-header-actions svelte-erw17l");
-      attr(header, "class", "tp-header svelte-erw17l");
-      attr(col0, "class", "tp-col-time svelte-erw17l");
-      attr(col1, "class", "tp-col-period svelte-erw17l");
-      attr(th0, "class", "tp-th-time svelte-erw17l");
-      attr(th1, "class", "tp-th-period svelte-erw17l");
-      attr(tr, "class", "tp-head-row svelte-erw17l");
-      attr(table, "class", "tp-grid svelte-erw17l");
+      attr(div1, "class", "tp-header-actions svelte-rdty2b");
+      attr(header, "class", "tp-header svelte-rdty2b");
+      attr(col0, "class", "tp-col-time svelte-rdty2b");
+      attr(col1, "class", "tp-col-period svelte-rdty2b");
+      attr(th0, "class", "tp-th-time svelte-rdty2b");
+      attr(th1, "class", "tp-th-period svelte-rdty2b");
+      attr(tr, "class", "tp-head-row svelte-rdty2b");
+      attr(table, "class", "tp-grid svelte-rdty2b");
       set_style(
         table,
         "--grid-colour",
@@ -30904,8 +31208,8 @@ function create_fragment3(ctx) {
         /*plugin*/
         ((_d = ctx[0].settings.blockBorderWeight) != null ? _d : 1) + "px"
       );
-      attr(div2, "class", "tp-table-scroll svelte-erw17l");
-      attr(div3, "class", "tp-week-view svelte-erw17l");
+      attr(div2, "class", "tp-table-scroll svelte-rdty2b");
+      attr(div3, "class", "tp-week-view svelte-rdty2b");
       attr(div3, "data-tp-theme", div3_data_tp_theme_value = /*plugin*/
       (_e = ctx[0].settings.theme) != null ? _e : "carbon");
       attr(div3, "data-tp-mode", div3_data_tp_mode_value = /*plugin*/
@@ -31255,10 +31559,10 @@ function instance3($$self, $$props, $$invalidate) {
   let canGoNext;
   var _a, _b, _c, _d, _e, _f, _g;
   function obsIcon(node, id) {
-    (0, import_obsidian12.setIcon)(node, id);
+    (0, import_obsidian13.setIcon)(node, id);
     return {
       update(newId) {
-        (0, import_obsidian12.setIcon)(node, newId);
+        (0, import_obsidian13.setIcon)(node, newId);
       }
     };
   }
@@ -31441,7 +31745,7 @@ function instance3($$self, $$props, $$invalidate) {
   }
   function openChipMenu(e, type, date, periodId, slot, event) {
     e.stopPropagation();
-    const menu = new import_obsidian12.Menu();
+    const menu = new import_obsidian13.Menu();
     const isClass = type === "slot" ? !!_classes.find((c) => c.id === (slot === null || slot === void 0 ? void 0 : slot.classId)) : !!_classes.find((c) => c.id === (event === null || event === void 0 ? void 0 : event.classId));
     if (type === "slot" && slot) {
       menu.addItem((i) => i.setTitle("Edit").setIcon("pencil").onClick(() => openNotesModal(slot, date, periodId)));
@@ -31555,7 +31859,7 @@ function instance3($$self, $$props, $$invalidate) {
   }
   function showOverflowMenu(e) {
     e.stopPropagation();
-    const menu = new import_obsidian12.Menu();
+    const menu = new import_obsidian13.Menu();
     menu.addItem((i) => i.setTitle("+ Event").setIcon("calendar-plus").onClick(() => onAddEvent()));
     menu.addItem((i) => i.setTitle("Timetable").setIcon("layout-grid").onClick(onOpenTimetable));
     menu.addItem((i) => i.setTitle("Settings").setIcon("settings").onClick(onOpenSettings));
@@ -31586,7 +31890,7 @@ function instance3($$self, $$props, $$invalidate) {
     const fileName = `${dayDate} ${safeName}`;
     const filePath = `${folder}/${fileName}.md`;
     const existing = plugin.app.vault.getAbstractFileByPath(filePath);
-    if (existing instanceof import_obsidian12.TFile) {
+    if (existing instanceof import_obsidian13.TFile) {
       plugin.app.workspace.openLinkText(filePath, "", false);
       return;
     }
@@ -31597,20 +31901,6 @@ function instance3($$self, $$props, $$invalidate) {
       await plugin.saveSettings();
     }
     const template = (_b2 = plugin.settings.lessonNoteTemplate) !== null && _b2 !== void 0 ? _b2 : "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
-    const frontmatter = [
-      "---",
-      `classId: ${slot.classId}`,
-      `classCode: ${lbl.code}`,
-      `date: ${dayDate}`,
-      `lessonNumber: ${lessonNum}`,
-      `topic: ""`,
-      `colour: "${lbl.colour}"`,
-      `modified: false`,
-      `slotId: ${slot.id}`,
-      "---",
-      "",
-      ""
-    ].join("\n");
     const folderObj = plugin.app.vault.getAbstractFileByPath(folder);
     if (!folderObj) {
       try {
@@ -31619,7 +31909,7 @@ function instance3($$self, $$props, $$invalidate) {
       }
     }
     try {
-      await plugin.app.vault.create(filePath, frontmatter + template);
+      await plugin.app.vault.create(filePath, template);
       plugin.app.workspace.openLinkText(filePath, "", false);
     } catch (err) {
       console.error("Lesson note error:", err);
@@ -31633,29 +31923,14 @@ function instance3($$self, $$props, $$invalidate) {
     const safeName = cls.code.replace(/[\\/:*?"<>|]/g, "-");
     const filePath = `${folder}/${dayDate} ${safeName}.md`;
     const existing = plugin.app.vault.getAbstractFileByPath(filePath);
-    if (existing instanceof import_obsidian12.TFile) {
+    if (existing instanceof import_obsidian13.TFile) {
       plugin.app.workspace.openLinkText(filePath, "", false);
       return;
     }
     const lessonNum = ((_a2 = cls.lessonCount) !== null && _a2 !== void 0 ? _a2 : 0) + 1;
     cls.lessonCount = lessonNum;
     await plugin.saveSettings();
-    const lbl = getDateEventLabel(ev);
     const template = (_b2 = plugin.settings.lessonNoteTemplate) !== null && _b2 !== void 0 ? _b2 : "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
-    const frontmatter = [
-      "---",
-      `classId: ${ev.classId}`,
-      `classCode: ${cls.code}`,
-      `date: ${dayDate}`,
-      `lessonNumber: ${lessonNum}`,
-      `topic: ""`,
-      `colour: "${lbl.colour}"`,
-      `modified: false`,
-      `slotId: ${ev.id}`,
-      "---",
-      "",
-      ""
-    ].join("\n");
     const folderObj = plugin.app.vault.getAbstractFileByPath(folder);
     if (!folderObj) {
       try {
@@ -31664,7 +31939,7 @@ function instance3($$self, $$props, $$invalidate) {
       }
     }
     try {
-      await plugin.app.vault.create(filePath, frontmatter + template);
+      await plugin.app.vault.create(filePath, template);
       plugin.app.workspace.openLinkText(filePath, "", false);
     } catch (err) {
       console.error("Lesson note error:", err);
@@ -31829,7 +32104,7 @@ function instance3($$self, $$props, $$invalidate) {
           const date = dayISODate(day.offset, currentMonday);
           const tmpl = _templates.find((t) => t.startDate <= date && t.endDate >= date);
           if (!tmpl) continue;
-          const visible = !_ab || !_wt ? tmpl.slots : tmpl.slots.filter((s) => s.weekType === _wt || s.weekType === "both");
+          const visible = !_ab || !_wt ? tmpl.slots : tmpl.slots.filter((s) => s.weekType === _wt || s.weekType === "both" || s.weekType == null);
           for (const s of visible) {
             if (s.day === day.key) m[day.key + ":" + s.periodId] = s;
           }
@@ -31852,13 +32127,13 @@ function instance3($$self, $$props, $$invalidate) {
         return currentMonday.getTime() === thisMonday.getTime();
       })());
     }
-    if ($$self.$$.dirty[1] & /*currentDate*/
-    262144) {
-      $: $$invalidate(7, canGoPrev = getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart());
+    if ($$self.$$.dirty[1] & /*_tick, currentDate*/
+    393216) {
+      $: $$invalidate(7, canGoPrev = (_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart()));
     }
-    if ($$self.$$.dirty[1] & /*currentDate*/
-    262144) {
-      $: $$invalidate(6, canGoNext = getMondayOfWeek(addWeeks(currentDate, 1)) <= _ayEnd());
+    if ($$self.$$.dirty[1] & /*_tick, currentDate*/
+    393216) {
+      $: $$invalidate(6, canGoNext = (_tick, getMondayOfWeek(addWeeks(currentDate, 1)) <= _ayEnd()));
     }
     if ($$self.$$.dirty[0] & /*plugin, currentMonday*/
     3) {
@@ -31971,10 +32246,14 @@ var WeekView_default = WeekView;
 
 // src/views/WeekView.ts
 var WEEK_VIEW_TYPE = "teacher-planner-week-view";
-var WeekView2 = class extends import_obsidian13.ItemView {
+var WeekView2 = class extends import_obsidian14.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.component = null;
+    /** The element the Svelte component is mounted into. */
+    this.mountTarget = null;
+    /** Observes the container so we can mount/refresh when it gets dimensions. */
+    this.resizeObserver = null;
     this.plugin = plugin;
   }
   getViewType() {
@@ -31990,81 +32269,107 @@ var WeekView2 = class extends import_obsidian13.ItemView {
     const container = this.containerEl.children[1];
     container.empty();
     container.addClass("tp-root");
-    if (!this.component) {
-      requestAnimationFrame(() => {
-        if (this.component) return;
-        this.component = new WeekView_default({
-          target: container,
-          props: { plugin: this.plugin, initialDate: /* @__PURE__ */ new Date() }
-        });
-      });
-    }
+    this.mountTarget = container;
+    this.app.workspace.onLayoutReady(() => {
+      requestAnimationFrame(() => this.ensureMounted());
+    });
+    this.resizeObserver = new ResizeObserver(() => {
+      var _a;
+      const wasMounted = !!this.component;
+      this.ensureMounted();
+      if (wasMounted) (_a = this.component) == null ? void 0 : _a.refreshEvents();
+    });
+    this.resizeObserver.observe(container);
     this.registerEvent(this.app.workspace.on("layout-change", () => {
       var _a;
-      (_a = this.component) == null ? void 0 : _a.updateSize();
+      this.ensureMounted();
+      (_a = this.component) == null ? void 0 : _a.refreshEvents();
     }));
-    this.registerEvent(this.app.workspace.on("resize", () => {
+    this.registerEvent(this.app.workspace.on("active-leaf-change", () => {
       var _a;
-      (_a = this.component) == null ? void 0 : _a.updateSize();
+      this.ensureMounted();
+      (_a = this.component) == null ? void 0 : _a.refreshEvents();
     }));
   }
   /**
    * Obsidian calls setState after placing a restored leaf in the workspace.
-   * By this point the container has real dimensions, so this is the safest
-   * place to ensure the component has mounted — it acts as a guaranteed
-   * fallback for any case where the requestAnimationFrame in onOpen() did not fire
-   * (e.g. the view was hidden / off-screen on mobile when onOpen ran).
+   * Defer one frame so the container is laid out before we measure.
    */
   async setState(state, result) {
     await super.setState(state, result);
-    const container = this.containerEl.children[1];
-    if (!this.component) {
+    requestAnimationFrame(() => {
+      var _a;
+      this.ensureMounted();
+      (_a = this.component) == null ? void 0 : _a.refreshEvents();
+    });
+  }
+  /**
+   * Idempotent mount — safe to call repeatedly. Mounts the Svelte component
+   * if (and only if) it has not been mounted yet AND the container has
+   * non-zero dimensions. Skipping the mount when the container is 0x0 is
+   * deliberate: Svelte's first render captures layout, and a render into a
+   * collapsed container never recovers to display content properly.
+   */
+  ensureMounted() {
+    var _a;
+    if (this.component) return;
+    const container = (_a = this.mountTarget) != null ? _a : this.containerEl.children[1];
+    if (!container) return;
+    if (container.offsetWidth === 0 || container.offsetHeight === 0) return;
+    if (!container.hasClass("tp-root")) {
       container.empty();
       container.addClass("tp-root");
-      this.component = new WeekView_default({
-        target: container,
-        props: { plugin: this.plugin, initialDate: /* @__PURE__ */ new Date() }
-      });
-    } else {
-      this.component.refreshEvents();
     }
+    this.mountTarget = container;
+    this.component = new WeekView_default({
+      target: container,
+      props: { plugin: this.plugin, initialDate: /* @__PURE__ */ new Date() }
+    });
   }
   async onClose() {
-    var _a;
-    (_a = this.component) == null ? void 0 : _a.$destroy();
+    var _a, _b;
+    (_a = this.resizeObserver) == null ? void 0 : _a.disconnect();
+    this.resizeObserver = null;
+    (_b = this.component) == null ? void 0 : _b.$destroy();
     this.component = null;
+    this.mountTarget = null;
   }
   goToCurrentWeek() {
     var _a;
+    this.ensureMounted();
     (_a = this.component) == null ? void 0 : _a.$set({ initialDate: /* @__PURE__ */ new Date() });
   }
   goToPrevWeek() {
     var _a;
+    this.ensureMounted();
     (_a = this.component) == null ? void 0 : _a.prevWeek();
   }
   goToNextWeek() {
     var _a;
+    this.ensureMounted();
     (_a = this.component) == null ? void 0 : _a.nextWeek();
   }
   navigateToWeek(d) {
     var _a;
+    this.ensureMounted();
     (_a = this.component) == null ? void 0 : _a.$set({ initialDate: d });
   }
   onSettingsChange() {
     var _a;
+    this.ensureMounted();
     (_a = this.component) == null ? void 0 : _a.refreshEvents();
   }
 };
 
 // src/views/CalendarSidebarView.ts
-var import_obsidian15 = require("obsidian");
+var import_obsidian16 = require("obsidian");
 
 // src/views/CalendarSidebarComponent.svelte
 init_internal();
 init_disclose_version();
 init_weekUtils();
 init_directedTimeUtils();
-var import_obsidian14 = require("obsidian");
+var import_obsidian15 = require("obsidian");
 function add_css4(target) {
   append_styles(target, "svelte-1ay1088", ".tp-sidebar.svelte-1ay1088.svelte-1ay1088{display:flex;flex-direction:column;flex:1;height:100%;min-height:0;background:var(--background-primary);font-family:var(--font-interface);overflow:hidden}.tp-cal.svelte-1ay1088.svelte-1ay1088{padding:16px 12px 10px;flex-shrink:0}.tp-cal-header.svelte-1ay1088.svelte-1ay1088{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.tp-cal-title.svelte-1ay1088.svelte-1ay1088{font-size:20px;font-weight:700;color:var(--text-normal);margin:0;line-height:1.1}.tp-cal-year.svelte-1ay1088.svelte-1ay1088{color:var(--interactive-accent)}.tp-cal-nav-group.svelte-1ay1088.svelte-1ay1088{display:flex;align-items:center;gap:2px}.tp-cal-nav.svelte-1ay1088.svelte-1ay1088{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:20px;padding:2px 5px;border-radius:4px;line-height:1;transition:color 0.1s}.tp-cal-nav.svelte-1ay1088.svelte-1ay1088:hover:not(:disabled){color:var(--text-normal);background:var(--background-modifier-hover)}.tp-cal-nav.svelte-1ay1088.svelte-1ay1088:disabled{opacity:0.25;cursor:default}.tp-cal-today-btn.svelte-1ay1088.svelte-1ay1088{font-size:11px;font-weight:700;letter-spacing:0.05em;color:var(--text-muted);background:none;border:none;border-radius:4px;padding:3px 7px;cursor:pointer;transition:color 0.1s}.tp-cal-today-btn.svelte-1ay1088.svelte-1ay1088:hover{color:var(--text-normal)}.tp-cal-grid.svelte-1ay1088.svelte-1ay1088{display:grid;grid-template-columns:repeat(7, 1fr);gap:0;row-gap:2px}.tp-cal-dow.svelte-1ay1088.svelte-1ay1088{text-align:center;font-size:10px;font-weight:700;letter-spacing:0.06em;color:var(--text-faint);padding:0 0 8px}.tp-cal-day.svelte-1ay1088.svelte-1ay1088{text-align:center;font-size:13px;padding:3px 2px;color:var(--text-muted);line-height:1;min-height:28px;display:flex;align-items:center;justify-content:center}.tp-cal-day-num.svelte-1ay1088.svelte-1ay1088{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid transparent;border-radius:3px;transition:border-color 0.12s}.tp-cal-day--clickable.svelte-1ay1088.svelte-1ay1088{cursor:pointer}.tp-cal-day--clickable.svelte-1ay1088:hover .tp-cal-day-num.svelte-1ay1088{border-color:var(--interactive-accent)}.tp-cal-day--outside.svelte-1ay1088.svelte-1ay1088{color:var(--text-faint)}.tp-cal-day--faded.svelte-1ay1088.svelte-1ay1088{opacity:0.3;cursor:default;pointer-events:none}.tp-cal-day--today.svelte-1ay1088 .tp-cal-day-num.svelte-1ay1088{color:var(--interactive-accent);font-weight:700}.tp-sb-notes.svelte-1ay1088.svelte-1ay1088{flex:1;display:flex;flex-direction:column;margin:6px 12px 12px;border-radius:8px;background:var(--background-secondary);border:1px solid var(--background-modifier-border);overflow:hidden;min-height:60px}.tp-sb-notes-textarea.svelte-1ay1088.svelte-1ay1088{flex:1;resize:none;width:100%;box-sizing:border-box;padding:10px 12px;background:transparent;color:var(--text-normal);border:none;outline:none;overflow-y:auto;font-family:var(--font-text);font-size:13px;line-height:1.5}.tp-sb-notes-textarea.svelte-1ay1088.svelte-1ay1088::placeholder{color:var(--text-faint);font-style:italic;font-size:12px}.tp-sb-dt.svelte-1ay1088.svelte-1ay1088{margin:0 12px 12px;border-radius:8px;background:var(--background-secondary);border:1px solid var(--background-modifier-border);padding:10px 12px;flex-shrink:0}.tp-sb-dt-title.svelte-1ay1088.svelte-1ay1088{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);margin-bottom:8px;display:flex;align-items:center;gap:5px}.tp-sb-dt-icon.svelte-1ay1088.svelte-1ay1088{display:inline-flex;align-items:center;flex-shrink:0}.tp-sb-dt-icon.svelte-1ay1088 svg{width:12px;height:12px}.tp-sb-dt-rows.svelte-1ay1088.svelte-1ay1088{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}.tp-sb-dt-row.svelte-1ay1088.svelte-1ay1088{display:flex;justify-content:space-between;align-items:baseline;gap:6px}.tp-sb-dt-label.svelte-1ay1088.svelte-1ay1088{font-size:12px;color:var(--text-muted);white-space:nowrap}.tp-sb-dt-value.svelte-1ay1088.svelte-1ay1088{font-size:13px;font-weight:700;color:var(--text-normal);white-space:nowrap}.tp-sb-dt-value--over.svelte-1ay1088.svelte-1ay1088{color:var(--color-red, #f38ba8)}.tp-sb-dt-status.svelte-1ay1088.svelte-1ay1088{font-size:11px;font-weight:600;padding:5px 8px;border-radius:5px;line-height:1.4;display:flex;align-items:center;gap:5px}.tp-sb-dt-status--over.svelte-1ay1088.svelte-1ay1088{background:color-mix(in srgb, var(--color-red, #f38ba8) 15%, transparent);color:var(--color-red, #f38ba8)}.tp-sb-dt-status--under.svelte-1ay1088.svelte-1ay1088{background:color-mix(in srgb, var(--color-green, #a6e3a1) 12%, transparent);color:var(--color-green, #a6e3a1)}");
 }
@@ -32362,7 +32667,7 @@ function create_if_block3(ctx) {
     if (
       /*diff*/
       ctx2[35] === 0
-    ) return create_if_block_23;
+    ) return create_if_block_24;
     return create_else_block2;
   }
   let current_block_type = select_block_type(ctx, [-1, -1]);
@@ -32566,7 +32871,7 @@ function create_else_block2(ctx) {
     }
   };
 }
-function create_if_block_23(ctx) {
+function create_if_block_24(ctx) {
   let span;
   let icon_action;
   let t;
@@ -32958,11 +33263,11 @@ function instance4($$self, $$props, $$invalidate) {
   let dtCalc;
   var _a, _b, _c, _d;
   function icon(node, name) {
-    (0, import_obsidian14.setIcon)(node, name);
+    (0, import_obsidian15.setIcon)(node, name);
     return {
       update(n) {
         node.innerHTML = "";
-        (0, import_obsidian14.setIcon)(node, n);
+        (0, import_obsidian15.setIcon)(node, n);
       }
     };
   }
@@ -33137,10 +33442,12 @@ var CalendarSidebarComponent_default = CalendarSidebarComponent;
 
 // src/views/CalendarSidebarView.ts
 var CALENDAR_SIDEBAR_VIEW_TYPE = "teacher-planner-calendar-sidebar";
-var CalendarSidebarView = class extends import_obsidian15.ItemView {
+var CalendarSidebarView = class extends import_obsidian16.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.component = null;
+    this.mountTarget = null;
+    this.resizeObserver = null;
     this.plugin = plugin;
   }
   getViewType() {
@@ -33160,39 +33467,73 @@ var CalendarSidebarView = class extends import_obsidian15.ItemView {
     container.style.height = "100%";
     container.style.display = "flex";
     container.style.flexDirection = "column";
-    const mount = () => {
-      if (this.component) return;
-      this.component = new CalendarSidebarComponent_default({
-        target: container,
-        props: { plugin: this.plugin }
-      });
-    };
-    this.app.workspace.onLayoutReady(mount);
+    this.mountTarget = container;
+    this.app.workspace.onLayoutReady(() => {
+      requestAnimationFrame(() => this.ensureMounted());
+    });
+    this.resizeObserver = new ResizeObserver(() => {
+      var _a;
+      const wasMounted = !!this.component;
+      this.ensureMounted();
+      if (wasMounted) (_a = this.component) == null ? void 0 : _a.$set({ plugin: this.plugin });
+    });
+    this.resizeObserver.observe(container);
+    this.registerEvent(this.app.workspace.on("layout-change", () => {
+      this.ensureMounted();
+    }));
+    this.registerEvent(this.app.workspace.on("active-leaf-change", () => {
+      this.ensureMounted();
+    }));
+  }
+  /** Idempotent mount — gated on the container having real dimensions. */
+  ensureMounted() {
+    var _a;
+    if (this.component) return;
+    const container = (_a = this.mountTarget) != null ? _a : this.containerEl.children[1];
+    if (!container) return;
+    if (container.offsetWidth === 0 || container.offsetHeight === 0) return;
+    this.mountTarget = container;
+    this.component = new CalendarSidebarComponent_default({
+      target: container,
+      props: { plugin: this.plugin }
+    });
   }
   async onClose() {
-    var _a;
-    (_a = this.component) == null ? void 0 : _a.$destroy();
+    var _a, _b;
+    (_a = this.resizeObserver) == null ? void 0 : _a.disconnect();
+    this.resizeObserver = null;
+    (_b = this.component) == null ? void 0 : _b.$destroy();
     this.component = null;
+    this.mountTarget = null;
   }
   /** Called by the planner when the week changes — syncs the notes panel. */
   setWeek(monday) {
     var _a;
+    this.ensureMounted();
     (_a = this.component) == null ? void 0 : _a.$set({ currentWeek: monday });
   }
   /** Called after settings change so weekNotes etc. re-render. */
   onSettingsChange() {
     var _a;
+    this.ensureMounted();
     (_a = this.component) == null ? void 0 : _a.$set({ plugin: this.plugin });
   }
 };
 
 // src/main.ts
 init_SettingsTab();
-var TeacherPlannerPlugin = class extends import_obsidian16.Plugin {
+var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian17.Plugin {
   constructor() {
     super(...arguments);
     /** True when there are no planners on load — the wizard is triggered from onload. */
     this.needsWizard = false;
+    /**
+     * Debounced save — coalesces rapid edits (per-keystroke `onChange`
+     * handlers in the settings tab) into a single write. Safe to call from
+     * hot paths. The trailing flushPendingSave() guarantees nothing is lost
+     * when the settings tab closes or the plugin unloads.
+     */
+    this.saveTimer = null;
   }
   async onload() {
     try {
@@ -33226,6 +33567,9 @@ var TeacherPlannerPlugin = class extends import_obsidian16.Plugin {
     console.log("Teacher Planner loaded.");
   }
   onunload() {
+    this.flushPendingSave().catch((err) => {
+      console.error("Teacher Planner: flushPendingSave on unload failed.", err);
+    });
     this.app.workspace.detachLeavesOfType(WEEK_VIEW_TYPE);
     this.app.workspace.detachLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE);
     console.log("Teacher Planner unloaded.");
@@ -33256,12 +33600,14 @@ var TeacherPlannerPlugin = class extends import_obsidian16.Plugin {
   notifySidebar(monday) {
     const leaves = this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE);
     if (leaves.length === 0) return;
-    leaves[0].view.setWeek(monday);
+    const view = leaves[0].view;
+    if (view instanceof CalendarSidebarView) view.setWeek(monday);
   }
   navigateWeekView(monday) {
     const leaves = this.app.workspace.getLeavesOfType(WEEK_VIEW_TYPE);
     if (leaves.length === 0) return;
-    leaves[0].view.navigateToWeek(monday);
+    const view = leaves[0].view;
+    if (view instanceof WeekView2) view.navigateToWeek(monday);
   }
   sendWeekViewCommand(cmd) {
     const leaves = this.app.workspace.getLeavesOfType(WEEK_VIEW_TYPE);
@@ -33270,13 +33616,18 @@ var TeacherPlannerPlugin = class extends import_obsidian16.Plugin {
       return;
     }
     const view = leaves[0].view;
+    if (!(view instanceof WeekView2)) return;
     if (cmd === "current") view.goToCurrentWeek();
     if (cmd === "prev") view.goToPrevWeek();
     if (cmd === "next") view.goToNextWeek();
   }
   refreshViews() {
-    this.app.workspace.getLeavesOfType(WEEK_VIEW_TYPE).forEach((leaf) => leaf.view.onSettingsChange());
-    this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE).forEach((leaf) => leaf.view.onSettingsChange());
+    this.app.workspace.getLeavesOfType(WEEK_VIEW_TYPE).forEach((leaf) => {
+      if (leaf.view instanceof WeekView2) leaf.view.onSettingsChange();
+    });
+    this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE).forEach((leaf) => {
+      if (leaf.view instanceof CalendarSidebarView) leaf.view.onSettingsChange();
+    });
   }
   // ── Planner management ──────────────────────────────────────────────────────────────────────────
   getActivePlanner() {
@@ -33286,59 +33637,36 @@ var TeacherPlannerPlugin = class extends import_obsidian16.Plugin {
   populateSettings() {
     const planner = this.getActivePlanner();
     if (!planner) return;
-    this.settings = {
-      academicYear: planner.academicYear,
-      periodTypes: planner.periodTypes,
-      subjects: planner.subjects,
-      classes: planner.classes,
-      timetable: planner.timetable,
-      timetableTemplates: planner.timetableTemplates,
-      weekOverrides: planner.weekOverrides,
-      activities: planner.activities,
-      dateEvents: planner.dateEvents,
-      slotExclusions: planner.slotExclusions,
-      weekNotes: planner.weekNotes,
-      notesHeight: planner.notesHeight,
-      lessonNoteTemplate: planner.lessonNoteTemplate,
-      directedTime: planner.directedTime,
-      schoolDays: planner.schoolDays,
-      plannerFolder: planner.plannerFolder,
-      gridLineColour: this.plannerData.gridLineColour,
-      gridLineWeight: this.plannerData.gridLineWeight,
-      blockBorderColour: this.plannerData.blockBorderColour,
-      blockBorderWeight: this.plannerData.blockBorderWeight,
-      theme: this.plannerData.theme,
-      themeMode: this.plannerData.themeMode
-    };
+    const settings = { ...DEFAULT_SETTINGS };
+    for (const k of _TeacherPlannerPlugin.PLANNER_FIELDS) {
+      settings[k] = planner[k];
+    }
+    for (const k of _TeacherPlannerPlugin.GLOBAL_FIELDS) {
+      settings[k] = this.plannerData[k];
+    }
+    this.settings = settings;
   }
   /** Write plugin.settings back to the active planner record and global visual settings. */
   syncSettingsToPlanner() {
     var _a, _b, _c, _d, _e, _f, _g;
     const planner = this.getActivePlanner();
     if (planner) {
-      planner.academicYear = this.settings.academicYear;
-      planner.periodTypes = this.settings.periodTypes;
-      planner.subjects = this.settings.subjects;
-      planner.classes = this.settings.classes;
-      planner.timetable = this.settings.timetable;
-      planner.timetableTemplates = this.settings.timetableTemplates;
-      planner.weekOverrides = this.settings.weekOverrides;
-      planner.activities = this.settings.activities;
-      planner.dateEvents = (_a = this.settings.dateEvents) != null ? _a : [];
-      planner.slotExclusions = (_b = this.settings.slotExclusions) != null ? _b : [];
-      planner.weekNotes = this.settings.weekNotes;
-      planner.notesHeight = (_c = this.settings.notesHeight) != null ? _c : 120;
-      planner.lessonNoteTemplate = this.settings.lessonNoteTemplate;
-      if (this.settings.directedTime) planner.directedTime = this.settings.directedTime;
-      if (this.settings.schoolDays) planner.schoolDays = this.settings.schoolDays;
-      planner.plannerFolder = this.settings.plannerFolder;
+      for (const k of _TeacherPlannerPlugin.PLANNER_FIELDS) {
+        const value = this.settings[k];
+        if (value !== void 0) planner[k] = value;
+      }
+      planner.dateEvents = (_a = planner.dateEvents) != null ? _a : [];
+      planner.slotExclusions = (_b = planner.slotExclusions) != null ? _b : [];
+      planner.notesHeight = (_c = planner.notesHeight) != null ? _c : 120;
     }
-    this.plannerData.gridLineColour = (_d = this.settings.gridLineColour) != null ? _d : DEFAULT_GLOBAL_DATA.gridLineColour;
-    this.plannerData.gridLineWeight = (_e = this.settings.gridLineWeight) != null ? _e : DEFAULT_GLOBAL_DATA.gridLineWeight;
-    this.plannerData.blockBorderColour = (_f = this.settings.blockBorderColour) != null ? _f : DEFAULT_GLOBAL_DATA.blockBorderColour;
-    this.plannerData.blockBorderWeight = (_g = this.settings.blockBorderWeight) != null ? _g : DEFAULT_GLOBAL_DATA.blockBorderWeight;
-    if (this.settings.theme !== void 0) this.plannerData.theme = this.settings.theme;
-    if (this.settings.themeMode !== void 0) this.plannerData.themeMode = this.settings.themeMode;
+    for (const k of _TeacherPlannerPlugin.GLOBAL_FIELDS) {
+      const value = this.settings[k];
+      if (value !== void 0) this.plannerData[k] = value;
+    }
+    this.plannerData.gridLineColour = (_d = this.plannerData.gridLineColour) != null ? _d : DEFAULT_GLOBAL_DATA.gridLineColour;
+    this.plannerData.gridLineWeight = (_e = this.plannerData.gridLineWeight) != null ? _e : DEFAULT_GLOBAL_DATA.gridLineWeight;
+    this.plannerData.blockBorderColour = (_f = this.plannerData.blockBorderColour) != null ? _f : DEFAULT_GLOBAL_DATA.blockBorderColour;
+    this.plannerData.blockBorderWeight = (_g = this.plannerData.blockBorderWeight) != null ? _g : DEFAULT_GLOBAL_DATA.blockBorderWeight;
   }
   async createPlanner(record) {
     this.plannerData.planners.push(record);
@@ -33392,11 +33720,24 @@ var TeacherPlannerPlugin = class extends import_obsidian16.Plugin {
       this.plannerData.activePlannerId = this.plannerData.planners[0].id;
     }
     this.populateSettings();
-    try {
-      this.runPlannerMigrations();
-    } catch (err) {
-      console.error("Teacher Planner: runPlannerMigrations() failed \u2014 some migrations may not have applied.", err);
+    this.runMigrations();
+  }
+  /**
+   * Apply any pending versioned migrations to plannerData, then stamp the
+   * current version. Called from loadSettings() and switchPlanner().
+   */
+  runMigrations() {
+    var _a;
+    const saved = (_a = this.plannerData.dataVersion) != null ? _a : 0;
+    for (const migration of _TeacherPlannerPlugin.MIGRATIONS) {
+      if (saved >= migration.to) continue;
+      try {
+        migration.run(this);
+      } catch (err) {
+        console.error(`Teacher Planner: migration to v${migration.to} (${migration.description}) failed.`, err);
+      }
     }
+    this.plannerData.dataVersion = _TeacherPlannerPlugin.CURRENT_DATA_VERSION;
   }
   /**
    * Convert the old flat settings object to the new GlobalPluginData shape.
@@ -33442,7 +33783,7 @@ var TeacherPlannerPlugin = class extends import_obsidian16.Plugin {
    * operating on plugin.settings (the active planner view).
    */
   runPlannerMigrations() {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
     this.settings.lessonNoteTemplate = DEFAULT_SETTINGS.lessonNoteTemplate;
     this.settings.academicYear = Object.assign({}, DEFAULT_SETTINGS.academicYear, this.settings.academicYear);
     if (!this.settings.weekNotes) this.settings.weekNotes = {};
@@ -33511,8 +33852,38 @@ var TeacherPlannerPlugin = class extends import_obsidian16.Plugin {
         }
       }
     }
+    const validTypeIds = new Set(((_f = this.settings.periodTypes) != null ? _f : []).map((pt) => pt.id));
+    const fallbackTypeId = validTypeIds.has("lesson") ? "lesson" : (_i = (_h = (_g = this.settings.periodTypes) == null ? void 0 : _g[0]) == null ? void 0 : _h.id) != null ? _i : "lesson";
+    for (const period of (_j = this.settings.academicYear.periods) != null ? _j : []) {
+      if (!validTypeIds.has(period.type)) {
+        period.type = fallbackTypeId;
+      }
+    }
+  }
+  requestSave() {
+    if (this.saveTimer) clearTimeout(this.saveTimer);
+    this.saveTimer = setTimeout(() => {
+      this.saveTimer = null;
+      this.saveSettings().catch((err) => {
+        console.error("Teacher Planner: debounced saveSettings failed.", err);
+      });
+    }, 400);
+  }
+  /** Flush any pending debounced save immediately. */
+  async flushPendingSave() {
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+      await this.saveSettings();
+    }
   }
   async saveSettings() {
+    const templates = this.settings.timetableTemplates;
+    const isValidDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s);
+    if (templates && templates.length > 0 && isValidDate(this.settings.academicYear.endDate)) {
+      const lastTmpl = [...templates].sort((a, b) => b.endDate.localeCompare(a.endDate))[0];
+      lastTmpl.endDate = this.settings.academicYear.endDate;
+    }
     this.syncSettingsToPlanner();
     await this.saveData(this.plannerData);
     this.refreshViews();
@@ -33527,6 +33898,66 @@ var TeacherPlannerPlugin = class extends import_obsidian16.Plugin {
     return void 0;
   }
 };
+/**
+ * Fields stored on the active PlannerRecord. Listed once so populate/sync
+ * stay in lockstep — adding a new planner-scoped setting only needs an
+ * entry here.
+ */
+_TeacherPlannerPlugin.PLANNER_FIELDS = [
+  "academicYear",
+  "periodTypes",
+  "subjects",
+  "classes",
+  "timetable",
+  "timetableTemplates",
+  "weekOverrides",
+  "activities",
+  "dateEvents",
+  "slotExclusions",
+  "weekNotes",
+  "notesHeight",
+  "lessonNoteTemplate",
+  "directedTime",
+  "schoolDays",
+  "plannerFolder"
+];
+/**
+ * Global (cross-planner) fields stored on plannerData. Same pattern as
+ * PLANNER_FIELDS — single source of truth for populate/sync.
+ */
+_TeacherPlannerPlugin.GLOBAL_FIELDS = [
+  "gridLineColour",
+  "gridLineWeight",
+  "blockBorderColour",
+  "blockBorderWeight",
+  "theme",
+  "themeMode"
+];
+// ── Migrations ────────────────────────────────────────────────────────────
+//
+// Schema evolution is tracked via plannerData.dataVersion. Every migration
+// is registered in MIGRATIONS with the target version it produces; the
+// runner applies any whose target exceeds the saved version, in order.
+//
+// Adding a new migration:
+//   1. Bump CURRENT_DATA_VERSION below.
+//   2. Append { to: <new>, run: ... } to MIGRATIONS.
+//   3. Keep each migration idempotent — they can be re-run on partially
+//      migrated data without breaking it.
+//
+// The cumulative legacy fix-ups (formerly runPlannerMigrations) are kept
+// as the v1 baseline. They were already designed to be safe to re-run
+// on each planner load, so they remain in the per-planner switch path too.
+_TeacherPlannerPlugin.CURRENT_DATA_VERSION = 1;
+_TeacherPlannerPlugin.MIGRATIONS = [
+  {
+    to: 1,
+    description: "Cumulative baseline \u2014 period type defaults, A/B week defaults, activity defaults, etc.",
+    run: (plugin) => plugin.runPlannerMigrations()
+  }
+  // Future migrations: add new entries here with strictly increasing `to`.
+];
+var TeacherPlannerPlugin = _TeacherPlannerPlugin;
 /*! Bundled license information:
 
 xlsx/xlsx.mjs:

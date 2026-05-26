@@ -68,6 +68,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
   /** Called by Obsidian when the settings tab is navigated away from or closed. */
   hide(): void {
+    // Flush any pending debounced save so in-flight edits land on disk
+    // before the tab tears down. Fire-and-forget — Obsidian's hide() is sync.
+    this.plugin.flushPendingSave().catch(err => {
+      console.error("Teacher Planner: flushPendingSave on settings hide failed.", err);
+    });
     const snapshot = this._snapshot;
     this._snapshot = "";
     if (!snapshot || JSON.stringify(this.plugin.settings) === snapshot) return;
@@ -88,13 +93,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     containerEl.createEl("h3", { text: "Academic Year" });
     new Setting(containerEl).setName("Planner name").setDesc('e.g. "2025-26 IB Science"')
       .addText(t => t.setPlaceholder("2025-26").setValue(this.plugin.settings.academicYear.name)
-        .onChange(async v => { this.plugin.settings.academicYear.name = v; await this.plugin.saveSettings(); }));
+        .onChange(v => { this.plugin.settings.academicYear.name = v; this.plugin.requestSave(); }));
     new Setting(containerEl).setName("Start date").setDesc("YYYY-MM-DD")
       .addText(t => t.setPlaceholder("2025-09-01").setValue(this.plugin.settings.academicYear.startDate)
-        .onChange(async v => { this.plugin.settings.academicYear.startDate = v; await this.plugin.saveSettings(); }));
+        .onChange(v => { this.plugin.settings.academicYear.startDate = v; this.plugin.requestSave(); }));
     new Setting(containerEl).setName("End date").setDesc("YYYY-MM-DD")
       .addText(t => t.setPlaceholder("2026-07-15").setValue(this.plugin.settings.academicYear.endDate)
-        .onChange(async v => { this.plugin.settings.academicYear.endDate = v; await this.plugin.saveSettings(); }));
+        .onChange(v => { this.plugin.settings.academicYear.endDate = v; this.plugin.requestSave(); }));
 
     // ── School days ────────────────────────────────────────────────────────
     const schoolDayOptions: { key: string; label: string }[] = [
@@ -161,18 +166,18 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         .setName("Contracted directed time (hours)")
         .setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts.")
         .addText(t => t.setPlaceholder("1265").setValue(String(dt.contractedHours))
-          .onChange(async v => {
+          .onChange(v => {
             const n = parseFloat(v);
-            if (!isNaN(n) && n > 0) { dt.contractedHours = n; await this.plugin.saveSettings(); }
+            if (!isNaN(n) && n > 0) { dt.contractedHours = n; this.plugin.requestSave(); }
           }));
 
       new Setting(dtPanel)
         .setName("Timetable fraction (%)")
         .setDesc("For part-time teachers. Your directed time maximum = contracted hours × this %. Default: 100 (full-time).")
         .addText(t => t.setPlaceholder("100").setValue(String(dt.timetablePercentage))
-          .onChange(async v => {
+          .onChange(v => {
             const n = parseFloat(v);
-            if (!isNaN(n) && n > 0 && n <= 100) { dt.timetablePercentage = n; await this.plugin.saveSettings(); }
+            if (!isNaN(n) && n > 0 && n <= 100) { dt.timetablePercentage = n; this.plugin.requestSave(); }
           }));
 
       // Default lesson duration: preset dropdown + optional custom input (inline show/hide)
@@ -199,9 +204,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       const customDurSetting = new Setting(dtPanel)
         .setName("Custom lesson duration (minutes)")
         .addText(t => t.setPlaceholder("e.g. 55").setValue(String(dt.defaultLessonDurationMinutes))
-          .onChange(async v => {
+          .onChange(v => {
             const n = parseInt(v);
-            if (!isNaN(n) && n > 0) { dt.defaultLessonDurationMinutes = n; await this.plugin.saveSettings(); }
+            if (!isNaN(n) && n > 0) { dt.defaultLessonDurationMinutes = n; this.plugin.requestSave(); }
           }));
       customDurSetting.settingEl.style.display = lessonDurDropValue === "custom" ? "" : "none";
 
@@ -322,18 +327,17 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     // Column headers
     const activityHeaders = containerEl.createDiv("tp-activity-row tp-activity-headers");
-    activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;"; // colour swatch placeholder
-    const makeHeader = (text: string, extraStyle = "") => {
-      const h = activityHeaders.createEl("span", { text, cls: "tp-activity-header-label" });
-      if (extraStyle) h.style.cssText = extraStyle;
-      return h;
+    activityHeaders.createDiv("tp-activity-header-spacer"); // colour swatch placeholder
+    const makeHeader = (text: string, extraCls = "") => {
+      const cls = "tp-activity-header-label" + (extraCls ? " " + extraCls : "");
+      return activityHeaders.createEl("span", { text, cls });
     };
     makeHeader("Name");
     makeHeader("Info");
     makeHeader("Classroom");
-    makeHeader("Duration", "flex:0 0 54px;width:54px;");
-    activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;"; // archive btn placeholder
-    activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;"; // delete btn placeholder
+    makeHeader("Duration", "tp-activity-header-label--dur");
+    activityHeaders.createDiv("tp-activity-header-spacer"); // archive btn placeholder
+    activityHeaders.createDiv("tp-activity-header-spacer"); // delete btn placeholder
 
     const activitiesContainer = containerEl.createDiv("tp-activities-list");
     this.renderActivitiesList(activitiesContainer, "directed");
@@ -365,7 +369,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     containerEl.createEl("h3", { text: "Vault" });
     new Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created")
       .addText(t => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder)
-        .onChange(async v => { this.plugin.settings.plannerFolder = v; await this.plugin.saveSettings(); }));
+        .onChange(v => { this.plugin.settings.plannerFolder = v; this.plugin.requestSave(); }));
 
     // ── Grid Visuals ───────────────────────────────────────────────────────
     containerEl.createEl("h3", { text: "Grid Visuals" });
@@ -411,7 +415,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName("Period block border weight").setDesc("Thickness of period band borders in pixels (1-4).")
       .addSlider(s => s.setLimits(1, 4, 1).setValue(this.plugin.settings.blockBorderWeight ?? 1)
         .setDynamicTooltip()
-        .onChange(async v => { this.plugin.settings.blockBorderWeight = v; await this.plugin.saveSettings(); }));
+        .onChange(v => { this.plugin.settings.blockBorderWeight = v; this.plugin.requestSave(); }));
 
     const gridColourSetting = new Setting(containerEl)
       .setName("Time grid line colour")
@@ -453,7 +457,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).")
       .addSlider(s => s.setLimits(1, 4, 1).setValue(this.plugin.settings.gridLineWeight ?? 1)
         .setDynamicTooltip()
-        .onChange(async v => { this.plugin.settings.gridLineWeight = v; await this.plugin.saveSettings(); }));
+        .onChange(v => { this.plugin.settings.gridLineWeight = v; this.plugin.requestSave(); }));
 
     // ── Export ────────────────────────────────────────────────────────────
     containerEl.createEl("h3", { text: "Export" });
@@ -867,7 +871,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       durInput.min = "1";
       durInput.max = "480";
       durInput.title = "Default duration for this activity (minutes)";
-      durInput.style.width = "54px";
+      // Width handled by .tp-dur-input class (responsive on narrow viewports)
       durInput.addEventListener("change", async () => {
         const n = parseInt(durInput.value);
         activity.durationMinutes = isNaN(n) || durInput.value === "" ? undefined : n;
@@ -1249,5 +1253,7 @@ class DeletePlannerModal extends Modal {
         }));
   }
 
-  onClose() { this.contentEl.empty(); }
+  onClose() {
+    this.contentEl.empty();
+  }
 }

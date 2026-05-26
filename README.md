@@ -2,7 +2,7 @@
 
 > A customisable academic planner for teachers — not just a calendar. Track your timetable, monitor workload, and keep lesson notes, all inside your Obsidian vault.
 
-![Screenshot placeholder — week view](docs/screenshot-week-view.png)
+![Week view](docs/week-view.gif)
 
 ---
 
@@ -70,7 +70,11 @@ Define the types of slot that make up your school day — Lesson, Break, Registr
 
 ## Screenshots
 
-*Screenshots coming soon. In the meantime, see the [Features](#features) section above.*
+**Adding a special event:**
+![Adding an event](docs/add-event.gif)
+
+**Timetable editor:**
+![Timetable editor](docs/timetable-editor.gif)
 
 ---
 

@@ -199,6 +199,7 @@ export interface PlannerRecord {
   schoolDays: SchoolDay[];
 }
 
+
 /**
  * Top-level structure persisted to data.json in the multi-planner format.
  * Visual/vault preferences that apply across all planners live here.
@@ -206,9 +207,24 @@ export interface PlannerRecord {
 export interface GlobalPluginData {
   /** Sentinel that distinguishes the new format from the legacy flat object. */
   _version: 2;
+  /**
+   * Schema/migration version. Incremented by main.ts whenever a new ordered
+   * migration is added. Use this in preference to the older _version sentinel
+   * for any future schema evolution — _version is reserved for the
+   * legacy-vs-multi-planner format split only.
+   */
+  dataVersion?: number;
   activePlannerId: string;
   /** Root vault folder. Subfolders per planner are created inside it. Default: "Teacher Planner". */
   rootPlannerFolder: string;
   /** These visual settings are global — shared across all planners. */
   gridLineColour: string;
-  gridLineWeight: n
+  gridLineWeight: number;
+  blockBorderColour: string;
+  blockBorderWeight: number;
+  /** Optional global theme overrides — applied via the data-tp-theme attribute. */
+  theme?: PlannerTheme;
+  themeMode?: PlannerThemeMode;
+  /** All planner records. Always at least one once setup is complete; empty array triggers the wizard. */
+  planners: PlannerRecord[];
+}

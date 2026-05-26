@@ -1,10 +1,17 @@
 import { App, Modal, Notice, TFile } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import * as XLSX from "xlsx";
+import {
+  ExportDestination,
+  renderDestinationPicker,
+  writeSystemFile,
+  joinSystemPath,
+} from "../utils/exportDestination";
 import { calcDirectedTime, fmtMins, minsToDecimalHours } from "../utils/directedTimeUtils";
 
 export class DirectedTimeExportModal extends Modal {
   private plugin: TeacherPlannerPlugin;
+  private destination: ExportDestination = { mode: "vault", vaultPath: "", systemPath: null };
 
   constructor(app: App, plugin: TeacherPlannerPlugin) {
     super(app);
@@ -29,6 +36,10 @@ export class DirectedTimeExportModal extends Modal {
       text: `Effective contracted maximum: ${effectiveHours.toFixed(1)}h  (${dt.contractedHours}h × ${dt.timetablePercentage}%)`,
       cls: "tp-modal-label",
     });
+
+    // Destination (vault or computer)
+    this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
+    renderDestinationPicker(body, this.destination, (this.app as any).isMobile === true);
 
     const footer = contentEl.createDiv("tp-modal-footer");
     footer.createEl("button", { text: "Cancel", cls: "tp-btn" })
@@ -114,11 +125,23 @@ export class DirectedTimeExportModal extends Modal {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(breakdownData), "Weekly Breakdown");
 
     // ── Write ──────────────────────────────────────────────────────────────
-    const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as Uint8Array;
+    const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
     const safeName = ayName.replace(/[^a-z0-9]/gi, "-");
-    const path = `${folder}/directed-time-${safeName}.xlsx`;
-    await (this.app.vault.adapter as any).writeBinary(path, buf.buffer);
-    new Notice(`Directed time exported to ${path}`);
+    const filename = `directed-time-${safeName}.xlsx`;
+
+    if (this.destination.mode === "system" && this.destination.systemPath) {
+      const absPath = joinSystemPath(this.destination.systemPath, filename);
+      await writeSystemFile(absPath, buf);
+      new Notice(`Directed time exported to ${absPath}`);
+    } else {
+      const vaultFolder = this.destination.vaultPath || folder;
+      if (!this.app.vault.getAbstractFileByPath(vaultFolder)) {
+        try { await this.app.vault.createFolder(vaultFolder); } catch {}
+      }
+      const path = `${vaultFolder}/${filename}`;
+      await (this.app.vault.adapter as any).writeBinary(path, buf);
+      new Notice(`Directed time exported to ${path}`);
+    }
   }
 
   onClose() { this.contentEl.empty(); }

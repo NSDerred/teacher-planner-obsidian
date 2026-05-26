@@ -106,13 +106,14 @@
     doSwitchTemplate(id);
   }
 
-  // ── Past-template warning ──────────────────────────────────────────────────
+  // ── Template edit warning ─────────────────────────────────────────────────
   const today = new Date().toISOString().slice(0, 10);
   $: isPast = activeTemplate ? activeTemplate.endDate < today : false;
   let showPastConfirm = false;
+  let warnCollapsed = false;
 
-  // Reset confirmation when switching templates
-  $: if (activeTemplateId) { showPastConfirm = false; }
+  // Reset warning state when switching templates
+  $: if (activeTemplateId) { showPastConfirm = false; warnCollapsed = false; }
 
   // ── Template rename ────────────────────────────────────────────────────────
   let renamingId: string | null = null;
@@ -451,17 +452,37 @@
     </div>
   </div>
 
-  <!-- ── Past-template warning ──────────────────────────────────────────────── -->
-  {#if isPast}
-    <div class="tp-te-past-warn">
-      {#if showPastConfirm}
-        <span>⚠️ Saving will change historical records. Continue?</span>
-        <button class="tp-te-past-confirm-btn" on:click={confirmPastSave}>Yes, save anyway</button>
-        <button class="tp-te-past-cancel-btn" on:click={() => showPastConfirm = false}>Cancel</button>
-      {:else}
-        <span>⚠️ This timetable ended {fmtDate(activeTemplate.endDate)}. Editing will affect historical records.</span>
-      {/if}
-    </div>
+  <!-- ── Template edit warning ────────────────────────────────────────────── -->
+  {#if activeTemplate}
+    {#if warnCollapsed}
+      <div class="tp-te-edit-warn tp-te-edit-warn--collapsed">
+        <span class="tp-te-edit-warn-pill">⚠️ Warning hidden</span>
+        <button class="tp-te-edit-warn-show-btn" on:click={() => warnCollapsed = false}>Show</button>
+      </div>
+    {:else if showPastConfirm}
+      <div class="tp-te-edit-warn tp-te-edit-warn--confirm">
+        <span>⚠️ This template ended {fmtDate(activeTemplate.endDate)}. Saving will change historical records. Continue?</span>
+        <div class="tp-te-edit-warn-actions">
+          <button class="tp-te-past-confirm-btn" on:click={confirmPastSave}>Yes, save anyway</button>
+          <button class="tp-te-past-cancel-btn" on:click={() => showPastConfirm = false}>Cancel</button>
+        </div>
+      </div>
+    {:else}
+      <div class="tp-te-edit-warn">
+        <div class="tp-te-edit-warn-body">
+          <span class="tp-te-edit-warn-icon">⚠️</span>
+          <div class="tp-te-edit-warn-text">
+            {#if isPast}
+              <strong>This template ended {fmtDate(activeTemplate.endDate)}.</strong>{" "}
+            {/if}
+            Editing this template affects your directed time records for all weeks it covers. If your timetable has changed, create a new template from the date of the change to keep records accurate.
+          </div>
+        </div>
+        <div class="tp-te-edit-warn-actions">
+          <button class="tp-te-past-cancel-btn" title="Dismiss warning" on:click={() => warnCollapsed = true}>Dismiss</button>
+        </div>
+      </div>
+    {/if}
   {/if}
 
   <!-- ── A/B week tabs ──────────────────────────────────────────────────────── -->
@@ -708,7 +729,7 @@
   .tp-te-tmpl-bar { display: flex; align-items: flex-start; gap: 8px; padding: 8px 48px 12px 0; flex-shrink: 0; flex-wrap: wrap; }
   .tp-te-tmpl-tabs { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; min-width: 0; }
   .tp-te-tmpl-tab-wrap { display: flex; align-items: center; gap: 2px; }
-  .tp-te-tmpl-tab { display: flex; flex-direction: column; align-items: flex-start; padding: 10px 14px; border-radius: 6px; border: 1px solid var(--background-modifier-border); background: var(--background-secondary); color: var(--text-muted); font-size: 13px; cursor: pointer; transition: all 0.15s; text-align: left; }
+  .tp-te-tmpl-tab { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 10px 16px 11px; min-height: 54px; border-radius: 6px; border: 1px solid var(--background-modifier-border); background: var(--background-secondary); color: var(--text-normal); font-size: 13px; cursor: pointer; transition: all 0.15s; text-align: left; }
   .tp-te-tmpl-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); border-color: var(--interactive-accent); }
   .tp-te-tmpl-tab--past:not(.tp-te-tmpl-tab--active) { opacity: 0.65; }
   .tp-te-tmpl-name { font-weight: 600; line-height: 1.2; }
@@ -724,15 +745,23 @@
   .tp-te-tmpl-del-btn:hover { opacity: 1; }
   .tp-te-tmpl-del-btn :global(svg) { width: 15px; height: 15px; }
 
-  /* ── Past-template warning ───────────────────────────────────────────────── */
-  .tp-te-past-warn { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 12px; margin-bottom: 12px; background: color-mix(in srgb, var(--color-yellow, #f59e0b) 12%, transparent); border: 1px solid var(--color-yellow, #f59e0b); border-radius: 6px; font-size: 13px; color: var(--text-normal); flex-shrink: 0; }
+  /* ── Template edit warning ───────────────────────────────────────────────── */
+  .tp-te-edit-warn { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 10px 12px; margin-bottom: 12px; background: color-mix(in srgb, var(--color-yellow, #f59e0b) 12%, transparent); border: 1px solid var(--color-yellow, #f59e0b); border-radius: 6px; font-size: 13px; color: var(--text-normal); flex-shrink: 0; }
+  .tp-te-edit-warn--collapsed { align-items: center; padding: 6px 12px; }
+  .tp-te-edit-warn--confirm { align-items: center; }
+  .tp-te-edit-warn-body { display: flex; align-items: flex-start; gap: 8px; flex: 1; min-width: 0; }
+  .tp-te-edit-warn-icon { flex-shrink: 0; }
+  .tp-te-edit-warn-text { line-height: 1.5; }
+  .tp-te-edit-warn-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-top: 2px; }
+  .tp-te-edit-warn-pill { color: var(--text-muted); font-size: 12px; }
+  .tp-te-edit-warn-show-btn { padding: 3px 10px; border-radius: 4px; border: 1px solid var(--background-modifier-border); background: transparent; color: var(--text-normal); font-size: 12px; cursor: pointer; }
   .tp-te-past-confirm-btn { padding: 4px 12px; border-radius: 4px; border: none; background: var(--color-red, #f38ba8); color: #fff; font-size: 12px; cursor: pointer; }
   .tp-te-past-cancel-btn { padding: 4px 12px; border-radius: 4px; border: 1px solid var(--background-modifier-border); background: transparent; color: var(--text-normal); font-size: 12px; cursor: pointer; }
 
   /* ── Week tabs ────────────────────────────────────────────────────────────── */
   .tp-te-week-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-shrink: 0; }
-  .tp-te-week-tab { padding: 6px 20px; border-radius: 6px; border: 1px solid var(--background-modifier-border); background: var(--background-secondary); color: var(--text-muted); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-  .tp-te-week-tab--active { background: var(--interactive-accent); color: #fff; border-color: var(--interactive-accent); }
+  .tp-te-week-tab { padding: 6px 20px; border-radius: 6px; border: 1px solid var(--background-modifier-border); background: var(--background-secondary); color: var(--text-normal); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .tp-te-week-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); border-color: var(--interactive-accent); }
 
   /* ── Grid ─────────────────────────────────────────────────────────────────── */
   .tp-te-grid-wrap { overflow: auto; max-height: 55vh; border: 1px solid var(--background-modifier-border); border-radius: 8px; }
