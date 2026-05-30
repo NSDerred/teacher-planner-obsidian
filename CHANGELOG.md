@@ -5,6 +5,16 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] — 2026-05-30
+
+Documentation-only release addressing remaining scorecard warnings.
+
+### Changed
+
+- Removed the "(coming soon)" placeholder from the README's install section now that the plugin is live in the Community Plugins browser
+- Updated install steps to include the **Browse** click that's actually required
+- Added a **Security** section to the README explaining that the plugin uses `xlsx` (SheetJS) only to generate export files — it never parses user-supplied Excel input, so the library's known prototype-pollution and ReDoS vulnerabilities are not exposed as a vector
+
 ## [0.1.1] — 2026-05-26
 
 Polish release addressing automated review warnings.

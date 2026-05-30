@@ -50,10 +50,10 @@ Define the types of slot that make up your school day — Lesson, Break, Registr
 
 ## Installation
 
-### From the Obsidian Community Plugins list *(coming soon)*
+### From the Obsidian Community Plugins list
 
 1. Open Obsidian → **Settings → Community Plugins**
-2. Search for **Teacher Planner**
+2. Click **Browse** and search for **Teacher Planner**
 3. Click **Install**, then **Enable**
 
 ### Manual install
@@ -150,6 +150,17 @@ src/
 ```
 
 </details>
+
+---
+
+## Security
+
+Teacher Planner uses the `xlsx` (SheetJS) library to **generate** Excel
+workbooks for the export features. It does not read or parse user-supplied
+Excel files. Known vulnerabilities in `xlsx` (CVE-2023-30533 prototype
+pollution and ReDoS issues) require maliciously crafted input to exploit,
+which is not a vector here. If you need to import data into the plugin,
+use the in-app UI rather than feeding it Excel files.
 
 ---
 
