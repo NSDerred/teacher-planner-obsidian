@@ -5,6 +5,21 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] — 2026-05-26
+
+Polish release addressing automated review warnings.
+
+### Changed
+
+- Replaced `!important` CSS rules with specificity-based selectors
+- Restructured LICENSE so the canonical GPL-3.0 text appears first for accurate license detection (dual-licensing notice moved to a footer)
+- esbuild config now imports `builtinModules` from Node's built-in `module` package; the `builtin-modules` dependency has been removed
+- Fixed placeholder URL in the generated bundle banner
+
+### Removed
+
+- `builtin-modules` from `package.json` dependencies (no behaviour change)
+
 ## [0.1.0] — 2026-05-26
 
 Initial public release.

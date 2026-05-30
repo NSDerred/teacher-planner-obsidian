@@ -1,7 +1,7 @@
 {
   "id": "teacher-planner",
   "name": "Teacher Planner",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "minAppVersion": "1.4.0",
   "description": "Academic year planner for teachers — timetable management, lesson tracking, and weekly planning.",
   "author": "Nick Smith",

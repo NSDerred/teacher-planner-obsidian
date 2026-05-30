@@ -4,11 +4,12 @@
    ══════════════════════════════════════════════════════════════════════════════ */
 
 /* ── Root container ─────────────────────────────────────────────────────────── */
+.workspace-leaf-content .tp-root,
 .tp-root {
   height: 100%;
   flex: 1 1 auto;      /* stretch inside Obsidian's leaf flex container on mobile */
   min-height: 0;
-  padding: 0 !important;
+  padding: 0;
   overflow: hidden;
   font-size: max(11px, var(--font-ui-small));
   display: flex;
@@ -482,7 +483,7 @@
 .tp-preset-swatches { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
 .tp-preset-swatch { width: 18px; height: 18px; border-radius: 3px; border: 2px solid transparent; cursor: pointer; flex-shrink: 0; transition: transform 0.1s, border-color 0.1s; padding: 0; }
 .tp-preset-swatch:hover { transform: scale(1.15); border-color: var(--text-muted); }
-.tp-preset-swatch--active { border-color: var(--interactive-accent) !important; }
+.tp-preset-swatches .tp-preset-swatch--active { border-color: var(--interactive-accent); }
 
 /* ── Slate dark ── */
 [data-tp-theme="slate"][data-tp-mode="dark"] {

@@ -1,26 +1,3 @@
-Teacher Planner — Obsidian Plugin
-Copyright (C) 2026 Nick Smith
-
-This software is dual-licensed at the recipient's choice. You may use it
-under EITHER of the following:
-
-  1. The GNU General Public License v3.0 ("GPL-3.0"), the full text of
-     which appears below. This is the default option. Use it if you are
-     happy to comply with the GPL's copyleft / source-disclosure
-     requirements when distributing modified versions.
-
-  2. A separate commercial license, available from the author. Use this
-     if you want to incorporate this software into a closed-source
-     product, or otherwise avoid GPL-3.0's copyleft requirements. See
-     COMMERCIAL-LICENSE.md for terms and contact details.
-
-The two options are mutually exclusive for any given use. By using,
-copying, or modifying this software you accept the terms of one of them.
-
-For commercial licensing enquiries: nicholas.f.smith@pm.me
-
-================================================================================
-
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -695,3 +672,20 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
+
+================================================================================
+
+DUAL LICENSING NOTICE
+─────────────────────
+Teacher Planner — Obsidian Plugin
+Copyright (C) 2026 Nick Smith
+
+This software is dual-licensed at the recipient's choice. You may use it
+under EITHER:
+
+  1. The GNU General Public License v3.0, the text of which appears above.
+     This is the default option.
+
+  2. A separate commercial license — see COMMERCIAL-LICENSE.md.
+
+For commercial licensing enquiries: nicholas.f.smith@pm.me
