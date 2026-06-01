@@ -9,6 +9,7 @@ import { ExportModal } from "../modals/ExportModal";
 import { DirectedTimeExportModal } from "../modals/DirectedTimeExportModal";
 import { TFile } from "obsidian";
 import { SetupWizardModal } from "../modals/SetupWizardModal";
+import { EditPlannerModal } from "../modals/EditPlannerModal";
 
 // ── Subject emoji picker ───────────────────────────────────────────────────────
 
@@ -525,6 +526,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           new DeletePlannerModal(this.app, this.plugin, p.id, p.name, isLast, () => this.display()).open();
         });
       } else {
+        const editBtn = actions.createEl("button", { text: "Edit", cls: "tp-btn tp-btn--primary" });
+        editBtn.addEventListener("click", () => {
+          new EditPlannerModal(this.app, this.plugin, () => this.display()).open();
+        });
         // Active planner — delete disabled with tooltip
         const disabledDel = actions.createEl("button", {
           text: "Delete",
@@ -586,6 +591,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       container.createEl("p", { text: "No periods defined.", cls: "setting-item-description" });
       return;
     }
+    this.sortPeriods();
     for (let i = 0; i < periods.length; i++) this.renderPeriodRow(container, periods[i], i);
   }
 

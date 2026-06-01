@@ -63,9 +63,9 @@ export class SetupWizardModal extends Modal {
       endDate:                      ay.endDate,
       weekOverrides:                [
         { startDate: "2025-10-27", endDate: "2025-10-31", type: "holiday", label: "Autumn Half Term" },
-        { startDate: "2025-12-22", endDate: "2026-01-02", type: "holiday", label: "Christmas" },
+        { startDate: "2025-12-22", endDate: "2026-01-02", type: "holiday", label: "Winter Break" },
         { startDate: "2026-02-16", endDate: "2026-02-20", type: "holiday", label: "Spring Half Term" },
-        { startDate: "2026-04-01", endDate: "2026-04-17", type: "holiday", label: "Easter" },
+        { startDate: "2026-04-01", endDate: "2026-04-17", type: "holiday", label: "Spring Break" },
         { startDate: "2026-05-25", endDate: "2026-05-29", type: "holiday", label: "May Half Term" },
       ],
       schoolDays:                   [...DEFAULT_PLANNER.schoolDays] as SchoolDay[],
@@ -404,12 +404,20 @@ export class SetupWizardModal extends Modal {
         });
       }
 
-      new Setting(listEl).addButton(btn => btn.setButtonText("+ Add holiday / INSET").setCta()
-        .onClick(() => {
-          const today = new Date().toISOString().slice(0, 10);
-          this.state.weekOverrides.push({ startDate: today, type: "holiday" });
-          renderOverrides();
-        }));
+      new Setting(listEl)
+        .addButton(btn => btn.setButtonText("+ Add holiday / INSET").setCta()
+          .onClick(() => {
+            const today = new Date().toISOString().slice(0, 10);
+            this.state.weekOverrides.push({ startDate: today, type: "holiday" });
+            renderOverrides();
+          }))
+        .addButton(btn => btn.setButtonText("Clear all").setWarning()
+          .onClick(() => {
+            if (this.state.weekOverrides.length === 0) return;
+            if (!confirm("Remove all holidays and INSET days?")) return;
+            this.state.weekOverrides = [];
+            renderOverrides();
+          }));
     };
     renderOverrides();
 
@@ -544,17 +552,36 @@ export class SetupWizardModal extends Modal {
             s.setDesc(`${p.start} \u2013 ${p.end}`);
           });
         });
+        s.addDropdown(d => {
+          const types = this.state.periodTypes ?? [];
+          if (types.length === 0) {
+            d.addOption("lesson", "Lesson").addOption("break", "Break")
+             .addOption("registration", "Registration").addOption("free", "Free");
+          } else {
+            for (const pt of types) d.addOption(pt.id, pt.label);
+          }
+          d.setValue(p.type).onChange(v => { p.type = v; });
+        });
         s.addExtraButton(btn => btn.setIcon("trash").setTooltip("Remove").onClick(() => {
           this.state.periods = this.state.periods.filter(x => x.id !== p.id);
           renderList();
         }));
       }
 
-      new Setting(listEl).addButton(btn => btn.setButtonText("+ Add period").setCta()
-        .onClick(() => {
-          this.state.periods.push({ id: "p-" + Date.now(), name: "New Period", start: "09:00", end: "10:00", type: "lesson" });
-          renderList();
-        }));
+      new Setting(listEl)
+        .addButton(btn => btn.setButtonText("+ Add period").setCta()
+          .onClick(() => {
+            const defaultType = this.state.periodTypes?.[0]?.id ?? "lesson";
+            this.state.periods.push({ id: "p-" + Date.now(), name: "New Period", start: "09:00", end: "10:00", type: defaultType });
+            renderList();
+          }))
+        .addButton(btn => btn.setButtonText("Clear all").setWarning()
+          .onClick(() => {
+            if (this.state.periods.length === 0) return;
+            if (!confirm("Remove all school periods?")) return;
+            this.state.periods = [];
+            renderList();
+          }));
     };
     renderList();
 
