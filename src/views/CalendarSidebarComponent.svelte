@@ -2,7 +2,8 @@
   import type TeacherPlannerPlugin from "../main";
   import { getMondayOfWeek, weekKey } from "../utils/weekUtils";
   import { calcDirectedTime, fmtMins } from "../utils/directedTimeUtils";
-  import { setIcon } from "obsidian";
+  import { setIcon, MarkdownRenderer } from "obsidian";
+  import { tick } from "svelte";
 
   function icon(node: HTMLElement, name: string) {
     setIcon(node, name);
@@ -98,12 +99,105 @@
     return `Notes for week commencing ${d}:`;
   })();
 
-  async function onNotesBlur(e: FocusEvent) {
-    const v = (e.currentTarget as HTMLTextAreaElement).value;
+  // ── Notes: edit / preview state ─────────────────────────────────────────
+  let editing = false;
+  let textareaEl: HTMLTextAreaElement;
+  let previewEl: HTMLDivElement;
+
+  // Re-render the markdown preview whenever the note text changes (and we're not editing)
+  $: if (!editing && previewEl !== undefined) renderPreview(notesValue);
+
+  async function renderPreview(md: string) {
+    if (!previewEl) return;
+    previewEl.empty();
+    if (!md || !md.trim()) return;
+    await MarkdownRenderer.render(plugin.app, md, previewEl, "", plugin as any);
+  }
+
+  async function enterEdit() {
+    editing = true;
+    await tick();
+    textareaEl?.focus();
+  }
+
+  async function persistFrom(v: string, refresh = false) {
     if (!plugin.settings.weekNotes) plugin.settings.weekNotes = {};
     plugin.settings.weekNotes[currentWeekKey] = v;
     await plugin.saveSettings();
+    if (refresh) invalidate();
   }
+
+  async function onNotesBlur(e: FocusEvent) {
+    await persistFrom((e.currentTarget as HTMLTextAreaElement).value, true);
+    editing = false;
+  }
+
+  // ── Notes: formatting toolbar ────────────────────────────────────────
+  const HL_YELLOW = "#fff3a3";
+  const HL_COLOURS = [
+    { name: "Yellow", value: HL_YELLOW },
+    { name: "Green",  value: "#c3f0c8" },
+    { name: "Blue",   value: "#b6dcfb" },
+    { name: "Pink",   value: "#f7c6da" },
+    { name: "Orange", value: "#ffd5a8" },
+  ];
+  let lastHighlight = HL_YELLOW;
+  let showSwatches = false;
+
+  function ensureEditing() {
+    if (!editing) editing = true;
+  }
+
+  // Wrap the current selection (or drop the cursor between the markers)
+  function wrapSelection(before: string, after: string) {
+    ensureEditing();
+    const ta = textareaEl;
+    if (!ta) return;
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const val = ta.value;
+    const sel = val.slice(s, e);
+    ta.value = val.slice(0, s) + before + sel + after + val.slice(e);
+    const caret = sel ? s + before.length + sel.length + after.length : s + before.length;
+    ta.setSelectionRange(caret, caret);
+    ta.focus();
+    persistFrom(ta.value);
+  }
+
+  // Add a per-line prefix across the selected lines (heading / lists)
+  function linePrefix(kind: "heading" | "bullet" | "number") {
+    ensureEditing();
+    const ta = textareaEl;
+    if (!ta) return;
+    const val = ta.value;
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const lineStart = val.lastIndexOf("\n", s - 1) + 1;
+    let lineEnd = val.indexOf("\n", e);
+    if (lineEnd === -1) lineEnd = val.length;
+    const lines = val.slice(lineStart, lineEnd).split("\n");
+    const out = lines.map((ln, i) => {
+      const bare = ln.replace(/^(#{1,6}\s+|[-*]\s+|\d+\.\s+)/, "");
+      if (kind === "heading") return ln.startsWith("## ") ? bare : "## " + bare;
+      if (kind === "bullet")  return /^[-*]\s+/.test(ln) ? bare : "- " + bare;
+      return /^\d+\.\s+/.test(ln) ? bare : (i + 1) + ". " + bare;
+    }).join("\n");
+    ta.value = val.slice(0, lineStart) + out + val.slice(lineEnd);
+    ta.setSelectionRange(lineStart, lineStart + out.length);
+    ta.focus();
+    persistFrom(ta.value);
+  }
+
+  function applyHighlight(colour: string) {
+    if (colour === HL_YELLOW) wrapSelection("==", "==");
+    else wrapSelection(`<mark style="background:${colour}">`, "</mark>");
+    lastHighlight = colour;
+    showSwatches = false;
+  }
+
+  function toggleSwatches(e: MouseEvent) {
+    e.stopPropagation();
+    showSwatches = !showSwatches;
+  }
+  function closeSwatches() { showSwatches = false; }
 
   // ── Directed time panel ───────────────────────────────────────────────────
   $: dtEnabled = plugin.settings.directedTime?.enabled ?? false;
@@ -116,7 +210,7 @@
   const DAY_LABELS  = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 </script>
 
-<svelte:window />
+<svelte:window on:mousedown={closeSwatches} />
 
 <div class="tp-sidebar">
 
@@ -157,12 +251,60 @@
 
   <!-- ── Week notes ──────────────────────────────────────────────────────── -->
   <div class="tp-sb-notes">
-    <textarea
-      class="tp-sb-notes-textarea"
-      placeholder={notesPlaceholder}
-      value={notesValue}
-      on:blur={onNotesBlur}
-    ></textarea>
+    <!-- Formatting toolbar -->
+    <div class="tp-sb-notes-toolbar">
+      <button class="tp-fmt-btn" aria-label="Bold" title="Bold"
+              on:mousedown|preventDefault={() => wrapSelection("**", "**")} use:icon={"bold"}></button>
+      <button class="tp-fmt-btn" aria-label="Italic" title="Italic"
+              on:mousedown|preventDefault={() => wrapSelection("*", "*")} use:icon={"italic"}></button>
+      <button class="tp-fmt-btn" aria-label="Heading" title="Heading"
+              on:mousedown|preventDefault={() => linePrefix("heading")} use:icon={"heading"}></button>
+      <span class="tp-fmt-sep"></span>
+      <button class="tp-fmt-btn" aria-label="Bullet list" title="Bullet list"
+              on:mousedown|preventDefault={() => linePrefix("bullet")} use:icon={"list"}></button>
+      <button class="tp-fmt-btn" aria-label="Numbered list" title="Numbered list"
+              on:mousedown|preventDefault={() => linePrefix("number")} use:icon={"list-ordered"}></button>
+      <span class="tp-fmt-sep"></span>
+      <div class="tp-fmt-hl">
+        <button class="tp-fmt-btn tp-fmt-hl-main" aria-label="Highlight" title="Highlight"
+                on:mousedown|preventDefault={() => applyHighlight(lastHighlight)}>
+          <span use:icon={"highlighter"}></span>
+          <span class="tp-fmt-hl-bar" style="background:{lastHighlight}"></span>
+        </button>
+        <button class="tp-fmt-btn tp-fmt-hl-caret" aria-label="Highlight colour"
+                on:mousedown|preventDefault={toggleSwatches} use:icon={"chevron-down"}></button>
+        {#if showSwatches}
+          <div class="tp-fmt-swatches" on:mousedown={(e) => e.stopPropagation()}>
+            {#each HL_COLOURS as c}
+              <span class="tp-fmt-swatch" title={c.name} style="background:{c.value}"
+                    class:tp-fmt-swatch--active={c.value === lastHighlight}
+                    role="button" tabindex="0"
+                    on:mousedown|preventDefault={() => applyHighlight(c.value)}></span>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Editor + rendered preview overlay -->
+    <div class="tp-sb-notes-body">
+      <textarea
+        class="tp-sb-notes-textarea"
+        bind:this={textareaEl}
+        placeholder={notesPlaceholder}
+        value={notesValue}
+        on:blur={onNotesBlur}
+      ></textarea>
+      <div
+        class="tp-sb-notes-preview"
+        class:tp-sb-notes-preview--hidden={editing || !notesValue.trim()}
+        bind:this={previewEl}
+        role="button"
+        tabindex="0"
+        on:click={enterEdit}
+        on:keydown={(e) => e.key === "Enter" && enterEdit()}
+      ></div>
+    </div>
   </div>
 
   <!-- ── Directed time panel ─────────────────────────────────────────────── -->
@@ -281,6 +423,44 @@
     border: 1px solid var(--background-modifier-border);
     overflow: hidden; min-height: 60px;
   }
+
+  /* Toolbar */
+  .tp-sb-notes-toolbar {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 1px;
+    padding: 4px 5px;
+    border-bottom: 1px solid var(--background-modifier-border);
+  }
+  .tp-fmt-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; padding: 0;
+    background: transparent; border: none; border-radius: 5px;
+    color: var(--text-muted); cursor: pointer; box-shadow: none;
+  }
+  .tp-fmt-btn:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+  .tp-fmt-btn :global(svg) { width: 15px; height: 15px; }
+  .tp-fmt-sep { width: 1px; height: 16px; background: var(--background-modifier-border); margin: 0 3px; }
+
+  /* Highlight split button + swatches */
+  .tp-fmt-hl { position: relative; display: inline-flex; align-items: center; }
+  .tp-fmt-hl-main { flex-direction: column; gap: 1px; width: 26px; }
+  .tp-fmt-hl-bar { width: 14px; height: 3px; border-radius: 1px; }
+  .tp-fmt-hl-caret { width: 16px; }
+  .tp-fmt-hl-caret :global(svg) { width: 11px; height: 11px; }
+  .tp-fmt-swatches {
+    position: absolute; top: 30px; right: 0; z-index: 30;
+    display: flex; gap: 6px; padding: 7px;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 7px; box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+  .tp-fmt-swatch {
+    width: 18px; height: 18px; border-radius: 4px; cursor: pointer;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+  }
+  .tp-fmt-swatch--active { box-shadow: 0 0 0 2px var(--text-normal); }
+
+  /* Editor body + preview overlay */
+  .tp-sb-notes-body { position: relative; flex: 1; display: flex; min-height: 0; }
   .tp-sb-notes-textarea {
     flex: 1; resize: none; width: 100%;
     box-sizing: border-box; padding: 10px 12px;
@@ -289,6 +469,20 @@
     font-family: var(--font-text); font-size: 13px; line-height: 1.5;
   }
   .tp-sb-notes-textarea::placeholder { color: var(--text-faint); font-style: italic; font-size: 12px; }
+  .tp-sb-notes-preview {
+    position: absolute; inset: 0; overflow-y: auto; cursor: text;
+    padding: 4px 12px 10px;
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    font-family: var(--font-text); font-size: 13px; line-height: 1.5;
+  }
+  .tp-sb-notes-preview--hidden { display: none; }
+  .tp-sb-notes-preview :global(p) { margin: 6px 0; }
+  .tp-sb-notes-preview :global(ul),
+  .tp-sb-notes-preview :global(ol) { margin: 6px 0; padding-left: 20px; }
+  .tp-sb-notes-preview :global(h1),
+  .tp-sb-notes-preview :global(h2),
+  .tp-sb-notes-preview :global(h3) { margin: 8px 0 4px; line-height: 1.3; }
 
   /* ── Directed time panel ──────────────────────────────────────────────── */
   .tp-sb-dt {
