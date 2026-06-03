@@ -484,3 +484,5 @@ export default class TeacherPlannerPlugin extends Plugin {
     return undefined;
   }
 }
+
+}
