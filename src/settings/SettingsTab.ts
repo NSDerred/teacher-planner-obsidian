@@ -2,7 +2,8 @@
 import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity } from "../types";
-import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE } from "../settings";
+import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR } from "../settings";
+import { resolveColour, isThemeToken } from "../utils/themeColours";
 import ColourPickerComponent from "../modals/ColourPickerComponent.svelte";
 import { AddPeriodModal } from "../modals/AddPeriodModal";
 import { ExportModal } from "../modals/ExportModal";
@@ -259,11 +260,23 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     this.renderPeriodTypesList(periodTypesContainer);
     new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add block type").setCta()
       .onClick(async () => {
-        this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: "#b4befe" });
+        this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: FALLBACK_PERIOD_TYPE_COLOUR });
         await this.plugin.saveSettings();
         periodTypesContainer.empty();
         this.renderPeriodTypesList(periodTypesContainer);
-      }));
+      }))
+      .addButton(btn => btn.setButtonText("Reset all colours to theme")
+        .setTooltip("Discard custom block colours and follow your Obsidian theme")
+        .onClick(async () => {
+          if (!confirm("Reset all block type colours to your Obsidian theme defaults? Custom colours will be discarded.")) return;
+          for (const pt of this.plugin.settings.periodTypes) {
+            pt.colour = DEFAULT_PERIOD_TYPE_COLOURS[pt.id] ?? FALLBACK_PERIOD_TYPE_COLOUR;
+          }
+          await this.plugin.saveSettings();
+          periodTypesContainer.empty();
+          this.renderPeriodTypesList(periodTypesContainer);
+          new Notice("Block colours reset to theme defaults.");
+        }));
 
     // ── Periods ────────────────────────────────────────────────────────────
     containerEl.createEl("h3", { text: "School Timetable" });
@@ -917,18 +930,28 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   private renderPeriodTypeRow(container: HTMLElement, pt: PeriodTypeConfig) {
     const row = container.createDiv("tp-activity-row");
     const swatchBtn = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
-    swatchBtn.style.background = pt.colour;
+    swatchBtn.style.background = resolveColour(pt.colour);
+    swatchBtn.title = isThemeToken(pt.colour) ? "Following your Obsidian theme" : "Custom colour";
     swatchBtn.addEventListener("click", () => {
       new ColourPickerModal(this.app, pt.colour, pt.label, async colour => {
         pt.colour = colour;
         await this.plugin.saveSettings();
-        swatchBtn.style.background = colour;
-      }).open();
+        swatchBtn.style.background = resolveColour(colour);
+        swatchBtn.title = isThemeToken(colour) ? "Following your Obsidian theme" : "Custom colour";
+      }, true).open();
     });
     const labelInput = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
     labelInput.value = pt.label;
     labelInput.placeholder = "Type name";
     labelInput.addEventListener("change", async () => { pt.label = labelInput.value; await this.plugin.saveSettings(); });
+    const resetBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Reset colour to theme default" });
+    setIcon(resetBtn, "rotate-ccw");
+    resetBtn.addEventListener("click", async () => {
+      pt.colour = DEFAULT_PERIOD_TYPE_COLOURS[pt.id] ?? FALLBACK_PERIOD_TYPE_COLOUR;
+      await this.plugin.saveSettings();
+      swatchBtn.style.background = resolveColour(pt.colour);
+      swatchBtn.title = "Following your Obsidian theme";
+    });
     const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete type" });
     setIcon(delBtn, "trash-2");
     delBtn.addEventListener("click", async () => {
@@ -1178,12 +1201,14 @@ export class ColourPickerModal extends Modal {
   private initialColour: string;
   private label: string;
   private onSave: (colour: string) => Promise<void>;
+  private showThemeRow: boolean;
 
-  constructor(app: App, initialColour: string, label: string, onSave: (colour: string) => Promise<void>) {
+  constructor(app: App, initialColour: string, label: string, onSave: (colour: string) => Promise<void>, showThemeRow = false) {
     super(app);
     this.initialColour = initialColour;
     this.label = label;
     this.onSave = onSave;
+    this.showThemeRow = showThemeRow;
   }
 
   onOpen() {
@@ -1195,6 +1220,7 @@ export class ColourPickerModal extends Modal {
       props: {
         initialColour: this.initialColour,
         label: this.label,
+        showThemeRow: this.showThemeRow,
         onSave: async (colour: string) => {
           await this.onSave(colour);
           this.close();

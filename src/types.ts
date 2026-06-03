@@ -1,6 +1,8 @@
 export interface PeriodTypeConfig {
   id: string;
   label: string;
+  /** Either a hex value ("#rrggbb") or a theme token ("theme:muted" etc.)
+   *  resolved from the user's active Obsidian theme — see utils/themeColours. */
   colour: string;
 }
 export interface SchoolPeriod {

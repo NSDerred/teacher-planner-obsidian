@@ -4,7 +4,8 @@ import type {
   PlannerRecord, SchoolPeriod, Subject, ClassGroup, SchoolDay,
   WeekOverride, PeriodTypeConfig, Activity,
 } from "../types";
-import { DEFAULT_PLANNER, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE } from "../settings";
+import { DEFAULT_PLANNER, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, FALLBACK_PERIOD_TYPE_COLOUR } from "../settings";
+import { resolveColour } from "../utils/themeColours";
 import { TimetableEditorModal } from "./TimetableEditorModal";
 import { openEmojiPicker, SUBJECT_EMOJIS } from "../settings/SettingsTab";
 
@@ -481,12 +482,12 @@ export class SetupWizardModal extends Modal {
         const row = listEl.createDiv("tp-activity-row");
 
         const swatch = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
-        swatch.style.background = pt.colour;
+        swatch.style.background = resolveColour(pt.colour);
         swatch.addEventListener("click", async () => {
           const { ColourPickerModal } = await import("../settings/SettingsTab");
           new ColourPickerModal(this.app, pt.colour, pt.label, async (colour: string) => {
-            pt.colour = colour; swatch.style.background = colour;
-          }).open();
+            pt.colour = colour; swatch.style.background = resolveColour(colour);
+          }, true).open();
         });
 
         const labelIn = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
@@ -503,7 +504,7 @@ export class SetupWizardModal extends Modal {
 
       new Setting(listEl).addButton(btn => btn.setButtonText("+ Add block type").setCta()
         .onClick(() => {
-          this.state.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: "#b4befe" });
+          this.state.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: FALLBACK_PERIOD_TYPE_COLOUR });
           renderList();
         }));
     };

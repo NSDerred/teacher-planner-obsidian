@@ -4,6 +4,7 @@
   import type { TimetableSlot, SchoolPeriod, TimetableTemplate, SchoolDay } from "../types";
   import { AddTimetableTemplateModal } from "./AddTimetableTemplateModal";
   import { setIcon } from "obsidian";
+  import { resolveColour } from "../utils/themeColours";
 
   function icon(node: HTMLElement, name: string) {
     setIcon(node, name);
@@ -389,7 +390,7 @@
   $: periodTypes = plugin.settings.periodTypes ?? [];
 
   function getPeriodTypeColour(typeId: string): string {
-    return periodTypes.find(t => t.id === typeId)?.colour ?? "#888888";
+    return resolveColour(periodTypes.find(t => t.id === typeId)?.colour ?? "#888888");
   }
 
   function hexToRgba(hex: string, alpha: number): string {

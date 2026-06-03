@@ -1,11 +1,19 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { CLASS_COLOUR_PALETTE } from "../settings";
+  import { THEME_COLOUR_TOKENS, isThemeToken, resolveColour } from "../utils/themeColours";
 
   export let initialColour: string = "#4ade80";
   export let label: string = "";
   export let onSave: (colour: string) => Promise<void>;
   export let onCancel: () => void;
+  /** Show the "Theme colours" swatch row — picking one stores a theme token
+   *  that tracks the user's Obsidian theme instead of a fixed hex. */
+  export let showThemeRow: boolean = false;
+
+  // When a theme swatch is selected, save the token instead of a hex.
+  // Any manual interaction (square/hue/hex/palette) clears it.
+  let selectedToken: string | null = null;
 
   // ── HSV state ──────────────────────────────────────────────────────────────
   let hue = 0;        // 0–360
@@ -24,13 +32,15 @@
   $: squareBg = `hsl(${hue}, 100%, 50%)`;
   $: previewBg = hexToRgba(currentHex, 0.18);
 
-  // Initialise from prop
+  // Initialise from prop (theme tokens are resolved to their current hex)
   onMount(() => {
-    const hsv = hexToHsv(initialColour);
+    if (isThemeToken(initialColour)) selectedToken = initialColour;
+    const startHex = resolveColour(initialColour);
+    const hsv = hexToHsv(startHex);
     hue = hsv.h;
     saturation = hsv.s;
     value = hsv.v;
-    hexInput = initialColour;
+    hexInput = startHex;
   });
 
   // Keep hex input in sync when HSV changes
@@ -41,6 +51,7 @@
   let draggingHue = false;
 
   function onSquareMouseDown(e: MouseEvent) {
+    selectedToken = null;
     draggingSquare = true;
     updateSquare(e);
     window.addEventListener("mousemove", onSquareMouseMove);
@@ -64,6 +75,7 @@
   }
 
   function onHueMouseDown(e: MouseEvent) {
+    selectedToken = null;
     draggingHue = true;
     updateHue(e);
     window.addEventListener("mousemove", onHueMouseMove);
@@ -90,6 +102,7 @@
     const raw = (e.target as HTMLInputElement).value;
     const val = raw.startsWith("#") ? raw : `#${raw}`;
     if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+      selectedToken = null;
       const hsv = hexToHsv(val);
       hue = hsv.h;
       saturation = hsv.s;
@@ -99,7 +112,17 @@
 
   // ── Palette ───────────────────────────────────────────────────────────────
   function pickPalette(colour: string) {
+    selectedToken = null;
     const hsv = hexToHsv(colour);
+    hue = hsv.h;
+    saturation = hsv.s;
+    value = hsv.v;
+  }
+
+  // ── Theme swatches ────────────────────────────────────────────────────────
+  function pickThemeToken(token: string) {
+    selectedToken = token;
+    const hsv = hexToHsv(resolveColour(token));
     hue = hsv.h;
     saturation = hsv.s;
     value = hsv.v;
@@ -107,7 +130,7 @@
 
   // ── Save ──────────────────────────────────────────────────────────────────
   async function save() {
-    await onSave(currentHex);
+    await onSave(selectedToken ?? currentHex);
   }
 
   // ── Colour math ───────────────────────────────────────────────────────────
@@ -225,6 +248,25 @@
       style="background: {currentHex};"
     ></div>
   </div>
+
+  <!-- Theme colour swatches — track the user's Obsidian theme -->
+  {#if showThemeRow}
+    <div class="cp-theme-section">
+      <div class="cp-theme-label">Theme colours <span class="cp-theme-hint">— follow your Obsidian theme</span></div>
+      <div class="cp-palette">
+        {#each THEME_COLOUR_TOKENS as t (t.token)}
+          <button
+            class="cp-swatch"
+            style="background: {resolveColour(t.token)};"
+            class:cp-swatch--active={selectedToken === t.token}
+            on:click={() => pickThemeToken(t.token)}
+            title={t.label}
+            aria-label="Pick theme colour {t.label}"
+          ></button>
+        {/each}
+      </div>
+    </div>
+  {/if}
 
   <!-- Palette swatches -->
   <div class="cp-palette">
@@ -376,6 +418,24 @@
     border-radius: 50%;
     flex-shrink: 0;
     border: 2px solid var(--background-modifier-border);
+  }
+
+  /* Theme swatch row */
+  .cp-theme-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .cp-theme-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-normal);
+  }
+
+  .cp-theme-hint {
+    font-weight: 400;
+    color: var(--text-muted);
   }
 
   /* Palette */

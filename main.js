@@ -27,7 +27,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/settings.ts
-var DEFAULT_LESSON_TEMPLATE, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA;
+var DEFAULT_LESSON_TEMPLATE, DEFAULT_SETTINGS, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, CLASS_COLOUR_PALETTE, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA;
 var init_settings = __esm({
   "src/settings.ts"() {
     DEFAULT_LESSON_TEMPLATE = `## Notes:
@@ -61,10 +61,10 @@ var init_settings = __esm({
         ]
       },
       periodTypes: [
-        { id: "lesson", label: "Lesson", colour: "#5a6a7a" },
-        { id: "break", label: "Break", colour: "#6a7a8a" },
-        { id: "registration", label: "Registration", colour: "#4a6060" },
-        { id: "administration", label: "Administration", colour: "#6a6a7a" }
+        { id: "lesson", label: "Lesson", colour: "theme:muted" },
+        { id: "break", label: "Break", colour: "theme:accent" },
+        { id: "registration", label: "Registration", colour: "theme:faint" },
+        { id: "administration", label: "Administration", colour: "theme:surface" }
       ],
       subjects: [
         { id: "subj-biology", name: "Biology", emoji: "\u{1F331}", colour: "#a6e3a1" },
@@ -108,6 +108,13 @@ var init_settings = __esm({
       },
       schoolDays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
     };
+    DEFAULT_PERIOD_TYPE_COLOURS = {
+      lesson: "theme:muted",
+      break: "theme:accent",
+      registration: "theme:faint",
+      administration: "theme:surface"
+    };
+    FALLBACK_PERIOD_TYPE_COLOUR = "theme:muted";
     CLASS_COLOUR_PALETTE = [
       "#f6a9a9",
       "#fab387",
@@ -1346,6 +1353,61 @@ var init_AddTimetableTemplateModal = __esm({
         this.contentEl.empty();
       }
     };
+  }
+});
+
+// src/utils/themeColours.ts
+function isThemeToken(colour) {
+  return typeof colour === "string" && colour.startsWith("theme:");
+}
+function clearThemeColourCache() {
+  _cache.clear();
+}
+function toHex(n) {
+  return Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
+}
+function computeToHex(cssColour) {
+  const probe = document.createElement("span");
+  probe.style.display = "none";
+  probe.style.color = cssColour;
+  document.body.appendChild(probe);
+  const rgb = getComputedStyle(probe).color;
+  probe.remove();
+  const m = rgb.match(/rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/);
+  if (!m) return null;
+  return `#${toHex(+m[1])}${toHex(+m[2])}${toHex(+m[3])}`;
+}
+function resolveColour(colour) {
+  if (!colour) return "#888888";
+  if (!isThemeToken(colour)) return colour;
+  const cached = _cache.get(colour);
+  if (cached) return cached;
+  const def = THEME_COLOUR_TOKENS.find((t) => t.token === colour);
+  if (!def) return "#888888";
+  const raw = getComputedStyle(document.body).getPropertyValue(def.cssVar).trim();
+  const hex = raw ? computeToHex(raw) : null;
+  const result = hex != null ? hex : def.fallback;
+  _cache.set(colour, result);
+  return result;
+}
+var THEME_COLOUR_TOKENS, _cache;
+var init_themeColours = __esm({
+  "src/utils/themeColours.ts"() {
+    THEME_COLOUR_TOKENS = [
+      { token: "theme:muted", label: "Muted", cssVar: "--text-muted", fallback: "#888888" },
+      { token: "theme:faint", label: "Faint", cssVar: "--text-faint", fallback: "#666666" },
+      { token: "theme:surface", label: "Surface", cssVar: "--background-secondary-alt", fallback: "#7a7a7a" },
+      { token: "theme:accent", label: "Accent", cssVar: "--interactive-accent", fallback: "#7c6fde" },
+      { token: "theme:red", label: "Red", cssVar: "--color-red", fallback: "#e05555" },
+      { token: "theme:orange", label: "Orange", cssVar: "--color-orange", fallback: "#d4903a" },
+      { token: "theme:yellow", label: "Yellow", cssVar: "--color-yellow", fallback: "#f2c97d" },
+      { token: "theme:green", label: "Green", cssVar: "--color-green", fallback: "#80c787" },
+      { token: "theme:cyan", label: "Cyan", cssVar: "--color-cyan", fallback: "#89dceb" },
+      { token: "theme:blue", label: "Blue", cssVar: "--color-blue", fallback: "#74a8ec" },
+      { token: "theme:purple", label: "Purple", cssVar: "--color-purple", fallback: "#b08fe0" },
+      { token: "theme:pink", label: "Pink", cssVar: "--color-pink", fallback: "#e8a2b8" }
+    ];
+    _cache = /* @__PURE__ */ new Map();
   }
 });
 
@@ -5017,7 +5079,7 @@ function instance($$self, $$props, $$invalidate) {
   }
   function getPeriodTypeColour(typeId) {
     var _a2, _b2;
-    return (_b2 = (_a2 = periodTypes.find((t) => t.id === typeId)) === null || _a2 === void 0 ? void 0 : _a2.colour) !== null && _b2 !== void 0 ? _b2 : "#888888";
+    return resolveColour((_b2 = (_a2 = periodTypes.find((t) => t.id === typeId)) === null || _a2 === void 0 ? void 0 : _a2.colour) !== null && _b2 !== void 0 ? _b2 : "#888888");
   }
   const func = (s) => pickerFilteredClasses.some((c) => c.subjectId === s.id);
   function click_handler_1(event) {
@@ -5363,6 +5425,7 @@ var init_TimetableEditorComponent = __esm({
     init_disclose_version();
     init_AddTimetableTemplateModal();
     import_obsidian2 = require("obsidian");
+    init_themeColours();
     ({ window: window_1 } = globals);
     func_3 = (c) => c.archived;
     func_4 = (a) => a.archived;
@@ -5420,46 +5483,114 @@ var init_runtime = __esm({
 
 // src/modals/ColourPickerComponent.svelte
 function add_css2(target) {
-  append_styles(target, "svelte-ltabae", ".cp-root.svelte-ltabae{display:flex;flex-direction:column;gap:12px;min-width:280px}.cp-title.svelte-ltabae{margin:0;font-size:16px;font-weight:700;color:var(--text-normal)}.cp-preview.svelte-ltabae{padding:6px 10px;border-left:4px solid;border-radius:4px;font-size:13px;font-weight:700;transition:background 0.1s, color 0.1s}.cp-square.svelte-ltabae{position:relative;width:100%;height:180px;background:var(--hue-bg);border-radius:6px;cursor:crosshair;overflow:hidden;user-select:none}.cp-square-white.svelte-ltabae{position:absolute;inset:0;background:linear-gradient(to right, #fff, transparent)}.cp-square-black.svelte-ltabae{position:absolute;inset:0;background:linear-gradient(to bottom, transparent, #000)}.cp-cursor.svelte-ltabae{position:absolute;width:12px;height:12px;border-radius:50%;border:2px solid #fff;transform:translate(-50%, -50%);pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,0.3)}.cp-hue.svelte-ltabae{position:relative;height:14px;border-radius:7px;cursor:pointer;user-select:none;background:linear-gradient(to right,\n      hsl(0,100%,50%), hsl(30,100%,50%), hsl(60,100%,50%),\n      hsl(90,100%,50%), hsl(120,100%,50%), hsl(150,100%,50%),\n      hsl(180,100%,50%), hsl(210,100%,50%), hsl(240,100%,50%),\n      hsl(270,100%,50%), hsl(300,100%,50%), hsl(330,100%,50%),\n      hsl(360,100%,50%)\n    )}.cp-hue-cursor.svelte-ltabae{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,0.3);transform:translate(-50%, -50%);pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,0.4)}.cp-inputs.svelte-ltabae{display:flex;align-items:center;gap:8px}.cp-hex-row.svelte-ltabae{display:flex;align-items:center;gap:4px;background:var(--background-modifier-form-field);border:1px solid var(--background-modifier-border);border-radius:4px;padding:4px 8px;flex:1}.cp-hex-label.svelte-ltabae{font-size:13px;color:var(--text-muted);font-family:var(--font-monospace)}.cp-hex-input.svelte-ltabae{border:none;background:transparent;color:var(--text-normal);font-size:13px;font-family:var(--font-monospace);width:70px;outline:none}.cp-colour-dot.svelte-ltabae{width:28px;height:28px;border-radius:50%;flex-shrink:0;border:2px solid var(--background-modifier-border)}.cp-palette.svelte-ltabae{display:flex;gap:6px;flex-wrap:wrap}.cp-swatch.svelte-ltabae{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform 0.1s, border-color 0.1s}.cp-swatch.svelte-ltabae:hover{transform:scale(1.15)}.cp-swatch--active.svelte-ltabae{border-color:var(--text-normal);transform:scale(1.15)}.cp-footer.svelte-ltabae{display:flex;justify-content:flex-end;gap:8px;padding-top:4px;border-top:1px solid var(--background-modifier-border)}.tp-btn.svelte-ltabae{padding:5px 16px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s}.tp-btn.svelte-ltabae:hover{background:var(--background-modifier-hover)}.tp-btn--primary.svelte-ltabae{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn--primary.svelte-ltabae:hover{background:var(--interactive-accent-hover)}");
+  append_styles(target, "svelte-15zt4m3", ".cp-root.svelte-15zt4m3{display:flex;flex-direction:column;gap:12px;min-width:280px}.cp-title.svelte-15zt4m3{margin:0;font-size:16px;font-weight:700;color:var(--text-normal)}.cp-preview.svelte-15zt4m3{padding:6px 10px;border-left:4px solid;border-radius:4px;font-size:13px;font-weight:700;transition:background 0.1s, color 0.1s}.cp-square.svelte-15zt4m3{position:relative;width:100%;height:180px;background:var(--hue-bg);border-radius:6px;cursor:crosshair;overflow:hidden;user-select:none}.cp-square-white.svelte-15zt4m3{position:absolute;inset:0;background:linear-gradient(to right, #fff, transparent)}.cp-square-black.svelte-15zt4m3{position:absolute;inset:0;background:linear-gradient(to bottom, transparent, #000)}.cp-cursor.svelte-15zt4m3{position:absolute;width:12px;height:12px;border-radius:50%;border:2px solid #fff;transform:translate(-50%, -50%);pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,0.3)}.cp-hue.svelte-15zt4m3{position:relative;height:14px;border-radius:7px;cursor:pointer;user-select:none;background:linear-gradient(to right,\n      hsl(0,100%,50%), hsl(30,100%,50%), hsl(60,100%,50%),\n      hsl(90,100%,50%), hsl(120,100%,50%), hsl(150,100%,50%),\n      hsl(180,100%,50%), hsl(210,100%,50%), hsl(240,100%,50%),\n      hsl(270,100%,50%), hsl(300,100%,50%), hsl(330,100%,50%),\n      hsl(360,100%,50%)\n    )}.cp-hue-cursor.svelte-15zt4m3{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,0.3);transform:translate(-50%, -50%);pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,0.4)}.cp-inputs.svelte-15zt4m3{display:flex;align-items:center;gap:8px}.cp-hex-row.svelte-15zt4m3{display:flex;align-items:center;gap:4px;background:var(--background-modifier-form-field);border:1px solid var(--background-modifier-border);border-radius:4px;padding:4px 8px;flex:1}.cp-hex-label.svelte-15zt4m3{font-size:13px;color:var(--text-muted);font-family:var(--font-monospace)}.cp-hex-input.svelte-15zt4m3{border:none;background:transparent;color:var(--text-normal);font-size:13px;font-family:var(--font-monospace);width:70px;outline:none}.cp-colour-dot.svelte-15zt4m3{width:28px;height:28px;border-radius:50%;flex-shrink:0;border:2px solid var(--background-modifier-border)}.cp-theme-section.svelte-15zt4m3{display:flex;flex-direction:column;gap:6px}.cp-theme-label.svelte-15zt4m3{font-size:12px;font-weight:600;color:var(--text-normal)}.cp-theme-hint.svelte-15zt4m3{font-weight:400;color:var(--text-muted)}.cp-palette.svelte-15zt4m3{display:flex;gap:6px;flex-wrap:wrap}.cp-swatch.svelte-15zt4m3{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform 0.1s, border-color 0.1s}.cp-swatch.svelte-15zt4m3:hover{transform:scale(1.15)}.cp-swatch--active.svelte-15zt4m3{border-color:var(--text-normal);transform:scale(1.15)}.cp-footer.svelte-15zt4m3{display:flex;justify-content:flex-end;gap:8px;padding-top:4px;border-top:1px solid var(--background-modifier-border)}.tp-btn.svelte-15zt4m3{padding:5px 16px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s}.tp-btn.svelte-15zt4m3:hover{background:var(--background-modifier-hover)}.tp-btn--primary.svelte-15zt4m3{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn--primary.svelte-15zt4m3:hover{background:var(--interactive-accent-hover)}");
 }
 function get_each_context2(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[31] = list[i];
+  child_ctx[35] = list[i];
   return child_ctx;
 }
-function create_each_block2(ctx) {
+function get_each_context_12(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[38] = list[i];
+  return child_ctx;
+}
+function create_if_block2(ctx) {
+  let div2;
+  let div0;
+  let t2;
+  let div1;
+  let each_blocks = [];
+  let each_1_lookup = /* @__PURE__ */ new Map();
+  let each_value_1 = ensure_array_like(THEME_COLOUR_TOKENS);
+  const get_key = (ctx2) => (
+    /*t*/
+    ctx2[38].token
+  );
+  for (let i = 0; i < each_value_1.length; i += 1) {
+    let child_ctx = get_each_context_12(ctx, each_value_1, i);
+    let key = get_key(child_ctx);
+    each_1_lookup.set(key, each_blocks[i] = create_each_block_12(key, child_ctx));
+  }
+  return {
+    c() {
+      div2 = element("div");
+      div0 = element("div");
+      div0.innerHTML = `Theme colours <span class="cp-theme-hint svelte-15zt4m3">\u2014 follow your Obsidian theme</span>`;
+      t2 = space();
+      div1 = element("div");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      attr(div0, "class", "cp-theme-label svelte-15zt4m3");
+      attr(div1, "class", "cp-palette svelte-15zt4m3");
+      attr(div2, "class", "cp-theme-section svelte-15zt4m3");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div0);
+      append(div2, t2);
+      append(div2, div1);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(div1, null);
+        }
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*selectedToken, pickThemeToken*/
+      131200) {
+        each_value_1 = ensure_array_like(THEME_COLOUR_TOKENS);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_1, each_1_lookup, div1, destroy_block, create_each_block_12, null, get_each_context_12);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].d();
+      }
+    }
+  };
+}
+function create_each_block_12(key_1, ctx) {
   let button;
+  let button_title_value;
   let button_aria_label_value;
   let mounted;
   let dispose;
   function click_handler() {
     return (
       /*click_handler*/
-      ctx[20](
-        /*colour*/
-        ctx[31]
+      ctx[23](
+        /*t*/
+        ctx[38]
       )
     );
   }
   return {
+    key: key_1,
+    first: null,
     c() {
       button = element("button");
-      attr(button, "class", "cp-swatch svelte-ltabae");
-      set_style(
-        button,
-        "background",
-        /*colour*/
-        ctx[31]
-      );
-      attr(button, "aria-label", button_aria_label_value = "Pick colour " + /*colour*/
-      ctx[31]);
+      attr(button, "class", "cp-swatch svelte-15zt4m3");
+      set_style(button, "background", resolveColour(
+        /*t*/
+        ctx[38].token
+      ));
+      attr(button, "title", button_title_value = /*t*/
+      ctx[38].label);
+      attr(button, "aria-label", button_aria_label_value = "Pick theme colour " + /*t*/
+      ctx[38].label);
       toggle_class(
         button,
         "cp-swatch--active",
-        /*currentHex*/
-        ctx[5].toLowerCase() === /*colour*/
-        ctx[31].toLowerCase()
+        /*selectedToken*/
+        ctx[7] === /*t*/
+        ctx[38].token
       );
+      this.first = button;
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -5470,14 +5601,77 @@ function create_each_block2(ctx) {
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
+      if (dirty[0] & /*selectedToken*/
+      128) {
+        toggle_class(
+          button,
+          "cp-swatch--active",
+          /*selectedToken*/
+          ctx[7] === /*t*/
+          ctx[38].token
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_each_block2(ctx) {
+  let button;
+  let button_aria_label_value;
+  let mounted;
+  let dispose;
+  function click_handler_1() {
+    return (
+      /*click_handler_1*/
+      ctx[24](
+        /*colour*/
+        ctx[35]
+      )
+    );
+  }
+  return {
+    c() {
+      button = element("button");
+      attr(button, "class", "cp-swatch svelte-15zt4m3");
+      set_style(
+        button,
+        "background",
+        /*colour*/
+        ctx[35]
+      );
+      attr(button, "aria-label", button_aria_label_value = "Pick colour " + /*colour*/
+      ctx[35]);
+      toggle_class(
+        button,
+        "cp-swatch--active",
+        /*currentHex*/
+        ctx[6].toLowerCase() === /*colour*/
+        ctx[35].toLowerCase()
+      );
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      if (!mounted) {
+        dispose = listen(button, "click", click_handler_1);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
       if (dirty[0] & /*currentHex*/
-      32) {
+      64) {
         toggle_class(
           button,
           "cp-swatch--active",
           /*currentHex*/
-          ctx[5].toLowerCase() === /*colour*/
-          ctx[31].toLowerCase()
+          ctx[6].toLowerCase() === /*colour*/
+          ctx[35].toLowerCase()
         );
       }
     },
@@ -5517,14 +5711,19 @@ function create_fragment2(ctx) {
   let t11;
   let div8;
   let t12;
-  let div10;
   let t13;
+  let div10;
+  let t14;
   let div11;
   let button0;
-  let t15;
+  let t16;
   let button1;
   let mounted;
   let dispose;
+  let if_block = (
+    /*showThemeRow*/
+    ctx[2] && create_if_block2(ctx)
+  );
   let each_value = ensure_array_like(CLASS_COLOUR_PALETTE);
   let each_blocks = [];
   for (let i = 0; i < each_value.length; i += 1) {
@@ -5565,97 +5764,99 @@ function create_fragment2(ctx) {
       t11 = space();
       div8 = element("div");
       t12 = space();
+      if (if_block) if_block.c();
+      t13 = space();
       div10 = element("div");
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      t13 = space();
+      t14 = space();
       div11 = element("div");
       button0 = element("button");
       button0.textContent = "Cancel";
-      t15 = space();
+      t16 = space();
       button1 = element("button");
       button1.textContent = "Save colour";
-      attr(h3, "class", "cp-title svelte-ltabae");
-      attr(div0, "class", "cp-preview svelte-ltabae");
+      attr(h3, "class", "cp-title svelte-15zt4m3");
+      attr(div0, "class", "cp-preview svelte-15zt4m3");
       set_style(
         div0,
         "background",
         /*previewBg*/
-        ctx[9]
+        ctx[11]
       );
       set_style(
         div0,
         "border-left-color",
         /*currentHex*/
-        ctx[5]
+        ctx[6]
       );
       set_style(
         div0,
         "color",
         /*currentHex*/
-        ctx[5]
+        ctx[6]
       );
-      attr(div1, "class", "cp-square-white svelte-ltabae");
-      attr(div2, "class", "cp-square-black svelte-ltabae");
-      attr(div3, "class", "cp-cursor svelte-ltabae");
+      attr(div1, "class", "cp-square-white svelte-15zt4m3");
+      attr(div2, "class", "cp-square-black svelte-15zt4m3");
+      attr(div3, "class", "cp-cursor svelte-15zt4m3");
       set_style(
         div3,
         "left",
         /*saturation*/
-        ctx[3] * 100 + "%"
+        ctx[4] * 100 + "%"
       );
       set_style(div3, "top", (1 - /*value*/
-      ctx[4]) * 100 + "%");
+      ctx[5]) * 100 + "%");
       set_style(
         div3,
         "border-color",
         /*value*/
-        ctx[4] > 0.5 ? "#000" : "#fff"
+        ctx[5] > 0.5 ? "#000" : "#fff"
       );
-      attr(div4, "class", "cp-square svelte-ltabae");
+      attr(div4, "class", "cp-square svelte-15zt4m3");
       set_style(
         div4,
         "--hue-bg",
         /*squareBg*/
-        ctx[10]
+        ctx[12]
       );
       attr(div4, "role", "slider");
       attr(div4, "aria-label", "Colour picker");
       attr(div4, "tabindex", "0");
-      attr(div5, "class", "cp-hue-cursor svelte-ltabae");
+      attr(div5, "class", "cp-hue-cursor svelte-15zt4m3");
       set_style(
         div5,
         "left",
         /*hue*/
-        ctx[2] / 360 * 100 + "%"
+        ctx[3] / 360 * 100 + "%"
       );
-      attr(div6, "class", "cp-hue svelte-ltabae");
+      attr(div6, "class", "cp-hue svelte-15zt4m3");
       attr(div6, "role", "slider");
       attr(div6, "aria-label", "Hue");
       attr(div6, "tabindex", "0");
-      attr(span, "class", "cp-hex-label svelte-ltabae");
-      attr(input, "class", "cp-hex-input svelte-ltabae");
+      attr(span, "class", "cp-hex-label svelte-15zt4m3");
+      attr(input, "class", "cp-hex-input svelte-15zt4m3");
       attr(input, "type", "text");
       attr(input, "maxlength", "7");
       input.value = /*hexInput*/
-      ctx[6];
+      ctx[8];
       attr(input, "spellcheck", "false");
       attr(input, "aria-label", "Hex colour value");
-      attr(div7, "class", "cp-hex-row svelte-ltabae");
-      attr(div8, "class", "cp-colour-dot svelte-ltabae");
+      attr(div7, "class", "cp-hex-row svelte-15zt4m3");
+      attr(div8, "class", "cp-colour-dot svelte-15zt4m3");
       set_style(
         div8,
         "background",
         /*currentHex*/
-        ctx[5]
+        ctx[6]
       );
-      attr(div9, "class", "cp-inputs svelte-ltabae");
-      attr(div10, "class", "cp-palette svelte-ltabae");
-      attr(button0, "class", "tp-btn svelte-ltabae");
-      attr(button1, "class", "tp-btn tp-btn--primary svelte-ltabae");
-      attr(div11, "class", "cp-footer svelte-ltabae");
-      attr(div12, "class", "cp-root svelte-ltabae");
+      attr(div9, "class", "cp-inputs svelte-15zt4m3");
+      attr(div10, "class", "cp-palette svelte-15zt4m3");
+      attr(button0, "class", "tp-btn svelte-15zt4m3");
+      attr(button1, "class", "tp-btn tp-btn--primary svelte-15zt4m3");
+      attr(div11, "class", "cp-footer svelte-15zt4m3");
+      attr(div12, "class", "cp-root svelte-15zt4m3");
     },
     m(target, anchor) {
       insert(target, div12, anchor);
@@ -5672,11 +5873,11 @@ function create_fragment2(ctx) {
       append(div4, div2);
       append(div4, t6);
       append(div4, div3);
-      ctx[18](div4);
+      ctx[21](div4);
       append(div12, t7);
       append(div12, div6);
       append(div6, div5);
-      ctx[19](div6);
+      ctx[22](div6);
       append(div12, t8);
       append(div12, div9);
       append(div9, div7);
@@ -5686,16 +5887,18 @@ function create_fragment2(ctx) {
       append(div9, t11);
       append(div9, div8);
       append(div12, t12);
+      if (if_block) if_block.m(div12, null);
+      append(div12, t13);
       append(div12, div10);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
           each_blocks[i].m(div10, null);
         }
       }
-      append(div12, t13);
+      append(div12, t14);
       append(div12, div11);
       append(div11, button0);
-      append(div11, t15);
+      append(div11, t16);
       append(div11, button1);
       if (!mounted) {
         dispose = [
@@ -5703,19 +5906,19 @@ function create_fragment2(ctx) {
             div4,
             "mousedown",
             /*onSquareMouseDown*/
-            ctx[11]
+            ctx[13]
           ),
           listen(
             div6,
             "mousedown",
             /*onHueMouseDown*/
-            ctx[12]
+            ctx[14]
           ),
           listen(
             input,
             "input",
             /*onHexInput*/
-            ctx[13]
+            ctx[15]
           ),
           listen(button0, "click", function() {
             if (is_function(
@@ -5727,7 +5930,7 @@ function create_fragment2(ctx) {
             button1,
             "click",
             /*save*/
-            ctx[15]
+            ctx[18]
           )
         ];
         mounted = true;
@@ -5748,90 +5951,105 @@ function create_fragment2(ctx) {
         ctx[0]
       );
       if (dirty[0] & /*previewBg*/
-      512) {
+      2048) {
         set_style(
           div0,
           "background",
           /*previewBg*/
-          ctx[9]
+          ctx[11]
         );
       }
       if (dirty[0] & /*currentHex*/
-      32) {
+      64) {
         set_style(
           div0,
           "border-left-color",
           /*currentHex*/
-          ctx[5]
+          ctx[6]
         );
       }
       if (dirty[0] & /*currentHex*/
-      32) {
+      64) {
         set_style(
           div0,
           "color",
           /*currentHex*/
-          ctx[5]
+          ctx[6]
         );
       }
       if (dirty[0] & /*saturation*/
-      8) {
+      16) {
         set_style(
           div3,
           "left",
           /*saturation*/
-          ctx[3] * 100 + "%"
+          ctx[4] * 100 + "%"
         );
       }
       if (dirty[0] & /*value*/
-      16) {
+      32) {
         set_style(div3, "top", (1 - /*value*/
-        ctx[4]) * 100 + "%");
+        ctx[5]) * 100 + "%");
       }
       if (dirty[0] & /*value*/
-      16) {
+      32) {
         set_style(
           div3,
           "border-color",
           /*value*/
-          ctx[4] > 0.5 ? "#000" : "#fff"
+          ctx[5] > 0.5 ? "#000" : "#fff"
         );
       }
       if (dirty[0] & /*squareBg*/
-      1024) {
+      4096) {
         set_style(
           div4,
           "--hue-bg",
           /*squareBg*/
-          ctx[10]
+          ctx[12]
         );
       }
       if (dirty[0] & /*hue*/
-      4) {
+      8) {
         set_style(
           div5,
           "left",
           /*hue*/
-          ctx[2] / 360 * 100 + "%"
+          ctx[3] / 360 * 100 + "%"
         );
       }
       if (dirty[0] & /*hexInput*/
-      64 && input.value !== /*hexInput*/
-      ctx[6]) {
+      256 && input.value !== /*hexInput*/
+      ctx[8]) {
         input.value = /*hexInput*/
-        ctx[6];
+        ctx[8];
       }
       if (dirty[0] & /*currentHex*/
-      32) {
+      64) {
         set_style(
           div8,
           "background",
           /*currentHex*/
-          ctx[5]
+          ctx[6]
         );
       }
+      if (
+        /*showThemeRow*/
+        ctx[2]
+      ) {
+        if (if_block) {
+          if_block.p(ctx, dirty);
+        } else {
+          if_block = create_if_block2(ctx);
+          if_block.c();
+          if_block.m(div12, t13);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
       if (dirty[0] & /*currentHex, pickPalette*/
-      16416) {
+      65600) {
         each_value = ensure_array_like(CLASS_COLOUR_PALETTE);
         let i;
         for (i = 0; i < each_value.length; i += 1) {
@@ -5856,8 +6074,9 @@ function create_fragment2(ctx) {
       if (detaching) {
         detach(div12);
       }
-      ctx[18](null);
-      ctx[19](null);
+      ctx[21](null);
+      ctx[22](null);
+      if (if_block) if_block.d();
       destroy_each(each_blocks, detaching);
       mounted = false;
       run_all(dispose);
@@ -5894,9 +6113,9 @@ function hsvToHex(h, s, v) {
     g = 0;
     b = x;
   }
-  return `#${toHex(Math.round((r + m) * 255))}${toHex(Math.round((g + m) * 255))}${toHex(Math.round((b + m) * 255))}`;
+  return `#${toHex2(Math.round((r + m) * 255))}${toHex2(Math.round((g + m) * 255))}${toHex2(Math.round((b + m) * 255))}`;
 }
-function toHex(n) {
+function toHex2(n) {
   return n.toString(16).padStart(2, "0");
 }
 function hexToHsv(hex) {
@@ -5929,6 +6148,8 @@ function instance2($$self, $$props, $$invalidate) {
   let { label = "" } = $$props;
   let { onSave } = $$props;
   let { onCancel } = $$props;
+  let { showThemeRow = false } = $$props;
+  let selectedToken = null;
   let hue = 0;
   let saturation = 0;
   let value = 1;
@@ -5938,15 +6159,18 @@ function instance2($$self, $$props, $$invalidate) {
   let squareCursor;
   let hueCursor;
   onMount(() => {
-    const hsv = hexToHsv(initialColour);
-    $$invalidate(2, hue = hsv.h);
-    $$invalidate(3, saturation = hsv.s);
-    $$invalidate(4, value = hsv.v);
-    $$invalidate(6, hexInput = initialColour);
+    if (isThemeToken(initialColour)) $$invalidate(7, selectedToken = initialColour);
+    const startHex = resolveColour(initialColour);
+    const hsv = hexToHsv(startHex);
+    $$invalidate(3, hue = hsv.h);
+    $$invalidate(4, saturation = hsv.s);
+    $$invalidate(5, value = hsv.v);
+    $$invalidate(8, hexInput = startHex);
   });
   let draggingSquare = false;
   let draggingHue = false;
   function onSquareMouseDown(e) {
+    $$invalidate(7, selectedToken = null);
     draggingSquare = true;
     updateSquare(e);
     window.addEventListener("mousemove", onSquareMouseMove);
@@ -5962,10 +6186,11 @@ function instance2($$self, $$props, $$invalidate) {
   }
   function updateSquare(e) {
     const rect = squareEl.getBoundingClientRect();
-    $$invalidate(3, saturation = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)));
-    $$invalidate(4, value = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height)));
+    $$invalidate(4, saturation = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)));
+    $$invalidate(5, value = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height)));
   }
   function onHueMouseDown(e) {
+    $$invalidate(7, selectedToken = null);
     draggingHue = true;
     updateHue(e);
     window.addEventListener("mousemove", onHueMouseMove);
@@ -5981,71 +6206,84 @@ function instance2($$self, $$props, $$invalidate) {
   }
   function updateHue(e) {
     const rect = hueEl.getBoundingClientRect();
-    $$invalidate(2, hue = Math.max(0, Math.min(360, (e.clientX - rect.left) / rect.width * 360)));
+    $$invalidate(3, hue = Math.max(0, Math.min(360, (e.clientX - rect.left) / rect.width * 360)));
   }
   function onHexInput(e) {
     const raw = e.target.value;
     const val = raw.startsWith("#") ? raw : `#${raw}`;
     if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+      $$invalidate(7, selectedToken = null);
       const hsv = hexToHsv(val);
-      $$invalidate(2, hue = hsv.h);
-      $$invalidate(3, saturation = hsv.s);
-      $$invalidate(4, value = hsv.v);
+      $$invalidate(3, hue = hsv.h);
+      $$invalidate(4, saturation = hsv.s);
+      $$invalidate(5, value = hsv.v);
     }
   }
   function pickPalette(colour) {
+    $$invalidate(7, selectedToken = null);
     const hsv = hexToHsv(colour);
-    $$invalidate(2, hue = hsv.h);
-    $$invalidate(3, saturation = hsv.s);
-    $$invalidate(4, value = hsv.v);
+    $$invalidate(3, hue = hsv.h);
+    $$invalidate(4, saturation = hsv.s);
+    $$invalidate(5, value = hsv.v);
+  }
+  function pickThemeToken(token) {
+    $$invalidate(7, selectedToken = token);
+    const hsv = hexToHsv(resolveColour(token));
+    $$invalidate(3, hue = hsv.h);
+    $$invalidate(4, saturation = hsv.s);
+    $$invalidate(5, value = hsv.v);
   }
   async function save() {
-    await onSave(currentHex);
+    await onSave(selectedToken !== null && selectedToken !== void 0 ? selectedToken : currentHex);
   }
   function div4_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
       squareEl = $$value;
-      $$invalidate(7, squareEl);
+      $$invalidate(9, squareEl);
     });
   }
   function div6_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
       hueEl = $$value;
-      $$invalidate(8, hueEl);
+      $$invalidate(10, hueEl);
     });
   }
-  const click_handler = (colour) => pickPalette(colour);
+  const click_handler = (t) => pickThemeToken(t.token);
+  const click_handler_1 = (colour) => pickPalette(colour);
   $$self.$$set = ($$props2) => {
-    if ("initialColour" in $$props2) $$invalidate(16, initialColour = $$props2.initialColour);
+    if ("initialColour" in $$props2) $$invalidate(19, initialColour = $$props2.initialColour);
     if ("label" in $$props2) $$invalidate(0, label = $$props2.label);
-    if ("onSave" in $$props2) $$invalidate(17, onSave = $$props2.onSave);
+    if ("onSave" in $$props2) $$invalidate(20, onSave = $$props2.onSave);
     if ("onCancel" in $$props2) $$invalidate(1, onCancel = $$props2.onCancel);
+    if ("showThemeRow" in $$props2) $$invalidate(2, showThemeRow = $$props2.showThemeRow);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*hue, saturation, value*/
-    28) {
-      $: $$invalidate(5, currentHex = hsvToHex(hue, saturation, value));
+    56) {
+      $: $$invalidate(6, currentHex = hsvToHex(hue, saturation, value));
     }
     if ($$self.$$.dirty[0] & /*hue*/
-    4) {
-      $: $$invalidate(10, squareBg = `hsl(${hue}, 100%, 50%)`);
+    8) {
+      $: $$invalidate(12, squareBg = `hsl(${hue}, 100%, 50%)`);
     }
     if ($$self.$$.dirty[0] & /*currentHex*/
-    32) {
-      $: $$invalidate(9, previewBg = hexToRgba2(currentHex, 0.18));
+    64) {
+      $: $$invalidate(11, previewBg = hexToRgba2(currentHex, 0.18));
     }
     if ($$self.$$.dirty[0] & /*currentHex*/
-    32) {
-      $: $$invalidate(6, hexInput = currentHex);
+    64) {
+      $: $$invalidate(8, hexInput = currentHex);
     }
   };
   return [
     label,
     onCancel,
+    showThemeRow,
     hue,
     saturation,
     value,
     currentHex,
+    selectedToken,
     hexInput,
     squareEl,
     hueEl,
@@ -6055,12 +6293,14 @@ function instance2($$self, $$props, $$invalidate) {
     onHueMouseDown,
     onHexInput,
     pickPalette,
+    pickThemeToken,
     save,
     initialColour,
     onSave,
     div4_binding,
     div6_binding,
-    click_handler
+    click_handler,
+    click_handler_1
   ];
 }
 var ColourPickerComponent, ColourPickerComponent_default;
@@ -6070,6 +6310,7 @@ var init_ColourPickerComponent = __esm({
     init_disclose_version();
     init_runtime();
     init_settings();
+    init_themeColours();
     ColourPickerComponent = class extends SvelteComponent {
       constructor(options) {
         super();
@@ -6080,10 +6321,11 @@ var init_ColourPickerComponent = __esm({
           create_fragment2,
           safe_not_equal,
           {
-            initialColour: 16,
+            initialColour: 19,
             label: 0,
-            onSave: 17,
-            onCancel: 1
+            onSave: 20,
+            onCancel: 1,
+            showThemeRow: 2
           },
           add_css2,
           [-1, -1]
@@ -27180,6 +27422,7 @@ var init_SetupWizardModal = __esm({
   "src/modals/SetupWizardModal.ts"() {
     import_obsidian9 = require("obsidian");
     init_settings();
+    init_themeColours();
     init_TimetableEditorModal();
     init_SettingsTab();
     DAYS = [
@@ -27619,13 +27862,13 @@ var init_SetupWizardModal = __esm({
           for (const pt of this.state.periodTypes) {
             const row = listEl.createDiv("tp-activity-row");
             const swatch = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
-            swatch.style.background = pt.colour;
+            swatch.style.background = resolveColour(pt.colour);
             swatch.addEventListener("click", async () => {
               const { ColourPickerModal: ColourPickerModal2 } = await Promise.resolve().then(() => (init_SettingsTab(), SettingsTab_exports));
               new ColourPickerModal2(this.app, pt.colour, pt.label, async (colour) => {
                 pt.colour = colour;
-                swatch.style.background = colour;
-              }).open();
+                swatch.style.background = resolveColour(colour);
+              }, true).open();
             });
             const labelIn = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
             labelIn.value = pt.label;
@@ -27641,7 +27884,7 @@ var init_SetupWizardModal = __esm({
             });
           }
           new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(() => {
-            this.state.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: "#b4befe" });
+            this.state.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: FALLBACK_PERIOD_TYPE_COLOUR });
             renderList();
           }));
         };
@@ -28180,6 +28423,7 @@ var init_SettingsTab = __esm({
   "src/settings/SettingsTab.ts"() {
     import_obsidian11 = require("obsidian");
     init_settings();
+    init_themeColours();
     init_ColourPickerComponent();
     init_AddPeriodModal();
     init_ExportModal();
@@ -28366,10 +28610,20 @@ var init_SettingsTab = __esm({
         const periodTypesContainer = containerEl.createDiv("tp-activities-list");
         this.renderPeriodTypesList(periodTypesContainer);
         new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(async () => {
-          this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: "#b4befe" });
+          this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: FALLBACK_PERIOD_TYPE_COLOUR });
           await this.plugin.saveSettings();
           periodTypesContainer.empty();
           this.renderPeriodTypesList(periodTypesContainer);
+        })).addButton((btn) => btn.setButtonText("Reset all colours to theme").setTooltip("Discard custom block colours and follow your Obsidian theme").onClick(async () => {
+          var _a2;
+          if (!confirm("Reset all block type colours to your Obsidian theme defaults? Custom colours will be discarded.")) return;
+          for (const pt of this.plugin.settings.periodTypes) {
+            pt.colour = (_a2 = DEFAULT_PERIOD_TYPE_COLOURS[pt.id]) != null ? _a2 : FALLBACK_PERIOD_TYPE_COLOUR;
+          }
+          await this.plugin.saveSettings();
+          periodTypesContainer.empty();
+          this.renderPeriodTypesList(periodTypesContainer);
+          new import_obsidian11.Notice("Block colours reset to theme defaults.");
         }));
         containerEl.createEl("h3", { text: "School Timetable" });
         containerEl.createEl("p", {
@@ -28955,13 +29209,15 @@ var init_SettingsTab = __esm({
       renderPeriodTypeRow(container, pt) {
         const row = container.createDiv("tp-activity-row");
         const swatchBtn = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
-        swatchBtn.style.background = pt.colour;
+        swatchBtn.style.background = resolveColour(pt.colour);
+        swatchBtn.title = isThemeToken(pt.colour) ? "Following your Obsidian theme" : "Custom colour";
         swatchBtn.addEventListener("click", () => {
           new ColourPickerModal(this.app, pt.colour, pt.label, async (colour) => {
             pt.colour = colour;
             await this.plugin.saveSettings();
-            swatchBtn.style.background = colour;
-          }).open();
+            swatchBtn.style.background = resolveColour(colour);
+            swatchBtn.title = isThemeToken(colour) ? "Following your Obsidian theme" : "Custom colour";
+          }, true).open();
         });
         const labelInput = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
         labelInput.value = pt.label;
@@ -28969,6 +29225,15 @@ var init_SettingsTab = __esm({
         labelInput.addEventListener("change", async () => {
           pt.label = labelInput.value;
           await this.plugin.saveSettings();
+        });
+        const resetBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Reset colour to theme default" });
+        (0, import_obsidian11.setIcon)(resetBtn, "rotate-ccw");
+        resetBtn.addEventListener("click", async () => {
+          var _a;
+          pt.colour = (_a = DEFAULT_PERIOD_TYPE_COLOURS[pt.id]) != null ? _a : FALLBACK_PERIOD_TYPE_COLOUR;
+          await this.plugin.saveSettings();
+          swatchBtn.style.background = resolveColour(pt.colour);
+          swatchBtn.title = "Following your Obsidian theme";
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete type" });
         (0, import_obsidian11.setIcon)(delBtn, "trash-2");
@@ -29177,11 +29442,12 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
       }
     };
     ColourPickerModal = class extends import_obsidian11.Modal {
-      constructor(app, initialColour, label, onSave) {
+      constructor(app, initialColour, label, onSave, showThemeRow = false) {
         super(app);
         this.initialColour = initialColour;
         this.label = label;
         this.onSave = onSave;
+        this.showThemeRow = showThemeRow;
       }
       onOpen() {
         const { contentEl } = this;
@@ -29192,6 +29458,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
           props: {
             initialColour: this.initialColour,
             label: this.label,
+            showThemeRow: this.showThemeRow,
             onSave: async (colour) => {
               await this.onSave(colour);
               this.close();
@@ -29568,124 +29835,125 @@ var AddDateEventModal = class extends import_obsidian13.Modal {
 };
 
 // src/views/WeekView.svelte
+init_themeColours();
 init_runtime();
 function add_css3(target) {
-  append_styles(target, "svelte-rdty2b", ".tp-week-view.svelte-rdty2b.svelte-rdty2b{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-rdty2b.svelte-rdty2b{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-rdty2b.svelte-rdty2b{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-rdty2b.svelte-rdty2b{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-rdty2b.svelte-rdty2b{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-rdty2b.svelte-rdty2b{display:flex;gap:4px}.tp-nav-arrow.svelte-rdty2b.svelte-rdty2b{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-rdty2b.svelte-rdty2b{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-rdty2b.svelte-rdty2b{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-rdty2b.svelte-rdty2b{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-rdty2b.svelte-rdty2b{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-rdty2b.svelte-rdty2b{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-rdty2b.svelte-rdty2b:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-rdty2b.svelte-rdty2b:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-rdty2b.svelte-rdty2b{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-rdty2b.svelte-rdty2b:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-rdty2b svg,.tp-btn-icon.svelte-rdty2b svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-rdty2b.svelte-rdty2b{padding:5px 8px}.tp-action-btn--icon-only.svelte-rdty2b svg{width:15px;height:15px}.tp-overflow-btn.svelte-rdty2b.svelte-rdty2b{display:none}.tp-table-scroll.svelte-rdty2b.svelte-rdty2b{flex:1 1 0;overflow:auto;min-height:0}.tp-grid.svelte-rdty2b.svelte-rdty2b{width:100%;border-collapse:collapse;table-layout:fixed;align-self:start}.tp-col-time.svelte-rdty2b.svelte-rdty2b{width:48px}.tp-col-period.svelte-rdty2b.svelte-rdty2b{width:95px}.tp-head-row.svelte-rdty2b.svelte-rdty2b{position:sticky;top:0;z-index:10;background:var(--background-secondary)}.tp-th-time.svelte-rdty2b.svelte-rdty2b,.tp-th-period.svelte-rdty2b.svelte-rdty2b,.tp-th-day.svelte-rdty2b.svelte-rdty2b{padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);text-align:center;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));border-top:none;white-space:nowrap;background:var(--background-secondary)}.tp-th-time.svelte-rdty2b.svelte-rdty2b{text-align:left;padding-left:8px}.tp-th-period.svelte-rdty2b.svelte-rdty2b{text-align:left;padding-left:10px}.tp-th-day--today.svelte-rdty2b.svelte-rdty2b{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day.svelte-rdty2b.svelte-rdty2b{text-align:left !important}.tp-th-day-inner.svelte-rdty2b.svelte-rdty2b{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-rdty2b.svelte-rdty2b{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-rdty2b.svelte-rdty2b{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-rdty2b.svelte-rdty2b{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-rdty2b.svelte-rdty2b{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-rdty2b.svelte-rdty2b{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-rdty2b.svelte-rdty2b{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-td-time.svelte-rdty2b.svelte-rdty2b{padding:4px 6px 0 8px;font-size:11px;color:var(--text-muted);vertical-align:top;white-space:nowrap;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));background:var(--background-secondary);height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-td-period.svelte-rdty2b.svelte-rdty2b{padding:0;vertical-align:top;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-period-inner.svelte-rdty2b.svelte-rdty2b{display:flex;flex-direction:column;justify-content:flex-start;gap:2px;height:100%;padding:5px 8px;box-sizing:border-box}.tp-period-name.svelte-rdty2b.svelte-rdty2b{font-size:13px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-period-time.svelte-rdty2b.svelte-rdty2b{font-size:11px;color:var(--text-muted);line-height:1.2;white-space:nowrap}.tp-td-cell.svelte-rdty2b.svelte-rdty2b{position:relative;padding:3px;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));vertical-align:top;transition:background 0.1s;overflow:hidden;height:var(--rh,64px);max-height:var(--rh,64px);box-sizing:border-box}.tp-td-cell--holiday.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent) !important}.tp-td-cell--inset.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent) !important}.tp-td-cell--dragover.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-td-cell--reject.svelte-rdty2b.svelte-rdty2b{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-chip.svelte-rdty2b.svelte-rdty2b{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-rdty2b.svelte-rdty2b:hover{filter:brightness(1.08)}.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-rdty2b.svelte-rdty2b{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-rdty2b.svelte-rdty2b{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-rdty2b.svelte-rdty2b{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-rdty2b.svelte-rdty2b,.tp-chip-notes.svelte-rdty2b.svelte-rdty2b{display:none}.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:13px}.tp-chip-room.svelte-rdty2b.svelte-rdty2b{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:12px}.tp-chip-room.svelte-rdty2b.svelte-rdty2b{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-rdty2b.svelte-rdty2b{display:none}.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:13px}.tp-chip-room.svelte-rdty2b.svelte-rdty2b{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-rdty2b.svelte-rdty2b{font-size:11px}.tp-chip-room.svelte-rdty2b.svelte-rdty2b{font-size:9px}}.tp-now-line.svelte-rdty2b.svelte-rdty2b{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-badge.svelte-rdty2b.svelte-rdty2b{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-rdty2b.svelte-rdty2b{position:absolute;inset:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-rdty2b .tp-chip.svelte-rdty2b{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-rdty2b.svelte-rdty2b{display:none}@container (max-width: 680px){.tp-action-btn.svelte-rdty2b.svelte-rdty2b{display:none}.tp-overflow-btn.svelte-rdty2b.svelte-rdty2b{display:inline-flex !important}.tp-header.svelte-rdty2b.svelte-rdty2b{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-rdty2b.svelte-rdty2b{justify-content:center}.tp-header-identity.svelte-rdty2b.svelte-rdty2b{min-width:0;overflow:hidden}.tp-week-label.svelte-rdty2b.svelte-rdty2b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-rdty2b.svelte-rdty2b{display:none}.tp-th-day.svelte-rdty2b.svelte-rdty2b{padding:5px 2px}.tp-th-day-inner.svelte-rdty2b.svelte-rdty2b{flex-direction:column;align-items:center;justify-content:center;gap:1px}.tp-day-label.svelte-rdty2b.svelte-rdty2b{flex-direction:column;align-items:center;gap:1px}.tp-day-name.svelte-rdty2b.svelte-rdty2b{font-size:12px}.tp-day-date.svelte-rdty2b.svelte-rdty2b{font-size:10px}.tp-day-override-badge.svelte-rdty2b.svelte-rdty2b{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-col-time.svelte-rdty2b.svelte-rdty2b{width:28px}.tp-col-period.svelte-rdty2b.svelte-rdty2b{width:42px}.tp-th-time.svelte-rdty2b.svelte-rdty2b{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-th-period.svelte-rdty2b.svelte-rdty2b{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-td-time.svelte-rdty2b.svelte-rdty2b{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:normal;vertical-align:middle}.tp-period-inner.svelte-rdty2b.svelte-rdty2b{writing-mode:vertical-rl;transform:rotate(180deg);align-items:center;padding:4px 2px}.tp-period-name.svelte-rdty2b.svelte-rdty2b{white-space:nowrap}.tp-period-time.svelte-rdty2b.svelte-rdty2b{white-space:nowrap}.tp-day-name.svelte-rdty2b.svelte-rdty2b{font-size:11px}.tp-day-date.svelte-rdty2b.svelte-rdty2b{font-size:10px}}");
+  append_styles(target, "svelte-32w9h4", ".tp-week-view.svelte-32w9h4.svelte-32w9h4{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-32w9h4.svelte-32w9h4{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-32w9h4.svelte-32w9h4{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-32w9h4.svelte-32w9h4{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-32w9h4.svelte-32w9h4{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-32w9h4.svelte-32w9h4{display:flex;gap:4px}.tp-nav-arrow.svelte-32w9h4.svelte-32w9h4{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-32w9h4.svelte-32w9h4{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-32w9h4.svelte-32w9h4{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-32w9h4.svelte-32w9h4{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-32w9h4.svelte-32w9h4{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-32w9h4.svelte-32w9h4{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-32w9h4.svelte-32w9h4:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-32w9h4.svelte-32w9h4:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-32w9h4.svelte-32w9h4{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-32w9h4.svelte-32w9h4:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-32w9h4 svg,.tp-btn-icon.svelte-32w9h4 svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-32w9h4.svelte-32w9h4{padding:5px 8px}.tp-action-btn--icon-only.svelte-32w9h4 svg{width:15px;height:15px}.tp-overflow-btn.svelte-32w9h4.svelte-32w9h4{display:none}.tp-table-scroll.svelte-32w9h4.svelte-32w9h4{flex:1 1 0;overflow:auto;min-height:0}.tp-grid.svelte-32w9h4.svelte-32w9h4{width:100%;border-collapse:collapse;table-layout:fixed;align-self:start}.tp-col-time.svelte-32w9h4.svelte-32w9h4{width:48px}.tp-col-period.svelte-32w9h4.svelte-32w9h4{width:95px}.tp-head-row.svelte-32w9h4.svelte-32w9h4{position:sticky;top:0;z-index:10;background:var(--background-secondary)}.tp-th-time.svelte-32w9h4.svelte-32w9h4,.tp-th-period.svelte-32w9h4.svelte-32w9h4,.tp-th-day.svelte-32w9h4.svelte-32w9h4{padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);text-align:center;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));border-top:none;white-space:nowrap;background:var(--background-secondary)}.tp-th-time.svelte-32w9h4.svelte-32w9h4{text-align:left;padding-left:8px}.tp-th-period.svelte-32w9h4.svelte-32w9h4{text-align:left;padding-left:10px}.tp-th-day--today.svelte-32w9h4.svelte-32w9h4{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-32w9h4.svelte-32w9h4{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-32w9h4.svelte-32w9h4{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day.svelte-32w9h4.svelte-32w9h4{text-align:left !important}.tp-th-day-inner.svelte-32w9h4.svelte-32w9h4{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-32w9h4.svelte-32w9h4{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-32w9h4.svelte-32w9h4{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-32w9h4.svelte-32w9h4{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-32w9h4.svelte-32w9h4{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-32w9h4.svelte-32w9h4{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-32w9h4.svelte-32w9h4{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-td-time.svelte-32w9h4.svelte-32w9h4{padding:4px 6px 0 8px;font-size:11px;color:var(--text-muted);vertical-align:top;white-space:nowrap;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));background:var(--background-secondary);height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-td-period.svelte-32w9h4.svelte-32w9h4{padding:0;vertical-align:top;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));height:var(--rh,64px);max-height:var(--rh,64px);overflow:hidden;box-sizing:border-box}.tp-period-inner.svelte-32w9h4.svelte-32w9h4{display:flex;flex-direction:column;justify-content:flex-start;gap:2px;height:100%;padding:5px 8px;box-sizing:border-box}.tp-period-name.svelte-32w9h4.svelte-32w9h4{font-size:13px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-period-time.svelte-32w9h4.svelte-32w9h4{font-size:11px;color:var(--text-muted);line-height:1.2;white-space:nowrap}.tp-td-cell.svelte-32w9h4.svelte-32w9h4{position:relative;padding:3px;border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border));vertical-align:top;transition:background 0.1s;overflow:hidden;height:var(--rh,64px);max-height:var(--rh,64px);box-sizing:border-box}.tp-td-cell--holiday.svelte-32w9h4.svelte-32w9h4{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent) !important}.tp-td-cell--inset.svelte-32w9h4.svelte-32w9h4{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent) !important}.tp-td-cell--dragover.svelte-32w9h4.svelte-32w9h4{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-td-cell--reject.svelte-32w9h4.svelte-32w9h4{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-chip.svelte-32w9h4.svelte-32w9h4{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-32w9h4.svelte-32w9h4:hover{filter:brightness(1.08)}.tp-chip-code.svelte-32w9h4.svelte-32w9h4{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-32w9h4.svelte-32w9h4{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-32w9h4.svelte-32w9h4{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-32w9h4.svelte-32w9h4{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-32w9h4.svelte-32w9h4,.tp-chip-notes.svelte-32w9h4.svelte-32w9h4{display:none}.tp-chip-code.svelte-32w9h4.svelte-32w9h4{font-size:13px}.tp-chip-room.svelte-32w9h4.svelte-32w9h4{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-32w9h4.svelte-32w9h4{font-size:12px}.tp-chip-room.svelte-32w9h4.svelte-32w9h4{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-32w9h4.svelte-32w9h4{display:none}.tp-chip-code.svelte-32w9h4.svelte-32w9h4{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-32w9h4.svelte-32w9h4{font-size:13px}.tp-chip-room.svelte-32w9h4.svelte-32w9h4{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-32w9h4.svelte-32w9h4{font-size:11px}.tp-chip-room.svelte-32w9h4.svelte-32w9h4{font-size:9px}}.tp-now-line.svelte-32w9h4.svelte-32w9h4{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-badge.svelte-32w9h4.svelte-32w9h4{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-32w9h4.svelte-32w9h4{position:absolute;inset:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-32w9h4 .tp-chip.svelte-32w9h4{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-32w9h4.svelte-32w9h4{display:none}@container (max-width: 680px){.tp-action-btn.svelte-32w9h4.svelte-32w9h4{display:none}.tp-overflow-btn.svelte-32w9h4.svelte-32w9h4{display:inline-flex !important}.tp-header.svelte-32w9h4.svelte-32w9h4{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-32w9h4.svelte-32w9h4{justify-content:center}.tp-header-identity.svelte-32w9h4.svelte-32w9h4{min-width:0;overflow:hidden}.tp-week-label.svelte-32w9h4.svelte-32w9h4{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-32w9h4.svelte-32w9h4{display:none}.tp-th-day.svelte-32w9h4.svelte-32w9h4{padding:5px 2px}.tp-th-day-inner.svelte-32w9h4.svelte-32w9h4{flex-direction:column;align-items:center;justify-content:center;gap:1px}.tp-day-label.svelte-32w9h4.svelte-32w9h4{flex-direction:column;align-items:center;gap:1px}.tp-day-name.svelte-32w9h4.svelte-32w9h4{font-size:12px}.tp-day-date.svelte-32w9h4.svelte-32w9h4{font-size:10px}.tp-day-override-badge.svelte-32w9h4.svelte-32w9h4{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-col-time.svelte-32w9h4.svelte-32w9h4{width:28px}.tp-col-period.svelte-32w9h4.svelte-32w9h4{width:42px}.tp-th-time.svelte-32w9h4.svelte-32w9h4{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-th-period.svelte-32w9h4.svelte-32w9h4{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:nowrap;vertical-align:middle}.tp-td-time.svelte-32w9h4.svelte-32w9h4{writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:4px 2px;white-space:normal;vertical-align:middle}.tp-period-inner.svelte-32w9h4.svelte-32w9h4{writing-mode:vertical-rl;transform:rotate(180deg);align-items:center;justify-content:flex-start;padding:4px 2px}.tp-period-name.svelte-32w9h4.svelte-32w9h4{white-space:nowrap;max-height:100%;overflow:hidden;text-overflow:ellipsis}.tp-period-time.svelte-32w9h4.svelte-32w9h4{white-space:nowrap;max-height:100%;overflow:hidden;text-overflow:ellipsis}.tp-day-name.svelte-32w9h4.svelte-32w9h4{font-size:11px}.tp-day-date.svelte-32w9h4.svelte-32w9h4{font-size:10px}}");
 }
 function get_each_context3(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[89] = list[i];
+  child_ctx[90] = list[i];
   const constants_0 = (
     /*getPeriodTypeColour*/
     child_ctx[17](
       /*period*/
-      child_ctx[89].type
+      child_ctx[90].type
     )
   );
-  child_ctx[90] = constants_0;
+  child_ctx[91] = constants_0;
   const constants_1 = rowHeight(
     /*period*/
-    child_ctx[89]
+    child_ctx[90]
   );
-  child_ctx[91] = constants_1;
+  child_ctx[92] = constants_1;
   const constants_2 = (
     /*isCurrentWeek*/
     child_ctx[8] ? (
       /*nowOffsetInPeriod*/
       child_ctx[28](
         /*period*/
-        child_ctx[89]
+        child_ctx[90]
       )
     ) : null
   );
-  child_ctx[92] = constants_2;
+  child_ctx[93] = constants_2;
   return child_ctx;
 }
-function get_each_context_12(ctx, list, i) {
+function get_each_context_13(ctx, list, i) {
   var _a;
   const child_ctx = ctx.slice();
-  child_ctx[95] = list[i];
+  child_ctx[96] = list[i];
   const constants_0 = dayISODate(
     /*day*/
-    child_ctx[95].offset,
+    child_ctx[96].offset,
     /*currentMonday*/
     child_ctx[1]
   );
-  child_ctx[96] = constants_0;
+  child_ctx[97] = constants_0;
   const constants_1 = (
     /*dayOverrideMap*/
     child_ctx[13][
       /*day*/
-      child_ctx[95].key
+      child_ctx[96].key
     ]
   );
-  child_ctx[97] = constants_1;
+  child_ctx[98] = constants_1;
   const constants_2 = (
     /*_slotMap*/
     child_ctx[11][
       /*day*/
-      child_ctx[95].key + ":" + /*period*/
-      child_ctx[89].id
+      child_ctx[96].key + ":" + /*period*/
+      child_ctx[90].id
     ]
   );
-  child_ctx[98] = constants_2;
+  child_ctx[99] = constants_2;
   const constants_3 = (
     /*_rawSlot*/
-    child_ctx[98] && !/*isSlotExcluded*/
+    child_ctx[99] && !/*isSlotExcluded*/
     child_ctx[18](
       /*_rawSlot*/
-      child_ctx[98].id,
+      child_ctx[99].id,
       /*dayDate*/
-      child_ctx[96]
+      child_ctx[97]
     ) && !/*dayOverride*/
-    child_ctx[97] ? (
+    child_ctx[98] ? (
       /*_rawSlot*/
-      child_ctx[98]
+      child_ctx[99]
     ) : void 0
   );
-  child_ctx[99] = constants_3;
+  child_ctx[100] = constants_3;
   const constants_4 = (
     /*dayOverride*/
-    child_ctx[97] ? [] : (
+    child_ctx[98] ? [] : (
       /*_dateEventMap*/
       (_a = child_ctx[12][
         /*day*/
-        child_ctx[95].key + ":" + /*period*/
-        child_ctx[89].id
+        child_ctx[96].key + ":" + /*period*/
+        child_ctx[90].id
       ]) != null ? _a : []
     )
   );
-  child_ctx[100] = constants_4;
+  child_ctx[101] = constants_4;
   const constants_5 = cellKey(
     /*day*/
-    child_ctx[95].key,
+    child_ctx[96].key,
     /*period*/
-    child_ctx[89].id
+    child_ctx[90].id
   );
-  child_ctx[101] = constants_5;
+  child_ctx[102] = constants_5;
   const constants_6 = (
     /*dragOverKey*/
     child_ctx[5] === /*key*/
-    child_ctx[101] && !/*slot*/
-    child_ctx[99]
+    child_ctx[102] && !/*slot*/
+    child_ctx[100]
   );
-  child_ctx[102] = constants_6;
+  child_ctx[103] = constants_6;
   const constants_7 = rejectKey === /*key*/
-  child_ctx[101];
-  child_ctx[103] = constants_7;
+  child_ctx[102];
+  child_ctx[104] = constants_7;
   return child_ctx;
 }
 function get_each_context_22(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[106] = list[i];
+  child_ctx[107] = list[i];
   const constants_0 = (
     /*getDateEventLabel*/
     child_ctx[20](
       /*devEv*/
-      child_ctx[106]
+      child_ctx[107]
     )
   );
-  child_ctx[107] = constants_0;
+  child_ctx[108] = constants_0;
   return child_ctx;
 }
 function get_if_ctx2(ctx) {
@@ -29694,23 +29962,23 @@ function get_if_ctx2(ctx) {
     /*getSlotLabel*/
     child_ctx[19](
       /*slot*/
-      child_ctx[99]
+      child_ctx[100]
     )
   );
-  child_ctx[107] = constants_0;
+  child_ctx[108] = constants_0;
   return child_ctx;
 }
 function get_each_context_32(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[95] = list[i];
+  child_ctx[96] = list[i];
   const constants_0 = (
     /*dayOverrideMap*/
     child_ctx[13][
       /*day*/
-      child_ctx[95].key
+      child_ctx[96].key
     ]
   );
-  child_ctx[97] = constants_0;
+  child_ctx[98] = constants_0;
   return child_ctx;
 }
 function get_each_context_42(ctx, list, i) {
@@ -29732,7 +30000,7 @@ function create_if_block_132(ctx) {
         ctx[3]
       );
       attr(span, "class", span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx[3].toLowerCase() + " svelte-rdty2b");
+      ctx[3].toLowerCase() + " svelte-32w9h4");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -29748,7 +30016,7 @@ function create_if_block_132(ctx) {
       );
       if (dirty[0] & /*abWeekType*/
       8 && span_class_value !== (span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx2[3].toLowerCase() + " svelte-rdty2b")) {
+      ctx2[3].toLowerCase() + " svelte-32w9h4")) {
         attr(span, "class", span_class_value);
       }
     },
@@ -29782,7 +30050,7 @@ function create_if_block_122(ctx) {
     c() {
       span = element("span");
       span.textContent = "Inset";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-rdty2b");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-32w9h4");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -29800,7 +30068,7 @@ function create_if_block_112(ctx) {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-rdty2b");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-32w9h4");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -29819,14 +30087,14 @@ function create_each_block_32(ctx) {
   let span0;
   let t0_value = (
     /*day*/
-    ctx[95].label + ""
+    ctx[96].label + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = getDayDate(
     /*day*/
-    ctx[95].offset,
+    ctx[96].offset,
     /*currentMonday*/
     ctx[1]
   ) + "";
@@ -29836,11 +30104,11 @@ function create_each_block_32(ctx) {
   function select_block_type(ctx2, dirty) {
     if (
       /*dayOverride*/
-      ctx2[97] === "holiday"
+      ctx2[98] === "holiday"
     ) return create_if_block_112;
     if (
       /*dayOverride*/
-      ctx2[97] === "inset"
+      ctx2[98] === "inset"
     ) return create_if_block_122;
   }
   let current_block_type = select_block_type(ctx, [-1, -1, -1, -1]);
@@ -29858,14 +30126,14 @@ function create_each_block_32(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-name svelte-rdty2b");
-      attr(span1, "class", "tp-day-date svelte-rdty2b");
-      attr(span2, "class", "tp-day-label svelte-rdty2b");
-      attr(div, "class", "tp-th-day-inner svelte-rdty2b");
-      attr(th, "class", "tp-th-day svelte-rdty2b");
+      attr(span0, "class", "tp-day-name svelte-32w9h4");
+      attr(span1, "class", "tp-day-date svelte-32w9h4");
+      attr(span2, "class", "tp-day-label svelte-32w9h4");
+      attr(div, "class", "tp-th-day-inner svelte-32w9h4");
+      attr(th, "class", "tp-th-day svelte-32w9h4");
       toggle_class(th, "tp-th-day--today", isToday(
         /*day*/
-        ctx[95].offset,
+        ctx[96].offset,
         /*currentMonday*/
         ctx[1]
       ));
@@ -29873,13 +30141,13 @@ function create_each_block_32(ctx) {
         th,
         "tp-th-day--holiday",
         /*dayOverride*/
-        ctx[97] === "holiday"
+        ctx[98] === "holiday"
       );
       toggle_class(
         th,
         "tp-th-day--inset",
         /*dayOverride*/
-        ctx[97] === "inset"
+        ctx[98] === "inset"
       );
     },
     m(target, anchor) {
@@ -29898,11 +30166,11 @@ function create_each_block_32(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*DAYS*/
       4 && t0_value !== (t0_value = /*day*/
-      ctx2[95].label + "")) set_data(t0, t0_value);
+      ctx2[96].label + "")) set_data(t0, t0_value);
       if (dirty[0] & /*DAYS, currentMonday*/
       6 && t2_value !== (t2_value = getDayDate(
         /*day*/
-        ctx2[95].offset,
+        ctx2[96].offset,
         /*currentMonday*/
         ctx2[1]
       ) + "")) set_data(t2, t2_value);
@@ -29918,7 +30186,7 @@ function create_each_block_32(ctx) {
       6) {
         toggle_class(th, "tp-th-day--today", isToday(
           /*day*/
-          ctx2[95].offset,
+          ctx2[96].offset,
           /*currentMonday*/
           ctx2[1]
         ));
@@ -29929,7 +30197,7 @@ function create_each_block_32(ctx) {
           th,
           "tp-th-day--holiday",
           /*dayOverride*/
-          ctx2[97] === "holiday"
+          ctx2[98] === "holiday"
         );
       }
       if (dirty[0] & /*dayOverrideMap, DAYS*/
@@ -29938,7 +30206,7 @@ function create_each_block_32(ctx) {
           th,
           "tp-th-day--inset",
           /*dayOverride*/
-          ctx2[97] === "inset"
+          ctx2[98] === "inset"
         );
       }
     },
@@ -29962,12 +30230,12 @@ function create_if_block_102(ctx) {
         /*currentTimeStr*/
         ctx[9]
       );
-      attr(div, "class", "tp-now-badge svelte-rdty2b");
+      attr(div, "class", "tp-now-badge svelte-32w9h4");
       set_style(
         div,
         "top",
         /*nowOffset*/
-        ctx[92] + "%"
+        ctx[93] + "%"
       );
     },
     m(target, anchor) {
@@ -29987,7 +30255,7 @@ function create_if_block_102(ctx) {
           div,
           "top",
           /*nowOffset*/
-          ctx2[92] + "%"
+          ctx2[93] + "%"
         );
       }
     },
@@ -30005,15 +30273,15 @@ function create_if_block_23(ctx) {
   let each_1_lookup = /* @__PURE__ */ new Map();
   let if_block = (
     /*slot*/
-    ctx[99] && create_if_block_62(get_if_ctx2(ctx))
+    ctx[100] && create_if_block_62(get_if_ctx2(ctx))
   );
   let each_value_2 = ensure_array_like(
     /*devEvents*/
-    ctx[100]
+    ctx[101]
   );
   const get_key = (ctx2) => (
     /*devEv*/
-    ctx2[106].id
+    ctx2[107].id
   );
   for (let i = 0; i < each_value_2.length; i += 1) {
     let child_ctx = get_each_context_22(ctx, each_value_2, i);
@@ -30028,7 +30296,7 @@ function create_if_block_23(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-event-stack svelte-rdty2b");
+      attr(div, "class", "tp-event-stack svelte-32w9h4");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -30043,7 +30311,7 @@ function create_if_block_23(ctx) {
     p(ctx2, dirty) {
       if (
         /*slot*/
-        ctx2[99]
+        ctx2[100]
       ) {
         if (if_block) {
           if_block.p(get_if_ctx2(ctx2), dirty);
@@ -30060,7 +30328,7 @@ function create_if_block_23(ctx) {
       206582790) {
         each_value_2 = ensure_array_like(
           /*devEvents*/
-          ctx2[100]
+          ctx2[101]
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_2, each_1_lookup, div, destroy_block, create_each_block_22, null, get_each_context_22);
       }
@@ -30081,7 +30349,7 @@ function create_if_block_62(ctx) {
   let span;
   let t0_value = (
     /*lbl*/
-    ctx[107].code + ""
+    ctx[108].code + ""
   );
   let t0;
   let t1;
@@ -30091,23 +30359,23 @@ function create_if_block_62(ctx) {
   let dispose;
   let if_block0 = (
     /*lbl*/
-    (ctx[107].year || /*lbl*/
-    ctx[107].subjectName) && create_if_block_92(ctx)
+    (ctx[108].year || /*lbl*/
+    ctx[108].subjectName) && create_if_block_92(ctx)
   );
   let if_block1 = (
     /*lbl*/
-    ctx[107].classroom && create_if_block_82(ctx)
+    ctx[108].classroom && create_if_block_82(ctx)
   );
   let if_block2 = (
     /*lbl*/
-    ctx[107].notes && create_if_block_72(ctx)
+    ctx[108].notes && create_if_block_72(ctx)
   );
   function dragstart_handler(...args) {
     return (
       /*dragstart_handler*/
       ctx[56](
         /*slot*/
-        ctx[99],
+        ctx[100],
         ...args
       )
     );
@@ -30117,11 +30385,11 @@ function create_if_block_62(ctx) {
       /*click_handler_1*/
       ctx[57](
         /*dayDate*/
-        ctx[96],
+        ctx[97],
         /*period*/
-        ctx[89],
+        ctx[90],
         /*slot*/
-        ctx[99],
+        ctx[100],
         ...args
       )
     );
@@ -30137,18 +30405,18 @@ function create_if_block_62(ctx) {
       if (if_block1) if_block1.c();
       t3 = space();
       if (if_block2) if_block2.c();
-      attr(span, "class", "tp-chip-code svelte-rdty2b");
-      attr(div, "class", "tp-chip svelte-rdty2b");
+      attr(span, "class", "tp-chip-code svelte-32w9h4");
+      attr(div, "class", "tp-chip svelte-32w9h4");
       attr(div, "draggable", "true");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
       set_style(div, "background", hexToRgba3(
         /*lbl*/
-        ctx[107].colour,
+        ctx[108].colour,
         0.22
       ));
       set_style(div, "border-left", "3px solid " + /*lbl*/
-      ctx[107].colour);
+      ctx[108].colour);
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -30184,11 +30452,11 @@ function create_if_block_62(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*_slotMap, DAYS, _periods, currentMonday, dayOverrideMap*/
       11270 && t0_value !== (t0_value = /*lbl*/
-      ctx[107].code + "")) set_data(t0, t0_value);
+      ctx[108].code + "")) set_data(t0, t0_value);
       if (
         /*lbl*/
-        ctx[107].year || /*lbl*/
-        ctx[107].subjectName
+        ctx[108].year || /*lbl*/
+        ctx[108].subjectName
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -30203,7 +30471,7 @@ function create_if_block_62(ctx) {
       }
       if (
         /*lbl*/
-        ctx[107].classroom
+        ctx[108].classroom
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -30218,7 +30486,7 @@ function create_if_block_62(ctx) {
       }
       if (
         /*lbl*/
-        ctx[107].notes
+        ctx[108].notes
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
@@ -30235,14 +30503,14 @@ function create_if_block_62(ctx) {
       11270) {
         set_style(div, "background", hexToRgba3(
           /*lbl*/
-          ctx[107].colour,
+          ctx[108].colour,
           0.22
         ));
       }
       if (dirty[0] & /*_slotMap, DAYS, _periods, currentMonday, dayOverrideMap*/
       11270) {
         set_style(div, "border-left", "3px solid " + /*lbl*/
-        ctx[107].colour);
+        ctx[108].colour);
       }
     },
     d(detaching) {
@@ -30261,16 +30529,16 @@ function create_if_block_92(ctx) {
   let span;
   let t_value = [
     /*lbl*/
-    ctx[107].year,
+    ctx[108].year,
     /*lbl*/
-    ctx[107].subjectName
+    ctx[108].subjectName
   ].filter(Boolean).join(" \xB7 ") + "";
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-rdty2b");
+      attr(span, "class", "tp-chip-meta svelte-32w9h4");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -30280,9 +30548,9 @@ function create_if_block_92(ctx) {
       if (dirty[0] & /*_slotMap, DAYS, _periods, currentMonday, dayOverrideMap*/
       11270 && t_value !== (t_value = [
         /*lbl*/
-        ctx2[107].year,
+        ctx2[108].year,
         /*lbl*/
-        ctx2[107].subjectName
+        ctx2[108].subjectName
       ].filter(Boolean).join(" \xB7 ") + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -30296,14 +30564,14 @@ function create_if_block_82(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[107].classroom + ""
+    ctx[108].classroom + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-rdty2b");
+      attr(span, "class", "tp-chip-room svelte-32w9h4");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -30312,7 +30580,7 @@ function create_if_block_82(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotMap, DAYS, _periods, currentMonday, dayOverrideMap*/
       11270 && t_value !== (t_value = /*lbl*/
-      ctx2[107].classroom + "")) set_data(t, t_value);
+      ctx2[108].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -30325,14 +30593,14 @@ function create_if_block_72(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[107].notes + ""
+    ctx[108].notes + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-rdty2b");
+      attr(span, "class", "tp-chip-notes svelte-32w9h4");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -30341,7 +30609,7 @@ function create_if_block_72(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotMap, DAYS, _periods, currentMonday, dayOverrideMap*/
       11270 && t_value !== (t_value = /*lbl*/
-      ctx2[107].notes + "")) set_data(t, t_value);
+      ctx2[108].notes + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -30354,14 +30622,14 @@ function create_if_block_52(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[107].meta + ""
+    ctx[108].meta + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-rdty2b");
+      attr(span, "class", "tp-chip-meta svelte-32w9h4");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -30370,7 +30638,7 @@ function create_if_block_52(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*dayOverrideMap, DAYS, _dateEventMap, _periods*/
       13316 && t_value !== (t_value = /*lbl*/
-      ctx2[107].meta + "")) set_data(t, t_value);
+      ctx2[108].meta + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -30383,14 +30651,14 @@ function create_if_block_42(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[107].classroom + ""
+    ctx[108].classroom + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-rdty2b");
+      attr(span, "class", "tp-chip-room svelte-32w9h4");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -30399,7 +30667,7 @@ function create_if_block_42(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*dayOverrideMap, DAYS, _dateEventMap, _periods*/
       13316 && t_value !== (t_value = /*lbl*/
-      ctx2[107].classroom + "")) set_data(t, t_value);
+      ctx2[108].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -30412,14 +30680,14 @@ function create_if_block_32(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[107].notes + ""
+    ctx[108].notes + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-rdty2b");
+      attr(span, "class", "tp-chip-notes svelte-32w9h4");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -30428,7 +30696,7 @@ function create_if_block_32(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*dayOverrideMap, DAYS, _dateEventMap, _periods*/
       13316 && t_value !== (t_value = /*lbl*/
-      ctx2[107].notes + "")) set_data(t, t_value);
+      ctx2[108].notes + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -30442,7 +30710,7 @@ function create_each_block_22(key_2, ctx) {
   let span;
   let t0_value = (
     /*lbl*/
-    ctx[107].code + ""
+    ctx[108].code + ""
   );
   let t0;
   let t1;
@@ -30453,22 +30721,22 @@ function create_each_block_22(key_2, ctx) {
   let dispose;
   let if_block0 = (
     /*lbl*/
-    ctx[107].meta && create_if_block_52(ctx)
+    ctx[108].meta && create_if_block_52(ctx)
   );
   let if_block1 = (
     /*lbl*/
-    ctx[107].classroom && create_if_block_42(ctx)
+    ctx[108].classroom && create_if_block_42(ctx)
   );
   let if_block2 = (
     /*lbl*/
-    ctx[107].notes && create_if_block_32(ctx)
+    ctx[108].notes && create_if_block_32(ctx)
   );
   function dragstart_handler_1(...args) {
     return (
       /*dragstart_handler_1*/
       ctx[59](
         /*devEv*/
-        ctx[106],
+        ctx[107],
         ...args
       )
     );
@@ -30478,11 +30746,11 @@ function create_each_block_22(key_2, ctx) {
       /*click_handler_2*/
       ctx[60](
         /*dayDate*/
-        ctx[96],
+        ctx[97],
         /*period*/
-        ctx[89],
+        ctx[90],
         /*devEv*/
-        ctx[106],
+        ctx[107],
         ...args
       )
     );
@@ -30501,16 +30769,16 @@ function create_each_block_22(key_2, ctx) {
       t3 = space();
       if (if_block2) if_block2.c();
       t4 = space();
-      attr(span, "class", "tp-chip-code svelte-rdty2b");
-      attr(div, "class", "tp-chip tp-chip--event svelte-rdty2b");
+      attr(span, "class", "tp-chip-code svelte-32w9h4");
+      attr(div, "class", "tp-chip tp-chip--event svelte-32w9h4");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
       attr(div, "draggable", "true");
       set_style(div, "border-left", "3px solid " + /*lbl*/
-      ctx[107].colour);
+      ctx[108].colour);
       set_style(div, "background", hexToRgba3(
         /*lbl*/
-        ctx[107].colour,
+        ctx[108].colour,
         0.22
       ));
       this.first = div;
@@ -30550,10 +30818,10 @@ function create_each_block_22(key_2, ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*dayOverrideMap, DAYS, _dateEventMap, _periods*/
       13316 && t0_value !== (t0_value = /*lbl*/
-      ctx[107].code + "")) set_data(t0, t0_value);
+      ctx[108].code + "")) set_data(t0, t0_value);
       if (
         /*lbl*/
-        ctx[107].meta
+        ctx[108].meta
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -30568,7 +30836,7 @@ function create_each_block_22(key_2, ctx) {
       }
       if (
         /*lbl*/
-        ctx[107].classroom
+        ctx[108].classroom
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -30583,7 +30851,7 @@ function create_each_block_22(key_2, ctx) {
       }
       if (
         /*lbl*/
-        ctx[107].notes
+        ctx[108].notes
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
@@ -30599,13 +30867,13 @@ function create_each_block_22(key_2, ctx) {
       if (dirty[0] & /*dayOverrideMap, DAYS, _dateEventMap, _periods*/
       13316) {
         set_style(div, "border-left", "3px solid " + /*lbl*/
-        ctx[107].colour);
+        ctx[108].colour);
       }
       if (dirty[0] & /*dayOverrideMap, DAYS, _dateEventMap, _periods*/
       13316) {
         set_style(div, "background", hexToRgba3(
           /*lbl*/
-          ctx[107].colour,
+          ctx[108].colour,
           0.22
         ));
       }
@@ -30631,9 +30899,9 @@ function create_if_block_110(ctx) {
       /*click_handler_3*/
       ctx[62](
         /*dayDate*/
-        ctx[96],
+        ctx[97],
         /*period*/
-        ctx[89],
+        ctx[90],
         ...args
       )
     );
@@ -30664,17 +30932,17 @@ function create_if_block_110(ctx) {
     }
   };
 }
-function create_if_block2(ctx) {
+function create_if_block3(ctx) {
   let div;
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-now-line svelte-rdty2b");
+      attr(div, "class", "tp-now-line svelte-32w9h4");
       set_style(
         div,
         "top",
         /*nowOffset*/
-        ctx[92] + "%"
+        ctx[93] + "%"
       );
     },
     m(target, anchor) {
@@ -30687,7 +30955,7 @@ function create_if_block2(ctx) {
           div,
           "top",
           /*nowOffset*/
-          ctx2[92] + "%"
+          ctx2[93] + "%"
         );
       }
     },
@@ -30698,7 +30966,7 @@ function create_if_block2(ctx) {
     }
   };
 }
-function create_each_block_12(ctx) {
+function create_each_block_13(ctx) {
   let td;
   let t0;
   let t1;
@@ -30706,25 +30974,25 @@ function create_each_block_12(ctx) {
   let dispose;
   let if_block0 = (
     /*slot*/
-    (ctx[99] || /*devEvents*/
-    ctx[100].length > 0) && create_if_block_23(ctx)
+    (ctx[100] || /*devEvents*/
+    ctx[101].length > 0) && create_if_block_23(ctx)
   );
   let if_block1 = !/*slot*/
-  ctx[99] && /*devEvents*/
-  ctx[100].length === 0 && !/*dayOverride*/
-  ctx[97] && create_if_block_110(ctx);
+  ctx[100] && /*devEvents*/
+  ctx[101].length === 0 && !/*dayOverride*/
+  ctx[98] && create_if_block_110(ctx);
   let if_block2 = (
     /*nowOffset*/
-    ctx[92] !== null && create_if_block2(ctx)
+    ctx[93] !== null && create_if_block3(ctx)
   );
   function dragover_handler(...args) {
     return (
       /*dragover_handler*/
       ctx[63](
         /*day*/
-        ctx[95],
+        ctx[96],
         /*period*/
-        ctx[89],
+        ctx[90],
         ...args
       )
     );
@@ -30734,9 +31002,9 @@ function create_each_block_12(ctx) {
       /*drop_handler*/
       ctx[64](
         /*day*/
-        ctx[95],
+        ctx[96],
         /*period*/
-        ctx[89],
+        ctx[90],
         ...args
       )
     );
@@ -30749,15 +31017,15 @@ function create_each_block_12(ctx) {
       if (if_block1) if_block1.c();
       t1 = space();
       if (if_block2) if_block2.c();
-      attr(td, "class", "tp-td-cell svelte-rdty2b");
+      attr(td, "class", "tp-td-cell svelte-32w9h4");
       set_style(td, "background", hexToRgba3(
         /*tc*/
-        ctx[90],
+        ctx[91],
         0.07
       ));
       toggle_class(td, "tp-td-cell--today", isToday(
         /*day*/
-        ctx[95].offset,
+        ctx[96].offset,
         /*currentMonday*/
         ctx[1]
       ));
@@ -30765,25 +31033,25 @@ function create_each_block_12(ctx) {
         td,
         "tp-td-cell--holiday",
         /*dayOverride*/
-        ctx[97] === "holiday"
+        ctx[98] === "holiday"
       );
       toggle_class(
         td,
         "tp-td-cell--inset",
         /*dayOverride*/
-        ctx[97] === "inset"
+        ctx[98] === "inset"
       );
       toggle_class(
         td,
         "tp-td-cell--dragover",
         /*isOver*/
-        ctx[102]
+        ctx[103]
       );
       toggle_class(
         td,
         "tp-td-cell--reject",
         /*isReject*/
-        ctx[103]
+        ctx[104]
       );
     },
     m(target, anchor) {
@@ -30811,8 +31079,8 @@ function create_each_block_12(ctx) {
       ctx = new_ctx;
       if (
         /*slot*/
-        ctx[99] || /*devEvents*/
-        ctx[100].length > 0
+        ctx[100] || /*devEvents*/
+        ctx[101].length > 0
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -30826,9 +31094,9 @@ function create_each_block_12(ctx) {
         if_block0 = null;
       }
       if (!/*slot*/
-      ctx[99] && /*devEvents*/
-      ctx[100].length === 0 && !/*dayOverride*/
-      ctx[97]) {
+      ctx[100] && /*devEvents*/
+      ctx[101].length === 0 && !/*dayOverride*/
+      ctx[98]) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
@@ -30842,12 +31110,12 @@ function create_each_block_12(ctx) {
       }
       if (
         /*nowOffset*/
-        ctx[92] !== null
+        ctx[93] !== null
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block2(ctx);
+          if_block2 = create_if_block3(ctx);
           if_block2.c();
           if_block2.m(td, null);
         }
@@ -30859,7 +31127,7 @@ function create_each_block_12(ctx) {
       1024) {
         set_style(td, "background", hexToRgba3(
           /*tc*/
-          ctx[90],
+          ctx[91],
           0.07
         ));
       }
@@ -30867,7 +31135,7 @@ function create_each_block_12(ctx) {
       6) {
         toggle_class(td, "tp-td-cell--today", isToday(
           /*day*/
-          ctx[95].offset,
+          ctx[96].offset,
           /*currentMonday*/
           ctx[1]
         ));
@@ -30878,7 +31146,7 @@ function create_each_block_12(ctx) {
           td,
           "tp-td-cell--holiday",
           /*dayOverride*/
-          ctx[97] === "holiday"
+          ctx[98] === "holiday"
         );
       }
       if (dirty[0] & /*dayOverrideMap, DAYS*/
@@ -30887,7 +31155,7 @@ function create_each_block_12(ctx) {
           td,
           "tp-td-cell--inset",
           /*dayOverride*/
-          ctx[97] === "inset"
+          ctx[98] === "inset"
         );
       }
       if (dirty[0] & /*dragOverKey, DAYS, _periods, _slotMap, isSlotExcluded, currentMonday, dayOverrideMap*/
@@ -30896,7 +31164,7 @@ function create_each_block_12(ctx) {
           td,
           "tp-td-cell--dragover",
           /*isOver*/
-          ctx[102]
+          ctx[103]
         );
       }
       if (dirty[0] & /*DAYS, _periods*/
@@ -30905,7 +31173,7 @@ function create_each_block_12(ctx) {
           td,
           "tp-td-cell--reject",
           /*isReject*/
-          ctx[103]
+          ctx[104]
         );
       }
     },
@@ -30926,7 +31194,7 @@ function create_each_block3(key_2, ctx) {
   let td0;
   let t0_value = (
     /*period*/
-    ctx[89].start + ""
+    ctx[90].start + ""
   );
   let t0;
   let t1;
@@ -30936,27 +31204,27 @@ function create_each_block3(key_2, ctx) {
   let span0;
   let t3_value = (
     /*period*/
-    ctx[89].name + ""
+    ctx[90].name + ""
   );
   let t3;
   let t4;
   let span1;
   let t5_value = (
     /*period*/
-    ctx[89].start + ""
+    ctx[90].start + ""
   );
   let t5;
   let t6;
   let t7_value = (
     /*period*/
-    ctx[89].end + ""
+    ctx[90].end + ""
   );
   let t7;
   let t8;
   let t9;
   let if_block = (
     /*nowOffset*/
-    ctx[92] !== null && create_if_block_102(ctx)
+    ctx[93] !== null && create_if_block_102(ctx)
   );
   let each_value_1 = ensure_array_like(
     /*DAYS*/
@@ -30964,7 +31232,7 @@ function create_each_block3(key_2, ctx) {
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_1.length; i += 1) {
-    each_blocks[i] = create_each_block_12(get_each_context_12(ctx, each_value_1, i));
+    each_blocks[i] = create_each_block_13(get_each_context_13(ctx, each_value_1, i));
   }
   return {
     key: key_2,
@@ -30990,25 +31258,25 @@ function create_each_block3(key_2, ctx) {
         each_blocks[i].c();
       }
       t9 = space();
-      attr(td0, "class", "tp-td-time svelte-rdty2b");
+      attr(td0, "class", "tp-td-time svelte-32w9h4");
       set_style(td0, "position", "relative");
-      attr(span0, "class", "tp-period-name svelte-rdty2b");
-      attr(span1, "class", "tp-period-time svelte-rdty2b");
-      attr(div, "class", "tp-period-inner svelte-rdty2b");
-      attr(td1, "class", "tp-td-period svelte-rdty2b");
+      attr(span0, "class", "tp-period-name svelte-32w9h4");
+      attr(span1, "class", "tp-period-time svelte-32w9h4");
+      attr(div, "class", "tp-period-inner svelte-32w9h4");
+      attr(td1, "class", "tp-td-period svelte-32w9h4");
       set_style(td1, "background", hexToRgba3(
         /*tc*/
-        ctx[90],
+        ctx[91],
         0.28
       ));
       set_style(td1, "border-left", "3px solid " + /*tc*/
-      ctx[90]);
+      ctx[91]);
       attr(tr, "class", "tp-period-row");
       set_style(
         tr,
         "--rh",
         /*rh*/
-        ctx[91] + "px"
+        ctx[92] + "px"
       );
       set_style(tr, "border-top", "var(--block-weight) solid var(--block-colour)");
       set_style(tr, "border-bottom", "var(--block-weight) solid var(--block-colour)");
@@ -31042,10 +31310,10 @@ function create_each_block3(key_2, ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*_periods*/
       1024 && t0_value !== (t0_value = /*period*/
-      ctx[89].start + "")) set_data(t0, t0_value);
+      ctx[90].start + "")) set_data(t0, t0_value);
       if (
         /*nowOffset*/
-        ctx[92] !== null
+        ctx[93] !== null
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
@@ -31060,25 +31328,25 @@ function create_each_block3(key_2, ctx) {
       }
       if (dirty[0] & /*_periods*/
       1024 && t3_value !== (t3_value = /*period*/
-      ctx[89].name + "")) set_data(t3, t3_value);
+      ctx[90].name + "")) set_data(t3, t3_value);
       if (dirty[0] & /*_periods*/
       1024 && t5_value !== (t5_value = /*period*/
-      ctx[89].start + "")) set_data(t5, t5_value);
+      ctx[90].start + "")) set_data(t5, t5_value);
       if (dirty[0] & /*_periods*/
       1024 && t7_value !== (t7_value = /*period*/
-      ctx[89].end + "")) set_data(t7, t7_value);
+      ctx[90].end + "")) set_data(t7, t7_value);
       if (dirty[0] & /*_periods*/
       1024) {
         set_style(td1, "background", hexToRgba3(
           /*tc*/
-          ctx[90],
+          ctx[91],
           0.28
         ));
       }
       if (dirty[0] & /*_periods*/
       1024) {
         set_style(td1, "border-left", "3px solid " + /*tc*/
-        ctx[90]);
+        ctx[91]);
       }
       if (dirty[0] & /*getPeriodTypeColour, _periods, DAYS, currentMonday, dayOverrideMap, dragOverKey, _slotMap, isSlotExcluded, onCellDragOver, onCellDragLeave, onCellDrop, isCurrentWeek, nowOffsetInPeriod, _dateEventMap, getDateEventLabel, onEventDragStart, onDragEnd, openChipMenu, getSlotLabel, onChipDragStart*/
       536755494 | dirty[1] & /*openEventPicker*/
@@ -31089,11 +31357,11 @@ function create_each_block3(key_2, ctx) {
         );
         let i;
         for (i = 0; i < each_value_1.length; i += 1) {
-          const child_ctx = get_each_context_12(ctx, each_value_1, i);
+          const child_ctx = get_each_context_13(ctx, each_value_1, i);
           if (each_blocks[i]) {
             each_blocks[i].p(child_ctx, dirty);
           } else {
-            each_blocks[i] = create_each_block_12(child_ctx);
+            each_blocks[i] = create_each_block_13(child_ctx);
             each_blocks[i].c();
             each_blocks[i].m(tr, t9);
           }
@@ -31109,7 +31377,7 @@ function create_each_block3(key_2, ctx) {
           tr,
           "--rh",
           /*rh*/
-          ctx[91] + "px"
+          ctx[92] + "px"
         );
       }
     },
@@ -31210,7 +31478,7 @@ function create_fragment3(ctx) {
   );
   const get_key = (ctx2) => (
     /*period*/
-    ctx2[89].id
+    ctx2[90].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context3(ctx, each_value, i);
@@ -31287,38 +31555,38 @@ function create_fragment3(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(span0, "class", "tp-week-label svelte-rdty2b");
-      attr(span1, "class", "tp-date-range svelte-rdty2b");
-      attr(div0, "class", "tp-header-identity svelte-rdty2b");
-      attr(button0, "class", "tp-btn tp-nav-arrow svelte-rdty2b");
+      attr(span0, "class", "tp-week-label svelte-32w9h4");
+      attr(span1, "class", "tp-date-range svelte-32w9h4");
+      attr(div0, "class", "tp-header-identity svelte-32w9h4");
+      attr(button0, "class", "tp-btn tp-nav-arrow svelte-32w9h4");
       attr(button0, "aria-label", "Previous week");
       button0.disabled = button0_disabled_value = !/*canGoPrev*/
       ctx[7];
-      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-rdty2b");
-      attr(button2, "class", "tp-btn tp-nav-arrow svelte-rdty2b");
+      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-32w9h4");
+      attr(button2, "class", "tp-btn tp-nav-arrow svelte-32w9h4");
       attr(button2, "aria-label", "Next week");
       button2.disabled = button2_disabled_value = !/*canGoNext*/
       ctx[6];
-      attr(nav, "class", "tp-nav svelte-rdty2b");
+      attr(nav, "class", "tp-nav svelte-32w9h4");
       attr(nav, "aria-label", "Week navigation");
-      attr(span2, "class", "tp-btn-icon svelte-rdty2b");
-      attr(button3, "class", "tp-btn tp-action-btn svelte-rdty2b");
+      attr(span2, "class", "tp-btn-icon svelte-32w9h4");
+      attr(button3, "class", "tp-btn tp-action-btn svelte-32w9h4");
       attr(button3, "aria-label", "Add event");
-      attr(span3, "class", "tp-btn-icon svelte-rdty2b");
-      attr(button4, "class", "tp-btn tp-action-btn svelte-rdty2b");
+      attr(span3, "class", "tp-btn-icon svelte-32w9h4");
+      attr(button4, "class", "tp-btn tp-action-btn svelte-32w9h4");
       attr(button4, "aria-label", "Edit timetable");
-      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-rdty2b");
+      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-32w9h4");
       attr(button5, "aria-label", "Settings");
-      attr(button6, "class", "tp-btn tp-overflow-btn svelte-rdty2b");
+      attr(button6, "class", "tp-btn tp-overflow-btn svelte-32w9h4");
       attr(button6, "aria-label", "More options");
-      attr(div1, "class", "tp-header-actions svelte-rdty2b");
-      attr(header, "class", "tp-header svelte-rdty2b");
-      attr(col0, "class", "tp-col-time svelte-rdty2b");
-      attr(col1, "class", "tp-col-period svelte-rdty2b");
-      attr(th0, "class", "tp-th-time svelte-rdty2b");
-      attr(th1, "class", "tp-th-period svelte-rdty2b");
-      attr(tr, "class", "tp-head-row svelte-rdty2b");
-      attr(table, "class", "tp-grid svelte-rdty2b");
+      attr(div1, "class", "tp-header-actions svelte-32w9h4");
+      attr(header, "class", "tp-header svelte-32w9h4");
+      attr(col0, "class", "tp-col-time svelte-32w9h4");
+      attr(col1, "class", "tp-col-period svelte-32w9h4");
+      attr(th0, "class", "tp-th-time svelte-32w9h4");
+      attr(th1, "class", "tp-th-period svelte-32w9h4");
+      attr(tr, "class", "tp-head-row svelte-32w9h4");
+      attr(table, "class", "tp-grid svelte-32w9h4");
       set_style(
         table,
         "--grid-colour",
@@ -31343,8 +31611,8 @@ function create_fragment3(ctx) {
         /*plugin*/
         ((_d = ctx[0].settings.blockBorderWeight) != null ? _d : 1) + "px"
       );
-      attr(div2, "class", "tp-table-scroll svelte-rdty2b");
-      attr(div3, "class", "tp-week-view svelte-rdty2b");
+      attr(div2, "class", "tp-table-scroll svelte-32w9h4");
+      attr(div3, "class", "tp-week-view svelte-32w9h4");
       attr(div3, "data-tp-theme", div3_data_tp_theme_value = /*plugin*/
       (_e = ctx[0].settings.theme) != null ? _e : "carbon");
       attr(div3, "data-tp-mode", div3_data_tp_mode_value = /*plugin*/
@@ -31733,7 +32001,7 @@ function instance3($$self, $$props, $$invalidate) {
   let _lastInitialDate = initialDate;
   function getPeriodTypeColour(typeId) {
     var _a2, _b2;
-    return (_b2 = (_a2 = _periodTypes.find((t) => t.id === typeId)) === null || _a2 === void 0 ? void 0 : _a2.colour) !== null && _b2 !== void 0 ? _b2 : "#888888";
+    return resolveColour((_b2 = (_a2 = _periodTypes.find((t) => t.id === typeId)) === null || _a2 === void 0 ? void 0 : _a2.colour) !== null && _b2 !== void 0 ? _b2 : "#888888");
   }
   function getSlot(day, periodId) {
     return _slotMap[day + ":" + periodId];
@@ -31953,9 +32221,14 @@ function instance3($$self, $$props, $$invalidate) {
     if (document.visibilityState === "visible") updateNow();
   }
   document.addEventListener("visibilitychange", _onVisibilityChange);
+  const _cssChangeRef = plugin.app.workspace.on("css-change", () => {
+    clearThemeColourCache();
+    invalidate();
+  });
   onDestroy(() => {
     clearInterval(_nowInterval);
     document.removeEventListener("visibilitychange", _onVisibilityChange);
+    plugin.app.workspace.offref(_cssChangeRef);
   });
   function nowOffsetInPeriod(period) {
     const start = timeToMinutes(period.start);
@@ -32529,7 +32802,7 @@ function get_each_context4(ctx, list, i) {
   child_ctx[62] = list[i];
   return child_ctx;
 }
-function get_each_context_13(ctx, list, i) {
+function get_each_context_14(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[65] = list[i];
   return child_ctx;
@@ -32559,7 +32832,7 @@ function create_each_block_23(ctx) {
     }
   };
 }
-function create_each_block_13(ctx) {
+function create_each_block_14(ctx) {
   let div;
   let span;
   let t_value = (
@@ -32890,7 +33163,7 @@ function create_each_block4(ctx) {
     }
   };
 }
-function create_if_block3(ctx) {
+function create_if_block4(ctx) {
   let div6;
   let div0;
   let span0;
@@ -33305,7 +33578,7 @@ function create_fragment4(ctx) {
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_1.length; i += 1) {
-    each_blocks[i] = create_each_block_13(get_each_context_13(ctx, each_value_1, i));
+    each_blocks[i] = create_each_block_14(get_each_context_14(ctx, each_value_1, i));
   }
   let if_block0 = (
     /*showSwatches*/
@@ -33314,7 +33587,7 @@ function create_fragment4(ctx) {
   let if_block1 = (
     /*dtEnabled*/
     ctx[2] && /*dtCalc*/
-    ctx[9] && create_if_block3(get_if_ctx3(ctx))
+    ctx[9] && create_if_block4(get_if_ctx3(ctx))
   );
   return {
     c() {
@@ -33643,11 +33916,11 @@ function create_fragment4(ctx) {
         );
         let i;
         for (i = 0; i < each_value_1.length; i += 1) {
-          const child_ctx = get_each_context_13(ctx2, each_value_1, i);
+          const child_ctx = get_each_context_14(ctx2, each_value_1, i);
           if (each_blocks[i]) {
             each_blocks[i].p(child_ctx, dirty);
           } else {
-            each_blocks[i] = create_each_block_13(child_ctx);
+            each_blocks[i] = create_each_block_14(child_ctx);
             each_blocks[i].c();
             each_blocks[i].m(div2, null);
           }
@@ -33713,7 +33986,7 @@ function create_fragment4(ctx) {
         if (if_block1) {
           if_block1.p(get_if_ctx3(ctx2), dirty);
         } else {
-          if_block1 = create_if_block3(get_if_ctx3(ctx2));
+          if_block1 = create_if_block4(get_if_ctx3(ctx2));
           if_block1.c();
           if_block1.m(div9, null);
         }
@@ -34431,14 +34704,14 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian1
       this.settings.activities.push({ id: "activity-duty", label: "Duty", colour: "#cba6f7" });
     }
     if (!this.settings.periodTypes) this.settings.periodTypes = [
-      { id: "lesson", label: "Lesson", colour: "#b4befe" },
-      { id: "break", label: "Break", colour: "#f9e2af" },
-      { id: "registration", label: "Registration", colour: "#a6e3a1" },
-      { id: "administration", label: "Administration", colour: "#89dceb" }
+      { id: "lesson", label: "Lesson", colour: "theme:muted" },
+      { id: "break", label: "Break", colour: "theme:accent" },
+      { id: "registration", label: "Registration", colour: "theme:faint" },
+      { id: "administration", label: "Administration", colour: "theme:surface" }
     ];
     this.settings.periodTypes = this.settings.periodTypes.filter((pt) => pt.id !== "free");
     if (!this.settings.periodTypes.find((pt) => pt.id === "administration")) {
-      this.settings.periodTypes.push({ id: "administration", label: "Administration", colour: "#89dceb" });
+      this.settings.periodTypes.push({ id: "administration", label: "Administration", colour: "theme:surface" });
     }
     if (!this.settings.gridLineColour) this.settings.gridLineColour = (_a = this.settings.gridBorderColour) != null ? _a : "#555555";
     if (this.settings.gridLineWeight === void 0) this.settings.gridLineWeight = (_b = this.settings.gridBorderWeight) != null ? _b : 1;

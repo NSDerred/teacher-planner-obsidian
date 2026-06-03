@@ -33,10 +33,10 @@ export const DEFAULT_SETTINGS: TeacherPlannerSettings = {
     ],
   },
   periodTypes: [
-    { id: "lesson",         label: "Lesson",         colour: "#5a6a7a" },
-    { id: "break",          label: "Break",          colour: "#6a7a8a" },
-    { id: "registration",   label: "Registration",   colour: "#4a6060" },
-    { id: "administration", label: "Administration", colour: "#6a6a7a" },
+    { id: "lesson",         label: "Lesson",         colour: "theme:muted" },
+    { id: "break",          label: "Break",          colour: "theme:accent" },
+    { id: "registration",   label: "Registration",   colour: "theme:faint" },
+    { id: "administration", label: "Administration", colour: "theme:surface" },
   ],
   subjects: [
     { id: "subj-biology", name: "Biology", emoji: "🌱", colour: "#a6e3a1" },
@@ -80,6 +80,19 @@ export const DEFAULT_SETTINGS: TeacherPlannerSettings = {
   },
   schoolDays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
 };
+
+/**
+ * Default theme-derived colour for each built-in period type.
+ * Used by the "Reset to theme" buttons in settings. Custom types
+ * fall back to FALLBACK_PERIOD_TYPE_COLOUR.
+ */
+export const DEFAULT_PERIOD_TYPE_COLOURS: Record<string, string> = {
+  lesson:         "theme:muted",
+  break:          "theme:accent",
+  registration:   "theme:faint",
+  administration: "theme:surface",
+};
+export const FALLBACK_PERIOD_TYPE_COLOUR = "theme:muted";
 
 // Colour palette ordered by spectrum (red to pink)
 export const CLASS_COLOUR_PALETTE = [

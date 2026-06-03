@@ -16,6 +16,7 @@
   import { SlotNotesModal } from "../modals/SlotNotesModal";
   import { ColourPickerModal } from "../settings/SettingsTab";
   import { AddDateEventModal } from "../modals/AddDateEventModal";
+  import { resolveColour, clearThemeColourCache } from "../utils/themeColours";
 
   export let plugin: TeacherPlannerPlugin;
   export let initialDate: Date = new Date();
@@ -137,7 +138,9 @@
   }
 
   function getPeriodTypeColour(typeId: string): string {
-    return _periodTypes.find(t => t.id === typeId)?.colour ?? "#888888";
+    // resolveColour maps "theme:*" tokens to the active Obsidian theme;
+    // plain hex overrides pass through unchanged.
+    return resolveColour(_periodTypes.find(t => t.id === typeId)?.colour ?? "#888888");
   }
 
   function hexToRgba(hex: string, alpha: number): string {
@@ -382,10 +385,16 @@
   // Re-sync immediately when Obsidian regains focus — intervals are throttled when idle
   function _onVisibilityChange() { if (document.visibilityState === "visible") updateNow(); }
   document.addEventListener("visibilitychange", _onVisibilityChange);
+  // Re-resolve theme-derived block colours when the Obsidian theme changes
+  const _cssChangeRef = plugin.app.workspace.on("css-change", () => {
+    clearThemeColourCache();
+    invalidate();
+  });
   import { onDestroy } from "svelte";
   onDestroy(() => {
     clearInterval(_nowInterval);
     document.removeEventListener("visibilitychange", _onVisibilityChange);
+    plugin.app.workspace.offref(_cssChangeRef);
   });
 
   // Returns the % position (0–100) of the current time within a period row,
@@ -853,9 +862,11 @@
     .tp-th-time   { writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; padding:4px 2px; white-space:nowrap; vertical-align:middle; }
     .tp-th-period { writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; padding:4px 2px; white-space:nowrap; vertical-align:middle; }
     .tp-td-time { writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; padding:4px 2px; white-space:normal; vertical-align:middle; }
-    .tp-period-inner { writing-mode:vertical-rl; transform:rotate(180deg); align-items:center; padding:4px 2px; }
-    .tp-period-name { white-space:nowrap; }
-    .tp-period-time { white-space:nowrap; }
+    /* Anchor text to the start of the cell and ellipsise on overflow, instead
+       of letting long names centre and clip off both ends */
+    .tp-period-inner { writing-mode:vertical-rl; transform:rotate(180deg); align-items:center; justify-content:flex-start; padding:4px 2px; }
+    .tp-period-name { white-space:nowrap; max-height:100%; overflow:hidden; text-overflow:ellipsis; }
+    .tp-period-time { white-space:nowrap; max-height:100%; overflow:hidden; text-overflow:ellipsis; }
     .tp-day-name { font-size:11px; }
     .tp-day-date { font-size:10px; }
   }

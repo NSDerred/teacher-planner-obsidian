@@ -365,14 +365,14 @@ export default class TeacherPlannerPlugin extends Plugin {
       this.settings.activities.push({ id: "activity-duty", label: "Duty", colour: "#cba6f7" });
     }
     if (!this.settings.periodTypes) this.settings.periodTypes = [
-      { id: "lesson",         label: "Lesson",         colour: "#b4befe" },
-      { id: "break",          label: "Break",          colour: "#f9e2af" },
-      { id: "registration",   label: "Registration",   colour: "#a6e3a1" },
-      { id: "administration", label: "Administration", colour: "#89dceb" },
+      { id: "lesson",         label: "Lesson",         colour: "theme:muted" },
+      { id: "break",          label: "Break",          colour: "theme:accent" },
+      { id: "registration",   label: "Registration",   colour: "theme:faint" },
+      { id: "administration", label: "Administration", colour: "theme:surface" },
     ];
     this.settings.periodTypes = this.settings.periodTypes.filter(pt => pt.id !== "free");
     if (!this.settings.periodTypes.find(pt => pt.id === "administration")) {
-      this.settings.periodTypes.push({ id: "administration", label: "Administration", colour: "#89dceb" });
+      this.settings.periodTypes.push({ id: "administration", label: "Administration", colour: "theme:surface" });
     }
     if (!this.settings.gridLineColour)  this.settings.gridLineColour  = (this.settings as any).gridBorderColour ?? "#555555";
     if (this.settings.gridLineWeight  === undefined) this.settings.gridLineWeight  = (this.settings as any).gridBorderWeight ?? 1;
