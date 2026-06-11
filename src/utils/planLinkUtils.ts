@@ -1,4 +1,4 @@
-import type { TeacherPlannerSettings, LessonPlanLink, SchoolDay } from "../types";
+import type { TeacherPlannerSettings, LessonPlanLink, ExternalResourceLink, SchoolDay } from "../types";
 import { getMondayOfWeek, getAbWeekType } from "./weekUtils";
 import { periodAppliesTo } from "./scheduleUtils";
 
@@ -62,15 +62,23 @@ export function migrateSlotPlanToEvent(s: TeacherPlannerSettings, slotId: string
   setEventPlan(s, eventId, link.path);
 }
 
+export interface BulkApplyResult {
+  count: number;
+  entries: { slotId: string; date: string; prevPath?: string }[];
+}
+
 /**
  * Link `path` to every future timetabled lesson of `classId`, from `fromIso`
  * to the end of the academic year. Resolves the timetable exactly as the
  * week view does: template per week, A/B rotation, day schedules,
- * holiday/INSET days, slot exclusions. Returns the number of lessons linked.
+ * holiday/INSET days, slot exclusions. Returns the affected occurrences
+ * (with any previously-linked path) for the undo journal. Pass dryRun to
+ * count without mutating — used for the confirmation dialog.
  */
-export function bulkApplyPlan(s: TeacherPlannerSettings, classId: string, fromIso: string, path: string): number {
+export function bulkApplyPlan(s: TeacherPlannerSettings, classId: string, fromIso: string, path: string, dryRun = false): BulkApplyResult {
+  const result: BulkApplyResult = { count: 0, entries: [] };
   const ay = s.academicYear;
-  if (!ay?.endDate) return 0;
+  if (!ay?.endDate) return result;
   const schoolDays: SchoolDay[] = s.schoolDays ?? ["monday", "tuesday", "wednesday", "thursday", "friday"];
 
   const overrideDates = new Set<string>();
@@ -79,7 +87,6 @@ export function bulkApplyPlan(s: TeacherPlannerSettings, classId: string, fromIs
     for (let iso = o.startDate; iso <= end; iso = shiftIso(iso, 1)) overrideDates.add(iso);
   }
 
-  let count = 0;
   for (let iso = fromIso; iso <= ay.endDate; iso = shiftIso(iso, 1)) {
     const d = new Date(iso + "T12:00:00");
     const dayName = DAY_INDEX_MAP[d.getDay()];
@@ -96,11 +103,70 @@ export function bulkApplyPlan(s: TeacherPlannerSettings, classId: string, fromIs
       if (abType && slot.weekType && slot.weekType !== "both" && slot.weekType !== abType) continue;
       if (!periodAppliesTo(ay, slot.periodId, dayName)) continue;
       if (s.slotExclusions?.some(ex => ex.slotId === slot.id && ex.date === iso)) continue;
-      setSlotPlan(s, slot.id, iso, path);
-      count++;
+      const prev = getSlotPlan(s, slot.id, iso)?.path;
+      result.entries.push({ slotId: slot.id, date: iso, ...(prev ? { prevPath: prev } : {}) });
+      result.count++;
+      if (!dryRun) setSlotPlan(s, slot.id, iso, path);
     }
   }
-  return count;
+  return result;
+}
+
+/**
+ * Revert the last bulk apply: remove the links it created and restore any
+ * links it overwrote. Returns the number of lessons reverted.
+ */
+export function undoBulkApply(s: TeacherPlannerSettings): number {
+  const journal = s.lastBulkApply;
+  if (!journal) return 0;
+  let n = 0;
+  for (const e of journal.entries) {
+    clearSlotPlan(s, e.slotId, e.date);
+    if (e.prevPath) links(s).push({ slotId: e.slotId, date: e.date, path: e.prevPath });
+    n++;
+  }
+  s.lastBulkApply = undefined;
+  return n;
+}
+
+// ── External resources (absolute OS paths — desktop only, not synced) ─────
+
+function extLinks(s: TeacherPlannerSettings): ExternalResourceLink[] {
+  if (!s.externalLinks) s.externalLinks = [];
+  return s.externalLinks;
+}
+
+export function getSlotExternal(s: TeacherPlannerSettings, slotId: string, date: string): ExternalResourceLink | undefined {
+  return (s.externalLinks ?? []).find(l => l.slotId === slotId && l.date === date);
+}
+
+export function getEventExternal(s: TeacherPlannerSettings, eventId: string): ExternalResourceLink | undefined {
+  return (s.externalLinks ?? []).find(l => l.eventId === eventId);
+}
+
+export function clearSlotExternal(s: TeacherPlannerSettings, slotId: string, date: string): void {
+  s.externalLinks = (s.externalLinks ?? []).filter(l => !(l.slotId === slotId && l.date === date));
+}
+
+export function clearEventExternal(s: TeacherPlannerSettings, eventId: string): void {
+  s.externalLinks = (s.externalLinks ?? []).filter(l => l.eventId !== eventId);
+}
+
+export function setSlotExternal(s: TeacherPlannerSettings, slotId: string, date: string, path: string): void {
+  clearSlotExternal(s, slotId, date);
+  extLinks(s).push({ slotId, date, path });
+}
+
+export function setEventExternal(s: TeacherPlannerSettings, eventId: string, path: string): void {
+  clearEventExternal(s, eventId);
+  extLinks(s).push({ eventId, path });
+}
+
+export function migrateSlotExternalToEvent(s: TeacherPlannerSettings, slotId: string, date: string, eventId: string): void {
+  const link = getSlotExternal(s, slotId, date);
+  if (!link) return;
+  clearSlotExternal(s, slotId, date);
+  setEventExternal(s, eventId, link.path);
 }
 
 /** Keep stored paths current when notes are renamed/moved. Returns true if anything changed. */

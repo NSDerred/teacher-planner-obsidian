@@ -140,6 +140,20 @@ export interface LessonPlanLink {
   path: string;      // vault path of the plan note
 }
 
+/** One external (outside-the-vault) file or folder attached to a lesson/event. Desktop only; machine-specific paths. */
+export interface ExternalResourceLink {
+  slotId?: string;
+  date?: string;
+  eventId?: string;
+  path: string;      // absolute OS path
+}
+
+/** Undo journal for the last "Apply plan to future lessons" action. */
+export interface BulkApplyJournal {
+  path: string;
+  entries: { slotId: string; date: string; prevPath?: string }[];
+}
+
 export type PlannerTheme = "carbon" | "paper";
 export type PlannerThemeMode = "light" | "dark";
 
@@ -195,6 +209,12 @@ export interface TeacherPlannerSettings {
   lessonPlanTemplate?: string;
   /** Show a faint hollow dot on lessons without a linked plan. Default true. */
   showUnplannedDot?: boolean;
+  /** External (outside-the-vault) file/folder attachments. Desktop only. */
+  externalLinks?: ExternalResourceLink[];
+  /** Undo journal for the last bulk plan apply. */
+  lastBulkApply?: BulkApplyJournal;
+  /** Create dated notes inside "WC - <Monday>" weekly folders. Default true. */
+  weeklyNoteFolders?: boolean;
   /** Directed time tracker. Undefined on legacy installs — initialised by migration guard in main.ts. */
   directedTime?: DirectedTimeSettings;
   /**
@@ -236,6 +256,9 @@ export interface PlannerRecord {
   lessonPlansFolder?: string;
   lessonPlanTemplate?: string;
   showUnplannedDot?: boolean;
+  externalLinks?: ExternalResourceLink[];
+  lastBulkApply?: BulkApplyJournal;
+  weeklyNoteFolders?: boolean;
   directedTime: DirectedTimeSettings;
   schoolDays: SchoolDay[];
 }

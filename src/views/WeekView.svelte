@@ -20,8 +20,11 @@
   import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
   import {
     getSlotPlan, setSlotPlan, clearSlotPlan, setEventPlan, clearEventPlan,
-    migrateSlotPlanToEvent, bulkApplyPlan,
+    migrateSlotPlanToEvent, bulkApplyPlan, undoBulkApply,
+    getSlotExternal, setSlotExternal, clearSlotExternal,
+    getEventExternal, setEventExternal, clearEventExternal, migrateSlotExternalToEvent,
   } from "../utils/planLinkUtils";
+  import { openOSFolderPicker, openOSFilePicker, openSystemPath } from "../utils/exportDestination";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
 
   export let plugin: TeacherPlannerPlugin;
@@ -365,8 +368,9 @@
       ...(slot.classroom ? { classroom: slot.classroom } : {}),
     });
 
-    // 3. The lesson plan follows the moved lesson
+    // 3. The lesson plan and external resource follow the moved lesson
     migrateSlotPlanToEvent(plugin.settings, slot.id, sourceDate, newEvId);
+    migrateSlotExternalToEvent(plugin.settings, slot.id, sourceDate, newEvId);
 
     await plugin.saveSettings();
     invalidate();
@@ -392,15 +396,20 @@
     if (type === "slot" && slot) {
       menu.addItem(i => i.setTitle("Edit").setIcon("pencil").onClick(() => openNotesModal(slot, date, periodId)));
       if (isClass) menu.addItem(i => i.setTitle("Lesson note").setIcon("book-open").onClick(() => openOrCreateLessonNote(slot, date)));
-      if (isClass) {
+      {
         const planPath = getSlotPlan(plugin.settings, slot.id, date)?.path;
+        const itemLabel = getSlotLabel(slot).code;
         if (planPath) {
           menu.addItem(i => i.setTitle("Open lesson plan").setIcon("file-text").onClick(() => openPlan(planPath)));
           menu.addItem(i => i.setTitle("Apply plan to future lessons").setIcon("copy-plus").onClick(async () => {
-            const n = bulkApplyPlan(plugin.settings, slot.classId, date, planPath);
+            const dry = bulkApplyPlan(plugin.settings, slot.classId, date, planPath, true);
+            if (dry.count === 0) { new Notice("No future lessons of this item found."); return; }
+            if (!confirm(`Link this plan to ${dry.count} future lesson${dry.count === 1 ? "" : "s"} of ${itemLabel} (until the end of the academic year)?`)) return;
+            const res = bulkApplyPlan(plugin.settings, slot.classId, date, planPath);
+            plugin.settings.lastBulkApply = { path: planPath, entries: res.entries };
             await plugin.saveSettings();
             invalidate();
-            new Notice(`Plan linked to ${n} lesson${n === 1 ? "" : "s"} of this class.`);
+            showBulkUndoNotice(res.count);
           }));
           menu.addItem(i => i.setTitle("Unlink lesson plan").setIcon("unlink").onClick(async () => {
             clearSlotPlan(plugin.settings, slot.id, date);
@@ -410,6 +419,28 @@
         } else {
           menu.addItem(i => i.setTitle("Link lesson plan…").setIcon("file-plus").onClick(() => linkPlanForSlot(slot, date)));
         }
+        if (plugin.settings.lastBulkApply) {
+          menu.addItem(i => i.setTitle("Undo last bulk plan apply").setIcon("undo-2").onClick(() => doUndoBulkApply()));
+        }
+        if (!_isMobileApp) {
+          const ext = getSlotExternal(plugin.settings, slot.id, date)?.path;
+          if (ext) {
+            menu.addItem(i => i.setTitle("Open external resource").setIcon("external-link").onClick(() => openSystemPath(ext)));
+            menu.addItem(i => i.setTitle("Unlink external resource").setIcon("unlink").onClick(async () => {
+              clearSlotExternal(plugin.settings, slot.id, date);
+              await plugin.saveSettings(); invalidate();
+            }));
+          } else {
+            menu.addItem(i => i.setTitle("Link external file…").setIcon("paperclip").onClick(async () => {
+              const p = await openOSFilePicker("Link a file to this lesson");
+              if (p) { setSlotExternal(plugin.settings, slot.id, date, p); await plugin.saveSettings(); invalidate(); }
+            }));
+            menu.addItem(i => i.setTitle("Link external folder…").setIcon("folder-open").onClick(async () => {
+              const p = await openOSFolderPicker();
+              if (p) { setSlotExternal(plugin.settings, slot.id, date, p); await plugin.saveSettings(); invalidate(); }
+            }));
+          }
+        }
       }
       menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
@@ -417,7 +448,7 @@
       menu.addItem(i => i.setTitle("Remove from timetable").setIcon("trash-2").onClick(() => removeSlot(slot.id)));
     } else if (type === "event" && event) {
       menu.addItem(i => i.setTitle("Edit").setIcon("pencil").onClick(() => onEditDateEvent(event)));
-      if (isClass) {
+      {
         const planPath = getEventPlan(plugin.settings, event.id)?.path;
         if (planPath) {
           menu.addItem(i => i.setTitle("Open lesson plan").setIcon("file-text").onClick(() => openPlan(planPath)));
@@ -429,8 +460,35 @@
         } else {
           menu.addItem(i => i.setTitle("Link lesson plan…").setIcon("file-plus").onClick(() => linkPlanForEvent(event)));
         }
+        if (!_isMobileApp) {
+          const ext = getEventExternal(plugin.settings, event.id)?.path;
+          if (ext) {
+            menu.addItem(i => i.setTitle("Open external resource").setIcon("external-link").onClick(() => openSystemPath(ext)));
+            menu.addItem(i => i.setTitle("Unlink external resource").setIcon("unlink").onClick(async () => {
+              clearEventExternal(plugin.settings, event.id);
+              await plugin.saveSettings(); invalidate();
+            }));
+          } else {
+            menu.addItem(i => i.setTitle("Link external file…").setIcon("paperclip").onClick(async () => {
+              const p = await openOSFilePicker("Link a file to this event");
+              if (p) { setEventExternal(plugin.settings, event.id, p); await plugin.saveSettings(); invalidate(); }
+            }));
+            menu.addItem(i => i.setTitle("Link external folder…").setIcon("folder-open").onClick(async () => {
+              const p = await openOSFolderPicker();
+              if (p) { setEventExternal(plugin.settings, event.id, p); await plugin.saveSettings(); invalidate(); }
+            }));
+          }
+        }
       }
       if (isClass) menu.addItem(i => i.setTitle("Lesson note").setIcon("book-open").onClick(() => openOrCreateLessonNoteForEvent(event, date)));
+      if (!isClass) menu.addItem(i => i.setTitle("Event note").setIcon("book-open").onClick(async () => {
+        const lbl = getDateEventLabel(event);
+        const safe = lbl.code.replace(/[\\/:*?"<>|]/g, "-");
+        const fileName = `${date} ${safe} note`;
+        const existing = findExistingNote(date, fileName);
+        if (existing) { plugin.app.workspace.openLinkText(existing, "", false); return; }
+        await createNoteIn(date, fileName, "");
+      }));
       menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
       menu.addItem(i => i.setTitle("Change colour").setIcon("palette").onClick(() => changeColour(event.classId)));
@@ -569,6 +627,60 @@
     onAddEvent(dayDate, periodId);
   }
 
+  // ── Weekly note folders ("WC - <Monday>") ─────────────────────────────────
+  const _isMobileApp = (plugin.app as any).isMobile === true;
+
+  function wcFolderFor(dateIso: string): string {
+    const base = plugin.settings.plannerFolder || "Teacher Planner";
+    if (!(plugin.settings.weeklyNoteFolders ?? true)) return base;
+    const monday = getMondayOfWeek(new Date(dateIso + "T12:00:00"));
+    const iso = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`;
+    return `${base}/WC - ${iso}`;
+  }
+
+  /** Existing note for this name: weekly folder first, then the legacy flat path. */
+  function findExistingNote(dateIso: string, fileName: string): string | null {
+    const base = plugin.settings.plannerFolder || "Teacher Planner";
+    for (const p of [`${wcFolderFor(dateIso)}/${fileName}.md`, `${base}/${fileName}.md`]) {
+      if (plugin.app.vault.getAbstractFileByPath(p) instanceof TFile) return p;
+    }
+    return null;
+  }
+
+  async function createNoteIn(dateIso: string, fileName: string, content: string): Promise<void> {
+    const base = plugin.settings.plannerFolder || "Teacher Planner";
+    const folder = wcFolderFor(dateIso);
+    if (!plugin.app.vault.getAbstractFileByPath(base))   { try { await plugin.app.vault.createFolder(base); }   catch {} }
+    if (folder !== base && !plugin.app.vault.getAbstractFileByPath(folder)) { try { await plugin.app.vault.createFolder(folder); } catch {} }
+    try {
+      await plugin.app.vault.create(`${folder}/${fileName}.md`, content);
+      plugin.app.workspace.openLinkText(`${folder}/${fileName}.md`, "", false);
+    } catch (err) { console.error("Teacher Planner: note create failed.", err); }
+  }
+
+  // ── Bulk apply: confirm + journaled undo ──────────────────────────────────
+  async function doUndoBulkApply() {
+    const journal = plugin.settings.lastBulkApply;
+    if (!journal) { new Notice("Nothing to undo."); return; }
+    if (!confirm(`Undo the last bulk plan apply (${journal.entries.length} lesson${journal.entries.length === 1 ? "" : "s"})? Previously linked plans will be restored.`)) return;
+    const n = undoBulkApply(plugin.settings);
+    await plugin.saveSettings();
+    invalidate();
+    new Notice(`Bulk apply undone — ${n} lesson${n === 1 ? "" : "s"} reverted.`);
+  }
+
+  function showBulkUndoNotice(count: number) {
+    const frag = document.createDocumentFragment();
+    frag.appendChild(document.createTextNode(`Plan linked to ${count} lesson${count === 1 ? "" : "s"}. `));
+    const btn = document.createElement("button");
+    btn.textContent = "Undo";
+    btn.className = "tp-btn";
+    btn.style.marginLeft = "8px";
+    frag.appendChild(btn);
+    const notice = new Notice(frag, 10000);
+    btn.addEventListener("click", () => { notice.hide(); doUndoBulkApply(); });
+  }
+
   // ── Lesson plan linking ───────────────────────────────────────────────────
   function isClassId(id: string): boolean { return !!_classes.find(c => c.id === id); }
 
@@ -607,14 +719,12 @@
   // ── Lesson note linking ────────────────────────────────────────────────────
   async function openOrCreateLessonNote(slot: TimetableSlot, dayDate: string) {
     const lbl = getSlotLabel(slot);
-    const folder = plugin.settings.plannerFolder || "Teacher Planner";
     const safeName = lbl.code.replace(/[\\/:*?"<>|]/g, "-");
     const fileName = `${dayDate} ${safeName}`;
-    const filePath = `${folder}/${fileName}.md`;
 
-    const existing = plugin.app.vault.getAbstractFileByPath(filePath);
-    if (existing instanceof TFile) {
-      plugin.app.workspace.openLinkText(filePath, "", false);
+    const existing = findExistingNote(dayDate, fileName);
+    if (existing) {
+      plugin.app.workspace.openLinkText(existing, "", false);
       return;
     }
 
@@ -624,32 +734,19 @@
     if (cls) { cls.lessonCount = lessonNum; await plugin.saveSettings(); }
 
     const template = plugin.settings.lessonNoteTemplate ?? "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
-
-    // Ensure folder exists
-    const folderObj = plugin.app.vault.getAbstractFileByPath(folder);
-    if (!folderObj) {
-      try { await plugin.app.vault.createFolder(folder); } catch {}
-    }
-
-    try {
-      await plugin.app.vault.create(filePath, template);
-      plugin.app.workspace.openLinkText(filePath, "", false);
-    } catch (err) {
-      console.error("Lesson note error:", err);
-    }
+    await createNoteIn(dayDate, fileName, template);
   }
 
   // ── Lesson note from date event ──────────────────────────────────────────
   async function openOrCreateLessonNoteForEvent(ev: DateEvent, dayDate: string) {
     const cls = _classes.find(c => c.id === ev.classId);
-    if (!cls) return; // activities don't get lesson notes
-    const folder = plugin.settings.plannerFolder || "Teacher Planner";
+    if (!cls) return; // activities get "Event note" instead
     const safeName = cls.code.replace(/[\\/:*?"<>|]/g, "-");
-    const filePath = `${folder}/${dayDate} ${safeName}.md`;
+    const fileName = `${dayDate} ${safeName}`;
 
-    const existing = plugin.app.vault.getAbstractFileByPath(filePath);
-    if (existing instanceof TFile) {
-      plugin.app.workspace.openLinkText(filePath, "", false);
+    const existing = findExistingNote(dayDate, fileName);
+    if (existing) {
+      plugin.app.workspace.openLinkText(existing, "", false);
       return;
     }
 
@@ -658,14 +755,7 @@
     await plugin.saveSettings();
 
     const template = plugin.settings.lessonNoteTemplate ?? "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
-
-    const folderObj = plugin.app.vault.getAbstractFileByPath(folder);
-    if (!folderObj) { try { await plugin.app.vault.createFolder(folder); } catch {} }
-
-    try {
-      await plugin.app.vault.create(filePath, template);
-      plugin.app.workspace.openLinkText(filePath, "", false);
-    } catch (err) { console.error("Lesson note error:", err); }
+    await createNoteIn(dayDate, fileName, template);
   }
 
 
@@ -778,6 +868,7 @@
                     <div class="tp-event-stack">
                       {#if slot}
                         {@const lbl = getSlotLabel(slot)}
+                        {@const slotPlanPath = _slotPlanMap[slot.id + "|" + dayDate]}
                         <!-- svelte-ignore a11y-interactive-supports-focus -->
                         <div
                           class="tp-chip"
@@ -800,19 +891,17 @@
                           {#if lbl.notes}
                             <span class="tp-chip-notes">{lbl.notes}</span>
                           {/if}
-                          {#if isClassId(slot.classId)}
-                            {@const planPath = _slotPlanMap[slot.id + "|" + dayDate]}
-                            {#if planPath}
-                              <button class="tp-plan-dot tp-plan-dot--linked" title="Open lesson plan" aria-label="Open lesson plan"
-                                on:click|stopPropagation={() => openPlan(planPath)}>●</button>
-                            {:else if _showUnplanned}
-                              <span class="tp-plan-dot" title="No lesson plan linked">○</span>
-                            {/if}
+                          {#if slotPlanPath}
+                            <button class="tp-plan-dot tp-plan-dot--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                              on:click|stopPropagation={() => openPlan(slotPlanPath)}>●</button>
+                          {:else if _showUnplanned && isClassId(slot.classId)}
+                            <span class="tp-plan-dot" title="No lesson plan linked">○</span>
                           {/if}
                         </div>
                       {/if}
                       {#each devEvents as devEv (devEv.id)}
                         {@const lbl = getDateEventLabel(devEv)}
+                        {@const evPlanPath = _eventPlanMap[devEv.id]}
                         <!-- svelte-ignore a11y-interactive-supports-focus -->
                         <div
                           class="tp-chip tp-chip--event"
@@ -833,14 +922,11 @@
                             <span class="tp-chip-room">{lbl.classroom}</span>
                           {/if}
                           {#if lbl.notes}<span class="tp-chip-notes">{lbl.notes}</span>{/if}
-                          {#if isClassId(devEv.classId)}
-                            {@const planPath = _eventPlanMap[devEv.id]}
-                            {#if planPath}
-                              <button class="tp-plan-dot tp-plan-dot--linked" title="Open lesson plan" aria-label="Open lesson plan"
-                                on:click|stopPropagation={() => openPlan(planPath)}>●</button>
-                            {:else if _showUnplanned}
-                              <span class="tp-plan-dot" title="No lesson plan linked">○</span>
-                            {/if}
+                          {#if evPlanPath}
+                            <button class="tp-plan-dot tp-plan-dot--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                              on:click|stopPropagation={() => openPlan(evPlanPath)}>●</button>
+                          {:else if _showUnplanned && isClassId(devEv.classId)}
+                            <span class="tp-plan-dot" title="No lesson plan linked">○</span>
                           {/if}
                         </div>
                       {/each}

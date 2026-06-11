@@ -678,6 +678,14 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         });
       });
     new Setting(containerEl)
+      .setName("Organise notes into weekly folders")
+      .setDesc("Create lesson and event notes inside \"WC - <Monday date>\" folders under the planner folder. Existing notes stay where they are and keep opening.")
+      .addToggle(t => t.setValue(this.plugin.settings.weeklyNoteFolders ?? true)
+        .onChange(async v => {
+          this.plugin.settings.weeklyNoteFolders = v;
+          await this.plugin.saveSettings();
+        }));
+    new Setting(containerEl)
       .setName("Show unplanned indicator")
       .setDesc("Faint hollow dot on lessons that have no lesson plan linked yet.")
       .addToggle(t => t.setValue(this.plugin.settings.showUnplannedDot ?? true)

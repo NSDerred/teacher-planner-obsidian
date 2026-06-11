@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Bulk apply safety** — "Apply plan to future lessons" now shows a count and asks for confirmation first, and can be undone: the toast carries an Undo button (also in the lesson menu), restoring any plans the bulk apply overwrote.
+- **Plans on activities** — Cover, duties, meetings and other activities can take lesson plans too; the "unplanned" hollow dot remains lessons-only.
+- **External resources** — link one file or folder from outside the vault to any lesson or event (desktop only): Link external file/folder in the chip menu, opened with the system default app. Paths are machine-specific and don't sync to mobile.
+- **Event notes** — activity events get an "Event note" menu item creating a blank dated note (e.g. "2026-06-16 Duty note.md").
+- **Weekly note folders** — lesson and event notes are now created inside "WC - <Monday date>" folders under the planner folder instead of piling up in its root. Existing notes stay where they are and keep opening; toggle off in Settings → Lesson plans to restore the flat layout.
 - **Lesson plans** (#community request) — link any markdown note in your vault to a lesson as its reusable plan. Right-click a lesson chip → "Link lesson plan…" opens a fuzzy picker (your plans folder listed first) with "Create new plan…" from a template. Chips show a coloured dot when a plan is linked (click to open) and a faint hollow dot when unplanned (toggleable in settings). "Apply plan to future lessons" links the same note to every remaining lesson of that class this year — A/B weeks, day schedules, holidays and exclusions respected. Plans follow lessons when dragged, paths auto-update on note rename/move, and the note itself is never modified — so the same plan can serve a class this year and next.
 
 ## [0.2.0] — 2026-06-11

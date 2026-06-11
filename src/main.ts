@@ -161,6 +161,7 @@ export default class TeacherPlannerPlugin extends Plugin {
     "slotExclusions", "weekNotes", "notesHeight", "lessonNoteTemplate",
     "directedTime", "schoolDays", "plannerFolder",
     "lessonPlanLinks", "lessonPlansFolder", "lessonPlanTemplate", "showUnplannedDot",
+    "externalLinks", "lastBulkApply", "weeklyNoteFolders",
   ];
 
   /**
@@ -200,6 +201,7 @@ export default class TeacherPlannerPlugin extends Plugin {
       planner.dateEvents      = planner.dateEvents      ?? [];
       planner.slotExclusions  = planner.slotExclusions  ?? [];
       planner.lessonPlanLinks = planner.lessonPlanLinks ?? [];
+      planner.externalLinks   = planner.externalLinks   ?? [];
       planner.notesHeight    = planner.notesHeight    ?? 120;
     }
     for (const k of TeacherPlannerPlugin.GLOBAL_FIELDS) {

@@ -101,6 +101,42 @@ export async function openOSFolderPicker(): Promise<string | null> {
 }
 
 /**
+ * Open an OS native FILE picker. Same Electron mechanism as the folder picker.
+ */
+export async function openOSFilePicker(title = "Choose a file"): Promise<string | null> {
+  try {
+    const electron = (window as any).require?.("electron");
+    if (!electron) { new Notice("File picker is not available in this environment."); return null; }
+    let remote: any = electron.remote;
+    if (!remote) {
+      try { remote = (window as any).require("@electron/remote"); }
+      catch { new Notice("File picker is not available on this platform."); return null; }
+    }
+    const result = await remote.dialog.showOpenDialog({ title, properties: ["openFile"] });
+    if (result.canceled || !result.filePaths || result.filePaths.length === 0) return null;
+    return result.filePaths[0] as string;
+  } catch (err) {
+    console.error("OS file picker failed:", err);
+    new Notice("Could not open the file picker.");
+    return null;
+  }
+}
+
+/** Open an absolute OS path (file or folder) with the system default handler. */
+export async function openSystemPath(absolutePath: string): Promise<void> {
+  try {
+    const electron = (window as any).require?.("electron");
+    const shell = electron?.shell ?? (window as any).require?.("@electron/remote")?.shell;
+    if (!shell) { new Notice("Opening external paths is only available on desktop."); return; }
+    const err = await shell.openPath(absolutePath);
+    if (err) new Notice(`Could not open: ${err}`);
+  } catch (e) {
+    console.error("openSystemPath failed:", e);
+    new Notice("Could not open the external resource.");
+  }
+}
+
+/**
  * Write to an absolute OS path. Only works on desktop (Electron exposes Node's fs).
  * Accepts either a string (UTF-8) or an ArrayBuffer (binary).
  */
