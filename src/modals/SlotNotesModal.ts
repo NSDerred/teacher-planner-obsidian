@@ -55,17 +55,17 @@ export class SlotNotesModal extends Modal {
 
     // Classroom field
     const classroomLabel = form.createEl("label");
-    classroomLabel.style.cssText = "font-size:13px;font-weight:600;color:var(--text-normal);display:block;margin-bottom:4px;";
+    classroomLabel.setCssStyles({ fontSize: "13px", fontWeight: "600", color: "var(--text-normal)", display: "block", marginBottom: "4px" });
     classroomLabel.textContent = "Classroom";
 
     const classroomInput = form.createEl("input", { type: "text", cls: "tp-modal-input" });
     classroomInput.value = this.classroom;
     classroomInput.placeholder = "e.g. Lab 3, Room 204";
-    classroomInput.style.cssText = "width:100%;box-sizing:border-box;margin-bottom:12px;";
+    classroomInput.setCssStyles({ width: "100%", boxSizing: "border-box", marginBottom: "12px" });
 
     // Notes textarea
     const notesLabel = form.createEl("label");
-    notesLabel.style.cssText = "font-size:13px;font-weight:600;color:var(--text-normal);display:block;margin-bottom:4px;";
+    notesLabel.setCssStyles({ fontSize: "13px", fontWeight: "600", color: "var(--text-normal)", display: "block", marginBottom: "4px" });
     notesLabel.textContent = "Notes";
 
     const textarea = form.createEl("textarea", { cls: "tp-notes-textarea" });
@@ -73,26 +73,26 @@ export class SlotNotesModal extends Modal {
     textarea.rows = 5;
     textarea.placeholder = "e.g. Introduction to Cell Biology\nCourse: SL Core Unit 1";
 
-    setTimeout(() => classroomInput.focus(), 50);
+    window.setTimeout(() => classroomInput.focus(), 50);
 
     // ── Inline confirm section (hidden until delete clicked) ────────────────
     const confirmSection = contentEl.createDiv();
-    confirmSection.style.display = "none";
+    confirmSection.setCssStyles({ display: "none" });
 
     const confirmMsg = confirmSection.createEl("p");
     confirmMsg.textContent =
       `Remove this lesson on ${this.date} from the planner? The timetable template will not change — use "+ Event" to re-add it if needed.`;
-    confirmMsg.style.cssText = "font-size:13px;color:var(--text-normal);margin:0 0 16px;line-height:1.5;";
+    confirmMsg.setCssStyles({ fontSize: "13px", color: "var(--text-normal)", margin: "0 0 16px", lineHeight: "1.5" });
 
     const confirmFooter = confirmSection.createDiv("tp-modal-footer");
-    confirmFooter.style.cssText = "display:flex;justify-content:flex-end;gap:8px;padding-top:0;";
+    confirmFooter.setCssStyles({ display: "flex", justifyContent: "flex-end", gap: "8px", paddingTop: "0" });
     const keepBtn = confirmFooter.createEl("button", { text: "Keep", cls: "tp-btn" });
     const confirmDeleteBtn = confirmFooter.createEl("button", { text: "Remove", cls: "tp-btn tp-btn--danger" });
 
     keepBtn.addEventListener("click", () => {
-      confirmSection.style.display = "none";
-      form.style.display = "block";
-      footer.style.display = "flex";
+      confirmSection.setCssStyles({ display: "none" });
+      form.setCssStyles({ display: "block" });
+      footer.setCssStyles({ display: "flex" });
     });
 
     confirmDeleteBtn.addEventListener("click", async () => {
@@ -110,19 +110,19 @@ export class SlotNotesModal extends Modal {
 
     // ── Footer ──────────────────────────────────────────────────────────────
     const footer = contentEl.createDiv("tp-modal-footer");
-    footer.style.cssText = "display:flex;justify-content:space-between;align-items:center;";
+    footer.setCssStyles({ display: "flex", justifyContent: "space-between", alignItems: "center" });
 
     // Left: delete button
     const deleteBtn = footer.createEl("button", { text: "Remove from this date", cls: "tp-btn tp-btn--danger" });
     deleteBtn.addEventListener("click", () => {
-      form.style.display = "none";
-      footer.style.display = "none";
-      confirmSection.style.display = "block";
+      form.setCssStyles({ display: "none" });
+      footer.setCssStyles({ display: "none" });
+      confirmSection.setCssStyles({ display: "block" });
     });
 
     // Right: cancel / clear / save
     const rightBtns = footer.createDiv();
-    rightBtns.style.cssText = "display:flex;gap:8px;";
+    rightBtns.setCssStyles({ display: "flex", gap: "8px" });
     const cancelBtn = rightBtns.createEl("button", { text: "Cancel", cls: "tp-btn" });
     cancelBtn.addEventListener("click", () => this.close());
     const clearBtn = rightBtns.createEl("button", { text: "Clear", cls: "tp-btn" });

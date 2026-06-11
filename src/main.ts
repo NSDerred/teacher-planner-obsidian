@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf } from "obsidian";
+import { Plugin } from "obsidian";
 import type { TeacherPlannerSettings, TimetableSlot, GlobalPluginData, PlannerRecord } from "./types";
 import { DEFAULT_SETTINGS, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA } from "./settings";
 import { WeekView, WEEK_VIEW_TYPE } from "./views/WeekView";
@@ -27,9 +27,9 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.registerView(WEEK_VIEW_TYPE, (leaf) => new WeekView(leaf, this));
     this.registerView(CALENDAR_SIDEBAR_VIEW_TYPE, (leaf) => new CalendarSidebarView(leaf, this));
 
-    this.addRibbonIcon("calendar-days", "Open Teacher Planner", () => { this.activateView(); });
+    this.addRibbonIcon("calendar-days", "Open Teacher Planner", () => { void this.activateView(); });
 
-    this.addCommand({ id: "open-teacher-planner",   name: "Open Teacher Planner",    callback: () => this.activateView() });
+    this.addCommand({ id: "open",                    name: "Open planner",             callback: () => { void this.activateView(); } });
     this.addCommand({ id: "go-to-current-week",      name: "Go to current week",      callback: () => this.sendWeekViewCommand("current") });
     this.addCommand({ id: "go-to-previous-week",     name: "Go to previous week",     callback: () => this.sendWeekViewCommand("prev") });
     this.addCommand({ id: "go-to-next-week",         name: "Go to next week",         callback: () => this.sendWeekViewCommand("next") });
@@ -76,8 +76,6 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.flushPendingSave().catch(err => {
       console.error("Teacher Planner: flushPendingSave on unload failed.", err);
     });
-    this.app.workspace.detachLeavesOfType(WEEK_VIEW_TYPE);
-    this.app.workspace.detachLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE);
     console.log("Teacher Planner unloaded.");
   }
 
@@ -87,11 +85,11 @@ export default class TeacherPlannerPlugin extends Plugin {
     const { workspace } = this.app;
     const leaves = workspace.getLeavesOfType(WEEK_VIEW_TYPE);
     if (leaves.length > 0) {
-      workspace.revealLeaf(leaves[0]);
+      await workspace.revealLeaf(leaves[0]);
     } else {
       const leaf = workspace.getLeaf(false);
       await leaf.setViewState({ type: WEEK_VIEW_TYPE, active: true });
-      workspace.revealLeaf(leaf);
+      await workspace.revealLeaf(leaf);
     }
     await this.activateSidebar();
   }
@@ -127,7 +125,7 @@ export default class TeacherPlannerPlugin extends Plugin {
 
   private sendWeekViewCommand(cmd: "prev" | "next" | "current") {
     const leaves = this.app.workspace.getLeavesOfType(WEEK_VIEW_TYPE);
-    if (leaves.length === 0) { this.activateView(); return; }
+    if (leaves.length === 0) { void this.activateView(); return; }
     const view = leaves[0].view;
     if (!(view instanceof WeekView)) return;
     if (cmd === "current") view.goToCurrentWeek();
@@ -221,7 +219,7 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.populateSettings();
     // Initialise day schedules immediately (wizard-created planners would
     // otherwise rely on the lazy fallback until settings opens).
-    try { ensureDaySchedules(this.settings.academicYear); } catch {}
+    try { ensureDaySchedules(this.settings.academicYear); } catch { /* non-fatal */ }
     await this.ensurePlannerFolder(record.plannerFolder);
     await this.saveData(this.plannerData);
     this.refreshViews();
@@ -258,7 +256,7 @@ export default class TeacherPlannerPlugin extends Plugin {
 
   async ensurePlannerFolder(folderPath: string) {
     if (!this.app.vault.getAbstractFileByPath(folderPath)) {
-      try { await this.app.vault.createFolder(folderPath); } catch {}
+      try { await this.app.vault.createFolder(folderPath); } catch { /* non-fatal */ }
     }
   }
 
@@ -477,10 +475,10 @@ export default class TeacherPlannerPlugin extends Plugin {
    * hot paths. The trailing flushPendingSave() guarantees nothing is lost
    * when the settings tab closes or the plugin unloads.
    */
-  private saveTimer: ReturnType<typeof setTimeout> | null = null;
+  private saveTimer: number | null = null;
   requestSave(): void {
-    if (this.saveTimer) clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => {
+    if (this.saveTimer) window.clearTimeout(this.saveTimer);
+    this.saveTimer = window.setTimeout(() => {
       this.saveTimer = null;
       this.saveSettings().catch(err => {
         console.error("Teacher Planner: debounced saveSettings failed.", err);
@@ -491,7 +489,7 @@ export default class TeacherPlannerPlugin extends Plugin {
   /** Flush any pending debounced save immediately. */
   async flushPendingSave(): Promise<void> {
     if (this.saveTimer) {
-      clearTimeout(this.saveTimer);
+      window.clearTimeout(this.saveTimer);
       this.saveTimer = null;
       await this.saveSettings();
     }
@@ -509,7 +507,7 @@ export default class TeacherPlannerPlugin extends Plugin {
       lastTmpl.endDate = this.settings.academicYear.endDate;
     }
     // Keep the legacy union period list in lockstep with day schedules
-    try { syncPeriodsUnion(this.settings.academicYear); } catch {}
+    try { syncPeriodsUnion(this.settings.academicYear); } catch { /* non-fatal */ }
     this.syncSettingsToPlanner();
     await this.saveData(this.plannerData);
     this.refreshViews();

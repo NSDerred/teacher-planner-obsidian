@@ -22,11 +22,11 @@ export class CalendarSidebarView extends ItemView {
   async onOpen() {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
-    container.style.padding = "0";
-    container.style.overflow = "hidden";
-    container.style.height = "100%";
-    container.style.display = "flex";
-    container.style.flexDirection = "column";
+    container.setCssStyles({ padding: "0" });
+    container.setCssStyles({ overflow: "hidden" });
+    container.setCssStyles({ height: "100%" });
+    container.setCssStyles({ display: "flex" });
+    container.setCssStyles({ flexDirection: "column" });
     this.mountTarget = container;
 
     // Defer mount until workspace layout is ready and the container has
@@ -34,7 +34,7 @@ export class CalendarSidebarView extends ItemView {
     // a collapsed (0x0) container on Obsidian startup, which leaves the
     // view blank until the user closes and reopens it manually.
     this.app.workspace.onLayoutReady(() => {
-      requestAnimationFrame(() => this.ensureMounted());
+      window.requestAnimationFrame(() => this.ensureMounted());
     });
 
     // ResizeObserver catches the moment the sidebar transitions from

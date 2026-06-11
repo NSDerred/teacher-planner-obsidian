@@ -5,6 +5,20 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] — 2026-06-11
+
+Compliance release addressing the Obsidian community plugin review bot.
+
+### Changed
+
+- Raised `minAppVersion` to 1.7.2 (`workspace.revealLeaf` is async there; both calls now awaited)
+- Plugin no longer detaches its leaves on unload, so panes keep the position you moved them to across plugin reloads
+- All direct element style assignments (113 across ten files) replaced with Obsidian's `setCssStyles`
+- Settings section headings now use `Setting().setHeading()`; the collapsible sections work identically via classes
+- Timers and animation frames are window-scoped and `document` swapped for `activeDocument` where flagged, for popout-window compatibility
+- Command `open-teacher-planner` renamed to `open` ("Open planner") per guidelines — re-bind your hotkey if you had one
+- Removed the one `!important` in styles.css and various unused imports
+
 ## [0.2.1] — 2026-06-11
 
 ### Added

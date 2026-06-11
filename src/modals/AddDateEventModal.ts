@@ -139,13 +139,13 @@ export class AddDateEventModal extends Modal {
       const n = parseInt(durationInput.value);
       durationMinutes = isNaN(n) ? undefined : n;
     });
-    durationRow.style.display = "none";
+    durationRow.setCssStyles({ display: "none" });
 
     const updateDurationRow = () => {
-      if (!directedTimeEnabled) { durationRow.style.display = "none"; return; }
+      if (!directedTimeEnabled) { durationRow.setCssStyles({ display: "none" }); return; }
       const activity = this.plugin.settings.activities.find(a => a.id === classId);
       const isDirectedActivity = !!activity && activity.activityType !== "other";
-      durationRow.style.display = isDirectedActivity ? "flex" : "none";
+      durationRow.setCssStyles({ display: isDirectedActivity ? "flex" : "none" });
       if (isDirectedActivity && durationMinutes === undefined) {
         durationMinutes = activity.durationMinutes ?? (this.plugin.settings.directedTime?.defaultLessonDurationMinutes ?? 60);
         durationInput.value = String(durationMinutes);
@@ -177,7 +177,7 @@ export class AddDateEventModal extends Modal {
 
     if (isEdit) {
       const delBtn = footer.createEl("button", { text: "Delete event", cls: "tp-btn tp-btn--danger" });
-      delBtn.style.marginRight = "auto";
+      delBtn.setCssStyles({ marginRight: "auto" });
       delBtn.addEventListener("click", async () => {
         if (!this.existingEvent) return;
         this.plugin.settings.dateEvents = (this.plugin.settings.dateEvents ?? [])
@@ -235,7 +235,7 @@ export class AddDateEventModal extends Modal {
       this.close();
     });
 
-    setTimeout(() => dateInput.focus(), 50);
+    window.setTimeout(() => dateInput.focus(), 50);
   }
 
   onClose() { this.contentEl.empty(); }

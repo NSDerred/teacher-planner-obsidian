@@ -242,7 +242,7 @@ export class ExportModal extends Modal {
 
   private async ensureFolder(folderPath: string) {
     if (!this.app.vault.getAbstractFileByPath(folderPath)) {
-      try { await this.app.vault.createFolder(folderPath); } catch {}
+      try { await this.app.vault.createFolder(folderPath); } catch { /* non-fatal */ }
     }
   }
 

@@ -67,7 +67,7 @@ Define the types of slot that make up your school day — Lesson, Break, Registr
 4. Copy the three files into that folder
 5. Open Obsidian → **Settings → Community Plugins** → enable **Teacher Planner**
 
-**Requirements:** Obsidian v1.4.0 or later
+**Requirements:** Obsidian v1.7.2 or later
 
 ---
 

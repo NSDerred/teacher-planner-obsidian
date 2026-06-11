@@ -1,7 +1,7 @@
 import { App, Modal, Notice, Setting, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type {
-  PlannerRecord, SchoolPeriod, Subject, ClassGroup, SchoolDay,
+  PlannerRecord, Subject, ClassGroup, SchoolDay,
   WeekOverride, PeriodTypeConfig, Activity, DaySchedule,
 } from "../types";
 import { DEFAULT_PLANNER, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, FALLBACK_PERIOD_TYPE_COLOUR } from "../settings";
@@ -9,7 +9,7 @@ import { resolveColour } from "../utils/themeColours";
 import { isValidIsoDate, findOverlappingOverrides } from "../utils/weekUtils";
 import { syncPeriodsUnion } from "../utils/scheduleUtils";
 import { TimetableEditorModal } from "./TimetableEditorModal";
-import { openEmojiPicker, closeEmojiPicker, SUBJECT_EMOJIS, TextPromptModal } from "../settings/SettingsTab";
+import { openEmojiPicker, closeEmojiPicker, TextPromptModal } from "../settings/SettingsTab";
 
 // ── Wizard state ───────────────────────────────────────────────────────────────
 
@@ -111,7 +111,7 @@ export class SetupWizardModal extends Modal {
     }
     const pct = Math.round(((this.step - 1) / (TOTAL_STEPS - 1)) * 100);
     const bar = progress.createDiv("tp-wizard-bar-wrap");
-    bar.createDiv("tp-wizard-bar-fill").style.width = pct + "%";
+    bar.createDiv("tp-wizard-bar-fill").setCssStyles({ width: pct + "%" });
 
     const body = contentEl.createDiv("tp-wizard-body");
 
@@ -167,7 +167,7 @@ export class SetupWizardModal extends Modal {
         t.setPlaceholder("2025-26").setValue(this.state.name);
         t.inputEl.maxLength = 60;
         nameInput = t.inputEl;
-        setTimeout(() => t.inputEl.focus(), 50);
+        window.setTimeout(() => t.inputEl.focus(), 50);
       });
 
     this.footer(body, () => {
@@ -189,11 +189,11 @@ export class SetupWizardModal extends Modal {
       .setDesc("Track cumulative directed time based on events in your planner.")
       .addToggle(t => t.setValue(this.state.directedTimeEnabled).onChange(v => {
         this.state.directedTimeEnabled = v;
-        dtPanel.style.display = v ? "" : "none";
+        dtPanel.setCssStyles({ display: v ? "" : "none" });
       }));
 
     dtPanel = body.createDiv();
-    dtPanel.style.display = this.state.directedTimeEnabled ? "" : "none";
+    dtPanel.setCssStyles({ display: this.state.directedTimeEnabled ? "" : "none" });
 
     // ── Disclaimer callout ──────────────────────────────────────────────────
     const dtCallout = dtPanel.createDiv("tp-dt-callout");
@@ -230,7 +230,7 @@ export class SetupWizardModal extends Modal {
         .setValue(lessonDurDropValue)
         .onChange(v => {
           if (v !== "custom") { this.state.defaultLessonDurationMinutes = parseInt(v); }
-          customDurSetting.settingEl.style.display = v === "custom" ? "" : "none";
+          customDurSetting.settingEl.setCssStyles({ display: v === "custom" ? "" : "none" });
         }));
 
     customDurSetting = new Setting(dtPanel)
@@ -240,20 +240,20 @@ export class SetupWizardModal extends Modal {
           .setValue(lessonDurDropValue === "custom" ? String(this.state.defaultLessonDurationMinutes) : "");
         t.onChange(v => { const n = parseInt(v); if (!isNaN(n) && n > 0) this.state.defaultLessonDurationMinutes = n; });
       });
-    customDurSetting.settingEl.style.display = lessonDurDropValue === "custom" ? "" : "none";
+    customDurSetting.settingEl.setCssStyles({ display: lessonDurDropValue === "custom" ? "" : "none" });
 
     // ── Directed time activities ────────────────────────────────────────────
     dtPanel.createEl("p", { text: "Directed time activities", cls: "tp-wizard-sublabel" });
 
     const activityHeaders = dtPanel.createDiv("tp-activity-row tp-activity-headers");
-    activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;";
-    const makeH = (text: string, extra = "") => {
+    activityHeaders.createDiv().setCssStyles({ width: "28px", flexShrink: "0" });
+    const makeH = (text: string, extra?: Partial<CSSStyleDeclaration>) => {
       const h = activityHeaders.createEl("span", { text, cls: "tp-activity-header-label" });
-      if (extra) h.style.cssText = extra;
+      if (extra) h.setCssStyles(extra);
     };
     makeH("Name");
-    makeH("Duration", "flex:0 0 54px;width:54px;");
-    activityHeaders.createDiv().style.cssText = "width:28px;flex-shrink:0;";
+    makeH("Duration", { flex: "0 0 54px", width: "54px" });
+    activityHeaders.createDiv().setCssStyles({ width: "28px", flexShrink: "0" });
 
     const actList = dtPanel.createDiv("tp-activities-list");
 
@@ -266,11 +266,11 @@ export class SetupWizardModal extends Modal {
         const row = actList.createDiv("tp-activity-row");
 
         const swatch = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
-        swatch.style.background = act.colour;
+        swatch.setCssStyles({ background: act.colour });
         swatch.addEventListener("click", async () => {
           const { ColourPickerModal } = await import("../settings/SettingsTab");
           new ColourPickerModal(this.app, act.colour, act.label, async (colour: string) => {
-            act.colour = colour; swatch.style.background = colour;
+            act.colour = colour; swatch.setCssStyles({ background: colour });
           }).open();
         });
 
@@ -280,7 +280,7 @@ export class SetupWizardModal extends Modal {
 
         const durIn = row.createEl("input", { type: "number", cls: "tp-class-code-input tp-dur-input" });
         durIn.value = act.durationMinutes !== undefined ? String(act.durationMinutes) : "";
-        durIn.placeholder = "mins"; durIn.min = "1"; durIn.max = "480"; durIn.style.width = "54px";
+        durIn.placeholder = "mins"; durIn.min = "1"; durIn.max = "480"; durIn.setCssStyles({ width: "54px" });
         durIn.addEventListener("change", () => {
           const n = parseInt(durIn.value);
           act.durationMinutes = isNaN(n) || durIn.value === "" ? undefined : n;
@@ -393,7 +393,7 @@ export class SetupWizardModal extends Modal {
 
         // INSET hours sub-row — shown only when type = INSET and directed time enabled
         const insetRow = wrapper.createDiv("tp-override-inset-row");
-        insetRow.style.display = ov.type === "inset" && this.state.directedTimeEnabled ? "flex" : "none";
+        insetRow.setCssStyles({ display: ov.type === "inset" && this.state.directedTimeEnabled ? "flex" : "none" });
 
         insetRow.createSpan({ text: "Directed hours for this period:", cls: "tp-override-inset-label" });
         const hoursInput = insetRow.createEl("input", { type: "number", cls: "tp-override-hours-input" });
@@ -408,7 +408,7 @@ export class SetupWizardModal extends Modal {
 
         typeSelect.addEventListener("change", () => {
           ov.type = typeSelect.value as "holiday" | "inset" | "custom";
-          insetRow.style.display = ov.type === "inset" && this.state.directedTimeEnabled ? "flex" : "none";
+          insetRow.setCssStyles({ display: ov.type === "inset" && this.state.directedTimeEnabled ? "flex" : "none" });
         });
       }
 
@@ -467,11 +467,11 @@ export class SetupWizardModal extends Modal {
       .setDesc("Alternating fortnightly timetables.")
       .addToggle(t => t.setValue(this.state.abWeekEnabled).onChange(v => {
         this.state.abWeekEnabled = v;
-        abPanel.style.display = v ? "" : "none";
+        abPanel.setCssStyles({ display: v ? "" : "none" });
       }));
 
     abPanel = body.createDiv();
-    abPanel.style.display = this.state.abWeekEnabled ? "" : "none";
+    abPanel.setCssStyles({ display: this.state.abWeekEnabled ? "" : "none" });
     new Setting(abPanel)
       .setName("Academic year starts on")
       .addDropdown(d => d.addOption("A", "Week A").addOption("B", "Week B")
@@ -499,11 +499,11 @@ export class SetupWizardModal extends Modal {
         const row = listEl.createDiv("tp-activity-row");
 
         const swatch = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
-        swatch.style.background = resolveColour(pt.colour);
+        swatch.setCssStyles({ background: resolveColour(pt.colour) });
         swatch.addEventListener("click", async () => {
           const { ColourPickerModal } = await import("../settings/SettingsTab");
           new ColourPickerModal(this.app, pt.colour, pt.label, async (colour: string) => {
-            pt.colour = colour; swatch.style.background = resolveColour(colour);
+            pt.colour = colour; swatch.setCssStyles({ background: resolveColour(colour) });
           }, true).open();
         });
 
@@ -634,7 +634,7 @@ export class SetupWizardModal extends Modal {
         });
         s.addText(t => {
           t.setPlaceholder("HH:MM").setValue(p.start);
-          t.inputEl.style.width = "70px";
+          t.inputEl.setCssStyles({ width: "70px" });
           t.inputEl.addEventListener("change", () => {
             p.start = t.inputEl.value;
             s.setDesc(`${p.start} – ${p.end}`);
@@ -642,7 +642,7 @@ export class SetupWizardModal extends Modal {
         });
         s.addText(t => {
           t.setPlaceholder("HH:MM").setValue(p.end);
-          t.inputEl.style.width = "70px";
+          t.inputEl.setCssStyles({ width: "70px" });
           t.inputEl.addEventListener("change", () => {
             p.end = t.inputEl.value;
             s.setDesc(`${p.start} – ${p.end}`);
@@ -741,14 +741,14 @@ export class SetupWizardModal extends Modal {
             const row = classesEl.createDiv("tp-class-row");
 
             const clsSwatch = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
-            clsSwatch.style.background = cls.colour;
+            clsSwatch.setCssStyles({ background: cls.colour });
             clsSwatch.title = "Override class colour";
             clsSwatch.addEventListener("click", async () => {
               const { ColourPickerModal } = await import("../settings/SettingsTab");
               new ColourPickerModal(this.app, cls.colour, cls.code || "Class", async (colour: string) => {
                 cls.colour = colour;
                 cls.colourOverridden = colour !== subj.colour;
-                clsSwatch.style.background = colour;
+                clsSwatch.setCssStyles({ background: colour });
               }).open();
             });
 

@@ -485,7 +485,7 @@
 .tp-preset-swatch:hover { transform: scale(1.15); border-color: var(--text-muted); }
 .tp-preset-swatches .tp-preset-swatch--active { border-color: var(--interactive-accent); }
 /* "Follow Obsidian theme" swatch — round so it reads as distinct from the fixed greys */
-.tp-preset-swatch--theme { border-radius: 50%; background: var(--background-modifier-border) !important; outline: 1px dashed var(--text-muted); outline-offset: 1px; margin-right: 4px; }
+.tp-preset-swatches .tp-preset-swatch.tp-preset-swatch--theme { border-radius: 50%; background: var(--background-modifier-border); outline: 1px dashed var(--text-muted); outline-offset: 1px; margin-right: 4px; }
 .tp-preset-swatches .tp-preset-swatch--theme.tp-preset-swatch--active { outline-color: var(--interactive-accent); outline-style: solid; }
 
 /* ── Slate dark ── */
@@ -1362,3 +1362,8 @@
 
 /* Time-axis week view: reveal + Event button on block hover (replaces .tp-td-cell) */
 .tp-block:hover .tp-cell-add-event { opacity: 1; }
+
+/* Collapsible settings sections (class-based; no inline styles) */
+.tp-section-collapsed { display: none; }
+.tp-collapsible-chevron { display: inline-block; transition: transform 0.12s; }
+.tp-collapsible-chevron--open { transform: rotate(90deg); }

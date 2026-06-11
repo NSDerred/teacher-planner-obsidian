@@ -38,7 +38,7 @@ export class EventPickerModal extends Modal {
           .sort((a, b) => a.code.localeCompare(b.code));
         for (const cls of subjClasses) {
           const btn = list.createEl("button", { cls: "tp-epm-item" });
-          btn.style.borderLeft = `3px solid ${cls.colour}`;
+          btn.setCssStyles({ borderLeft: `3px solid ${cls.colour}` });
           btn.createEl("span", { text: cls.code, cls: "tp-epm-code" });
           if (cls.classroom) {
             btn.createEl("span", { text: cls.classroom, cls: "tp-epm-room" });
@@ -55,7 +55,7 @@ export class EventPickerModal extends Modal {
       const sortedActs = [...activities].sort((a, b) => a.label.localeCompare(b.label));
       for (const act of sortedActs) {
         const btn = list.createEl("button", { cls: "tp-epm-item" });
-        btn.style.borderLeft = `3px solid ${act.colour}`;
+        btn.setCssStyles({ borderLeft: `3px solid ${act.colour}` });
         btn.createEl("span", { text: act.label, cls: "tp-epm-code" });
         if (act.classroom) {
           btn.createEl("span", { text: act.classroom, cls: "tp-epm-room" });

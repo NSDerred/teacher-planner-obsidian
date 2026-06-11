@@ -26,7 +26,7 @@ export class AddPeriodModal extends Modal {
       .addText(t => {
         t.setPlaceholder("Period 1");
         t.inputEl.addEventListener("input", () => { name = t.inputEl.value; });
-        setTimeout(() => t.inputEl.focus(), 50);
+        window.setTimeout(() => t.inputEl.focus(), 50);
       });
 
     new Setting(contentEl).setName("Start time").setDesc("HH:MM — 24-hour format")

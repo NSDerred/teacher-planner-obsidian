@@ -44,20 +44,20 @@ export class AddTimetableTemplateModal extends Modal {
     this.label(form, "Template Name");
     const nameInput = form.createEl("input", { type: "text", cls: "tp-modal-input" });
     nameInput.placeholder = "e.g. Spring Term, Post-Cover Timetable";
-    nameInput.style.cssText = "width:100%;box-sizing:border-box;margin-bottom:14px;";
-    setTimeout(() => nameInput.focus(), 50);
+    nameInput.setCssStyles({ width: "100%", boxSizing: "border-box", marginBottom: "14px" });
+    window.setTimeout(() => nameInput.focus(), 50);
 
     // ── Start date ────────────────────────────────────────────────────────────
     this.label(form, "Start Date (YYYY-MM-DD)");
     const dateInput = form.createEl("input", { type: "date", cls: "tp-modal-input" });
     const today = new Date().toISOString().slice(0, 10);
     dateInput.value = today;
-    dateInput.style.cssText = "width:100%;box-sizing:border-box;margin-bottom:14px;";
+    dateInput.setCssStyles({ width: "100%", boxSizing: "border-box", marginBottom: "14px" });
 
     // ── Copy from ─────────────────────────────────────────────────────────────
     this.label(form, "Copy slots from (optional)");
     const copySelect = form.createEl("select", { cls: "tp-modal-input" });
-    copySelect.style.cssText = "width:100%;box-sizing:border-box;margin-bottom:14px;";
+    copySelect.setCssStyles({ width: "100%", boxSizing: "border-box", marginBottom: "14px" });
     copySelect.createEl("option", { value: "", text: "— Start blank —" });
     for (const tmpl of (this.plugin.settings.timetableTemplates ?? [])) {
       copySelect.createEl("option", { value: tmpl.id, text: `${tmpl.name} (${fmtDate(tmpl.startDate)} – ${fmtDate(tmpl.endDate)})` });
@@ -65,7 +65,7 @@ export class AddTimetableTemplateModal extends Modal {
 
     // ── Gap / impact info ─────────────────────────────────────────────────────
     const infoEl = form.createDiv();
-    infoEl.style.cssText = "margin-bottom:14px;font-size:13px;";
+    infoEl.setCssStyles({ marginBottom: "14px", fontSize: "13px" });
 
     let gapStart = "";
     let gapEnd = "";
@@ -109,15 +109,15 @@ export class AddTimetableTemplateModal extends Modal {
         gapEnd = subtractOneDay(startDate);
         if (gapStart <= gapEnd) {
           const gapBox = infoEl.createDiv();
-          gapBox.style.cssText = "background:var(--background-modifier-error-hover,rgba(243,139,168,0.12));border:1px solid var(--color-red,#f38ba8);border-radius:6px;padding:10px 12px;";
+          gapBox.setCssStyles({ background: "var(--background-modifier-error-hover,rgba(243,139,168,0.12))", border: "1px solid var(--color-red,#f38ba8)", borderRadius: "6px", padding: "10px 12px" });
           gapBox.createEl("p", {
             text: `⚠️ Gap detected: ${fmtDate(gapStart)} – ${fmtDate(gapEnd)} won't be covered by any template.`,
-          }).style.cssText = "margin:0 0 8px;font-weight:600;";
-          gapBox.createEl("p", { text: "How should this gap be handled?" }).style.cssText = "margin:0 0 6px;";
+          }).setCssStyles({ margin: "0 0 8px", fontWeight: "600" });
+          gapBox.createEl("p", { text: "How should this gap be handled?" }).setCssStyles({ margin: "0 0 6px" });
 
           const radio = (value: string, label: string) => {
             const row = gapBox.createDiv();
-            row.style.cssText = "display:flex;align-items:center;gap:6px;margin-bottom:4px;";
+            row.setCssStyles({ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" });
             const r = row.createEl("input", { type: "radio" }) as HTMLInputElement;
             r.name = "gap-mode";
             r.value = value;
@@ -208,7 +208,7 @@ export class AddTimetableTemplateModal extends Modal {
 
   private label(parent: HTMLElement, text: string) {
     const el = parent.createEl("label");
-    el.style.cssText = "font-size:13px;font-weight:600;color:var(--text-normal);display:block;margin-bottom:4px;";
+    el.setCssStyles({ fontSize: "13px", fontWeight: "600", color: "var(--text-normal)", display: "block", marginBottom: "4px" });
     el.textContent = text;
   }
 

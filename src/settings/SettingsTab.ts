@@ -38,11 +38,11 @@ export function openEmojiPicker(
   // Close any existing popup (and its listeners) before opening a new one
   closeEmojiPicker();
 
-  const popup = document.body.createDiv("tp-emoji-popup");
+  const popup = activeDocument.body.createDiv("tp-emoji-popup");
 
   const cleanup = () => {
-    document.removeEventListener("click", onDocClick, true);
-    document.removeEventListener("keydown", onKeyDown, true);
+    activeDocument.removeEventListener("click", onDocClick, true);
+    activeDocument.removeEventListener("keydown", onKeyDown, true);
     popup.remove();
     if (_activeEmojiCleanup === cleanup) _activeEmojiCleanup = null;
   };
@@ -71,13 +71,13 @@ export function openEmojiPicker(
   let left = rect.left;
   if (top + popupHeight > window.innerHeight) top = rect.top - popupHeight - 4;
   if (left + popupWidth > window.innerWidth) left = window.innerWidth - popupWidth - 8;
-  popup.style.top = top + "px";
-  popup.style.left = left + "px";
+  popup.setCssStyles({ top: top + "px" });
+  popup.setCssStyles({ left: left + "px" });
 
   // Close on click outside / Escape
-  setTimeout(() => {
-    document.addEventListener("click", onDocClick, true);
-    document.addEventListener("keydown", onKeyDown, true);
+  window.setTimeout(() => {
+    activeDocument.addEventListener("click", onDocClick, true);
+    activeDocument.addEventListener("keydown", onKeyDown, true);
   }, 0);
   _activeEmojiCleanup = cleanup;
 }
@@ -115,7 +115,7 @@ export class TextPromptModal extends Modal {
       .addEventListener("click", () => this.close());
     footer.createEl("button", { text: "Save", cls: "tp-btn tp-btn--primary" })
       .addEventListener("click", submit);
-    setTimeout(() => { input.focus(); input.select(); }, 30);
+    window.setTimeout(() => { input.focus(); input.select(); }, 30);
   }
 
   onClose() { this.contentEl.empty(); }
@@ -141,7 +141,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
   /** Called by Obsidian when the settings tab is navigated away from or closed. */
   hide(): void {
-    // Tear down any open emoji popup — it lives on document.body and would
+    // Tear down any open emoji popup — it lives on activeDocument.body and would
     // otherwise outlive the tab along with its document-level listeners.
     closeEmojiPicker();
     // Flush any pending debounced save so in-flight edits land on disk
@@ -166,7 +166,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     this.renderPlannersSection(containerEl);
 
     // ── Academic Year ──────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Academic Year" });
+    new Setting(containerEl).setName("Academic Year").setHeading();
     new Setting(containerEl).setName("Planner name").setDesc('e.g. "2025-26 IB Science"')
       .addText(t => t.setPlaceholder("2025-26").setValue(this.plugin.settings.academicYear.name)
         .onChange(v => { this.plugin.settings.academicYear.name = v; this.plugin.requestSave(); }));
@@ -210,7 +210,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     }
 
     // ── Directed Time Tracker ──────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Directed Time Tracker" });
+    new Setting(containerEl).setName("Directed Time Tracker").setHeading();
     if (!this.plugin.settings.directedTime) {
       this.plugin.settings.directedTime = { enabled: false, contractedHours: 1265, timetablePercentage: 100, defaultLessonDurationMinutes: 60 };
     }
@@ -225,12 +225,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
           if (v) await this.createDirectedTimeGuideNote();
           // Show/hide the sub-settings panel in place — no full re-render
-          dtPanel.style.display = v ? "" : "none";
+          dtPanel.setCssStyles({ display: v ? "" : "none" });
         }));
 
     // Sub-settings panel — always in DOM, visibility controlled by toggle
     const dtPanel = containerEl.createDiv();
-    dtPanel.style.display = dt.enabled ? "" : "none";
+    dtPanel.setCssStyles({ display: dt.enabled ? "" : "none" });
 
     {
       // Instructions callout
@@ -273,7 +273,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           .onChange(async v => {
             if (v !== "custom") { dt.defaultLessonDurationMinutes = parseInt(v); await this.plugin.saveSettings(); }
             // Show/hide the custom input in place — no full re-render
-            customDurSetting.settingEl.style.display = v === "custom" ? "" : "none";
+            customDurSetting.settingEl.setCssStyles({ display: v === "custom" ? "" : "none" });
           }));
 
       // Custom duration input — always in DOM, shown only when dropdown = "custom"
@@ -284,7 +284,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
             const n = parseInt(v);
             if (!isNaN(n) && n > 0) { dt.defaultLessonDurationMinutes = n; this.plugin.requestSave(); }
           }));
-      customDurSetting.settingEl.style.display = lessonDurDropValue === "custom" ? "" : "none";
+      customDurSetting.settingEl.setCssStyles({ display: lessonDurDropValue === "custom" ? "" : "none" });
 
       new Setting(dtPanel)
         .setName("Export directed time")
@@ -305,7 +305,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     }
 
     // ── Holidays & INSET Days ──────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Holidays & INSET Days" });
+    new Setting(containerEl).setName("Holidays & INSET Days").setHeading();
     containerEl.createEl("p", {
       text: "Mark date ranges as holidays or INSET training days. Individual day columns are greyed out in the planner.",
       cls: "setting-item-description"
@@ -324,7 +324,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Block Types ────────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "School Day Blocks" });
+    new Setting(containerEl).setName("School Day Blocks").setHeading();
     containerEl.createEl("p", {
       text: "Define the types of block that make up your school day — lessons, breaks, registration, admin time, and so on. Each block type has a colour that appears as a shaded band in the week view, making it easy to see your day structure at a glance. Assign block types to individual periods in School Timetable.",
       cls: "setting-item-description"
@@ -353,7 +353,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         }));
 
     // ── Periods / day schedules ────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "School Timetable" });
+    new Setting(containerEl).setName("School Timetable").setHeading();
     containerEl.createEl("p", {
       text: "Periods are grouped into day schedules. Most schools only need the Standard day. Add another schedule for days shaped differently — a sports afternoon, a half-day Saturday — and assign it to those days. Colours and types are configured in School Day Blocks above.",
       cls: "setting-item-description"
@@ -464,18 +464,18 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           this.plugin.settings.academicYear.abWeekEnabled = v;
           await this.plugin.saveSettings();
           // Show/hide the week-selector in place — no full re-render
-          abPanel.style.display = v ? "" : "none";
+          abPanel.setCssStyles({ display: v ? "" : "none" });
         }));
     // A/B start week — always in DOM, visibility controlled by toggle
     const abPanel = containerEl.createDiv();
-    abPanel.style.display = this.plugin.settings.academicYear.abWeekEnabled ? "" : "none";
+    abPanel.setCssStyles({ display: this.plugin.settings.academicYear.abWeekEnabled ? "" : "none" });
     new Setting(abPanel).setName("Academic year starts on")
       .addDropdown(d => d.addOption("A", "Week A").addOption("B", "Week B")
         .setValue(this.plugin.settings.academicYear.abWeekStartsOn)
         .onChange(async (v: string) => { this.plugin.settings.academicYear.abWeekStartsOn = v as "A" | "B"; await this.plugin.saveSettings(); }));
 
     // ── Lessons ────────────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Lessons" });
+    new Setting(containerEl).setName("Lessons").setHeading();
     containerEl.createEl("p", {
       text: "Define your subjects and class groups. Colours appear on lesson blocks in the week view.",
       cls: "setting-item-description"
@@ -492,7 +492,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Directed time activities ───────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Events — Directed time" });
+    new Setting(containerEl).setName("Events — Directed time").setHeading();
     containerEl.createEl("p", {
       text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Set a default duration so the tracker can calculate your hours automatically — or leave it blank to enter the duration each time.",
       cls: "setting-item-description"
@@ -524,8 +524,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Other Events ───────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Events — Other" });
-    const otherDesc = containerEl.createEl("p", {
+    new Setting(containerEl).setName("Events — Other").setHeading();
+    containerEl.createEl("p", {
       text: "⚠️  Items in this section appear in the planner but are excluded from the directed time count. Use these for personal appointments, reminders, or any non-directed activity.",
       cls: "setting-item-description"
     });
@@ -540,26 +540,26 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Vault ──────────────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Vault" });
+    new Setting(containerEl).setName("Vault").setHeading();
     new Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created")
       .addText(t => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder)
         .onChange(v => { this.plugin.settings.plannerFolder = v; this.plugin.requestSave(); }));
 
     // ── Grid Visuals ───────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Grid Visuals" });
+    new Setting(containerEl).setName("Grid Visuals").setHeading();
     const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
 
     const blockColourSetting = new Setting(containerEl)
       .setName("Period block border colour")
       .setDesc("Border on the top and bottom edge of each period band.");
-    blockColourSetting.controlEl.style.display = "flex";
-    blockColourSetting.controlEl.style.alignItems = "center";
-    blockColourSetting.controlEl.style.gap = "8px";
-    blockColourSetting.controlEl.style.flexWrap = "wrap";
+    blockColourSetting.controlEl.setCssStyles({ display: "flex" });
+    blockColourSetting.controlEl.setCssStyles({ alignItems: "center" });
+    blockColourSetting.controlEl.setCssStyles({ gap: "8px" });
+    blockColourSetting.controlEl.setCssStyles({ flexWrap: "wrap" });
 
     const currentBlockColour = this.plugin.settings.blockBorderColour ?? GRID_THEME_TOKEN;
     const blockSwatchBtn = blockColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
-    blockSwatchBtn.style.background = resolveColour(currentBlockColour);
+    blockSwatchBtn.setCssStyles({ background: resolveColour(currentBlockColour) });
 
     const blockPresetRow = blockColourSetting.controlEl.createDiv("tp-preset-swatches");
     const blockPresetSwatches: HTMLElement[] = [];
@@ -567,7 +567,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const updateBlockBorderColour = async (colour: string) => {
       this.plugin.settings.blockBorderColour = colour;
       await this.plugin.saveSettings();
-      blockSwatchBtn.style.background = resolveColour(colour);
+      blockSwatchBtn.setCssStyles({ background: resolveColour(colour) });
       blockPresetSwatches.forEach(s => s.classList.toggle("tp-preset-swatch--active", s.dataset.colour === colour));
     };
 
@@ -579,7 +579,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     {
       const chip = blockPresetRow.createEl("button", { cls: "tp-preset-swatch tp-preset-swatch--theme", title: "Follow Obsidian theme (default)" });
-      chip.style.background = resolveColour(GRID_THEME_TOKEN);
+      chip.setCssStyles({ background: resolveColour(GRID_THEME_TOKEN) });
       chip.dataset.colour = GRID_THEME_TOKEN;
       if (currentBlockColour === GRID_THEME_TOKEN) chip.classList.add("tp-preset-swatch--active");
       chip.addEventListener("click", async () => { await updateBlockBorderColour(GRID_THEME_TOKEN); });
@@ -588,7 +588,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     for (const grey of GREY_PALETTE) {
       const chip = blockPresetRow.createEl("button", { cls: "tp-preset-swatch", title: grey });
-      chip.style.background = grey;
+      chip.setCssStyles({ background: grey });
       chip.dataset.colour = grey;
       if (grey === currentBlockColour) chip.classList.add("tp-preset-swatch--active");
       chip.addEventListener("click", async () => { await updateBlockBorderColour(grey); });
@@ -603,14 +603,14 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const gridColourSetting = new Setting(containerEl)
       .setName("Time grid line colour")
       .setDesc("Colour of the day-column borders and row dividers.");
-    gridColourSetting.controlEl.style.display = "flex";
-    gridColourSetting.controlEl.style.alignItems = "center";
-    gridColourSetting.controlEl.style.gap = "8px";
-    gridColourSetting.controlEl.style.flexWrap = "wrap";
+    gridColourSetting.controlEl.setCssStyles({ display: "flex" });
+    gridColourSetting.controlEl.setCssStyles({ alignItems: "center" });
+    gridColourSetting.controlEl.setCssStyles({ gap: "8px" });
+    gridColourSetting.controlEl.setCssStyles({ flexWrap: "wrap" });
 
     const currentGridColour = this.plugin.settings.gridLineColour ?? GRID_THEME_TOKEN;
     const gridSwatchBtn = gridColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
-    gridSwatchBtn.style.background = resolveColour(currentGridColour);
+    gridSwatchBtn.setCssStyles({ background: resolveColour(currentGridColour) });
 
     const gridPresetRow = gridColourSetting.controlEl.createDiv("tp-preset-swatches");
     const gridPresetSwatches: HTMLElement[] = [];
@@ -618,7 +618,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const updateGridLineColour = async (colour: string) => {
       this.plugin.settings.gridLineColour = colour;
       await this.plugin.saveSettings();
-      gridSwatchBtn.style.background = resolveColour(colour);
+      gridSwatchBtn.setCssStyles({ background: resolveColour(colour) });
       gridPresetSwatches.forEach(s => s.classList.toggle("tp-preset-swatch--active", s.dataset.colour === colour));
     };
 
@@ -630,7 +630,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     {
       const chip = gridPresetRow.createEl("button", { cls: "tp-preset-swatch tp-preset-swatch--theme", title: "Follow Obsidian theme (default)" });
-      chip.style.background = resolveColour(GRID_THEME_TOKEN);
+      chip.setCssStyles({ background: resolveColour(GRID_THEME_TOKEN) });
       chip.dataset.colour = GRID_THEME_TOKEN;
       if (currentGridColour === GRID_THEME_TOKEN) chip.classList.add("tp-preset-swatch--active");
       chip.addEventListener("click", async () => { await updateGridLineColour(GRID_THEME_TOKEN); });
@@ -639,7 +639,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     for (const grey of GREY_PALETTE) {
       const chip = gridPresetRow.createEl("button", { cls: "tp-preset-swatch", title: grey });
-      chip.style.background = grey;
+      chip.setCssStyles({ background: grey });
       chip.dataset.colour = grey;
       if (grey === currentGridColour) chip.classList.add("tp-preset-swatch--active");
       chip.addEventListener("click", async () => { await updateGridLineColour(grey); });
@@ -665,7 +665,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         }));
 
     // ── Export ────────────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Lesson plans" });
+    new Setting(containerEl).setName("Lesson plans").setHeading();
     new Setting(containerEl)
       .setName("Plans folder")
       .setDesc("Where new lesson plans are created and listed first in the picker. Leave empty for \"<planner folder>/Plans\".")
@@ -694,7 +694,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
-    containerEl.createEl("h3", { text: "Export" });
+    new Setting(containerEl).setName("Export").setHeading();
     new Setting(containerEl)
       .setName("Export planner data")
       .setDesc("Export timetable and events as Excel or CSV, or as an iCal calendar (.ics) for Google, Apple or Outlook calendar — to your Planner folder or anywhere on your computer.")
@@ -702,7 +702,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         .onClick(() => new ExportModal(this.app, this.plugin).open()));
 
     // ── Reset ──────────────────────────────────────────────────────────────
-    containerEl.createEl("h3", { text: "Reset" });
+    new Setting(containerEl).setName("Reset").setHeading();
     new Setting(containerEl).setName("Reset periods to defaults")
       .addButton(btn => btn.setButtonText("Reset periods").setWarning()
         .onClick(async () => {
@@ -718,7 +718,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   // ── Planners section ──────────────────────────────────────────────────────
 
   private renderPlannersSection(container: HTMLElement) {
-    container.createEl("h3", { text: "Planners" });
+    new Setting(container).setName("Planners").setHeading();
     container.createEl("p", {
       text: "Each planner has its own timetable, classes and academic year. Switch between planners here or create a new one.",
       cls: "setting-item-description",
@@ -769,8 +769,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           cls: "tp-btn tp-btn--danger",
           attr: { disabled: "true", title: "Switch to another planner before deleting this one" },
         });
-        disabledDel.style.opacity = "0.35";
-        disabledDel.style.cursor  = "not-allowed";
+        disabledDel.setCssStyles({ opacity: "0.35" });
+        disabledDel.setCssStyles({ cursor: "not-allowed" });
       }
     }
 
@@ -783,33 +783,34 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   private wrapSectionsCollapsible(container: HTMLElement): void {
-    const h3s = Array.from(container.querySelectorAll<HTMLElement>(":scope > h3"));
-    for (const h3 of h3s) {
-      // Collect all direct siblings until the next h3
+    const headings = Array.from(container.querySelectorAll<HTMLElement>(":scope > .setting-item-heading"));
+    for (const heading of headings) {
+      // Collect all direct siblings until the next heading
       const siblings: Element[] = [];
-      let next = h3.nextElementSibling;
-      while (next && next.tagName !== "H3") {
+      let next = heading.nextElementSibling;
+      while (next && !next.classList.contains("setting-item-heading")) {
         siblings.push(next);
         next = next.nextElementSibling;
       }
 
-      // Wrap siblings in a hidden content div (inline style required so toggle logic can read it)
+      // Wrap siblings in a collapsible content div (hidden by default)
       const content = container.createDiv("tp-collapsible-content");
-      content.style.display = "none";
-      h3.after(content);
+      content.addClass("tp-section-collapsed");
+      heading.after(content);
       for (const s of siblings) content.appendChild(s);
 
       // Add chevron before the heading text
-      const chevron = document.createElement("span");
+      const chevron = activeDocument.createElement("span");
       chevron.className = "tp-collapsible-chevron";
       chevron.textContent = "›";
-      h3.insertBefore(chevron, h3.firstChild);
-      h3.addClass("tp-collapsible-header");
+      const nameEl = heading.querySelector<HTMLElement>(".setting-item-name") ?? heading;
+      nameEl.insertBefore(chevron, nameEl.firstChild);
+      heading.addClass("tp-collapsible-header");
 
-      h3.addEventListener("click", () => {
-        const isOpen = content.style.display !== "none";
-        content.style.display = isOpen ? "none" : "block";
-        chevron.style.transform = isOpen ? "" : "rotate(90deg)";
+      heading.addEventListener("click", () => {
+        const isOpen = !content.hasClass("tp-section-collapsed");
+        content.toggleClass("tp-section-collapsed", isOpen);
+        chevron.toggleClass("tp-collapsible-chevron--open", !isOpen);
       });
     }
   }
@@ -944,10 +945,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         cls: "tp-archived-toggle-small",
       });
       const archivedList = archivedSection.createDiv("tp-class-rows");
-      archivedList.style.display = "none";
+      archivedList.setCssStyles({ display: "none" });
       toggleBtn.addEventListener("click", () => {
         const hidden = archivedList.style.display === "none";
-        archivedList.style.display = hidden ? "block" : "none";
+        archivedList.setCssStyles({ display: hidden ? "block" : "none" });
         toggleBtn.textContent = hidden
           ? `↑ ${archivedClasses.length} archived`
           : `↓ ${archivedClasses.length} archived`;
@@ -958,17 +959,17 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
   private renderClassRow(container: HTMLElement, cls: ClassGroup, subject: Subject, parentContainer: HTMLElement, isArchived: boolean = false) {
     const row = container.createDiv("tp-class-row");
-    if (isArchived) row.style.opacity = "0.5";
+    if (isArchived) row.setCssStyles({ opacity: "0.5" });
 
     const swatchBtn = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
-    swatchBtn.style.background = cls.colour;
+    swatchBtn.setCssStyles({ background: cls.colour });
     swatchBtn.title = "Override class colour";
     swatchBtn.addEventListener("click", () => {
       new ColourPickerModal(this.app, cls.colour, cls.code, async colour => {
         cls.colour = colour;
         cls.colourOverridden = colour !== subject.colour;
         await this.plugin.saveSettings();
-        swatchBtn.style.background = colour;
+        swatchBtn.setCssStyles({ background: colour });
       }).open();
     });
 
@@ -985,7 +986,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const classroomInput = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
     classroomInput.value = cls.classroom ?? "";
     classroomInput.placeholder = "Classroom";
-    classroomInput.style.opacity = "0.7";
+    classroomInput.setCssStyles({ opacity: "0.7" });
     classroomInput.addEventListener("change", async () => { cls.classroom = classroomInput.value; await this.plugin.saveSettings(); });
 
     if (cls.colourOverridden && !isArchived) {
@@ -1046,16 +1047,16 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     if (archived.length > 0) {
       const archivedSection = container.createDiv("tp-archived-mini");
-      archivedSection.style.marginTop = "8px";
+      archivedSection.setCssStyles({ marginTop: "8px" });
       const toggleBtn = archivedSection.createEl("button", {
         text: `↓ ${archived.length} archived`,
         cls: "tp-archived-toggle-small",
       });
       const archivedList = archivedSection.createDiv();
-      archivedList.style.display = "none";
+      archivedList.setCssStyles({ display: "none" });
       toggleBtn.addEventListener("click", () => {
         const hidden = archivedList.style.display === "none";
-        archivedList.style.display = hidden ? "block" : "none";
+        archivedList.setCssStyles({ display: hidden ? "block" : "none" });
         toggleBtn.textContent = hidden
           ? `↑ ${archived.length} archived`
           : `↓ ${archived.length} archived`;
@@ -1073,15 +1074,15 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     typeFilter: "directed" | "other" = "directed",
   ) {
     const row = container.createDiv("tp-activity-row");
-    if (isArchived) row.style.opacity = "0.5";
+    if (isArchived) row.setCssStyles({ opacity: "0.5" });
 
     const swatchBtn = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
-    swatchBtn.style.background = activity.colour;
+    swatchBtn.setCssStyles({ background: activity.colour });
     swatchBtn.addEventListener("click", () => {
       new ColourPickerModal(this.app, activity.colour, activity.label, async colour => {
         activity.colour = colour;
         await this.plugin.saveSettings();
-        swatchBtn.style.background = colour;
+        swatchBtn.setCssStyles({ background: colour });
       }).open();
     });
 
@@ -1093,13 +1094,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const infoInput = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
     infoInput.value = activity.info ?? "";
     infoInput.placeholder = "Info";
-    infoInput.style.opacity = "0.7";
+    infoInput.setCssStyles({ opacity: "0.7" });
     infoInput.addEventListener("change", async () => { activity.info = infoInput.value; await this.plugin.saveSettings(); });
 
     const classroomInputAct = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
     classroomInputAct.value = activity.classroom ?? "";
     classroomInputAct.placeholder = "Classroom";
-    classroomInputAct.style.opacity = "0.7";
+    classroomInputAct.setCssStyles({ opacity: "0.7" });
     classroomInputAct.addEventListener("change", async () => { activity.classroom = classroomInputAct.value; await this.plugin.saveSettings(); });
 
     // Duration field — only for directed activities
@@ -1150,13 +1151,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   private renderPeriodTypeRow(container: HTMLElement, pt: PeriodTypeConfig) {
     const row = container.createDiv("tp-activity-row");
     const swatchBtn = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
-    swatchBtn.style.background = resolveColour(pt.colour);
+    swatchBtn.setCssStyles({ background: resolveColour(pt.colour) });
     swatchBtn.title = isThemeToken(pt.colour) ? "Following your Obsidian theme" : "Custom colour";
     swatchBtn.addEventListener("click", () => {
       new ColourPickerModal(this.app, pt.colour, pt.label, async colour => {
         pt.colour = colour;
         await this.plugin.saveSettings();
-        swatchBtn.style.background = resolveColour(colour);
+        swatchBtn.setCssStyles({ background: resolveColour(colour) });
         swatchBtn.title = isThemeToken(colour) ? "Following your Obsidian theme" : "Custom colour";
       }, true).open();
     });
@@ -1169,7 +1170,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     resetBtn.addEventListener("click", async () => {
       pt.colour = DEFAULT_PERIOD_TYPE_COLOURS[pt.id] ?? FALLBACK_PERIOD_TYPE_COLOUR;
       await this.plugin.saveSettings();
-      swatchBtn.style.background = resolveColour(pt.colour);
+      swatchBtn.setCssStyles({ background: resolveColour(pt.colour) });
       swatchBtn.title = "Following your Obsidian theme";
     });
     const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete type" });
@@ -1277,7 +1278,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // ── INSET hours sub-row (shown only when type = INSET and directed time enabled) ─
     const insetRow = wrapper.createDiv("tp-override-inset-row");
     const dtEnabled = () => this.plugin.settings.directedTime?.enabled ?? false;
-    insetRow.style.display = override.type === "inset" && dtEnabled() ? "flex" : "none";
+    insetRow.setCssStyles({ display: override.type === "inset" && dtEnabled() ? "flex" : "none" });
 
     insetRow.createSpan({ text: "Directed hours for this period:", cls: "tp-override-inset-label" });
     const hoursInput = insetRow.createEl("input", { type: "number", cls: "tp-override-hours-input" });
@@ -1293,7 +1294,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     typeSelect.addEventListener("change", async () => {
       override.type = typeSelect.value as "holiday" | "inset" | "custom";
-      insetRow.style.display = override.type === "inset" && dtEnabled() ? "flex" : "none";
+      insetRow.setCssStyles({ display: override.type === "inset" && dtEnabled() ? "flex" : "none" });
       await this.plugin.saveSettings();
     });
   }
@@ -1308,7 +1309,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     // Ensure planner folder exists
     if (!this.app.vault.getAbstractFileByPath(folder)) {
-      try { await this.app.vault.createFolder(folder); } catch {}
+      try { await this.app.vault.createFolder(folder); } catch { /* non-fatal */ }
     }
 
     const dt = this.plugin.settings.directedTime!;

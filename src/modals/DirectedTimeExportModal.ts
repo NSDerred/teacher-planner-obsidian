@@ -1,4 +1,4 @@
-import { App, Modal, Notice, TFile } from "obsidian";
+import { App, Modal, Notice } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import * as XLSX from "xlsx";
 import {
@@ -68,7 +68,7 @@ export class DirectedTimeExportModal extends Modal {
     const folder = (s.plannerFolder || "Teacher Planner") + "/exports";
 
     if (!this.app.vault.getAbstractFileByPath(folder)) {
-      try { await this.app.vault.createFolder(folder); } catch {}
+      try { await this.app.vault.createFolder(folder); } catch { /* non-fatal */ }
     }
 
     const wb = XLSX.utils.book_new();
@@ -136,7 +136,7 @@ export class DirectedTimeExportModal extends Modal {
     } else {
       const vaultFolder = this.destination.vaultPath || folder;
       if (!this.app.vault.getAbstractFileByPath(vaultFolder)) {
-        try { await this.app.vault.createFolder(vaultFolder); } catch {}
+        try { await this.app.vault.createFolder(vaultFolder); } catch { /* non-fatal */ }
       }
       const path = `${vaultFolder}/${filename}`;
       await (this.app.vault.adapter as any).writeBinary(path, buf);

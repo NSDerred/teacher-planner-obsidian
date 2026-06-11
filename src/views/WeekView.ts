@@ -33,7 +33,7 @@ export class WeekView extends ItemView {
     // components that mount into a 0x0 container will render blank and stay
     // blank even after the container grows.
     this.app.workspace.onLayoutReady(() => {
-      requestAnimationFrame(() => this.ensureMounted());
+      window.requestAnimationFrame(() => this.ensureMounted());
     });
 
     // ResizeObserver is the most reliable signal for "container became visible".
@@ -64,7 +64,7 @@ export class WeekView extends ItemView {
    */
   async setState(state: unknown, result: ViewStateResult): Promise<void> {
     await super.setState(state, result);
-    requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
       this.ensureMounted();
       this.component?.refreshEvents();
     });

@@ -12,11 +12,11 @@ export class TimetableEditorModal extends Modal {
   }
 
   onOpen() {
-    this.modalEl.style.width = "min(95vw, 1100px)";
-    this.modalEl.style.maxWidth = "95vw";
-    this.modalEl.style.maxHeight = "min(90vh, 900px)";
-    this.modalEl.style.minWidth = "600px";
-    this.modalEl.style.boxSizing = "border-box";
+    this.modalEl.setCssStyles({ width: "min(95vw, 1100px)" });
+    this.modalEl.setCssStyles({ maxWidth: "95vw" });
+    this.modalEl.setCssStyles({ maxHeight: "min(90vh, 900px)" });
+    this.modalEl.setCssStyles({ minWidth: "600px" });
+    this.modalEl.setCssStyles({ boxSizing: "border-box" });
 
     const { contentEl } = this;
     contentEl.empty();
