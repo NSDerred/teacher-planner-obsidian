@@ -18,6 +18,8 @@ export interface IcalOptions {
   includeNonLessons: boolean;
   /** X-WR-CALNAME shown by calendar apps. */
   calendarName: string;
+  /** Days of the week to export. Defaults to the planner's school days. */
+  days?: SchoolDay[];
 }
 
 const DAY_INDEX_MAP: Record<number, SchoolDay> = {
@@ -92,7 +94,8 @@ interface VEvent {
  */
 function collectEvents(s: TeacherPlannerSettings, opts: IcalOptions): VEvent[] {
   const events: VEvent[] = [];
-  const schoolDays: SchoolDay[] = s.schoolDays ?? ["monday", "tuesday", "wednesday", "thursday", "friday"];
+  const schoolDays: SchoolDay[] =
+    opts.days ?? s.schoolDays ?? ["monday", "tuesday", "wednesday", "thursday", "friday"];
   const periods: SchoolPeriod[] = s.academicYear?.periods ?? [];
   const periodById = new Map(periods.map(p => [p.id, p]));
 

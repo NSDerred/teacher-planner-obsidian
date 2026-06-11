@@ -9,6 +9,7 @@ import {
 } from "../utils/exportDestination";
 import { generateIcal } from "../utils/icalUtils";
 import { isValidIsoDate } from "../utils/weekUtils";
+import type { SchoolDay } from "../types";
 
 type ExportDataset = "timetable" | "events" | "both";
 type ExportFormat  = "csv" | "xlsx" | "ical";
@@ -25,6 +26,7 @@ export class ExportModal extends Modal {
   private icalNonLessons = true;
   private icalFrom = "";
   private icalTo   = "";
+  private icalDays: SchoolDay[] | null = null;
 
   constructor(app: App, plugin: TeacherPlannerPlugin) {
     super(app);
@@ -99,6 +101,27 @@ export class ExportModal extends Modal {
       const inp = lbl.createEl("input", { type: "checkbox" });
       inp.checked = get();
       inp.addEventListener("change", () => set(inp.checked));
+      lbl.createSpan({ text: label });
+    }
+
+    icalSection.createEl("p", { text: "Days to include", cls: "tp-modal-label" });
+    if (!this.icalDays) {
+      this.icalDays = [...(this.plugin.settings.schoolDays ?? ["monday", "tuesday", "wednesday", "thursday", "friday"])];
+    }
+    const dayRow = icalSection.createDiv("tp-export-ical-days");
+    const allDays: [SchoolDay, string][] = [
+      ["monday", "Mon"], ["tuesday", "Tue"], ["wednesday", "Wed"], ["thursday", "Thu"],
+      ["friday", "Fri"], ["saturday", "Sat"], ["sunday", "Sun"],
+    ];
+    for (const [day, label] of allDays) {
+      const lbl = dayRow.createEl("label", { cls: "tp-export-ical-day" });
+      const inp = lbl.createEl("input", { type: "checkbox" });
+      inp.checked = this.icalDays.includes(day);
+      inp.addEventListener("change", () => {
+        if (!this.icalDays) return;
+        if (inp.checked) { if (!this.icalDays.includes(day)) this.icalDays.push(day); }
+        else this.icalDays = this.icalDays.filter(d => d !== day);
+      });
       lbl.createSpan({ text: label });
     }
 
@@ -300,6 +323,9 @@ export class ExportModal extends Modal {
     if (!this.icalLessons && !this.icalDateEvents && !this.icalOverrides && !this.icalNonLessons) {
       new Notice("Select at least one thing to include."); return false;
     }
+    if (this.icalDays && this.icalDays.length === 0) {
+      new Notice("Select at least one day to include."); return false;
+    }
 
     const s = this.plugin.settings;
     const content = generateIcal(s, {
@@ -310,6 +336,7 @@ export class ExportModal extends Modal {
       includeOverrides: this.icalOverrides,
       includeNonLessons: this.icalNonLessons,
       calendarName: s.academicYear.name || "Teacher Planner",
+      days: this.icalDays ?? undefined,
     });
 
     const safeName = (s.academicYear.name || "planner").replace(/[^a-z0-9]/gi, "-").toLowerCase();

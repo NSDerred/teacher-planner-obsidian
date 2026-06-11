@@ -1340,3 +1340,5 @@
   padding: 4px 6px;
   border-radius: var(--radius-s, 4px);
 }
+.tp-export-ical-days { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.tp-export-ical-day { display: flex; align-items: center; gap: 4px; cursor: pointer; }

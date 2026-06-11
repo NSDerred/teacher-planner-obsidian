@@ -531,7 +531,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     containerEl.createEl("h3", { text: "Export" });
     new Setting(containerEl)
       .setName("Export planner data")
-      .setDesc("Download timetable or date events as Excel or CSV into your Planner folder.")
+      .setDesc("Export timetable and events as Excel or CSV, or as an iCal calendar (.ics) for Google, Apple or Outlook calendar — to your Planner folder or anywhere on your computer.")
       .addButton(btn => btn.setButtonText("Export data…").setCta()
         .onClick(() => new ExportModal(this.app, this.plugin).open()));
 
