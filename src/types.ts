@@ -128,6 +128,18 @@ export interface DateEvent {
   durationMinutes?: number;
 }
 
+/**
+ * Links a lesson occurrence to a lesson-plan note in the vault. Either
+ * slotId+date (timetabled lesson on a specific day) or eventId (date event).
+ * The note itself is plain markdown and is never modified by the plugin.
+ */
+export interface LessonPlanLink {
+  slotId?: string;
+  date?: string;     // ISO "YYYY-MM-DD" — required with slotId
+  eventId?: string;
+  path: string;      // vault path of the plan note
+}
+
 export type PlannerTheme = "carbon" | "paper";
 export type PlannerThemeMode = "light" | "dark";
 
@@ -175,6 +187,14 @@ export interface TeacherPlannerSettings {
   lessonNoteTemplate: string;
   theme?: PlannerTheme;
   themeMode?: PlannerThemeMode;
+  /** Lesson plan links (issue #— linkable reusable plans). */
+  lessonPlanLinks?: LessonPlanLink[];
+  /** Folder for new lesson plans. Empty → "<plannerFolder>/Plans". */
+  lessonPlansFolder?: string;
+  /** Template for new lesson plans ({{class}}, {{subject}}, {{date}} placeholders). */
+  lessonPlanTemplate?: string;
+  /** Show a faint hollow dot on lessons without a linked plan. Default true. */
+  showUnplannedDot?: boolean;
   /** Directed time tracker. Undefined on legacy installs — initialised by migration guard in main.ts. */
   directedTime?: DirectedTimeSettings;
   /**
@@ -212,6 +232,10 @@ export interface PlannerRecord {
   weekNotes: Record<string, string>;
   notesHeight: number;
   lessonNoteTemplate: string;
+  lessonPlanLinks?: LessonPlanLink[];
+  lessonPlansFolder?: string;
+  lessonPlanTemplate?: string;
+  showUnplannedDot?: boolean;
   directedTime: DirectedTimeSettings;
   schoolDays: SchoolDay[];
 }

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type TeacherPlannerPlugin from "../main";
   import type { TimetableSlot, SchoolPeriod, DateEvent, SchoolDay } from "../types";
-  import { TFile, Menu, setIcon } from "obsidian";
+  import { TFile, Menu, Notice, setIcon } from "obsidian";
 
   // Svelte action: renders an Obsidian Lucide icon into the element
   function obsIcon(node: HTMLElement, id: string) {
@@ -18,6 +18,11 @@
   import { AddDateEventModal } from "../modals/AddDateEventModal";
   import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
   import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
+  import {
+    getSlotPlan, setSlotPlan, clearSlotPlan, setEventPlan, clearEventPlan,
+    migrateSlotPlanToEvent, bulkApplyPlan,
+  } from "../utils/planLinkUtils";
+  import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
 
   export let plugin: TeacherPlannerPlugin;
   export let initialDate: Date = new Date();
@@ -86,6 +91,18 @@
   $: _activities  = (_tick, plugin.settings.activities ?? []);
   $: _dateEvents      = (_tick, plugin.settings.dateEvents ?? []);
   $: _slotExclusions  = (_tick, plugin.settings.slotExclusions ?? []);
+  $: _planLinks       = (_tick, plugin.settings.lessonPlanLinks ?? []);
+  $: _showUnplanned   = (_tick, plugin.settings.showUnplannedDot ?? true);
+  $: _slotPlanMap = (() => {
+    const m: Record<string, string> = {};
+    for (const l of _planLinks) if (l.slotId && l.date) m[l.slotId + "|" + l.date] = l.path;
+    return m;
+  })();
+  $: _eventPlanMap = (() => {
+    const m: Record<string, string> = {};
+    for (const l of _planLinks) if (l.eventId) m[l.eventId] = l.path;
+    return m;
+  })();
 
   // Date events for the current week, keyed by "day:periodId" → array
   $: _dateEventMap = (() => {
@@ -338,14 +355,18 @@
 
     // 2. Create a date event in the target cell carrying the same class/activity
     if (!plugin.settings.dateEvents) plugin.settings.dateEvents = [];
+    const newEvId = "ev-" + Date.now();
     plugin.settings.dateEvents.push({
-      id: "ev-" + Date.now(),
+      id: newEvId,
       date: targetDate,
       periodId,
       classId: slot.classId,
       ...(slot.notes    ? { notes: slot.notes }       : {}),
       ...(slot.classroom ? { classroom: slot.classroom } : {}),
     });
+
+    // 3. The lesson plan follows the moved lesson
+    migrateSlotPlanToEvent(plugin.settings, slot.id, sourceDate, newEvId);
 
     await plugin.saveSettings();
     invalidate();
@@ -371,12 +392,44 @@
     if (type === "slot" && slot) {
       menu.addItem(i => i.setTitle("Edit").setIcon("pencil").onClick(() => openNotesModal(slot, date, periodId)));
       if (isClass) menu.addItem(i => i.setTitle("Lesson note").setIcon("book-open").onClick(() => openOrCreateLessonNote(slot, date)));
+      if (isClass) {
+        const planPath = getSlotPlan(plugin.settings, slot.id, date)?.path;
+        if (planPath) {
+          menu.addItem(i => i.setTitle("Open lesson plan").setIcon("file-text").onClick(() => openPlan(planPath)));
+          menu.addItem(i => i.setTitle("Apply plan to future lessons").setIcon("copy-plus").onClick(async () => {
+            const n = bulkApplyPlan(plugin.settings, slot.classId, date, planPath);
+            await plugin.saveSettings();
+            invalidate();
+            new Notice(`Plan linked to ${n} lesson${n === 1 ? "" : "s"} of this class.`);
+          }));
+          menu.addItem(i => i.setTitle("Unlink lesson plan").setIcon("unlink").onClick(async () => {
+            clearSlotPlan(plugin.settings, slot.id, date);
+            await plugin.saveSettings();
+            invalidate();
+          }));
+        } else {
+          menu.addItem(i => i.setTitle("Link lesson plan…").setIcon("file-plus").onClick(() => linkPlanForSlot(slot, date)));
+        }
+      }
       menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
       menu.addItem(i => i.setTitle("Change colour").setIcon("palette").onClick(() => changeColour(slot.classId)));
       menu.addItem(i => i.setTitle("Remove from timetable").setIcon("trash-2").onClick(() => removeSlot(slot.id)));
     } else if (type === "event" && event) {
       menu.addItem(i => i.setTitle("Edit").setIcon("pencil").onClick(() => onEditDateEvent(event)));
+      if (isClass) {
+        const planPath = getEventPlan(plugin.settings, event.id)?.path;
+        if (planPath) {
+          menu.addItem(i => i.setTitle("Open lesson plan").setIcon("file-text").onClick(() => openPlan(planPath)));
+          menu.addItem(i => i.setTitle("Unlink lesson plan").setIcon("unlink").onClick(async () => {
+            clearEventPlan(plugin.settings, event.id);
+            await plugin.saveSettings();
+            invalidate();
+          }));
+        } else {
+          menu.addItem(i => i.setTitle("Link lesson plan…").setIcon("file-plus").onClick(() => linkPlanForEvent(event)));
+        }
+      }
       if (isClass) menu.addItem(i => i.setTitle("Lesson note").setIcon("book-open").onClick(() => openOrCreateLessonNoteForEvent(event, date)));
       menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
@@ -514,6 +567,41 @@
   function openEventPicker(e: MouseEvent, dayDate: string, periodId: string) {
     e.stopPropagation();
     onAddEvent(dayDate, periodId);
+  }
+
+  // ── Lesson plan linking ───────────────────────────────────────────────────
+  function isClassId(id: string): boolean { return !!_classes.find(c => c.id === id); }
+
+  function openPlan(path: string) {
+    if (!plugin.app.vault.getAbstractFileByPath(path)) {
+      new Notice("Lesson plan note not found — it may have been deleted. Re-link from the lesson menu.");
+      return;
+    }
+    plugin.app.workspace.openLinkText(path, "", false);
+  }
+
+  function planPickerInfo(classId: string): { code: string; subject: string } {
+    const cls = _classes.find(c => c.id === classId);
+    const subj = cls ? _subjects.find(x => x.id === cls.subjectId) : undefined;
+    return { code: cls?.code ?? "", subject: subj?.name ?? "" };
+  }
+
+  function linkPlanForSlot(slot: TimetableSlot, date: string) {
+    const info = planPickerInfo(slot.classId);
+    new LessonPlanSuggestModal(plugin.app, plugin, info.code, info.subject, async (path) => {
+      setSlotPlan(plugin.settings, slot.id, date, path);
+      await plugin.saveSettings();
+      invalidate();
+    }).open();
+  }
+
+  function linkPlanForEvent(ev: DateEvent) {
+    const info = planPickerInfo(ev.classId);
+    new LessonPlanSuggestModal(plugin.app, plugin, info.code, info.subject, async (path) => {
+      setEventPlan(plugin.settings, ev.id, path);
+      await plugin.saveSettings();
+      invalidate();
+    }).open();
   }
 
   // ── Lesson note linking ────────────────────────────────────────────────────
@@ -712,6 +800,15 @@
                           {#if lbl.notes}
                             <span class="tp-chip-notes">{lbl.notes}</span>
                           {/if}
+                          {#if isClassId(slot.classId)}
+                            {@const planPath = _slotPlanMap[slot.id + "|" + dayDate]}
+                            {#if planPath}
+                              <button class="tp-plan-dot tp-plan-dot--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                                on:click|stopPropagation={() => openPlan(planPath)}>●</button>
+                            {:else if _showUnplanned}
+                              <span class="tp-plan-dot" title="No lesson plan linked">○</span>
+                            {/if}
+                          {/if}
                         </div>
                       {/if}
                       {#each devEvents as devEv (devEv.id)}
@@ -736,6 +833,15 @@
                             <span class="tp-chip-room">{lbl.classroom}</span>
                           {/if}
                           {#if lbl.notes}<span class="tp-chip-notes">{lbl.notes}</span>{/if}
+                          {#if isClassId(devEv.classId)}
+                            {@const planPath = _eventPlanMap[devEv.id]}
+                            {#if planPath}
+                              <button class="tp-plan-dot tp-plan-dot--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                                on:click|stopPropagation={() => openPlan(planPath)}>●</button>
+                            {:else if _showUnplanned}
+                              <span class="tp-plan-dot" title="No lesson plan linked">○</span>
+                            {/if}
+                          {/if}
                         </div>
                       {/each}
                     </div>
@@ -861,6 +967,11 @@
     .tp-chip-code { font-size: 11px; }
     .tp-chip-room { font-size: 9px; }
   }
+
+  /* Lesson plan indicator (top-right of chips) */
+  .tp-plan-dot { position:absolute; top:1px; right:3px; font-size:9px; line-height:1; background:none; border:none; padding:2px 3px; color:var(--text-muted); opacity:0.6; cursor:default; }
+  button.tp-plan-dot--linked { color:var(--interactive-accent); opacity:1; cursor:pointer; }
+  button.tp-plan-dot--linked:hover { opacity:0.8; }
 
   /* Current time indicator */
   .tp-now-line { position:absolute; left:0; right:0; height:0; border-top:2px dashed var(--interactive-accent); opacity:0.9; pointer-events:none; z-index:5; }

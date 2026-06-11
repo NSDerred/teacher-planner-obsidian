@@ -6,6 +6,7 @@ import { CalendarSidebarView, CALENDAR_SIDEBAR_VIEW_TYPE } from "./views/Calenda
 import { TeacherPlannerSettingTab } from "./settings/SettingsTab";
 import { isValidIsoDate } from "./utils/weekUtils";
 import { ensureDaySchedules, syncPeriodsUnion } from "./utils/scheduleUtils";
+import { renamePlanPaths } from "./utils/planLinkUtils";
 
 export default class TeacherPlannerPlugin extends Plugin {
   settings: TeacherPlannerSettings;
@@ -34,6 +35,22 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.addCommand({ id: "go-to-next-week",         name: "Go to next week",         callback: () => this.sendWeekViewCommand("next") });
 
     this.addSettingTab(new TeacherPlannerSettingTab(this.app, this));
+
+    // Keep lesson-plan links pointing at their notes across renames/moves —
+    // links are stored per planner, so sweep all planners plus live settings.
+    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
+      try {
+        let changed = renamePlanPaths(this.settings, oldPath, file.path);
+        for (const p of this.plannerData?.planners ?? []) {
+          for (const l of p.lessonPlanLinks ?? []) {
+            if (l.path === oldPath) { l.path = file.path; changed = true; }
+          }
+        }
+        if (changed) this.requestSave();
+      } catch (err) {
+        console.error("Teacher Planner: plan-link rename sweep failed.", err);
+      }
+    }));
 
     // Lazy import to avoid a circular dep at module-load time
     if (this.needsWizard) {
@@ -143,6 +160,7 @@ export default class TeacherPlannerPlugin extends Plugin {
     "timetableTemplates", "weekOverrides", "activities", "dateEvents",
     "slotExclusions", "weekNotes", "notesHeight", "lessonNoteTemplate",
     "directedTime", "schoolDays", "plannerFolder",
+    "lessonPlanLinks", "lessonPlansFolder", "lessonPlanTemplate", "showUnplannedDot",
   ];
 
   /**
@@ -179,8 +197,9 @@ export default class TeacherPlannerPlugin extends Plugin {
         if (value !== undefined) (planner as any)[k] = value;
       }
       // Defensive defaults for fields that have explicit fallbacks
-      planner.dateEvents     = planner.dateEvents     ?? [];
-      planner.slotExclusions = planner.slotExclusions ?? [];
+      planner.dateEvents      = planner.dateEvents      ?? [];
+      planner.slotExclusions  = planner.slotExclusions  ?? [];
+      planner.lessonPlanLinks = planner.lessonPlanLinks ?? [];
       planner.notesHeight    = planner.notesHeight    ?? 120;
     }
     for (const k of TeacherPlannerPlugin.GLOBAL_FIELDS) {

@@ -5,6 +5,12 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Lesson plans** (#community request) — link any markdown note in your vault to a lesson as its reusable plan. Right-click a lesson chip → "Link lesson plan…" opens a fuzzy picker (your plans folder listed first) with "Create new plan…" from a template. Chips show a coloured dot when a plan is linked (click to open) and a faint hollow dot when unplanned (toggleable in settings). "Apply plan to future lessons" links the same note to every remaining lesson of that class this year — A/B weeks, day schedules, holidays and exclusions respected. Plans follow lessons when dragged, paths auto-update on note rename/move, and the note itself is never modified — so the same plan can serve a class this year and next.
+
 ## [0.2.0] — 2026-06-11
 
 ### Added

@@ -665,6 +665,27 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         }));
 
     // ── Export ────────────────────────────────────────────────────────────
+    containerEl.createEl("h3", { text: "Lesson plans" });
+    new Setting(containerEl)
+      .setName("Plans folder")
+      .setDesc("Where new lesson plans are created and listed first in the picker. Leave empty for \"<planner folder>/Plans\".")
+      .addText(t => {
+        t.setPlaceholder((this.plugin.settings.plannerFolder || "Teacher Planner") + "/Plans");
+        t.setValue(this.plugin.settings.lessonPlansFolder ?? "");
+        t.inputEl.addEventListener("blur", async () => {
+          this.plugin.settings.lessonPlansFolder = t.inputEl.value.trim() || undefined;
+          await this.plugin.saveSettings();
+        });
+      });
+    new Setting(containerEl)
+      .setName("Show unplanned indicator")
+      .setDesc("Faint hollow dot on lessons that have no lesson plan linked yet.")
+      .addToggle(t => t.setValue(this.plugin.settings.showUnplannedDot ?? true)
+        .onChange(async v => {
+          this.plugin.settings.showUnplannedDot = v;
+          await this.plugin.saveSettings();
+        }));
+
     containerEl.createEl("h3", { text: "Export" });
     new Setting(containerEl)
       .setName("Export planner data")
