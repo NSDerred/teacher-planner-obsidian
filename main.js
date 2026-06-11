@@ -26893,6 +26893,204 @@ var init_exportDestination = __esm({
   }
 });
 
+// src/utils/icalUtils.ts
+function icsEscape(s) {
+  return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+}
+function foldLine(line) {
+  if (line.length <= 73) return line;
+  const parts = [];
+  let rest = line;
+  parts.push(rest.slice(0, 73));
+  rest = rest.slice(73);
+  while (rest.length > 0) {
+    parts.push(" " + rest.slice(0, 72));
+    rest = rest.slice(72);
+  }
+  return parts.join("\r\n");
+}
+function icsDateTime(iso, hhmm) {
+  return iso.replace(/-/g, "") + "T" + hhmm.replace(":", "") + "00";
+}
+function icsDate(iso) {
+  return iso.replace(/-/g, "");
+}
+function shiftIso(iso, days2) {
+  const d = /* @__PURE__ */ new Date(iso + "T12:00:00");
+  d.setDate(d.getDate() + days2);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+function addMinutes(hhmm, mins) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const total = Math.min(h * 60 + m + mins, 23 * 60 + 59);
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+function collectEvents(s, opts) {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+  const events = [];
+  const schoolDays = (_a = s.schoolDays) != null ? _a : ["monday", "tuesday", "wednesday", "thursday", "friday"];
+  const periods = (_c = (_b = s.academicYear) == null ? void 0 : _b.periods) != null ? _c : [];
+  const periodById = new Map(periods.map((p) => [p.id, p]));
+  const overrideByDate = /* @__PURE__ */ new Map();
+  for (const o of (_d = s.weekOverrides) != null ? _d : []) {
+    const end = (_e = o.endDate) != null ? _e : o.startDate;
+    for (let iso = o.startDate; iso <= end; iso = shiftIso(iso, 1)) {
+      overrideByDate.set(iso, { type: o.type, label: o.label });
+    }
+  }
+  if (opts.includeOverrides) {
+    for (const o of (_f = s.weekOverrides) != null ? _f : []) {
+      const end = (_g = o.endDate) != null ? _g : o.startDate;
+      if (end < opts.fromDate || o.startDate > opts.toDate) continue;
+      const label = o.label || (o.type === "inset" ? "INSET" : o.type === "holiday" ? "Holiday" : "School event");
+      events.push({
+        uid: `tp-ovr-${o.type}-${o.startDate}`,
+        summary: label,
+        allDayStartIso: o.startDate,
+        allDayEndIso: end
+      });
+    }
+  }
+  const labelFor = (classId, slotRoom, notes) => {
+    var _a2, _b2, _c2, _d2, _e2, _f2;
+    const cls = (_a2 = s.classes) == null ? void 0 : _a2.find((c) => c.id === classId);
+    if (cls) {
+      const subj = (_b2 = s.subjects) == null ? void 0 : _b2.find((x) => x.id === cls.subjectId);
+      const room = (_c2 = slotRoom != null ? slotRoom : cls.classroom) != null ? _c2 : "";
+      return {
+        summary: room ? `${cls.code} \xB7 ${room}` : cls.code,
+        location: room,
+        description: [[cls.year, subj == null ? void 0 : subj.name].filter(Boolean).join(" \xB7 "), notes != null ? notes : ""].filter(Boolean).join("\n")
+      };
+    }
+    const act = (_d2 = s.activities) == null ? void 0 : _d2.find((a) => a.id === classId);
+    if (act) {
+      const room = (_e2 = slotRoom != null ? slotRoom : act.classroom) != null ? _e2 : "";
+      return {
+        summary: room ? `${act.label} \xB7 ${room}` : act.label,
+        location: room,
+        description: [(_f2 = act.info) != null ? _f2 : "", notes != null ? notes : ""].filter(Boolean).join("\n")
+      };
+    }
+    return { summary: "Lesson", location: slotRoom != null ? slotRoom : "", description: notes != null ? notes : "" };
+  };
+  for (let iso = opts.fromDate; iso <= opts.toDate; iso = shiftIso(iso, 1)) {
+    const d = /* @__PURE__ */ new Date(iso + "T12:00:00");
+    const dayName = DAY_INDEX_MAP[d.getDay()];
+    if (!schoolDays.includes(dayName)) continue;
+    if (overrideByDate.has(iso)) continue;
+    const monday = getMondayOfWeek(d);
+    const mondayKey = monday.toISOString().slice(0, 10);
+    const template = (_h = s.timetableTemplates) == null ? void 0 : _h.find((t) => t.startDate <= mondayKey && t.endDate >= mondayKey);
+    const abType = ((_i = s.academicYear) == null ? void 0 : _i.abWeekEnabled) ? getAbWeekType(d, s.academicYear.startDate, s.academicYear.abWeekStartsOn) : null;
+    const occupiedPeriods = /* @__PURE__ */ new Set();
+    if (template) {
+      for (const slot of template.slots) {
+        if (slot.day !== dayName) continue;
+        if (abType && slot.weekType && slot.weekType !== "both" && slot.weekType !== abType) continue;
+        if ((_j = s.slotExclusions) == null ? void 0 : _j.some((ex) => ex.slotId === slot.id && ex.date === iso)) continue;
+        const period = periodById.get(slot.periodId);
+        if (!period) continue;
+        occupiedPeriods.add(slot.periodId);
+        if (!opts.includeLessons) continue;
+        const lbl = labelFor(slot.classId, slot.classroom, slot.notes);
+        events.push({
+          uid: `tp-slot-${slot.id}-${iso}`,
+          summary: lbl.summary,
+          description: lbl.description || void 0,
+          location: lbl.location || void 0,
+          dateIso: iso,
+          startHHMM: period.start,
+          endHHMM: period.end
+        });
+      }
+    }
+    if (opts.includeDateEvents) {
+      for (const ev of (_k = s.dateEvents) != null ? _k : []) {
+        if (ev.date !== iso) continue;
+        const period = periodById.get(ev.periodId);
+        if (!period) continue;
+        const lbl = labelFor(ev.classId, ev.classroom, ev.notes);
+        const end = ev.durationMinutes ? addMinutes(period.start, ev.durationMinutes) : period.end;
+        events.push({
+          uid: `tp-ev-${ev.id}`,
+          summary: lbl.summary,
+          description: lbl.description || void 0,
+          location: lbl.location || void 0,
+          dateIso: iso,
+          startHHMM: period.start,
+          endHHMM: end
+        });
+        occupiedPeriods.add(ev.periodId);
+      }
+    }
+    if (opts.includeNonLessons) {
+      for (const period of periods) {
+        if (period.type === "lesson") continue;
+        if (occupiedPeriods.has(period.id)) continue;
+        events.push({
+          uid: `tp-per-${period.id}-${iso}`,
+          summary: period.name,
+          dateIso: iso,
+          startHHMM: period.start,
+          endHHMM: period.end
+        });
+      }
+    }
+  }
+  return events;
+}
+function generateIcal(s, opts) {
+  var _a;
+  const events = collectEvents(s, opts);
+  const now2 = /* @__PURE__ */ new Date();
+  const dtstamp = now2.getUTCFullYear().toString() + String(now2.getUTCMonth() + 1).padStart(2, "0") + String(now2.getUTCDate()).padStart(2, "0") + "T" + String(now2.getUTCHours()).padStart(2, "0") + String(now2.getUTCMinutes()).padStart(2, "0") + String(now2.getUTCSeconds()).padStart(2, "0") + "Z";
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Teacher Planner//Obsidian Plugin//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    foldLine("X-WR-CALNAME:" + icsEscape(opts.calendarName))
+  ];
+  for (const ev of events) {
+    lines.push("BEGIN:VEVENT");
+    lines.push(foldLine("UID:" + ev.uid + "@teacher-planner-obsidian"));
+    lines.push("DTSTAMP:" + dtstamp);
+    if (ev.allDayStartIso) {
+      lines.push("DTSTART;VALUE=DATE:" + icsDate(ev.allDayStartIso));
+      lines.push("DTEND;VALUE=DATE:" + icsDate(shiftIso((_a = ev.allDayEndIso) != null ? _a : ev.allDayStartIso, 1)));
+    } else if (ev.dateIso && ev.startHHMM && ev.endHHMM) {
+      lines.push("DTSTART:" + icsDateTime(ev.dateIso, ev.startHHMM));
+      lines.push("DTEND:" + icsDateTime(ev.dateIso, ev.endHHMM));
+    }
+    lines.push(foldLine("SUMMARY:" + icsEscape(ev.summary)));
+    if (ev.location) lines.push(foldLine("LOCATION:" + icsEscape(ev.location)));
+    if (ev.description) lines.push(foldLine("DESCRIPTION:" + icsEscape(ev.description)));
+    lines.push("END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n") + "\r\n";
+}
+var DAY_INDEX_MAP;
+var init_icalUtils = __esm({
+  "src/utils/icalUtils.ts"() {
+    init_weekUtils();
+    DAY_INDEX_MAP = {
+      0: "sunday",
+      1: "monday",
+      2: "tuesday",
+      3: "wednesday",
+      4: "thursday",
+      5: "friday",
+      6: "saturday"
+    };
+  }
+});
+
 // src/modals/ExportModal.ts
 var import_obsidian7, ExportModal;
 var init_ExportModal = __esm({
@@ -26900,12 +27098,21 @@ var init_ExportModal = __esm({
     import_obsidian7 = require("obsidian");
     init_xlsx();
     init_exportDestination();
+    init_icalUtils();
+    init_weekUtils();
     ExportModal = class extends import_obsidian7.Modal {
       constructor(app, plugin) {
         super(app);
         this.dataset = "both";
         this.format = "xlsx";
         this.destination = { mode: "vault", vaultPath: "", systemPath: null };
+        // iCal options (only used when format === "ical")
+        this.icalLessons = true;
+        this.icalDateEvents = true;
+        this.icalOverrides = true;
+        this.icalNonLessons = true;
+        this.icalFrom = "";
+        this.icalTo = "";
         this.plugin = plugin;
       }
       onOpen() {
@@ -26914,8 +27121,9 @@ var init_ExportModal = __esm({
         contentEl.addClass("tp-export-modal");
         contentEl.createEl("h3", { text: "Export Planner Data", cls: "tp-epm-title" });
         const form = contentEl.createDiv("tp-modal-form");
-        form.createEl("p", { text: "What to export", cls: "tp-modal-label" });
-        const datasetGroup = form.createDiv("tp-export-option-group");
+        const datasetSection = form.createDiv();
+        datasetSection.createEl("p", { text: "What to export", cls: "tp-modal-label" });
+        const datasetGroup = datasetSection.createDiv("tp-export-option-group");
         for (const [val, label] of [
           ["timetable", "Timetable (recurring slots)"],
           ["events", "Date Events (one-offs)"],
@@ -26935,7 +27143,8 @@ var init_ExportModal = __esm({
         const formatGroup = form.createDiv("tp-export-option-group");
         for (const [val, label] of [
           ["xlsx", "Excel (.xlsx)"],
-          ["csv", "CSV (.csv)"]
+          ["csv", "CSV (.csv)"],
+          ["ical", "Calendar (.ics)"]
         ]) {
           const lbl = formatGroup.createEl("label", { cls: "tp-export-option" });
           const inp = lbl.createEl("input", { type: "radio" });
@@ -26943,10 +27152,62 @@ var init_ExportModal = __esm({
           inp.value = val;
           inp.checked = this.format === val;
           inp.addEventListener("change", () => {
-            if (inp.checked) this.format = val;
+            if (inp.checked) {
+              this.format = val;
+              updateSections();
+            }
           });
           lbl.createSpan({ text: label });
         }
+        const ay = this.plugin.settings.academicYear;
+        const todayIso = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+        if (!this.icalFrom) {
+          this.icalFrom = todayIso >= ay.startDate && todayIso <= ay.endDate ? todayIso : ay.startDate;
+        }
+        if (!this.icalTo) this.icalTo = ay.endDate;
+        const icalSection = form.createDiv("tp-export-ical-options");
+        icalSection.createEl("p", { text: "Include in calendar", cls: "tp-modal-label" });
+        const toggleGroup = icalSection.createDiv("tp-export-option-group");
+        const toggles = [
+          ["Lessons & activities", () => this.icalLessons, (v) => {
+            this.icalLessons = v;
+          }],
+          ["Date events (cover, trips\u2026)", () => this.icalDateEvents, (v) => {
+            this.icalDateEvents = v;
+          }],
+          ["Holidays & INSET (all-day)", () => this.icalOverrides, (v) => {
+            this.icalOverrides = v;
+          }],
+          ["Breaks & registration", () => this.icalNonLessons, (v) => {
+            this.icalNonLessons = v;
+          }]
+        ];
+        for (const [label, get, set] of toggles) {
+          const lbl = toggleGroup.createEl("label", { cls: "tp-export-option" });
+          const inp = lbl.createEl("input", { type: "checkbox" });
+          inp.checked = get();
+          inp.addEventListener("change", () => set(inp.checked));
+          lbl.createSpan({ text: label });
+        }
+        icalSection.createEl("p", { text: "Date range", cls: "tp-modal-label" });
+        const rangeRow = icalSection.createDiv("tp-export-ical-range");
+        const fromInput = rangeRow.createEl("input", { type: "date" });
+        fromInput.value = this.icalFrom;
+        fromInput.addEventListener("change", () => {
+          this.icalFrom = fromInput.value;
+        });
+        rangeRow.createSpan({ text: " \u2013 ", cls: "tp-override-sep" });
+        const toInput = rangeRow.createEl("input", { type: "date" });
+        toInput.value = this.icalTo;
+        toInput.addEventListener("change", () => {
+          this.icalTo = toInput.value;
+        });
+        const updateSections = () => {
+          const isIcal = this.format === "ical";
+          datasetSection.toggleClass("tp-hidden", isIcal);
+          icalSection.toggleClass("tp-hidden", !isIcal);
+        };
+        updateSections();
         this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
         renderDestinationPicker(form, this.destination, this.app.isMobile === true);
         const footer = contentEl.createDiv("tp-modal-footer");
@@ -26957,7 +27218,13 @@ var init_ExportModal = __esm({
           exportBtn.textContent = "Exporting...";
           try {
             if (this.format === "csv") await this.exportCSV();
-            else await this.exportXLSX();
+            else if (this.format === "ical") {
+              if (!await this.exportICal()) {
+                exportBtn.disabled = false;
+                exportBtn.textContent = "Export";
+                return;
+              }
+            } else await this.exportXLSX();
             this.close();
           } catch (err) {
             console.error("Export error:", err);
@@ -27108,6 +27375,44 @@ var init_ExportModal = __esm({
           new import_obsidian7.Notice(`Exported to ${path}`);
         }
       }
+      /** Returns false on validation failure (modal stays open). */
+      async exportICal() {
+        if (!isValidIsoDate(this.icalFrom) || !isValidIsoDate(this.icalTo)) {
+          new import_obsidian7.Notice("Please enter valid from/to dates.");
+          return false;
+        }
+        if (this.icalTo < this.icalFrom) {
+          new import_obsidian7.Notice("The 'to' date must not be before the 'from' date.");
+          return false;
+        }
+        if (!this.icalLessons && !this.icalDateEvents && !this.icalOverrides && !this.icalNonLessons) {
+          new import_obsidian7.Notice("Select at least one thing to include.");
+          return false;
+        }
+        const s = this.plugin.settings;
+        const content = generateIcal(s, {
+          fromDate: this.icalFrom,
+          toDate: this.icalTo,
+          includeLessons: this.icalLessons,
+          includeDateEvents: this.icalDateEvents,
+          includeOverrides: this.icalOverrides,
+          includeNonLessons: this.icalNonLessons,
+          calendarName: s.academicYear.name || "Teacher Planner"
+        });
+        const safeName = (s.academicYear.name || "planner").replace(/[^a-z0-9]/gi, "-").toLowerCase();
+        const filename = `calendar-${safeName}.ics`;
+        if (this.destination.mode === "system" && this.destination.systemPath) {
+          const absPath = joinSystemPath(this.destination.systemPath, filename);
+          await writeSystemFile(absPath, content);
+          new import_obsidian7.Notice(`Exported to ${absPath}`);
+        } else {
+          const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
+          await this.ensureFolder(folder);
+          await this.writeText(`${folder}/${filename}`, content);
+          new import_obsidian7.Notice(`Exported to ${folder}/${filename}`);
+        }
+        return true;
+      }
       onClose() {
         this.contentEl.empty();
       }
@@ -27146,7 +27451,7 @@ function workingDaysInRange(startIso, endIso, schoolDays) {
   const end = /* @__PURE__ */ new Date(endIso + "T12:00:00");
   const days2 = [];
   for (let d = new Date(start); d <= end; d = new Date(d.getTime() + MS_DAY)) {
-    if (schoolDays.includes(DAY_INDEX_MAP[d.getDay()])) {
+    if (schoolDays.includes(DAY_INDEX_MAP2[d.getDay()])) {
       days2.push(d.toISOString().slice(0, 10));
     }
   }
@@ -27186,7 +27491,7 @@ function calcDirectedTime(s) {
     const weekDays = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(weekMon.getTime() + i * MS_DAY);
-      const dayName = DAY_INDEX_MAP[d.getDay()];
+      const dayName = DAY_INDEX_MAP2[d.getDay()];
       if (schoolDays.includes(dayName)) {
         weekDays.push({ iso: d.toISOString().slice(0, 10), dayName, offset: i });
       }
@@ -27295,11 +27600,11 @@ function fmtMins(totalMins) {
 function minsToDecimalHours(mins) {
   return Math.round(mins / 60 * 100) / 100;
 }
-var DAY_INDEX_MAP;
+var DAY_INDEX_MAP2;
 var init_directedTimeUtils = __esm({
   "src/utils/directedTimeUtils.ts"() {
     init_weekUtils();
-    DAY_INDEX_MAP = {
+    DAY_INDEX_MAP2 = {
       0: "sunday",
       1: "monday",
       2: "tuesday",

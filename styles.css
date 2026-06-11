@@ -1332,3 +1332,11 @@
   margin: 4px 0 0;
   font-size: 12px;
 }
+
+/* ── iCal export options (ExportModal) ───────────────────────────────────── */
+.tp-export-modal .tp-hidden { display: none; }
+.tp-export-ical-range { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+.tp-export-ical-range input[type="date"] {
+  padding: 4px 6px;
+  border-radius: var(--radius-s, 4px);
+}

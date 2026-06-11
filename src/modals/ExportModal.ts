@@ -7,15 +7,24 @@ import {
   writeSystemFile,
   joinSystemPath,
 } from "../utils/exportDestination";
+import { generateIcal } from "../utils/icalUtils";
+import { isValidIsoDate } from "../utils/weekUtils";
 
 type ExportDataset = "timetable" | "events" | "both";
-type ExportFormat  = "csv" | "xlsx";
+type ExportFormat  = "csv" | "xlsx" | "ical";
 
 export class ExportModal extends Modal {
   private plugin: TeacherPlannerPlugin;
   private dataset: ExportDataset = "both";
   private format:  ExportFormat  = "xlsx";
   private destination: ExportDestination = { mode: "vault", vaultPath: "", systemPath: null };
+  // iCal options (only used when format === "ical")
+  private icalLessons    = true;
+  private icalDateEvents = true;
+  private icalOverrides  = true;
+  private icalNonLessons = true;
+  private icalFrom = "";
+  private icalTo   = "";
 
   constructor(app: App, plugin: TeacherPlannerPlugin) {
     super(app);
@@ -31,9 +40,10 @@ export class ExportModal extends Modal {
 
     const form = contentEl.createDiv("tp-modal-form");
 
-    // Dataset choice
-    form.createEl("p", { text: "What to export", cls: "tp-modal-label" });
-    const datasetGroup = form.createDiv("tp-export-option-group");
+    // Dataset choice (hidden for iCal, which has its own content toggles)
+    const datasetSection = form.createDiv();
+    datasetSection.createEl("p", { text: "What to export", cls: "tp-modal-label" });
+    const datasetGroup = datasetSection.createDiv("tp-export-option-group");
     for (const [val, label] of [
       ["timetable", "Timetable (recurring slots)"],
       ["events",    "Date Events (one-offs)"],
@@ -54,15 +64,60 @@ export class ExportModal extends Modal {
     for (const [val, label] of [
       ["xlsx", "Excel (.xlsx)"],
       ["csv",  "CSV (.csv)"],
+      ["ical", "Calendar (.ics)"],
     ] as [ExportFormat, string][]) {
       const lbl = formatGroup.createEl("label", { cls: "tp-export-option" });
       const inp = lbl.createEl("input", { type: "radio" });
       inp.name = "tp-format";
       inp.value = val;
       inp.checked = this.format === val;
-      inp.addEventListener("change", () => { if (inp.checked) this.format = val; });
+      inp.addEventListener("change", () => {
+        if (inp.checked) { this.format = val; updateSections(); }
+      });
       lbl.createSpan({ text: label });
     }
+
+    // iCal-only options: content toggles + date range
+    const ay = this.plugin.settings.academicYear;
+    const todayIso = new Date().toISOString().slice(0, 10);
+    if (!this.icalFrom) {
+      this.icalFrom = (todayIso >= ay.startDate && todayIso <= ay.endDate) ? todayIso : ay.startDate;
+    }
+    if (!this.icalTo) this.icalTo = ay.endDate;
+
+    const icalSection = form.createDiv("tp-export-ical-options");
+    icalSection.createEl("p", { text: "Include in calendar", cls: "tp-modal-label" });
+    const toggleGroup = icalSection.createDiv("tp-export-option-group");
+    const toggles: [string, () => boolean, (v: boolean) => void][] = [
+      ["Lessons & activities",        () => this.icalLessons,    v => { this.icalLessons = v; }],
+      ["Date events (cover, trips…)", () => this.icalDateEvents, v => { this.icalDateEvents = v; }],
+      ["Holidays & INSET (all-day)",  () => this.icalOverrides,  v => { this.icalOverrides = v; }],
+      ["Breaks & registration",       () => this.icalNonLessons, v => { this.icalNonLessons = v; }],
+    ];
+    for (const [label, get, set] of toggles) {
+      const lbl = toggleGroup.createEl("label", { cls: "tp-export-option" });
+      const inp = lbl.createEl("input", { type: "checkbox" });
+      inp.checked = get();
+      inp.addEventListener("change", () => set(inp.checked));
+      lbl.createSpan({ text: label });
+    }
+
+    icalSection.createEl("p", { text: "Date range", cls: "tp-modal-label" });
+    const rangeRow = icalSection.createDiv("tp-export-ical-range");
+    const fromInput = rangeRow.createEl("input", { type: "date" });
+    fromInput.value = this.icalFrom;
+    fromInput.addEventListener("change", () => { this.icalFrom = fromInput.value; });
+    rangeRow.createSpan({ text: " – ", cls: "tp-override-sep" });
+    const toInput = rangeRow.createEl("input", { type: "date" });
+    toInput.value = this.icalTo;
+    toInput.addEventListener("change", () => { this.icalTo = toInput.value; });
+
+    const updateSections = () => {
+      const isIcal = this.format === "ical";
+      datasetSection.toggleClass("tp-hidden", isIcal);
+      icalSection.toggleClass("tp-hidden", !isIcal);
+    };
+    updateSections();
 
     // Destination (vault or computer)
     this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
@@ -79,6 +134,7 @@ export class ExportModal extends Modal {
       exportBtn.textContent = "Exporting...";
       try {
         if (this.format === "csv") await this.exportCSV();
+        else if (this.format === "ical") { if (!(await this.exportICal())) { exportBtn.disabled = false; exportBtn.textContent = "Export"; return; } }
         else await this.exportXLSX();
         this.close();
       } catch (err) {
@@ -231,6 +287,45 @@ export class ExportModal extends Modal {
       await (this.app.vault.adapter as any).writeBinary(path, buf);
       new Notice(`Exported to ${path}`);
     }
+  }
+
+  /** Returns false on validation failure (modal stays open). */
+  private async exportICal(): Promise<boolean> {
+    if (!isValidIsoDate(this.icalFrom) || !isValidIsoDate(this.icalTo)) {
+      new Notice("Please enter valid from/to dates."); return false;
+    }
+    if (this.icalTo < this.icalFrom) {
+      new Notice("The 'to' date must not be before the 'from' date."); return false;
+    }
+    if (!this.icalLessons && !this.icalDateEvents && !this.icalOverrides && !this.icalNonLessons) {
+      new Notice("Select at least one thing to include."); return false;
+    }
+
+    const s = this.plugin.settings;
+    const content = generateIcal(s, {
+      fromDate: this.icalFrom,
+      toDate: this.icalTo,
+      includeLessons: this.icalLessons,
+      includeDateEvents: this.icalDateEvents,
+      includeOverrides: this.icalOverrides,
+      includeNonLessons: this.icalNonLessons,
+      calendarName: s.academicYear.name || "Teacher Planner",
+    });
+
+    const safeName = (s.academicYear.name || "planner").replace(/[^a-z0-9]/gi, "-").toLowerCase();
+    const filename = `calendar-${safeName}.ics`;
+
+    if (this.destination.mode === "system" && this.destination.systemPath) {
+      const absPath = joinSystemPath(this.destination.systemPath, filename);
+      await writeSystemFile(absPath, content);
+      new Notice(`Exported to ${absPath}`);
+    } else {
+      const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
+      await this.ensureFolder(folder);
+      await this.writeText(`${folder}/${filename}`, content);
+      new Notice(`Exported to ${folder}/${filename}`);
+    }
+    return true;
   }
 
   onClose() { this.contentEl.empty(); }
