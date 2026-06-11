@@ -1,5 +1,6 @@
 import type { TeacherPlannerSettings, SchoolDay } from "../types";
 import { getMondayOfWeek, getAbWeekType } from "./weekUtils";
+import { periodAppliesTo } from "./scheduleUtils";
 
 export interface WeekBreakdown {
   weekStart: string;         // ISO "YYYY-MM-DD" Monday
@@ -163,6 +164,7 @@ export function calcDirectedTime(s: TeacherPlannerSettings): DirectedTimeCalc {
 
       for (const slot of template.slots) {
         if (abType && slot.weekType && slot.weekType !== "both" && slot.weekType !== abType) continue;
+        if (!periodAppliesTo(s.academicYear, slot.periodId, slot.day)) continue;
         if (!isDirectedId(slot.classId, s)) continue;
 
         const dayEntry = weekDays.find(d => d.dayName === slot.day);

@@ -5,6 +5,7 @@
   import { AddTimetableTemplateModal } from "./AddTimetableTemplateModal";
   import { setIcon } from "obsidian";
   import { resolveColour } from "../utils/themeColours";
+  import { periodAppliesTo } from "../utils/scheduleUtils";
 
   function icon(node: HTMLElement, name: string) {
     setIcon(node, name);
@@ -525,12 +526,16 @@
               {@const slot   = _slotGrid[day.key + ":" + period.id]}
               {@const isOpen = pickerDay === day.key && pickerPeriodId === period.id}
               {@const cellKey = day.key + ":" + period.id}
+              {@const isNA = !periodAppliesTo(plugin.settings.academicYear, period.id, day.key)}
               <td
                 class="tp-te-cell"
-                class:tp-te-cell--filled={!!slot}
+                class:tp-te-cell--filled={!!slot && !isNA}
                 class:tp-te-cell--open={isOpen}
+                class:tp-te-cell--na={isNA}
               >
-                {#if slot}
+                {#if isNA}
+                  <!-- period not in this day's schedule -->
+                {:else if slot}
                   {@const lbl = getLabel(slot)}
                   <button
                     class="tp-te-chip"
@@ -824,4 +829,5 @@
   .tp-te-btn:hover { background: var(--background-modifier-hover); }
   .tp-te-btn-primary { background: var(--interactive-accent); color: var(--text-on-accent); border-color: var(--interactive-accent); }
   .tp-te-btn-primary:hover { filter: brightness(1.08); }
+  .tp-te-cell--na { background: var(--background-secondary); opacity: 0.5; pointer-events: none; }
 </style>

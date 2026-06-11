@@ -1342,3 +1342,23 @@
 }
 .tp-export-ical-days { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
 .tp-export-ical-day { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+/* ── Day schedules (School Timetable section) ────────────────────────────── */
+.tp-schedule-days { display: flex; gap: 6px; margin: 4px 0 12px; flex-wrap: wrap; }
+.tp-schedule-day-pill {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  border: 1px solid var(--background-modifier-border);
+  background: transparent;
+  cursor: pointer;
+}
+.tp-schedule-day-pill--active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+.tp-prompt-input { width: 100%; margin: 8px 0 12px; padding: 6px 8px; }
+
+/* Time-axis week view: reveal + Event button on block hover (replaces .tp-td-cell) */
+.tp-block:hover .tp-cell-add-event { opacity: 1; }

@@ -17,6 +17,7 @@
   import { ColourPickerModal } from "../settings/SettingsTab";
   import { AddDateEventModal } from "../modals/AddDateEventModal";
   import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
+  import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
 
   export let plugin: TeacherPlannerPlugin;
   export let initialDate: Date = new Date();
@@ -132,10 +133,32 @@
     return h * 60 + m;
   }
 
-  function rowHeight(period: SchoolPeriod): number {
-    const mins = timeToMinutes(period.end) - timeToMinutes(period.start);
-    return Math.max(64, mins * 1.8);
+  // ── Time axis (Option B, Phase 2) ─────────────────────────────────────────
+  const PX_PER_MIN = 1.8;
+  $: _axis = (() => {
+    const _t = _tick;
+    let min = 24 * 60, max = 0;
+    for (const day of DAYS) {
+      for (const p of getPeriodsForDay(plugin.settings.academicYear, day.key)) {
+        min = Math.min(min, timeToMinutes(p.start));
+        max = Math.max(max, timeToMinutes(p.end));
+      }
+    }
+    if (min >= max) { min = 8 * 60; max = 16 * 60; }
+    return { start: min, end: max };
+  })();
+  $: axisHeight = (_axis.end - _axis.start) * PX_PER_MIN;
+  $: hourMarks = (() => {
+    const marks: number[] = [];
+    for (let m = Math.ceil(_axis.start / 60) * 60; m <= _axis.end; m += 60) marks.push(m);
+    return marks;
+  })();
+  function fmtAxisTime(m: number): string {
+    return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
   }
+  $: nowTop = (isCurrentWeek && nowMinutes >= _axis.start && nowMinutes <= _axis.end)
+    ? (nowMinutes - _axis.start) * PX_PER_MIN
+    : null;
 
   function getPeriodTypeColour(typeId: string): string {
     // resolveColour maps "theme:*" tokens to the active Obsidian theme;
@@ -227,9 +250,10 @@
     rejectTimer = setTimeout(() => { rejectKey = null; rejectTimer = null; }, 600);
   }
 
-  /** Holiday/INSET cells can't accept drops — content there is hidden. */
-  function isDropRejected(day: SchoolDay): boolean {
-    return !!dayOverrideMap[day];
+  /** Holiday/INSET cells — or periods outside the day's schedule — can't accept drops. */
+  function isDropRejected(day: SchoolDay, periodId?: string): boolean {
+    if (dayOverrideMap[day]) return true;
+    return periodId != null && !periodAppliesTo(plugin.settings.academicYear, periodId, day);
   }
 
   function onChipDragStart(e: DragEvent, slot: TimetableSlot) {
@@ -247,7 +271,7 @@
   function onCellDragOver(e: DragEvent, day: SchoolDay, periodId: string) {
     if (!dragSlotId && !dragEventId) return;
     e.preventDefault();
-    if (isDropRejected(day)) {
+    if (isDropRejected(day, periodId)) {
       if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
       dragOverKey = null;
       return;
@@ -266,7 +290,7 @@
     dragOverKey = null;
 
     // Reject drops onto holiday/INSET cells — anything dropped there would be hidden.
-    if (isDropRejected(day)) {
+    if (isDropRejected(day, periodId)) {
       flashReject(cellKey(day, periodId));
       dragSlotId = null;
       dragEventId = null;
@@ -424,14 +448,6 @@
     plugin.app.workspace.offref(_cssChangeRef);
   });
 
-  // Returns the % position (0–100) of the current time within a period row,
-  // or null if now is outside the period.
-  function nowOffsetInPeriod(period: SchoolPeriod): number | null {
-    const start = timeToMinutes(period.start);
-    const end   = timeToMinutes(period.end);
-    if (nowMinutes < start || nowMinutes > end) return null;
-    return ((nowMinutes - start) / (end - start)) * 100;
-  }
 
   $: currentTimeStr = (() => {
     const h = Math.floor(nowMinutes / 60);
@@ -595,153 +611,151 @@
     </div>
   </header>
 
-  <!-- ── Timetable table ────────────────────────────────────────────────── -->
+  <!-- ── Time-axis week grid (each day column has its own schedule) ──────── -->
   <div class="tp-table-scroll">
-    <table class="tp-grid" style="--grid-colour:{colourToCss(plugin.settings.gridLineColour, '#555')}; --grid-weight:{plugin.settings.gridLineWeight ?? 1}px; --block-colour:{colourToCss(plugin.settings.blockBorderColour, '#444')}; --block-weight:{plugin.settings.blockBorderWeight ?? 1}px;">
-      <colgroup>
-        <col class="tp-col-time" />
-        <col class="tp-col-period" />
-        {#each DAYS as _d}<col />{/each}
-      </colgroup>
-      <thead>
-        <tr class="tp-head-row">
-          <th class="tp-th-time">Time</th>
-          <th class="tp-th-period">Period</th>
-          {#each DAYS as day}
-            {@const dayOverride = dayOverrideMap[day.key]}
-            <th class="tp-th-day"
-              class:tp-th-day--today={isToday(day.offset, currentMonday)}
-              class:tp-th-day--holiday={dayOverride === "holiday"}
-              class:tp-th-day--inset={dayOverride === "inset"}>
-              <div class="tp-th-day-inner">
-                <span class="tp-day-label">
-                  <span class="tp-day-name">{day.label}</span>
-                  <span class="tp-day-date">{getDayDate(day.offset, currentMonday)}</span>
-                </span>
-                {#if dayOverride === "holiday"}<span class="tp-day-override-badge tp-day-override-badge--holiday">Holiday</span>
-                {:else if dayOverride === "inset"}<span class="tp-day-override-badge tp-day-override-badge--inset">Inset</span>{/if}
-              </div>
-            </th>
-          {/each}
-        </tr>
-      </thead>
-      <tbody>
+    <div class="tp-axis" style="--grid-colour:{colourToCss(plugin.settings.gridLineColour, '#555')}; --grid-weight:{plugin.settings.gridLineWeight ?? 1}px; --block-colour:{colourToCss(plugin.settings.blockBorderColour, '#444')}; --block-weight:{plugin.settings.blockBorderWeight ?? 1}px;">
 
-        <!-- Regular period rows -->
-        {#each _periods as period (period.id)}
-          {@const tc = getPeriodTypeColour(period.type)}
-          {@const rh = rowHeight(period)}
-          {@const nowOffset = isCurrentWeek ? nowOffsetInPeriod(period) : null}
-          <tr class="tp-period-row" style="--rh:{rh}px; border-top:var(--block-weight) solid var(--block-colour); border-bottom:var(--block-weight) solid var(--block-colour);">
-            <td class="tp-td-time" style="position:relative;">
-              {period.start}
-              {#if nowOffset !== null}
-                <div class="tp-now-badge" style="top:{nowOffset}%;">{currentTimeStr}</div>
-              {/if}
-            </td>
-            <td class="tp-td-period" style="background:{hexToRgba(tc,0.28)}; border-left:3px solid {tc};">
-              <div class="tp-period-inner">
-                <span class="tp-period-name">{period.name}</span>
-                <span class="tp-period-time">{period.start} - {period.end}</span>
-              </div>
-            </td>
-            {#each DAYS as day}
-              {@const dayDate    = dayISODate(day.offset, currentMonday)}
-              {@const dayOverride = dayOverrideMap[day.key]}
-              {@const _rawSlot   = _slotMap[day.key + ":" + period.id]}
-              {@const slot       = _rawSlot && !isSlotExcluded(_rawSlot.id, dayDate) && !dayOverride ? _rawSlot : undefined}
-              {@const devEvents  = dayOverride ? [] : (_dateEventMap[day.key + ":" + period.id] ?? [])}
-              {@const key        = cellKey(day.key, period.id)}
-              {@const isOver     = dragOverKey === key && !slot}
-              {@const isReject   = rejectKey   === key}
-              <td
-                class="tp-td-cell"
-                class:tp-td-cell--today={isToday(day.offset, currentMonday)}
-                class:tp-td-cell--holiday={dayOverride === "holiday"}
-                class:tp-td-cell--inset={dayOverride === "inset"}
-                class:tp-td-cell--dragover={isOver}
-                class:tp-td-cell--reject={isReject}
-                style="background:{hexToRgba(tc, 0.07)};"
-                on:dragover={(e) => onCellDragOver(e, day.key, period.id)}
-                on:dragleave={onCellDragLeave}
-                on:drop={(e) => onCellDrop(e, day.key, period.id)}
-              >
-                <!-- All chips in one stack — slot first, then date events as equal columns -->
-                {#if slot || devEvents.length > 0}
-                  <div class="tp-event-stack">
-                    {#if slot}
-                      {@const lbl = getSlotLabel(slot)}
-                      <!-- svelte-ignore a11y-interactive-supports-focus -->
-                      <div
-                        class="tp-chip"
-                        draggable="true"
-                        role="button"
-                        tabindex="0"
-                        on:dragstart={(e) => onChipDragStart(e, slot)}
-                        on:dragend={onDragEnd}
-                        on:click={(e) => openChipMenu(e, "slot", dayDate, period.id, slot)}
-                        on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
-                        style="background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
-                      >
-                        <span class="tp-chip-code">{lbl.code}</span>
-                        {#if lbl.year || lbl.subjectName}
-                          <span class="tp-chip-meta">{[lbl.year, lbl.subjectName].filter(Boolean).join(" · ")}</span>
-                        {/if}
-                        {#if lbl.classroom}
-                          <span class="tp-chip-room">{lbl.classroom}</span>
-                        {/if}
-                        {#if lbl.notes}
-                          <span class="tp-chip-notes">{lbl.notes}</span>
-                        {/if}
-                      </div>
-                    {/if}
-                    {#each devEvents as devEv (devEv.id)}
-                      {@const lbl = getDateEventLabel(devEv)}
-                      <!-- svelte-ignore a11y-interactive-supports-focus -->
-                      <div
-                        class="tp-chip tp-chip--event"
-                        role="button"
-                        tabindex="0"
-                        draggable="true"
-                        on:dragstart={(e) => onEventDragStart(e, devEv)}
-                        on:dragend={onDragEnd}
-                        on:click={(e) => openChipMenu(e, "event", dayDate, period.id, undefined, devEv)}
-                        on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
-                        style="border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
-                      >
-                        <span class="tp-chip-code">{lbl.code}</span>
-                        {#if lbl.meta}
-                          <span class="tp-chip-meta">{lbl.meta}</span>
-                        {/if}
-                        {#if lbl.classroom}
-                          <span class="tp-chip-room">{lbl.classroom}</span>
-                        {/if}
-                        {#if lbl.notes}<span class="tp-chip-notes">{lbl.notes}</span>{/if}
-                      </div>
-                    {/each}
-                  </div>
-                {/if}
-
-                <!-- Add event button (empty non-holiday cells only) -->
-                {#if !slot && devEvents.length === 0 && !dayOverride}
-                  <button
-                    class="tp-cell-add-event"
-                    title="Add one-off event to this slot"
-                    on:click={(e) => openEventPicker(e, dayDate, period.id)}
-                  >＋ Event</button>
-                {/if}
-
-                <!-- Current time indicator line -->
-                {#if nowOffset !== null}
-                  <div class="tp-now-line" style="top:{nowOffset}%;"></div>
-                {/if}
-              </td>
-            {/each}
-          </tr>
+      <div class="tp-axis-head">
+        <div class="tp-axis-head-gutter"></div>
+        {#each DAYS as day}
+          {@const dayOverride = dayOverrideMap[day.key]}
+          <div class="tp-axis-head-day"
+            class:tp-th-day--today={isToday(day.offset, currentMonday)}
+            class:tp-th-day--holiday={dayOverride === "holiday"}
+            class:tp-th-day--inset={dayOverride === "inset"}>
+            <div class="tp-th-day-inner">
+              <span class="tp-day-label">
+                <span class="tp-day-name">{day.label}</span>
+                <span class="tp-day-date">{getDayDate(day.offset, currentMonday)}</span>
+              </span>
+              {#if dayOverride === "holiday"}<span class="tp-day-override-badge tp-day-override-badge--holiday">Holiday</span>
+              {:else if dayOverride === "inset"}<span class="tp-day-override-badge tp-day-override-badge--inset">Inset</span>{/if}
+            </div>
+          </div>
         {/each}
+      </div>
 
-      </tbody>
-    </table>
+      <div class="tp-axis-body">
+        <div class="tp-axis-gutter" style="height:{axisHeight}px;">
+          {#each hourMarks as hm}
+            <div class="tp-axis-hour" style="top:{(hm - _axis.start) * PX_PER_MIN}px;">{fmtAxisTime(hm)}</div>
+          {/each}
+          {#if nowTop !== null}
+            <div class="tp-now-badge" style="top:{nowTop}px;">{currentTimeStr}</div>
+          {/if}
+        </div>
+
+        {#each DAYS as day}
+          {@const dayDate     = dayISODate(day.offset, currentMonday)}
+          {@const dayOverride = dayOverrideMap[day.key]}
+          <div class="tp-axis-col"
+            class:tp-axis-col--holiday={dayOverride === "holiday"}
+            class:tp-axis-col--inset={dayOverride === "inset"}
+            style="height:{axisHeight}px;">
+            {#each hourMarks as hm}
+              <div class="tp-axis-line" style="top:{(hm - _axis.start) * PX_PER_MIN}px;"></div>
+            {/each}
+
+            {#if dayOverride}
+              <div class="tp-axis-override-label">{dayOverride === "holiday" ? "Holiday" : "INSET"}</div>
+            {:else}
+              {#each getPeriodsForDay(plugin.settings.academicYear, day.key) as period (period.id)}
+                {@const tc        = getPeriodTypeColour(period.type)}
+                {@const bTop      = (timeToMinutes(period.start) - _axis.start) * PX_PER_MIN}
+                {@const bHeight   = Math.max(20, (timeToMinutes(period.end) - timeToMinutes(period.start)) * PX_PER_MIN)}
+                {@const _rawSlot  = _slotMap[day.key + ":" + period.id]}
+                {@const slot      = _rawSlot && !isSlotExcluded(_rawSlot.id, dayDate) ? _rawSlot : undefined}
+                {@const devEvents = _dateEventMap[day.key + ":" + period.id] ?? []}
+                {@const key       = cellKey(day.key, period.id)}
+                {@const isOver    = dragOverKey === key && !slot}
+                {@const isReject  = rejectKey   === key}
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <div
+                  class="tp-block"
+                  class:tp-block--dragover={isOver}
+                  class:tp-block--reject={isReject}
+                  style="top:{bTop}px; height:{bHeight}px; background:{hexToRgba(tc, 0.08)}; border-left:3px solid {hexToRgba(tc, 0.55)};"
+                  on:dragover={(e) => onCellDragOver(e, day.key, period.id)}
+                  on:dragleave={onCellDragLeave}
+                  on:drop={(e) => onCellDrop(e, day.key, period.id)}
+                >
+                  {#if !slot && devEvents.length === 0}
+                    <div class="tp-block-label">
+                      <span class="tp-block-name">{period.name}</span>
+                      <span class="tp-block-time">{period.start}–{period.end}</span>
+                    </div>
+                  {/if}
+
+                  {#if slot || devEvents.length > 0}
+                    <div class="tp-event-stack">
+                      {#if slot}
+                        {@const lbl = getSlotLabel(slot)}
+                        <!-- svelte-ignore a11y-interactive-supports-focus -->
+                        <div
+                          class="tp-chip"
+                          draggable="true"
+                          role="button"
+                          tabindex="0"
+                          on:dragstart={(e) => onChipDragStart(e, slot)}
+                          on:dragend={onDragEnd}
+                          on:click={(e) => openChipMenu(e, "slot", dayDate, period.id, slot)}
+                          on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
+                          style="background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
+                        >
+                          <span class="tp-chip-code">{lbl.code}</span>
+                          {#if lbl.year || lbl.subjectName}
+                            <span class="tp-chip-meta">{[lbl.year, lbl.subjectName].filter(Boolean).join(" · ")}</span>
+                          {/if}
+                          {#if lbl.classroom}
+                            <span class="tp-chip-room">{lbl.classroom}</span>
+                          {/if}
+                          {#if lbl.notes}
+                            <span class="tp-chip-notes">{lbl.notes}</span>
+                          {/if}
+                        </div>
+                      {/if}
+                      {#each devEvents as devEv (devEv.id)}
+                        {@const lbl = getDateEventLabel(devEv)}
+                        <!-- svelte-ignore a11y-interactive-supports-focus -->
+                        <div
+                          class="tp-chip tp-chip--event"
+                          role="button"
+                          tabindex="0"
+                          draggable="true"
+                          on:dragstart={(e) => onEventDragStart(e, devEv)}
+                          on:dragend={onDragEnd}
+                          on:click={(e) => openChipMenu(e, "event", dayDate, period.id, undefined, devEv)}
+                          on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
+                          style="border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
+                        >
+                          <span class="tp-chip-code">{lbl.code}</span>
+                          {#if lbl.meta}
+                            <span class="tp-chip-meta">{lbl.meta}</span>
+                          {/if}
+                          {#if lbl.classroom}
+                            <span class="tp-chip-room">{lbl.classroom}</span>
+                          {/if}
+                          {#if lbl.notes}<span class="tp-chip-notes">{lbl.notes}</span>{/if}
+                        </div>
+                      {/each}
+                    </div>
+                  {:else}
+                    <button
+                      class="tp-cell-add-event"
+                      title="Add one-off event to this slot"
+                      on:click={(e) => openEventPicker(e, dayDate, period.id)}
+                    >＋ Event</button>
+                  {/if}
+                </div>
+              {/each}
+              {#if nowTop !== null && isToday(day.offset, currentMonday)}
+                <div class="tp-now-line" style="top:{nowTop}px;"></div>
+              {/if}
+            {/if}
+          </div>
+        {/each}
+      </div>
+    </div>
   </div>
 
 
@@ -771,31 +785,23 @@
   .tp-btn:disabled { opacity:0.38; cursor:default; pointer-events:none; }
   .tp-btn-accent { background:var(--interactive-accent); color:var(--text-on-accent); border-color:var(--interactive-accent); }
   .tp-btn-accent:hover { background:var(--interactive-accent); opacity:0.88; }
-  /* Icon sizing inside buttons */
   .tp-btn :global(svg), .tp-btn-icon :global(svg) { width:14px; height:14px; flex-shrink:0; }
-  /* Icon-only button (Settings) */
   .tp-action-btn--icon-only { padding:5px 8px; }
   .tp-action-btn--icon-only :global(svg) { width:15px; height:15px; }
   .tp-overflow-btn { display:none; }
 
-  /* Table scroll */
+  /* Scroll container */
   .tp-table-scroll { flex:1 1 0; overflow:auto; min-height:0; }
 
-  /* Table */
-  .tp-grid { width:100%; border-collapse:collapse; table-layout:fixed; align-self:start; }
-  .tp-col-time   { width:48px; }
-  .tp-col-period { width:95px; }
+  /* ── Time axis layout ─────────────────────────────────────────────────── */
+  .tp-axis { display:flex; flex-direction:column; min-width:520px; }
 
-  /* Header row */
-  .tp-head-row { position:sticky; top:0; z-index:10; background:var(--background-secondary); }
-  .tp-th-time, .tp-th-period, .tp-th-day { padding:8px 6px; font-size:12px; font-weight:600; color:var(--text-muted); text-align:center; border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border)); border-top:none; white-space:nowrap; background:var(--background-secondary); }
-  .tp-th-time   { text-align:left; padding-left:8px; }
-  .tp-th-period { text-align:left; padding-left:10px; }
+  .tp-axis-head { position:sticky; top:0; z-index:10; display:flex; gap:6px; padding-right:6px; background:var(--background-primary); border-bottom:1px solid var(--background-modifier-border); }
+  .tp-axis-head-gutter { width:48px; flex-shrink:0; }
+  .tp-axis-head-day { flex:1; min-width:0; padding:8px 6px; font-size:12px; font-weight:600; color:var(--text-muted); border-radius:6px 6px 0 0; background:var(--background-primary); }
   .tp-th-day--today   { color:var(--interactive-accent); }
   .tp-th-day--holiday { background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important; color:var(--color-yellow,#d4a017) !important; }
   .tp-th-day--inset   { background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important; color:var(--interactive-accent) !important; }
-  /* Day header — single flex row: label left, icon right */
-  .tp-th-day { text-align:left !important; }
   .tp-th-day-inner { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
   .tp-day-label { display:flex; flex-direction:column; align-items:center; gap:1px; min-width:0; }
   .tp-day-name { font-size:13px; font-weight:700; white-space:nowrap; }
@@ -804,22 +810,22 @@
   .tp-day-override-badge--holiday { background:var(--color-yellow,#f59e0b); color:#1a1a1a; }
   .tp-day-override-badge--inset   { background:var(--interactive-accent); color:var(--text-on-accent,#fff); }
 
-  /* Time cell */
-  .tp-td-time { padding:4px 6px 0 8px; font-size:11px; color:var(--text-muted); vertical-align:top; white-space:nowrap; border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border)); background:var(--background-secondary); height:var(--rh,64px); max-height:var(--rh,64px); overflow:hidden; box-sizing:border-box; }
+  .tp-axis-body { display:flex; align-items:flex-start; gap:6px; padding:6px 6px 12px 0; }
+  .tp-axis-gutter { width:48px; flex-shrink:0; position:relative; }
+  .tp-axis-hour { position:absolute; right:6px; transform:translateY(-50%); font-size:11px; color:var(--text-muted); white-space:nowrap; }
+  .tp-axis-col { flex:1; min-width:0; position:relative; background:var(--background-secondary); border-radius:6px; }
+  .tp-axis-line { position:absolute; left:0; right:0; border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent); pointer-events:none; }
+  .tp-axis-col--holiday { background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent); }
+  .tp-axis-col--inset   { background:color-mix(in srgb,var(--interactive-accent) 6%,transparent); }
+  .tp-axis-override-label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); opacity:0.55; pointer-events:none; }
 
-  /* Period label cell */
-  .tp-td-period { padding:0; vertical-align:top; border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border)); height:var(--rh,64px); max-height:var(--rh,64px); overflow:hidden; box-sizing:border-box; }
-  .tp-period-inner { display:flex; flex-direction:column; justify-content:flex-start; gap:2px; height:100%; padding:5px 8px; box-sizing:border-box; }
-  .tp-period-name { font-size:13px; font-weight:700; color:var(--text-normal); line-height:1.2; }
-  .tp-period-time { font-size:11px; color:var(--text-muted); line-height:1.2; white-space:nowrap; }
-
-  /* Day cells */
-  .tp-td-cell { position:relative; padding:3px; border:var(--grid-weight,1px) solid var(--grid-colour,var(--background-modifier-border)); vertical-align:top; transition:background 0.1s; overflow:hidden; height:var(--rh,64px); max-height:var(--rh,64px); box-sizing:border-box; }
-  /* today column shading removed — only the header date text is accented */
-  .tp-td-cell--holiday  { background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent) !important; }
-  .tp-td-cell--inset    { background:color-mix(in srgb,var(--interactive-accent) 6%,transparent) !important; }
-  .tp-td-cell--dragover { background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important; outline:2px dashed var(--interactive-accent); outline-offset:-2px; }
-  .tp-td-cell--reject   { background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important; transition:background 0s; }
+  /* Period blocks — positioned by time within the day column */
+  .tp-block { position:absolute; left:4px; right:4px; border:1px solid var(--background-modifier-border); border-radius:4px; box-sizing:border-box; overflow:hidden; transition:background 0.1s; z-index:2; }
+  .tp-block--dragover { background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important; outline:2px dashed var(--interactive-accent); outline-offset:-2px; }
+  .tp-block--reject   { background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important; transition:background 0s; }
+  .tp-block-label { display:flex; gap:6px; align-items:baseline; padding:2px 6px; pointer-events:none; }
+  .tp-block-name { font-size:11px; font-weight:700; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-block-time { font-size:10px; color:var(--text-muted); opacity:0.8; white-space:nowrap; flex-shrink:0; }
 
   /* Lesson chip */
   .tp-chip { position:absolute; inset:3px; border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; cursor:pointer; overflow:hidden; user-select:none; transition:filter 0.1s; box-sizing:border-box; color:var(--text-normal); container-type:size; container-name:chip; }
@@ -829,24 +835,20 @@
   .tp-chip-room  { font-size:12px; color:var(--text-normal); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; font-style:italic; }
   .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; }
 
-  /* Compact chip: hide meta + notes; start scaling fonts down */
   @container chip (max-height: 58px) {
     .tp-chip-meta,
     .tp-chip-notes { display: none; }
     .tp-chip-code  { font-size: 13px; }
     .tp-chip-room  { font-size: 11px; }
   }
-  /* Tight: shrink further so both code + room still fit */
   @container chip (max-height: 44px) {
     .tp-chip-code { font-size: 12px; }
     .tp-chip-room { font-size: 10px; }
   }
-  /* Very compact: hide room, show code only at minimum readable size */
   @container chip (max-height: 34px) {
     .tp-chip-room { display: none; }
     .tp-chip-code { font-size: 11px; }
   }
-  /* Narrow chip (multiple side-by-side events): scale fonts by width too */
   @container chip (max-width: 90px) {
     .tp-chip-code { font-size: 13px; }
     .tp-chip-room { font-size: 10px; }
@@ -860,40 +862,30 @@
   .tp-now-line { position:absolute; left:0; right:0; height:0; border-top:2px dashed var(--interactive-accent); opacity:0.9; pointer-events:none; z-index:5; }
   .tp-now-badge { position:absolute; right:2px; transform:translateY(-50%); background:var(--interactive-accent); color:var(--text-on-accent,#fff); font-size:9px; font-weight:700; padding:1px 4px; border-radius:3px; pointer-events:none; z-index:6; white-space:nowrap; line-height:1.5; }
 
-  /* Event column stack (multiple date events — equal-width columns) */
-  .tp-event-stack { position:absolute; inset:3px; display:flex; flex-direction:row; gap:2px; z-index:3; }
+  /* Chip stack inside a block — below the block label */
+  .tp-event-stack { position:absolute; top:3px; left:3px; right:3px; bottom:3px; display:flex; flex-direction:row; gap:2px; z-index:3; }
   .tp-event-stack .tp-chip { position:relative; inset:auto; flex:1; min-width:0; }
 
-  /* Narrow-screen: overflow menu replaces action buttons; columns rotate */
+  /* Narrow-screen: overflow menu replaces action buttons */
   .tp-overflow-btn { display:none; }
   @container (max-width: 680px) {
     .tp-action-btn { display:none; }
     .tp-overflow-btn { display:inline-flex !important; }
-    /* Switch to auto/1fr/auto so the nav fills centre and identity only takes what it needs */
     .tp-header { grid-template-columns:auto 1fr auto; gap:6px; padding:6px 10px; }
     .tp-nav { justify-content:center; }
     .tp-header-identity { min-width:0; overflow:hidden; }
     .tp-week-label { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .tp-date-range { display:none; }
-    /* Stack day name above date so narrow columns do not bleed */
-    .tp-th-day { padding:5px 2px; }
-    .tp-th-day-inner { flex-direction:column; align-items:center; justify-content:center; gap:1px; }
-    .tp-day-label { flex-direction:column; align-items:center; gap:1px; }
+    .tp-axis-head-day { padding:5px 2px; }
     .tp-day-name { font-size:12px; }
     .tp-day-date { font-size:10px; }
     .tp-day-override-badge { font-size:9px; padding:1px 4px; }
   }
   @container (max-width: 480px) {
-    .tp-col-time   { width:28px; }
-    .tp-col-period { width:42px; }
-    .tp-th-time   { writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; padding:4px 2px; white-space:nowrap; vertical-align:middle; }
-    .tp-th-period { writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; padding:4px 2px; white-space:nowrap; vertical-align:middle; }
-    .tp-td-time { writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; padding:4px 2px; white-space:normal; vertical-align:middle; }
-    /* Anchor text to the start of the cell and ellipsise on overflow, instead
-       of letting long names centre and clip off both ends */
-    .tp-period-inner { writing-mode:vertical-rl; transform:rotate(180deg); align-items:center; justify-content:flex-start; padding:4px 2px; }
-    .tp-period-name { white-space:nowrap; max-height:100%; overflow:hidden; text-overflow:ellipsis; }
-    .tp-period-time { white-space:nowrap; max-height:100%; overflow:hidden; text-overflow:ellipsis; }
+    .tp-axis { min-width:440px; }
+    .tp-axis-head-gutter, .tp-axis-gutter { width:30px; }
+    .tp-axis-hour { right:3px; font-size:9px; }
+    .tp-block-time { display:none; }
     .tp-day-name { font-size:11px; }
     .tp-day-date { font-size:10px; }
   }

@@ -1,7 +1,8 @@
 
 import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
-import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity } from "../types";
+import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity, DaySchedule, SchoolDay } from "../types";
+import { ensureDaySchedules, getScheduleForDay } from "../utils/scheduleUtils";
 import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR } from "../settings";
 import { resolveColour, isThemeToken, GRID_THEME_TOKEN } from "../utils/themeColours";
 import { findOverlappingOverrides } from "../utils/weekUtils";
@@ -81,10 +82,60 @@ export function openEmojiPicker(
   _activeEmojiCleanup = cleanup;
 }
 
+/** Minimal text-input modal — window.prompt() is disabled in Obsidian. */
+class TextPromptModal extends Modal {
+  private title: string;
+  private initial: string;
+  private placeholder: string;
+  private onSubmit: (value: string) => void;
+
+  constructor(app: App, title: string, initial: string, placeholder: string, onSubmit: (value: string) => void) {
+    super(app);
+    this.title = title;
+    this.initial = initial;
+    this.placeholder = placeholder;
+    this.onSubmit = onSubmit;
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    titleEl.setText(this.title);
+    const input = contentEl.createEl("input", { type: "text", cls: "tp-prompt-input" });
+    input.value = this.initial;
+    input.placeholder = this.placeholder;
+    const submit = () => {
+      const v = input.value.trim();
+      if (!v) { new Notice("Please enter a name."); return; }
+      this.close();
+      this.onSubmit(v);
+    };
+    input.addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Enter") submit(); });
+    const footer = contentEl.createDiv("tp-modal-footer");
+    footer.createEl("button", { text: "Cancel", cls: "tp-btn" })
+      .addEventListener("click", () => this.close());
+    footer.createEl("button", { text: "Save", cls: "tp-btn tp-btn--primary" })
+      .addEventListener("click", submit);
+    setTimeout(() => { input.focus(); input.select(); }, 30);
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
 export class TeacherPlannerSettingTab extends PluginSettingTab {
   plugin: TeacherPlannerPlugin;
   /** JSON snapshot taken when the tab opens — used to detect unsaved changes on close. */
   private _snapshot = "";
+  /** Day schedule currently being edited in the School Timetable section. */
+  private selectedScheduleId: string | null = null;
+
+  private getSelectedSchedule(): DaySchedule {
+    const ay = this.plugin.settings.academicYear;
+    ensureDaySchedules(ay);
+    const found = ay.daySchedules!.find(s => s.id === this.selectedScheduleId);
+    if (found) return found;
+    this.selectedScheduleId = ay.daySchedules![0].id;
+    return ay.daySchedules![0];
+  }
 
   constructor(app: App, plugin: TeacherPlannerPlugin) { super(app, plugin); this.plugin = plugin; }
 
@@ -301,22 +352,108 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           new Notice("Block colours reset to theme defaults.");
         }));
 
-    // ── Periods ────────────────────────────────────────────────────────────
+    // ── Periods / day schedules ────────────────────────────────────────────
     containerEl.createEl("h3", { text: "School Timetable" });
     containerEl.createEl("p", {
-      text: "All periods appear in the timetable editor. Colours and types are configured in School Day Blocks above.",
+      text: "Periods are grouped into day schedules. Most schools only need the Standard day. Add another schedule for days shaped differently — a sports afternoon, a half-day Saturday — and assign it to those days. Colours and types are configured in School Day Blocks above.",
       cls: "setting-item-description"
     });
+    ensureDaySchedules(this.plugin.settings.academicYear);
+    const scheduleBar = containerEl.createDiv("tp-schedule-bar");
     const periodsContainer = containerEl.createDiv("tp-periods-list");
+
+    const refreshPeriods = () => { periodsContainer.empty(); this.renderPeriodsList(periodsContainer); };
+
+    const renderScheduleBar = () => {
+      scheduleBar.empty();
+      const ay = this.plugin.settings.academicYear;
+      const sel = this.getSelectedSchedule();
+
+      const bar = new Setting(scheduleBar)
+        .setName("Day schedule")
+        .setDesc("Choose which schedule to edit. Click a day below to make it use the selected schedule.");
+      bar.addDropdown(d => {
+        for (const sch of ay.daySchedules!) d.addOption(sch.id, sch.name);
+        d.setValue(sel.id);
+        d.onChange(v => { this.selectedScheduleId = v; renderScheduleBar(); refreshPeriods(); });
+      });
+      bar.addExtraButton(b => b.setIcon("pencil").setTooltip("Rename schedule").onClick(() => {
+        new TextPromptModal(this.app, "Rename day schedule", sel.name, "Schedule name", async (name) => {
+          sel.name = name;
+          await this.plugin.saveSettings();
+          renderScheduleBar();
+        }).open();
+      }));
+      bar.addExtraButton(b => b.setIcon("plus").setTooltip("New day schedule").onClick(() => {
+        new TextPromptModal(this.app, "New day schedule", "", "e.g. Saturday, Sports day", async (name) => {
+          const sch: DaySchedule = { id: "schedule-" + Date.now(), name, periods: [] };
+          ay.daySchedules!.push(sch);
+          this.selectedScheduleId = sch.id;
+          await this.plugin.saveSettings();
+          renderScheduleBar();
+          refreshPeriods();
+        }).open();
+      }));
+      bar.addExtraButton(b => b.setIcon("trash").setTooltip("Delete schedule").onClick(async () => {
+        if (ay.daySchedules!.length <= 1) { new Notice("At least one day schedule is required."); return; }
+        if (!confirm(`Delete schedule "${sel.name}"? Days using it fall back to "${ay.daySchedules![0].id === sel.id ? ay.daySchedules![1].name : ay.daySchedules![0].name}". Periods unique to it disappear from the timetable (assigned lessons are kept but hidden).`)) return;
+        ay.daySchedules = ay.daySchedules!.filter(s => s.id !== sel.id);
+        for (const key of Object.keys(ay.dayScheduleMap ?? {})) {
+          if ((ay.dayScheduleMap as any)[key] === sel.id) delete (ay.dayScheduleMap as any)[key];
+        }
+        this.selectedScheduleId = ay.daySchedules[0].id;
+        await this.plugin.saveSettings();
+        renderScheduleBar();
+        refreshPeriods();
+      }));
+
+      const pillRow = scheduleBar.createDiv("tp-schedule-days");
+      const dayDefs: [SchoolDay, string][] = [
+        ["monday","Mon"], ["tuesday","Tue"], ["wednesday","Wed"], ["thursday","Thu"],
+        ["friday","Fri"], ["saturday","Sat"], ["sunday","Sun"],
+      ];
+      const schoolDays = this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"];
+      for (const [day, label] of dayDefs) {
+        if (!schoolDays.includes(day)) continue;
+        const daySched = getScheduleForDay(ay, day);
+        const active = daySched?.id === sel.id;
+        const pill = pillRow.createEl("button", { text: label, cls: "tp-schedule-day-pill" });
+        if (active) pill.addClass("tp-schedule-day-pill--active");
+        pill.title = active
+          ? `${label} uses "${sel.name}"`
+          : `${label} uses "${daySched?.name ?? "?"}" — click to switch it to "${sel.name}"`;
+        pill.addEventListener("click", async () => {
+          if (ay.daySchedules!.length < 2) {
+            new Notice("All days use the only schedule. Click + to create a second schedule, then assign days to it.");
+            return;
+          }
+          if (active) {
+            new Notice(`${label} already uses "${sel.name}". Select a different schedule above to move ${label} to it.`);
+            return;
+          }
+          if (!ay.dayScheduleMap) ay.dayScheduleMap = {};
+          ay.dayScheduleMap[day] = sel.id;
+          await this.plugin.saveSettings();
+          renderScheduleBar();
+        });
+      }
+      if (ay.daySchedules!.length < 2) {
+        scheduleBar.createEl("p", {
+          text: "All days currently use this schedule. Click + above to create a second schedule (e.g. Saturday), then click a day pill to assign it.",
+          cls: "setting-item-description",
+        });
+      }
+    };
+    renderScheduleBar();
+
     this.renderPeriodsList(periodsContainer);
     new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add period").setCta()
       .onClick(() => {
         new AddPeriodModal(this.app, async (period) => {
-          this.plugin.settings.academicYear.periods.push(period);
+          this.getSelectedSchedule().periods.push(period);
           this.sortPeriods();
           await this.plugin.saveSettings();
-          periodsContainer.empty();
-          this.renderPeriodsList(periodsContainer);
+          refreshPeriods();
         }).open();
       }));
 
@@ -540,7 +677,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName("Reset periods to defaults")
       .addButton(btn => btn.setButtonText("Reset periods").setWarning()
         .onClick(async () => {
-          this.plugin.settings.academicYear.periods = [...DEFAULT_SETTINGS.academicYear.periods];
+          this.getSelectedSchedule().periods = DEFAULT_SETTINGS.academicYear.periods.map(p => ({ ...p }));
           await this.plugin.saveSettings();
           periodsContainer.empty();
           this.renderPeriodsList(periodsContainer);
@@ -649,11 +786,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   private sortPeriods() {
-    this.plugin.settings.academicYear.periods.sort((a, b) => a.start.localeCompare(b.start));
+    this.getSelectedSchedule().periods.sort((a, b) => a.start.localeCompare(b.start));
   }
 
   private renderPeriodsList(container: HTMLElement) {
-    const periods = this.plugin.settings.academicYear.periods;
+    const periods = this.getSelectedSchedule().periods;
     if (periods.length === 0) {
       container.createEl("p", { text: "No periods defined.", cls: "setting-item-description" });
       return;
@@ -701,7 +838,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         d.setValue(period.type).onChange(async (v: string) => { period.type = v; await this.plugin.saveSettings(); });
       })
       .addExtraButton(btn => btn.setIcon("trash").setTooltip("Remove").onClick(async () => {
-        this.plugin.settings.academicYear.periods.splice(index, 1);
+        this.getSelectedSchedule().periods.splice(index, 1);
         await this.plugin.saveSettings();
         container.empty(); this.renderPeriodsList(container);
       }));

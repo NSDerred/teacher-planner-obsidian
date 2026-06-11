@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Time-axis week view** — the week view now renders as a continuous time axis: a time gutter with hour lines, and each day column independently shaped by its day schedule. Period blocks are positioned and sized by their real start/end times; lesson and event chips live inside the blocks; holidays/INSET shade the whole column; the current-time line and badge track the time axis. All interactions carry over: drag-drop between blocks (with invalid-drop rejection), chip menus, lesson notes, A/B badges, and responsive narrow-pane behaviour.
+- **Day schedules (per-day timetable structure)** — days can now have different period structures: a sports afternoon on Wednesdays, a half-day Saturday with its own times, and so on. The School Timetable settings section gains a schedule selector (create, rename, delete) and day pills to assign days to schedules; existing planners are migrated automatically into a single "Standard day" schedule with no visible change. The week view and timetable editor grey out periods that don't apply on a given day (drops are rejected there); the iCal export and directed-time tracker resolve periods per day. The time-axis week view (Phase 2) will follow.
+
 - **Calendar (iCal) export** — new `.ics` format in the export modal alongside Excel and CSV. Import your timetable into Google Calendar, Apple Calendar, or Outlook. Content toggles (lessons & activities, date events, holidays & INSET as all-day events, breaks & registration), a day-of-week selector, and a from/to date range defaulting to today → end of the academic year. A/B rotation, timetable template changes, holidays/INSET, slot exclusions, and moved lessons are resolved exactly as in the week view. No new dependencies — the generator is hand-rolled RFC 5545.
 
 ### Fixed

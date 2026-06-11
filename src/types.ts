@@ -13,12 +13,27 @@ export interface SchoolPeriod {
   type: string;
 }
 export type SchoolDay = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+/** A named set of periods that shapes one kind of school day (e.g. "Standard day", "Saturday"). */
+export interface DaySchedule {
+  id: string;
+  name: string;
+  periods: SchoolPeriod[];
+}
 export interface AcademicYear {
   id: string;
   name: string;
   startDate: string;
   endDate: string;
+  /**
+   * Legacy flat list. When daySchedules is present this is maintained as the
+   * chronologically-sorted union of all schedules (same object references)
+   * so legacy call sites keep working — see utils/scheduleUtils.ts.
+   */
   periods: SchoolPeriod[];
+  /** Per-day period schedules (Option B). Initialised by ensureDaySchedules(). */
+  daySchedules?: DaySchedule[];
+  /** Day → DaySchedule id. Unmapped days use the first schedule. */
+  dayScheduleMap?: Partial<Record<SchoolDay, string>>;
   abWeekEnabled: boolean;
   abWeekStartsOn: "A" | "B";
 }

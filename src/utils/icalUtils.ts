@@ -2,6 +2,7 @@ import type {
   TeacherPlannerSettings, SchoolDay, SchoolPeriod,
 } from "../types";
 import { getMondayOfWeek, getAbWeekType } from "./weekUtils";
+import { getPeriodsForDay } from "./scheduleUtils";
 
 /** Options for the iCal export, gathered in the Export modal. */
 export interface IcalOptions {
@@ -96,8 +97,8 @@ function collectEvents(s: TeacherPlannerSettings, opts: IcalOptions): VEvent[] {
   const events: VEvent[] = [];
   const schoolDays: SchoolDay[] =
     opts.days ?? s.schoolDays ?? ["monday", "tuesday", "wednesday", "thursday", "friday"];
-  const periods: SchoolPeriod[] = s.academicYear?.periods ?? [];
-  const periodById = new Map(periods.map(p => [p.id, p]));
+  // Union map as fallback for date events placed outside a day's schedule
+  const unionById = new Map((s.academicYear?.periods ?? []).map(p => [p.id, p]));
 
   // ── Per-day override map (holiday/INSET), matching the week view ─────────
   const overrideByDate = new Map<string, { type: "holiday" | "inset" | "custom"; label?: string }>();
@@ -154,6 +155,8 @@ function collectEvents(s: TeacherPlannerSettings, opts: IcalOptions): VEvent[] {
     if (!schoolDays.includes(dayName)) continue;
     if (overrideByDate.has(iso)) continue; // holiday/INSET day — nothing timetabled
 
+    const dayPeriods: SchoolPeriod[] = getPeriodsForDay(s.academicYear, dayName);
+    const periodById = new Map(dayPeriods.map(p => [p.id, p]));
     const monday = getMondayOfWeek(d);
     const mondayKey = monday.toISOString().slice(0, 10);
     const template = s.timetableTemplates?.find(t => t.startDate <= mondayKey && t.endDate >= mondayKey);
@@ -190,7 +193,7 @@ function collectEvents(s: TeacherPlannerSettings, opts: IcalOptions): VEvent[] {
     if (opts.includeDateEvents) {
       for (const ev of s.dateEvents ?? []) {
         if (ev.date !== iso) continue;
-        const period = periodById.get(ev.periodId);
+        const period = periodById.get(ev.periodId) ?? unionById.get(ev.periodId);
         if (!period) continue;
         const lbl = labelFor(ev.classId, ev.classroom, ev.notes);
         const end = ev.durationMinutes ? addMinutes(period.start, ev.durationMinutes) : period.end;
@@ -209,7 +212,7 @@ function collectEvents(s: TeacherPlannerSettings, opts: IcalOptions): VEvent[] {
 
     // Structural non-lesson periods (break, registration...) without a slot
     if (opts.includeNonLessons) {
-      for (const period of periods) {
+      for (const period of dayPeriods) {
         if (period.type === "lesson") continue;
         if (occupiedPeriods.has(period.id)) continue;
         events.push({

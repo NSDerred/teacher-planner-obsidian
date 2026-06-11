@@ -5,6 +5,7 @@ import { WeekView, WEEK_VIEW_TYPE } from "./views/WeekView";
 import { CalendarSidebarView, CALENDAR_SIDEBAR_VIEW_TYPE } from "./views/CalendarSidebarView";
 import { TeacherPlannerSettingTab } from "./settings/SettingsTab";
 import { isValidIsoDate } from "./utils/weekUtils";
+import { ensureDaySchedules, syncPeriodsUnion } from "./utils/scheduleUtils";
 
 export default class TeacherPlannerPlugin extends Plugin {
   settings: TeacherPlannerSettings;
@@ -364,6 +365,10 @@ export default class TeacherPlannerPlugin extends Plugin {
     // Always reset to current default template — no user-editable UI for this field
     this.settings.lessonNoteTemplate = DEFAULT_SETTINGS.lessonNoteTemplate;
     this.settings.academicYear = Object.assign({}, DEFAULT_SETTINGS.academicYear, this.settings.academicYear);
+    // Day schedules (Option B): wrap the legacy flat period list into a
+    // "Standard day" schedule on first load. Idempotent.
+    try { ensureDaySchedules(this.settings.academicYear); }
+    catch (err) { console.error("Teacher Planner: ensureDaySchedules failed.", err); }
     if (!this.settings.weekNotes) this.settings.weekNotes = {};
     if (!this.settings.activities) this.settings.activities = [
       { id: "activity-ppt",     label: "PPT",     colour: "#b4befe" },
@@ -479,6 +484,8 @@ export default class TeacherPlannerPlugin extends Plugin {
       const lastTmpl = [...templates].sort((a, b) => b.endDate.localeCompare(a.endDate))[0];
       lastTmpl.endDate = this.settings.academicYear.endDate;
     }
+    // Keep the legacy union period list in lockstep with day schedules
+    try { syncPeriodsUnion(this.settings.academicYear); } catch {}
     this.syncSettingsToPlanner();
     await this.saveData(this.plannerData);
     this.refreshViews();
