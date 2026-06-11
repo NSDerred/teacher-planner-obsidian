@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Calmer week view with hover detail** — empty period blocks show just the period name; hovering reveals the time range beneath it. Clipped or narrow blocks (short registrations, busy slivers) expand on hover into an opaque overlay floating above their neighbours, showing the full chip with room, period times and un-clamped notes. Lesson/event chips carry a "Period · time" tooltip, and the chip right-click menu opens with a period-and-time header row — so timing is always one tap away on mobile, where hover doesn't exist.
 - **Bulk apply safety** — "Apply plan to future lessons" now shows a count and asks for confirmation first, and can be undone: the toast carries an Undo button (also in the lesson menu), restoring any plans the bulk apply overwrote.
 - **Plans on activities** — Cover, duties, meetings and other activities can take lesson plans too; the "unplanned" hollow dot remains lessons-only.
 - **External resources** — link one file or folder from outside the vault to any lesson or event (desktop only): Link external file/folder in the chip menu, opened with the system default app. Paths are machine-specific and don't sync to mobile.

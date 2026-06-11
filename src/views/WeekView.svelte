@@ -389,6 +389,15 @@
   ) {
     e.stopPropagation();
     const menu = new Menu();
+
+    // Header row: period name and times (info only) — useful on mobile where
+    // the hover reveal doesn't exist.
+    const period = plugin.settings.academicYear.periods.find(p => p.id === periodId);
+    if (period) {
+      menu.addItem(i => i.setTitle(`${period.name} · ${period.start}–${period.end}`).setIcon("clock").setDisabled(true));
+      menu.addSeparator();
+    }
+
     const isClass = type === "slot"
       ? !!_classes.find(c => c.id === slot?.classId)
       : !!_classes.find(c => c.id === event?.classId);
@@ -852,7 +861,7 @@
                   class="tp-block"
                   class:tp-block--dragover={isOver}
                   class:tp-block--reject={isReject}
-                  style="top:{bTop}px; height:{bHeight}px; background:{hexToRgba(tc, 0.08)}; border-left:3px solid {hexToRgba(tc, 0.55)};"
+                  style="top:{bTop}px; height:{bHeight}px; --bh:{bHeight}px; --tint:{hexToRgba(tc, 0.08)}; background:{hexToRgba(tc, 0.08)}; border-left:3px solid {hexToRgba(tc, 0.55)};"
                   on:dragover={(e) => onCellDragOver(e, day.key, period.id)}
                   on:dragleave={onCellDragLeave}
                   on:drop={(e) => onCellDrop(e, day.key, period.id)}
@@ -879,7 +888,8 @@
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "slot", dayDate, period.id, slot)}
                           on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
-                          style="background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
+                          title="{period.name} · {period.start}–{period.end}"
+                          style="--ctint:{hexToRgba(lbl.colour,0.22)}; background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
                         >
                           <span class="tp-chip-code">{lbl.code}</span>
                           {#if lbl.year || lbl.subjectName}
@@ -888,6 +898,7 @@
                           {#if lbl.classroom}
                             <span class="tp-chip-room">{lbl.classroom}</span>
                           {/if}
+                          <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
                           {#if lbl.notes}
                             <span class="tp-chip-notes">{lbl.notes}</span>
                           {/if}
@@ -912,7 +923,8 @@
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "event", dayDate, period.id, undefined, devEv)}
                           on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
-                          style="border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
+                          title="{period.name} · {period.start}–{period.end}"
+                          style="--ctint:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
                         >
                           <span class="tp-chip-code">{lbl.code}</span>
                           {#if lbl.meta}
@@ -921,6 +933,7 @@
                           {#if lbl.classroom}
                             <span class="tp-chip-room">{lbl.classroom}</span>
                           {/if}
+                          <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
                           {#if lbl.notes}<span class="tp-chip-notes">{lbl.notes}</span>{/if}
                           {#if evPlanPath}
                             <button class="tp-plan-dot tp-plan-dot--linked" title="Open lesson plan" aria-label="Open lesson plan"
@@ -1015,13 +1028,32 @@
   .tp-block { position:absolute; left:4px; right:4px; border:1px solid var(--background-modifier-border); border-radius:4px; box-sizing:border-box; overflow:hidden; transition:background 0.1s; z-index:2; container-type:inline-size; container-name:block; }
   .tp-block--dragover { background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important; outline:2px dashed var(--interactive-accent); outline-offset:-2px; }
   .tp-block--reject   { background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important; transition:background 0s; }
-  .tp-block-label { display:flex; gap:6px; align-items:baseline; padding:2px 6px; pointer-events:none; min-width:0; }
-  /* Name always wins the space fight; time ellipsises, then disappears */
-  .tp-block-name { flex:0 0 auto; max-width:100%; font-size:11px; font-weight:700; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .tp-block-time { flex:0 1 auto; min-width:0; font-size:10px; color:var(--text-muted); opacity:0.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  @container block (max-width: 140px) {
-    .tp-block-time { display:none; }
+  /* Stacked label: period name with its time range underneath. Short blocks
+     simply clip the second line (overflow:hidden on the block). */
+  .tp-block-label { display:flex; flex-direction:column; padding:2px 6px; pointer-events:none; min-width:0; }
+  .tp-block-name { max-width:100%; font-size:11px; font-weight:700; color:var(--text-muted); line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  /* Time revealed on hover — keeps the resting grid to names only */
+  .tp-block-time { display:none; font-size:10px; color:var(--text-muted); opacity:0.85; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-block:hover .tp-block-time { display:block; }
+
+  /* Hover-overlay: clipped blocks expand above their neighbours, opaque.
+     min-height keeps the timetable height as the floor — blocks only grow. */
+  .tp-block:hover {
+    height:auto !important;
+    min-height:var(--bh, 20px);
+    z-index:30;
+    background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;
+    box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);
+    outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border));
   }
+  .tp-block:hover .tp-event-stack { position:relative; inset:auto; height:auto; margin:3px; }
+  .tp-block:hover .tp-chip {
+    container-type:normal;
+    background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important;
+  }
+  .tp-block:hover .tp-chip-notes { display:block; -webkit-line-clamp:unset; overflow:visible; }
+  .tp-chip-period-time { display:none; font-size:10px; color:var(--text-muted); opacity:0.85; }
+  .tp-block:hover .tp-chip-period-time { display:block; }
 
   /* Lesson chip */
   .tp-chip { position:absolute; inset:3px; border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; cursor:pointer; overflow:hidden; user-select:none; transition:filter 0.1s; box-sizing:border-box; color:var(--text-normal); container-type:size; container-name:chip; }
@@ -1086,7 +1118,6 @@
     .tp-axis { min-width:440px; }
     .tp-axis-head-gutter, .tp-axis-gutter { width:30px; }
     .tp-axis-hour { right:3px; font-size:9px; }
-    .tp-block-time { display:none; }
     .tp-day-name { font-size:11px; }
     .tp-day-date { font-size:10px; }
   }
