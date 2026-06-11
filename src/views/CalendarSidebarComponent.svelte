@@ -390,11 +390,11 @@
   }
   .tp-cal-dow {
     text-align: center; font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
-    color: var(--text-faint); padding: 0 0 8px;
+    color: var(--text-muted); padding: 0 0 8px;
   }
   .tp-cal-day {
     text-align: center; font-size: 13px; padding: 3px 2px;
-    color: var(--text-muted); line-height: 1; min-height: 28px;
+    color: var(--text-normal); line-height: 1; min-height: 28px;
     display: flex; align-items: center; justify-content: center;
   }
   .tp-cal-day-num {

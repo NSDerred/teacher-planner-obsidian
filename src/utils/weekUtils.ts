@@ -1,3 +1,5 @@
+import type { WeekOverride } from "../types";
+
 /**
  * Returns the Monday of the week containing the given date.
  */
@@ -68,6 +70,33 @@ export function getAbWeekType(
   const weeksDiff = Math.round((currentMonday.getTime() - startMonday.getTime()) / msPerWeek);
   const isEven = ((weeksDiff % 2) + 2) % 2 === 0;
   return isEven ? startsOn : (startsOn === "A" ? "B" : "A");
+}
+
+/**
+ * True if `s` is a real calendar date in YYYY-MM-DD form.
+ * Rejects well-formed but impossible dates like "2025-02-30" or "2025-13-01".
+ */
+export function isValidIsoDate(s: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = new Date(s + "T12:00:00");
+  if (isNaN(d.getTime())) return false;
+  const [y, m, day] = s.split("-").map(Number);
+  return d.getFullYear() === y && d.getMonth() + 1 === m && d.getDate() === day;
+}
+
+/**
+ * Returns the first pair of overlapping holiday/INSET overrides, or null.
+ * Overlaps make directed-time calculations silently wrong (last-write-wins).
+ */
+export function findOverlappingOverrides(
+  overrides: WeekOverride[]
+): [WeekOverride, WeekOverride] | null {
+  const sorted = [...overrides].sort((a, b) => a.startDate.localeCompare(b.startDate));
+  for (let i = 1; i < sorted.length; i++) {
+    const prevEnd = sorted[i - 1].endDate ?? sorted[i - 1].startDate;
+    if (sorted[i].startDate <= prevEnd) return [sorted[i - 1], sorted[i]];
+  }
+  return null;
 }
 
 export const DAY_OF_WEEK_MAP: Record<string, number> = {

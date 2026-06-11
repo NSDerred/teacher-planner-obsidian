@@ -771,7 +771,7 @@
   .tp-te-th--period { text-align: left; width: 130px; }
   .tp-te-period-cell { padding: 6px 10px; border-bottom: 1px solid var(--background-modifier-border); vertical-align: middle; }
   .tp-te-period-name { display: block; font-size: 13px; font-weight: 600; color: var(--text-normal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tp-te-period-time { display: block; font-size: 11px; color: var(--text-faint); margin-top: 1px; }
+  .tp-te-period-time { display: block; font-size: 11px; color: var(--text-normal); margin-top: 1px; }
   .tp-te-cell { height: 52px; padding: 4px; border-bottom: 1px solid var(--background-modifier-border); border-left: 1px solid var(--background-modifier-border); vertical-align: middle; position: relative; }
   .tp-te-cell:hover .tp-te-add { opacity: 1; }
   .tp-te-add { opacity: 0; width: 100%; height: 100%; border: 1.5px dashed var(--background-modifier-border); border-radius: 6px; background: transparent; color: var(--text-faint); font-size: 18px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }

@@ -4,6 +4,7 @@ import { DEFAULT_SETTINGS, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA } from "./settin
 import { WeekView, WEEK_VIEW_TYPE } from "./views/WeekView";
 import { CalendarSidebarView, CALENDAR_SIDEBAR_VIEW_TYPE } from "./views/CalendarSidebarView";
 import { TeacherPlannerSettingTab } from "./settings/SettingsTab";
+import { isValidIsoDate } from "./utils/weekUtils";
 
 export default class TeacherPlannerPlugin extends Plugin {
   settings: TeacherPlannerSettings;
@@ -217,8 +218,17 @@ export default class TeacherPlannerPlugin extends Plugin {
   }
 
   async deletePlanner(id: string) {
+    // Flush any pending debounced save first — otherwise a queued
+    // saveSettings() could fire after the delete and resurrect stale state.
+    await this.flushPendingSave();
     this.plannerData.planners = this.plannerData.planners.filter(p => p.id !== id);
+    // Repair the active pointer if the deleted planner was active.
+    if (this.plannerData.activePlannerId === id) {
+      this.plannerData.activePlannerId = this.plannerData.planners[0]?.id ?? "";
+      if (this.plannerData.planners.length > 0) this.populateSettings();
+    }
     await this.saveData(this.plannerData);
+    this.refreshViews();
   }
 
   async ensurePlannerFolder(folderPath: string) {
@@ -374,9 +384,9 @@ export default class TeacherPlannerPlugin extends Plugin {
     if (!this.settings.periodTypes.find(pt => pt.id === "administration")) {
       this.settings.periodTypes.push({ id: "administration", label: "Administration", colour: "theme:surface" });
     }
-    if (!this.settings.gridLineColour)  this.settings.gridLineColour  = (this.settings as any).gridBorderColour ?? "#555555";
+    if (!this.settings.gridLineColour)  this.settings.gridLineColour  = (this.settings as any).gridBorderColour ?? "theme:border";
     if (this.settings.gridLineWeight  === undefined) this.settings.gridLineWeight  = (this.settings as any).gridBorderWeight ?? 1;
-    if (!this.settings.blockBorderColour) this.settings.blockBorderColour = "#444444";
+    if (!this.settings.blockBorderColour) this.settings.blockBorderColour = "theme:border";
     if (this.settings.blockBorderWeight  === undefined) this.settings.blockBorderWeight = 1;
     if (!(this.settings as any).dateEvents) this.settings.dateEvents = [];
     if (!this.settings.slotExclusions) this.settings.slotExclusions = [];
@@ -465,8 +475,7 @@ export default class TeacherPlannerPlugin extends Plugin {
     // We do NOT auto-sync the first template's startDate: the onChange handler fires
     // on every keystroke, so partial date strings would corrupt the template start date.
     const templates = this.settings.timetableTemplates;
-    const isValidDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s);
-    if (templates && templates.length > 0 && isValidDate(this.settings.academicYear.endDate)) {
+    if (templates && templates.length > 0 && isValidIsoDate(this.settings.academicYear.endDate)) {
       const lastTmpl = [...templates].sort((a, b) => b.endDate.localeCompare(a.endDate))[0];
       lastTmpl.endDate = this.settings.academicYear.endDate;
     }
@@ -483,6 +492,4 @@ export default class TeacherPlannerPlugin extends Plugin {
     }
     return undefined;
   }
-}
-
 }

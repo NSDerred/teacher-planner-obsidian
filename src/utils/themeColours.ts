@@ -31,8 +31,38 @@ export const THEME_COLOUR_TOKENS: ThemeColourToken[] = [
   { token: "theme:pink",    label: "Pink",    cssVar: "--color-pink",               fallback: "#e8a2b8" },
 ];
 
+/**
+ * Token used by the Grid Visuals settings (grid lines / period block borders)
+ * to follow the active theme's border colour. Kept out of THEME_COLOUR_TOKENS
+ * so it doesn't appear in the block colour pickers.
+ */
+export const GRID_THEME_TOKEN = "theme:border";
+
+const EXTRA_THEME_TOKENS: ThemeColourToken[] = [
+  { token: GRID_THEME_TOKEN, label: "Theme border", cssVar: "--background-modifier-border", fallback: "#444444" },
+];
+
+function findToken(token: string): ThemeColourToken | undefined {
+  return THEME_COLOUR_TOKENS.find(t => t.token === token)
+    ?? EXTRA_THEME_TOKENS.find(t => t.token === token);
+}
+
 export function isThemeToken(colour: string | undefined | null): boolean {
   return typeof colour === "string" && colour.startsWith("theme:");
+}
+
+/**
+ * Return a CSS colour expression for a stored colour.
+ * - "theme:*" tokens → a var() reference so the colour updates live when the
+ *   user switches Obsidian themes (no cache involved).
+ * - anything else    → returned unchanged (manual hex override).
+ */
+export function colourToCss(colour: string | undefined | null, fallback = "#888888"): string {
+  if (!colour) return fallback;
+  if (!isThemeToken(colour)) return colour;
+  const def = findToken(colour);
+  if (!def) return fallback;
+  return `var(${def.cssVar}, ${def.fallback})`;
 }
 
 // ── Resolution cache ──────────────────────────────────────────────────────
@@ -76,7 +106,7 @@ export function resolveColour(colour: string | undefined | null): string {
   const cached = _cache.get(colour);
   if (cached) return cached;
 
-  const def = THEME_COLOUR_TOKENS.find(t => t.token === colour);
+  const def = findToken(colour);
   if (!def) return "#888888";
 
   const raw = getComputedStyle(document.body).getPropertyValue(def.cssVar).trim();

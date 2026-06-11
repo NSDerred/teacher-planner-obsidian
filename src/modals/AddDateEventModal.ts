@@ -200,6 +200,12 @@ export class AddDateEventModal extends Modal {
         new Notice("Please select a date, period, and item.");
         return;
       }
+      // Warn (non-blocking) if the event falls outside the academic year —
+      // it would never appear in directed-time counts and is easy to miss.
+      const ay = this.plugin.settings.academicYear;
+      if (ay?.startDate && ay?.endDate && (date < ay.startDate || date > ay.endDate)) {
+        new Notice(`Note: ${date} is outside the academic year (${ay.startDate} – ${ay.endDate}). The event was saved but won't count towards directed time.`, 6000);
+      }
       if (!this.plugin.settings.dateEvents) this.plugin.settings.dateEvents = [];
 
       if (isEdit && this.existingEvent) {

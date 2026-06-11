@@ -3,7 +3,8 @@ import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon
 import type TeacherPlannerPlugin from "../main";
 import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity } from "../types";
 import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR } from "../settings";
-import { resolveColour, isThemeToken } from "../utils/themeColours";
+import { resolveColour, isThemeToken, GRID_THEME_TOKEN } from "../utils/themeColours";
+import { findOverlappingOverrides } from "../utils/weekUtils";
 import ColourPickerComponent from "../modals/ColourPickerComponent.svelte";
 import { AddPeriodModal } from "../modals/AddPeriodModal";
 import { ExportModal } from "../modals/ExportModal";
@@ -20,15 +21,36 @@ export const SUBJECT_EMOJIS = [
   "🎬", "🍳", "✝️", "🤝", "📊", "🔭", "🎸", "📝", "🌿", "🧬",
 ];
 
+/** Cleanup for the currently open emoji popup (popup + document listeners). */
+let _activeEmojiCleanup: (() => void) | null = null;
+
+/** Close any open emoji popup and detach its document-level listeners. */
+export function closeEmojiPicker() {
+  _activeEmojiCleanup?.();
+}
+
 export function openEmojiPicker(
   anchor: HTMLElement,
   current: string,
   onSelect: (emoji: string) => void,
 ) {
-  // Remove any existing popup
-  document.querySelectorAll(".tp-emoji-popup").forEach(el => el.remove());
+  // Close any existing popup (and its listeners) before opening a new one
+  closeEmojiPicker();
 
   const popup = document.body.createDiv("tp-emoji-popup");
+
+  const cleanup = () => {
+    document.removeEventListener("click", onDocClick, true);
+    document.removeEventListener("keydown", onKeyDown, true);
+    popup.remove();
+    if (_activeEmojiCleanup === cleanup) _activeEmojiCleanup = null;
+  };
+  const onDocClick = (e: MouseEvent) => {
+    if (!popup.contains(e.target as Node)) cleanup();
+  };
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") cleanup();
+  };
 
   for (const emoji of SUBJECT_EMOJIS) {
     const btn = popup.createEl("button", { text: emoji, cls: "tp-emoji-option" });
@@ -36,7 +58,7 @@ export function openEmojiPicker(
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
       onSelect(emoji);
-      popup.remove();
+      cleanup();
     });
   }
 
@@ -51,14 +73,12 @@ export function openEmojiPicker(
   popup.style.top = top + "px";
   popup.style.left = left + "px";
 
-  // Close on click outside
-  const close = (e: MouseEvent) => {
-    if (!popup.contains(e.target as Node)) {
-      popup.remove();
-      document.removeEventListener("click", close, true);
-    }
-  };
-  setTimeout(() => document.addEventListener("click", close, true), 0);
+  // Close on click outside / Escape
+  setTimeout(() => {
+    document.addEventListener("click", onDocClick, true);
+    document.addEventListener("keydown", onKeyDown, true);
+  }, 0);
+  _activeEmojiCleanup = cleanup;
 }
 
 export class TeacherPlannerSettingTab extends PluginSettingTab {
@@ -70,6 +90,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
   /** Called by Obsidian when the settings tab is navigated away from or closed. */
   hide(): void {
+    // Tear down any open emoji popup — it lives on document.body and would
+    // otherwise outlive the tab along with its document-level listeners.
+    closeEmojiPicker();
     // Flush any pending debounced save so in-flight edits land on disk
     // before the tab tears down. Fire-and-forget — Obsidian's hide() is sync.
     this.plugin.flushPendingSave().catch(err => {
@@ -397,9 +420,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     blockColourSetting.controlEl.style.gap = "8px";
     blockColourSetting.controlEl.style.flexWrap = "wrap";
 
-    const currentBlockColour = this.plugin.settings.blockBorderColour ?? "#444444";
+    const currentBlockColour = this.plugin.settings.blockBorderColour ?? GRID_THEME_TOKEN;
     const blockSwatchBtn = blockColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
-    blockSwatchBtn.style.background = currentBlockColour;
+    blockSwatchBtn.style.background = resolveColour(currentBlockColour);
 
     const blockPresetRow = blockColourSetting.controlEl.createDiv("tp-preset-swatches");
     const blockPresetSwatches: HTMLElement[] = [];
@@ -407,15 +430,24 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const updateBlockBorderColour = async (colour: string) => {
       this.plugin.settings.blockBorderColour = colour;
       await this.plugin.saveSettings();
-      blockSwatchBtn.style.background = colour;
+      blockSwatchBtn.style.background = resolveColour(colour);
       blockPresetSwatches.forEach(s => s.classList.toggle("tp-preset-swatch--active", s.dataset.colour === colour));
     };
 
     blockSwatchBtn.addEventListener("click", () => {
-      new ColourPickerModal(this.app, this.plugin.settings.blockBorderColour ?? "#444444", "Period block border", async colour => {
+      new ColourPickerModal(this.app, this.plugin.settings.blockBorderColour ?? GRID_THEME_TOKEN, "Period block border", async colour => {
         await updateBlockBorderColour(colour);
       }).open();
     });
+
+    {
+      const chip = blockPresetRow.createEl("button", { cls: "tp-preset-swatch tp-preset-swatch--theme", title: "Follow Obsidian theme (default)" });
+      chip.style.background = resolveColour(GRID_THEME_TOKEN);
+      chip.dataset.colour = GRID_THEME_TOKEN;
+      if (currentBlockColour === GRID_THEME_TOKEN) chip.classList.add("tp-preset-swatch--active");
+      chip.addEventListener("click", async () => { await updateBlockBorderColour(GRID_THEME_TOKEN); });
+      blockPresetSwatches.push(chip);
+    }
 
     for (const grey of GREY_PALETTE) {
       const chip = blockPresetRow.createEl("button", { cls: "tp-preset-swatch", title: grey });
@@ -439,9 +471,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     gridColourSetting.controlEl.style.gap = "8px";
     gridColourSetting.controlEl.style.flexWrap = "wrap";
 
-    const currentGridColour = this.plugin.settings.gridLineColour ?? "#555555";
+    const currentGridColour = this.plugin.settings.gridLineColour ?? GRID_THEME_TOKEN;
     const gridSwatchBtn = gridColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
-    gridSwatchBtn.style.background = currentGridColour;
+    gridSwatchBtn.style.background = resolveColour(currentGridColour);
 
     const gridPresetRow = gridColourSetting.controlEl.createDiv("tp-preset-swatches");
     const gridPresetSwatches: HTMLElement[] = [];
@@ -449,15 +481,24 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const updateGridLineColour = async (colour: string) => {
       this.plugin.settings.gridLineColour = colour;
       await this.plugin.saveSettings();
-      gridSwatchBtn.style.background = colour;
+      gridSwatchBtn.style.background = resolveColour(colour);
       gridPresetSwatches.forEach(s => s.classList.toggle("tp-preset-swatch--active", s.dataset.colour === colour));
     };
 
     gridSwatchBtn.addEventListener("click", () => {
-      new ColourPickerModal(this.app, this.plugin.settings.gridLineColour ?? "#555555", "Time grid line", async colour => {
+      new ColourPickerModal(this.app, this.plugin.settings.gridLineColour ?? GRID_THEME_TOKEN, "Time grid line", async colour => {
         await updateGridLineColour(colour);
       }).open();
     });
+
+    {
+      const chip = gridPresetRow.createEl("button", { cls: "tp-preset-swatch tp-preset-swatch--theme", title: "Follow Obsidian theme (default)" });
+      chip.style.background = resolveColour(GRID_THEME_TOKEN);
+      chip.dataset.colour = GRID_THEME_TOKEN;
+      if (currentGridColour === GRID_THEME_TOKEN) chip.classList.add("tp-preset-swatch--active");
+      chip.addEventListener("click", async () => { await updateGridLineColour(GRID_THEME_TOKEN); });
+      gridPresetSwatches.push(chip);
+    }
 
     for (const grey of GREY_PALETTE) {
       const chip = gridPresetRow.createEl("button", { cls: "tp-preset-swatch", title: grey });
@@ -472,6 +513,19 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addSlider(s => s.setLimits(1, 4, 1).setValue(this.plugin.settings.gridLineWeight ?? 1)
         .setDynamicTooltip()
         .onChange(v => { this.plugin.settings.gridLineWeight = v; this.plugin.requestSave(); }));
+
+    new Setting(containerEl).setName("Reset grid visuals")
+      .setDesc("Restore both colours to your Obsidian theme and weights to 1px.")
+      .addButton(btn => btn.setButtonText("Reset to theme defaults").setWarning()
+        .onClick(async () => {
+          this.plugin.settings.blockBorderColour = GRID_THEME_TOKEN;
+          this.plugin.settings.gridLineColour = GRID_THEME_TOKEN;
+          this.plugin.settings.blockBorderWeight = 1;
+          this.plugin.settings.gridLineWeight = 1;
+          await this.plugin.saveSettings();
+          new Notice("Grid visuals reset to theme defaults.");
+          this.display();
+        }));
 
     // ── Export ────────────────────────────────────────────────────────────
     containerEl.createEl("h3", { text: "Export" });
@@ -980,6 +1034,18 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     for (const override of sorted) this.renderWeekOverrideRow(container, override);
   }
 
+  /** Warn (non-blocking) if any holiday/INSET ranges overlap — overlaps skew directed time. */
+  private warnIfOverridesOverlap() {
+    const overlap = findOverlappingOverrides(this.plugin.settings.weekOverrides);
+    if (overlap) {
+      const name = (o: WeekOverride) => o.label || (o.type === "inset" ? "INSET" : "Holiday");
+      new Notice(
+        `Warning: "${name(overlap[0])}" (from ${overlap[0].startDate}) and "${name(overlap[1])}" (from ${overlap[1].startDate}) overlap. Directed time may be miscounted.`,
+        6000
+      );
+    }
+  }
+
   private renderWeekOverrideRow(container: HTMLElement, override: WeekOverride) {
     // Wrapper div stacks the Setting row + optional INSET sub-row
     const wrapper = container.createDiv("tp-override-entry");
@@ -998,6 +1064,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         toInput.value = override.startDate;
       }
       await this.plugin.saveSettings();
+      this.warnIfOverridesOverlap();
     });
 
     row.controlEl.createSpan({ text: "–", cls: "tp-override-sep" });
@@ -1011,6 +1078,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       // If same as startDate, clear endDate (single-day override)
       override.endDate = val === override.startDate ? undefined : val;
       await this.plugin.saveSettings();
+      this.warnIfOverridesOverlap();
     });
 
     // ── Type ───────────────────────────────────────────────────────────────
@@ -1040,9 +1108,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }
     });
 
-    // ── INSET hours sub-row (shown only when type = INSET) ─────────────────
+    // ── INSET hours sub-row (shown only when type = INSET and directed time enabled) ─
     const insetRow = wrapper.createDiv("tp-override-inset-row");
-    insetRow.style.display = override.type === "inset" ? "flex" : "none";
+    const dtEnabled = () => this.plugin.settings.directedTime?.enabled ?? false;
+    insetRow.style.display = override.type === "inset" && dtEnabled() ? "flex" : "none";
 
     insetRow.createSpan({ text: "Directed hours for this period:", cls: "tp-override-inset-label" });
     const hoursInput = insetRow.createEl("input", { type: "number", cls: "tp-override-hours-input" });
@@ -1058,7 +1127,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     typeSelect.addEventListener("change", async () => {
       override.type = typeSelect.value as "holiday" | "inset" | "custom";
-      insetRow.style.display = override.type === "inset" ? "flex" : "none";
+      insetRow.style.display = override.type === "inset" && dtEnabled() ? "flex" : "none";
       await this.plugin.saveSettings();
     });
   }

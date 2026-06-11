@@ -61,6 +61,7 @@ export class AddPeriodModal extends Modal {
       const timeRe = /^([01]\d|2[0-3]):[0-5]\d$/;
       if (!timeRe.test(trimmedStart)) { new Notice("Start time must be HH:MM (e.g. 08:50)."); return; }
       if (!timeRe.test(trimmedEnd)) { new Notice("End time must be HH:MM (e.g. 10:05)."); return; }
+      if (trimmedEnd <= trimmedStart) { new Notice("End time must be after the start time."); return; }
       await this.onAdd({ id: `period-${Date.now()}`, name: trimmedName, start: trimmedStart, end: trimmedEnd, type });
       this.close();
     });

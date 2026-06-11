@@ -1,5 +1,6 @@
 import { App, Modal, Setting, Notice } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
+import { isValidIsoDate } from "../utils/weekUtils";
 
 const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -82,8 +83,8 @@ export class EditPlannerModal extends Modal {
         .onClick(async () => {
           const trimmedName = name.trim();
           if (!trimmedName) { new Notice("Please enter a planner name."); return; }
-          if (!ISO_RE.test(startDate) || !ISO_RE.test(endDate)) {
-            new Notice("Dates must be in YYYY-MM-DD format."); return;
+          if (!isValidIsoDate(startDate) || !isValidIsoDate(endDate)) {
+            new Notice("Please enter valid dates in YYYY-MM-DD format."); return;
           }
           if (endDate <= startDate) {
             new Notice("End date must be after the start date."); return;

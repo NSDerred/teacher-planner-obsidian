@@ -6,8 +6,9 @@ import type {
 } from "../types";
 import { DEFAULT_PLANNER, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, FALLBACK_PERIOD_TYPE_COLOUR } from "../settings";
 import { resolveColour } from "../utils/themeColours";
+import { isValidIsoDate, findOverlappingOverrides } from "../utils/weekUtils";
 import { TimetableEditorModal } from "./TimetableEditorModal";
-import { openEmojiPicker, SUBJECT_EMOJIS } from "../settings/SettingsTab";
+import { openEmojiPicker, closeEmojiPicker, SUBJECT_EMOJIS } from "../settings/SettingsTab";
 
 // ── Wizard state ───────────────────────────────────────────────────────────────
 
@@ -84,9 +85,9 @@ export class SetupWizardModal extends Modal {
     this.render();
   }
 
-  onClose() { this.contentEl.empty(); }
+  onClose() { closeEmojiPicker(); this.contentEl.empty(); }
 
-  /** Intercept all close attempts on steps 1\u20138 \u2014 planner not yet committed. */
+  /** Intercept all close attempts on steps 1–8 — planner not yet committed. */
   close() {
     if (this.step >= 9) { super.close(); return; }
     new WizardCloseConfirmModal(this.app, () => super.close()).open();
@@ -130,12 +131,12 @@ export class SetupWizardModal extends Modal {
   private footer(body: HTMLElement, onNext: () => boolean | void) {
     const footer = body.createDiv("tp-wizard-footer");
     if (this.step > 1) {
-      const back = footer.createEl("button", { text: "\u2190 Back", cls: "tp-btn" });
+      const back = footer.createEl("button", { text: "← Back", cls: "tp-btn" });
       back.addEventListener("click", () => { this.step--; this.render(); });
     } else {
       footer.createDiv();
     }
-    const next = footer.createEl("button", { text: "Next \u2192", cls: "tp-btn tp-btn--primary" });
+    const next = footer.createEl("button", { text: "Next →", cls: "tp-btn tp-btn--primary" });
     next.addEventListener("click", () => {
       const ok = onNext();
       if (ok !== false) { this.step++; this.render(); }
@@ -153,7 +154,7 @@ export class SetupWizardModal extends Modal {
 
   private renderStep1(body: HTMLElement) {
     this.stepHeading(body, 1, "Name your planner",
-      "Give this planner a name \u2014 usually the academic year. It will also be used as the vault subfolder.");
+      "Give this planner a name — usually the academic year. It will also be used as the vault subfolder.");
 
     let nameInput: HTMLInputElement;
     new Setting(body)
@@ -193,8 +194,8 @@ export class SetupWizardModal extends Modal {
 
     // ── Disclaimer callout ──────────────────────────────────────────────────
     const dtCallout = dtPanel.createDiv("tp-dt-callout");
-    dtCallout.createEl("p", { text: "\u2139\ufe0f  How it works: Directed time is counted only from items placed in your planner. The tracker shows hours accrued to today and a projection based on future planned events. Keep your planner up to date for accurate figures." });
-    dtCallout.createEl("p", { text: "\u26a0\ufe0f  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice \u2014 always consult your union representative for formal disputes." });
+    dtCallout.createEl("p", { text: "ℹ️  How it works: Directed time is counted only from items placed in your planner. The tracker shows hours accrued to today and a projection based on future planned events. Keep your planner up to date for accurate figures." });
+    dtCallout.createEl("p", { text: "⚠️  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice — always consult your union representative for formal disputes." });
 
     new Setting(dtPanel)
       .setName("Contracted directed time (hours)")
@@ -222,7 +223,7 @@ export class SetupWizardModal extends Modal {
       .setDesc("Applied to all timetable lessons unless overridden.")
       .addDropdown(d => d
         .addOption("45", "45 minutes").addOption("50", "50 minutes")
-        .addOption("60", "60 minutes").addOption("custom", "Custom\u2026")
+        .addOption("60", "60 minutes").addOption("custom", "Custom…")
         .setValue(lessonDurDropValue)
         .onChange(v => {
           if (v !== "custom") { this.state.defaultLessonDurationMinutes = parseInt(v); }
@@ -256,7 +257,7 @@ export class SetupWizardModal extends Modal {
     const renderActs = () => {
       actList.empty();
       if (this.state.activities.length === 0) {
-        actList.createEl("p", { text: "No activities yet \u2014 add one below.", cls: "tp-wizard-empty-note" });
+        actList.createEl("p", { text: "No activities yet — add one below.", cls: "tp-wizard-empty-note" });
       }
       for (const act of this.state.activities) {
         const row = actList.createDiv("tp-activity-row");
@@ -322,6 +323,9 @@ export class SetupWizardModal extends Modal {
     this.footer(body, () => {
       const s = startInput.value, e = endInput.value;
       if (!s || !e) { new Notice("Please enter both dates."); return false; }
+      if (!isValidIsoDate(s) || !isValidIsoDate(e)) {
+        new Notice("Please enter valid dates in YYYY-MM-DD format."); return false;
+      }
       if (s >= e)   { new Notice("End date must be after start date."); return false; }
       this.state.startDate = s;
       this.state.endDate   = e;
@@ -343,7 +347,7 @@ export class SetupWizardModal extends Modal {
       }
 
       for (const ov of this.state.weekOverrides) {
-        // Wrapper stacks Setting row + optional INSET sub-row \u2014 mirrors SettingsTab.renderWeekOverrideRow
+        // Wrapper stacks Setting row + optional INSET sub-row — mirrors SettingsTab.renderWeekOverrideRow
         const wrapper = listEl.createDiv("tp-override-entry");
         const row = new Setting(wrapper).setName("").setDesc("");
         row.settingEl.addClass("tp-override-row");
@@ -358,7 +362,7 @@ export class SetupWizardModal extends Modal {
           }
         });
 
-        row.controlEl.createSpan({ text: "\u2013", cls: "tp-override-sep" });
+        row.controlEl.createSpan({ text: "–", cls: "tp-override-sep" });
 
         const toInput = row.controlEl.createEl("input", { type: "date", cls: "tp-override-date-input" });
         toInput.value = ov.endDate ?? ov.startDate;
@@ -372,7 +376,7 @@ export class SetupWizardModal extends Modal {
           if (ov.type === val) opt.selected = true;
         }
 
-        // Label always visible \u2014 used for both holidays and INSET
+        // Label always visible — used for both holidays and INSET
         const labelInput = row.controlEl.createEl("input", { type: "text", cls: "tp-override-label-input" });
         labelInput.value = ov.label ?? ""; labelInput.placeholder = "Label (e.g. Christmas)";
         labelInput.addEventListener("change", () => { ov.label = labelInput.value || undefined; });
@@ -384,9 +388,9 @@ export class SetupWizardModal extends Modal {
           renderOverrides();
         });
 
-        // INSET hours sub-row \u2014 shown only when type = INSET
+        // INSET hours sub-row — shown only when type = INSET and directed time enabled
         const insetRow = wrapper.createDiv("tp-override-inset-row");
-        insetRow.style.display = ov.type === "inset" ? "flex" : "none";
+        insetRow.style.display = ov.type === "inset" && this.state.directedTimeEnabled ? "flex" : "none";
 
         insetRow.createSpan({ text: "Directed hours for this period:", cls: "tp-override-inset-label" });
         const hoursInput = insetRow.createEl("input", { type: "number", cls: "tp-override-hours-input" });
@@ -401,7 +405,7 @@ export class SetupWizardModal extends Modal {
 
         typeSelect.addEventListener("change", () => {
           ov.type = typeSelect.value as "holiday" | "inset" | "custom";
-          insetRow.style.display = ov.type === "inset" ? "flex" : "none";
+          insetRow.style.display = ov.type === "inset" && this.state.directedTimeEnabled ? "flex" : "none";
         });
       }
 
@@ -422,7 +426,17 @@ export class SetupWizardModal extends Modal {
     };
     renderOverrides();
 
-    this.footer(body, () => { /* optional */ });
+    this.footer(body, () => {
+      const overlap = findOverlappingOverrides(this.state.weekOverrides);
+      if (overlap) {
+        const name = (o: WeekOverride) => o.label || (o.type === "inset" ? "INSET" : "Holiday");
+        new Notice(
+          `"${name(overlap[0])}" (from ${overlap[0].startDate}) and "${name(overlap[1])}" (from ${overlap[1].startDate}) overlap — please adjust the dates.`,
+          6000
+        );
+        return false;
+      }
+    });
   }
 
   // ── Step 5: School days + A/B rotation ─────────────────────────────────────
@@ -470,13 +484,13 @@ export class SetupWizardModal extends Modal {
 
   private renderStep6(body: HTMLElement) {
     this.stepHeading(body, 6, "School day blocks",
-      "Define the types of block that make up your school day \u2014 lessons, breaks, registration, etc. You can assign these to periods in settings later.");
+      "Define the types of block that make up your school day — lessons, breaks, registration, etc. You can assign these to periods in settings later.");
 
     const listEl = body.createDiv("tp-activities-list");
     const renderList = () => {
       listEl.empty();
       if (this.state.periodTypes.length === 0) {
-        listEl.createEl("p", { text: "No block types yet \u2014 add one below, or skip.", cls: "tp-wizard-empty-note" });
+        listEl.createEl("p", { text: "No block types yet — add one below, or skip.", cls: "tp-wizard-empty-note" });
       }
       for (const pt of this.state.periodTypes) {
         const row = listEl.createDiv("tp-activity-row");
@@ -517,7 +531,7 @@ export class SetupWizardModal extends Modal {
 
   private renderStep7(body: HTMLElement) {
     this.stepHeading(body, 7, "School periods",
-      "Your default periods are pre-loaded. Add, edit or remove them now \u2014 you can always change these in settings later.");
+      "Your default periods are pre-loaded. Add, edit or remove them now — you can always change these in settings later.");
 
     const listEl = body.createDiv("tp-wizard-period-list");
 
@@ -525,10 +539,10 @@ export class SetupWizardModal extends Modal {
       listEl.empty();
 
       for (const p of this.state.periods) {
-        // Match SettingsTab.renderPeriodRow \u2014 Setting with editable name/times
+        // Match SettingsTab.renderPeriodRow — Setting with editable name/times
         const s = new Setting(listEl)
           .setName(p.name)
-          .setDesc(`${p.start} \u2013 ${p.end}`);
+          .setDesc(`${p.start} – ${p.end}`);
 
         s.addText(t => {
           t.setPlaceholder("Name").setValue(p.name);
@@ -542,7 +556,7 @@ export class SetupWizardModal extends Modal {
           t.inputEl.style.width = "70px";
           t.inputEl.addEventListener("change", () => {
             p.start = t.inputEl.value;
-            s.setDesc(`${p.start} \u2013 ${p.end}`);
+            s.setDesc(`${p.start} – ${p.end}`);
           });
         });
         s.addText(t => {
@@ -550,7 +564,7 @@ export class SetupWizardModal extends Modal {
           t.inputEl.style.width = "70px";
           t.inputEl.addEventListener("change", () => {
             p.end = t.inputEl.value;
-            s.setDesc(`${p.start} \u2013 ${p.end}`);
+            s.setDesc(`${p.start} – ${p.end}`);
           });
         });
         s.addDropdown(d => {
@@ -636,7 +650,7 @@ export class SetupWizardModal extends Modal {
           renderList();
         });
 
-        // Class rows \u2014 match SettingsTab.renderClassRow structure
+        // Class rows — match SettingsTab.renderClassRow structure
         const clsOfSubj = this.state.classes.filter(c => c.subjectId === subj.id);
         if (clsOfSubj.length > 0) {
           const classesEl = block.createDiv("tp-class-rows");
@@ -686,11 +700,11 @@ export class SetupWizardModal extends Modal {
     };
     renderList();
 
-    // Custom footer \u2014 back + save & continue
+    // Custom footer — back + save & continue
     const footer = body.createDiv("tp-wizard-footer");
-    const back = footer.createEl("button", { text: "\u2190 Back", cls: "tp-btn" });
+    const back = footer.createEl("button", { text: "← Back", cls: "tp-btn" });
     back.addEventListener("click", () => { this.step--; this.render(); });
-    const next = footer.createEl("button", { text: "Save & continue \u2192", cls: "tp-btn tp-btn--primary" });
+    const next = footer.createEl("button", { text: "Save & continue →", cls: "tp-btn tp-btn--primary" });
     next.addEventListener("click", () => { this.step++; this.render(); });
   }
 
@@ -698,12 +712,12 @@ export class SetupWizardModal extends Modal {
 
   private renderStep9(body: HTMLElement) {
     this.stepHeading(body, 9, "Set up your timetable",
-      "The planner has been saved. Use the timetable editor to assign classes to periods \u2014 you can also do this later from the main view.");
+      "The planner has been saved. Use the timetable editor to assign classes to periods — you can also do this later from the main view.");
 
     void this.commitPlanner();
 
     const callout = body.createDiv("tp-wizard-callout");
-    callout.createEl("p", { text: "\u2705  Your planner has been created and is now active. You can close this wizard at any time and finish configuring your timetable from the main view." });
+    callout.createEl("p", { text: "✅  Your planner has been created and is now active. You can close this wizard at any time and finish configuring your timetable from the main view." });
 
     const editorBtn = body.createEl("button", {
       text: "Open timetable editor",
@@ -713,14 +727,14 @@ export class SetupWizardModal extends Modal {
 
     const footer = body.createDiv("tp-wizard-footer");
     footer.createDiv();
-    const next = footer.createEl("button", { text: "Continue to summary \u2192", cls: "tp-btn tp-btn--primary" });
+    const next = footer.createEl("button", { text: "Continue to summary →", cls: "tp-btn tp-btn--primary" });
     next.addEventListener("click", () => { this.step++; this.render(); });
   }
 
   // ── Step 10: Summary ────────────────────────────────────────────────────────
 
   private renderStep10(body: HTMLElement) {
-    this.stepHeading(body, 10, "All done!", "Your planner is ready. Here\u2019s a summary of what was set up.");
+    this.stepHeading(body, 10, "All done!", "Your planner is ready. Here’s a summary of what was set up.");
 
     const summary = body.createDiv("tp-wizard-summary");
     const row = (label: string, value: string) => {
@@ -732,10 +746,10 @@ export class SetupWizardModal extends Modal {
     const s = this.plugin.settings;
     const dt = s.directedTime;
     row("Planner name",     s.academicYear.name);
-    row("Academic year",    `${s.academicYear.startDate} \u2192 ${s.academicYear.endDate}`);
-    row("School days",      s.schoolDays?.map(d => d.charAt(0).toUpperCase() + d.slice(1, 3)).join(", ") ?? "Mon\u2013Fri");
+    row("Academic year",    `${s.academicYear.startDate} → ${s.academicYear.endDate}`);
+    row("School days",      s.schoolDays?.map(d => d.charAt(0).toUpperCase() + d.slice(1, 3)).join(", ") ?? "Mon–Fri");
     row("A/B rotation",     s.academicYear.abWeekEnabled ? `Enabled (starts Week ${s.academicYear.abWeekStartsOn})` : "Disabled");
-    row("Directed time",    dt?.enabled ? `Enabled \u2014 ${(dt.contractedHours * dt.timetablePercentage / 100).toFixed(0)}h effective` : "Disabled");
+    row("Directed time",    dt?.enabled ? `Enabled — ${(dt.contractedHours * dt.timetablePercentage / 100).toFixed(0)}h effective` : "Disabled");
     row("Holidays / INSET", `${s.weekOverrides.length} range${s.weekOverrides.length !== 1 ? "s" : ""} marked`);
     row("Block types",      `${(s.periodTypes ?? []).length} defined`);
     row("Periods",          `${s.academicYear.periods.length} periods defined`);
@@ -745,7 +759,7 @@ export class SetupWizardModal extends Modal {
 
     const footer = body.createDiv("tp-wizard-footer");
     footer.createDiv();
-    const openBtn = footer.createEl("button", { text: "Open planner \u2192", cls: "tp-btn tp-btn--primary" });
+    const openBtn = footer.createEl("button", { text: "Open planner →", cls: "tp-btn tp-btn--primary" });
     openBtn.addEventListener("click", async () => {
       this.close();
       await this.plugin.activateView();
@@ -803,7 +817,7 @@ export class SetupWizardModal extends Modal {
 
   /** Create the directed time guide note in the planner folder. */
   private async createDirectedTimeGuideNote(plannerFolder: string) {
-    const path = plannerFolder + "/Directed Time \u2014 Guide.md";
+    const path = plannerFolder + "/Directed Time — Guide.md";
     if (this.app.vault.getAbstractFileByPath(path)) return; // already exists
 
     const contractedHours   = this.state.contractedHours;
@@ -811,13 +825,13 @@ export class SetupWizardModal extends Modal {
     const effectiveHours    = (contractedHours * timetablePct / 100).toFixed(1);
 
     const content = [
-      "# Directed Time Tracker \u2014 Guide",
+      "# Directed Time Tracker — Guide",
       "",
       "## What is directed time?",
       "",
-      "In England, under the **School Teachers\u2019 Pay and Conditions Document (STPCD)**, a full-time teacher may be directed to work for up to **1,265 hours per year** across a maximum of 195 days (190 teaching days + 5 INSET days). This is the statutory maximum \u2014 your school cannot lawfully direct you to exceed it.",
+      "In England, under the **School Teachers’ Pay and Conditions Document (STPCD)**, a full-time teacher may be directed to work for up to **1,265 hours per year** across a maximum of 195 days (190 teaching days + 5 INSET days). This is the statutory maximum — your school cannot lawfully direct you to exceed it.",
       "",
-      `> **Your current settings:** ${contractedHours}h contracted \u00d7 ${timetablePct}% timetable fraction = **${effectiveHours}h effective maximum**`,
+      `> **Your current settings:** ${contractedHours}h contracted × ${timetablePct}% timetable fraction = **${effectiveHours}h effective maximum**`,
       "",
       "---",
       "",
@@ -825,10 +839,10 @@ export class SetupWizardModal extends Modal {
       "",
       "The directed time tracker calculates your cumulative directed time from events recorded in your planner. It counts:",
       "",
-      "- **Timetable lessons** \u2014 every class slot on your timetable, using the lesson duration you configure (default: 60 min, adjustable per slot in the timetable editor).",
-      "- **Directed time activities** \u2014 items in the *Directed time* section of Settings added to your planner (e.g. Cover, Duty, Meetings, Tutor).",
-      "- **Holiday/INSET weeks** \u2014 automatically excluded from the count.",
-      "- **Other events** \u2014 items in the *Other events* section of Settings are excluded from the directed time total.",
+      "- **Timetable lessons** — every class slot on your timetable, using the lesson duration you configure (default: 60 min, adjustable per slot in the timetable editor).",
+      "- **Directed time activities** — items in the *Directed time* section of Settings added to your planner (e.g. Cover, Duty, Meetings, Tutor).",
+      "- **Holiday/INSET weeks** — automatically excluded from the count.",
+      "- **Other events** — items in the *Other events* section of Settings are excluded from the directed time total.",
       "",
       "The sidebar panel shows:",
       "",
@@ -842,32 +856,32 @@ export class SetupWizardModal extends Modal {
       "",
       "## Part-time teachers",
       "",
-      "Set your **timetable fraction** in *Settings \u2192 Directed Time Tracker*. Your effective maximum = contracted hours \u00d7 fraction.",
+      "Set your **timetable fraction** in *Settings → Directed Time Tracker*. Your effective maximum = contracted hours × fraction.",
       "",
-      "*Example:* A 0.6 FTE teacher: 1,265 \u00d7 60% = **759 hours maximum**.",
+      "*Example:* A 0.6 FTE teacher: 1,265 × 60% = **759 hours maximum**.",
       "",
       "---",
       "",
       "## Keeping your data accurate",
       "",
       "- Add one-off events (cover lessons, extra meetings, parents evenings) as **date events** in your planner using the **+ Event** button.",
-      "- If a timetable lesson is cancelled, use the **Exclude** option in the lesson notes panel so it isn\u2019t counted.",
-      "- Update slot durations if your lessons aren\u2019t exactly 60 minutes (click the duration badge in the timetable editor).",
+      "- If a timetable lesson is cancelled, use the **Exclude** option in the lesson notes panel so it isn’t counted.",
+      "- Update slot durations if your lessons aren’t exactly 60 minutes (click the duration badge in the timetable editor).",
       "",
       "---",
       "",
       "## Exporting your data",
       "",
-      "Use **Settings \u2192 Directed Time Tracker \u2192 Export XLSX\u2026** to download a detailed Excel report with:",
+      "Use **Settings → Directed Time Tracker → Export XLSX…** to download a detailed Excel report with:",
       "",
-      "- **Summary sheet** \u2014 contracted hours, accrued, predicted, and margin at a glance",
-      "- **Weekly Breakdown sheet** \u2014 every week of the academic year with lesson, activity, and event counts",
+      "- **Summary sheet** — contracted hours, accrued, predicted, and margin at a glance",
+      "- **Weekly Breakdown sheet** — every week of the academic year with lesson, activity, and event counts",
       "",
       "This report is useful evidence to share with your union representative or school management.",
       "",
       "---",
       "",
-      "## \u26a0\ufe0f Important disclaimer",
+      "## ⚠️ Important disclaimer",
       "",
       "This tracker is a **guide only**. Accuracy depends entirely on the information you enter into your planner. It does not constitute legal advice. If you believe your directed time is being exceeded, **contact your union representative** for formal guidance.",
       "",

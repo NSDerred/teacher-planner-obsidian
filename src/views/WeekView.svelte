@@ -16,7 +16,7 @@
   import { SlotNotesModal } from "../modals/SlotNotesModal";
   import { ColourPickerModal } from "../settings/SettingsTab";
   import { AddDateEventModal } from "../modals/AddDateEventModal";
-  import { resolveColour, clearThemeColourCache } from "../utils/themeColours";
+  import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
 
   export let plugin: TeacherPlannerPlugin;
   export let initialDate: Date = new Date();
@@ -218,6 +218,19 @@
   let dragEventId: string | null = null;
   let dragOverKey: string | null = null;
   let rejectKey:   string | null = null;
+  let rejectTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Flash the invalid-drop style on a cell for 600 ms. */
+  function flashReject(key: string) {
+    if (rejectTimer) clearTimeout(rejectTimer);
+    rejectKey = key;
+    rejectTimer = setTimeout(() => { rejectKey = null; rejectTimer = null; }, 600);
+  }
+
+  /** Holiday/INSET cells can't accept drops — content there is hidden. */
+  function isDropRejected(day: SchoolDay): boolean {
+    return !!dayOverrideMap[day];
+  }
 
   function onChipDragStart(e: DragEvent, slot: TimetableSlot) {
     dragSlotId = slot.id;
@@ -234,6 +247,11 @@
   function onCellDragOver(e: DragEvent, day: SchoolDay, periodId: string) {
     if (!dragSlotId && !dragEventId) return;
     e.preventDefault();
+    if (isDropRejected(day)) {
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
+      dragOverKey = null;
+      return;
+    }
     if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
     dragOverKey = cellKey(day, periodId);
   }
@@ -246,6 +264,14 @@
   async function onCellDrop(e: DragEvent, day: SchoolDay, periodId: string) {
     e.preventDefault();
     dragOverKey = null;
+
+    // Reject drops onto holiday/INSET cells — anything dropped there would be hidden.
+    if (isDropRejected(day)) {
+      flashReject(cellKey(day, periodId));
+      dragSlotId = null;
+      dragEventId = null;
+      return;
+    }
 
     // Handle date event drop
     if (dragEventId) {
@@ -393,6 +419,7 @@
   import { onDestroy } from "svelte";
   onDestroy(() => {
     clearInterval(_nowInterval);
+    if (rejectTimer) clearTimeout(rejectTimer);
     document.removeEventListener("visibilitychange", _onVisibilityChange);
     plugin.app.workspace.offref(_cssChangeRef);
   });
@@ -570,7 +597,7 @@
 
   <!-- ── Timetable table ────────────────────────────────────────────────── -->
   <div class="tp-table-scroll">
-    <table class="tp-grid" style="--grid-colour:{plugin.settings.gridLineColour ?? '#555'}; --grid-weight:{plugin.settings.gridLineWeight ?? 1}px; --block-colour:{plugin.settings.blockBorderColour ?? '#444'}; --block-weight:{plugin.settings.blockBorderWeight ?? 1}px;">
+    <table class="tp-grid" style="--grid-colour:{colourToCss(plugin.settings.gridLineColour, '#555')}; --grid-weight:{plugin.settings.gridLineWeight ?? 1}px; --block-colour:{colourToCss(plugin.settings.blockBorderColour, '#444')}; --block-weight:{plugin.settings.blockBorderWeight ?? 1}px;">
       <colgroup>
         <col class="tp-col-time" />
         <col class="tp-col-period" />
