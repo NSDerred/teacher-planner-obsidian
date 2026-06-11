@@ -1040,13 +1040,15 @@
      min-height keeps the timetable height as the floor — blocks only grow. */
   .tp-block:hover {
     height:auto !important;
-    min-height:var(--bh, 20px);
+    min-height:max(var(--bh, 20px), 48px);
     z-index:30;
+    padding-bottom:6px;
     background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;
     box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);
     outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border));
   }
-  .tp-block:hover .tp-event-stack { position:relative; inset:auto; height:auto; margin:3px; }
+  .tp-block:hover .tp-event-stack { position:relative; inset:auto; height:auto; min-height:calc(var(--bh, 20px) - 6px); margin:3px; }
+  .tp-block:hover .tp-block-label { padding:4px 8px; }
   .tp-block:hover .tp-chip {
     container-type:normal;
     background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important;
