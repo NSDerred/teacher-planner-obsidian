@@ -41,7 +41,10 @@ Each lesson in the week view has a dedicated note in your vault, built from a fu
 Track your statutory directed time across the academic year against the STPCD 1,265-hour limit. The tracker counts timetabled lessons, directed-time activities, and date events, projects a year-end total, and excludes holidays and INSET days automatically. Supports part-time timetable fractions. Exports a detailed Excel report for union or management use. A plain-language guide note is created in your planner folder when the tracker is enabled.
 
 ### 📤 Export
-Export your timetable and planning data to Excel (`.xlsx`) for sharing, reporting, or archiving.
+Export your timetable and planning data to Excel (`.xlsx`) or CSV for sharing, reporting, or archiving — saved to your planner folder or anywhere on your computer.
+
+### 🗓️ Calendar (iCal) Export
+Export your planner as an iCal (`.ics`) file and import it into Google Calendar, Apple Calendar, or Outlook — your timetable on your phone, with rooms and class codes. Choose what to include (lessons & activities, date events, holidays & INSET as all-day events, breaks & registration), which days of the week, and the date range (defaults to today through to the end of the academic year). A/B week rotation, timetable changes, holidays, and moved lessons are all resolved exactly as they appear in the week view.
 
 ### 🏫 School Day Blocks
 Define the types of slot that make up your school day — Lesson, Break, Registration, Administration, or any custom type — and assign them to your periods. Each block type has its own colour used to shade the week view grid.

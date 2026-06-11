@@ -5,6 +5,22 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Calendar (iCal) export** — new `.ics` format in the export modal alongside Excel and CSV. Import your timetable into Google Calendar, Apple Calendar, or Outlook. Content toggles (lessons & activities, date events, holidays & INSET as all-day events, breaks & registration), a day-of-week selector, and a from/to date range defaulting to today → end of the academic year. A/B rotation, timetable template changes, holidays/INSET, slot exclusions, and moved lessons are resolved exactly as in the week view. No new dependencies — the generator is hand-rolled RFC 5545.
+
+### Fixed
+
+- Invalid drops onto holiday/INSET cells in the week view now flash red and are rejected instead of silently hiding the dropped item
+- Deleting a planner now flushes pending saves first, preventing stale data resurrecting the deleted planner
+- Dates are validated as real calendar dates (e.g. `2025-02-30` is rejected) in settings, the setup wizard, and Edit Planner
+- Periods must end after they start; date events outside the academic year warn that they won't count towards directed time
+- Overlapping holiday/INSET ranges are blocked in the wizard and warned about in settings — overlaps silently skewed directed-time counts
+- Emoji picker no longer leaks document-level event listeners; Escape now closes it
+- Removed a stray brace in `main.ts` that was silently disabling TypeScript checking
+
 ## [0.1.2] — 2026-05-30
 
 Documentation-only release addressing remaining scorecard warnings.
