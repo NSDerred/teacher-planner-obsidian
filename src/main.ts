@@ -198,6 +198,9 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.plannerData.planners.push(record);
     this.plannerData.activePlannerId = record.id;
     this.populateSettings();
+    // Initialise day schedules immediately (wizard-created planners would
+    // otherwise rely on the lazy fallback until settings opens).
+    try { ensureDaySchedules(this.settings.academicYear); } catch {}
     await this.ensurePlannerFolder(record.plannerFolder);
     await this.saveData(this.plannerData);
     this.refreshViews();

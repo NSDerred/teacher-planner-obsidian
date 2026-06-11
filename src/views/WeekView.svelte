@@ -820,12 +820,16 @@
   .tp-axis-override-label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); opacity:0.55; pointer-events:none; }
 
   /* Period blocks — positioned by time within the day column */
-  .tp-block { position:absolute; left:4px; right:4px; border:1px solid var(--background-modifier-border); border-radius:4px; box-sizing:border-box; overflow:hidden; transition:background 0.1s; z-index:2; }
+  .tp-block { position:absolute; left:4px; right:4px; border:1px solid var(--background-modifier-border); border-radius:4px; box-sizing:border-box; overflow:hidden; transition:background 0.1s; z-index:2; container-type:inline-size; container-name:block; }
   .tp-block--dragover { background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important; outline:2px dashed var(--interactive-accent); outline-offset:-2px; }
   .tp-block--reject   { background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important; transition:background 0s; }
-  .tp-block-label { display:flex; gap:6px; align-items:baseline; padding:2px 6px; pointer-events:none; }
-  .tp-block-name { font-size:11px; font-weight:700; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .tp-block-time { font-size:10px; color:var(--text-muted); opacity:0.8; white-space:nowrap; flex-shrink:0; }
+  .tp-block-label { display:flex; gap:6px; align-items:baseline; padding:2px 6px; pointer-events:none; min-width:0; }
+  /* Name always wins the space fight; time ellipsises, then disappears */
+  .tp-block-name { flex:0 0 auto; max-width:100%; font-size:11px; font-weight:700; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-block-time { flex:0 1 auto; min-width:0; font-size:10px; color:var(--text-muted); opacity:0.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  @container block (max-width: 140px) {
+    .tp-block-time { display:none; }
+  }
 
   /* Lesson chip */
   .tp-chip { position:absolute; inset:3px; border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; cursor:pointer; overflow:hidden; user-select:none; transition:filter 0.1s; box-sizing:border-box; color:var(--text-normal); container-type:size; container-name:chip; }

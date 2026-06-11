@@ -27884,6 +27884,7 @@ var init_SetupWizardModal = __esm({
     init_settings();
     init_themeColours();
     init_weekUtils();
+    init_scheduleUtils();
     init_TimetableEditorModal();
     init_SettingsTab();
     DAYS = [
@@ -27900,6 +27901,9 @@ var init_SetupWizardModal = __esm({
       constructor(app, plugin, isNewPlanner = false) {
         super(app);
         this.step = 1;
+        // ── Step 7: School periods ──────────────────────────────────────────────────
+        /** Schedule selected for editing in Step 7. */
+        this.wizScheduleId = null;
         this.plugin = plugin;
         this.isNewPlanner = isNewPlanner;
         const ay = DEFAULT_PLANNER.academicYear;
@@ -27923,7 +27927,8 @@ var init_SetupWizardModal = __esm({
           abWeekEnabled: false,
           abWeekStartsOn: "A",
           periodTypes: DEFAULT_SETTINGS.periodTypes.map((p) => ({ ...p })),
-          periods: ay.periods.map((p) => ({ ...p })),
+          daySchedules: [{ id: "schedule-standard", name: "Standard day", periods: ay.periods.map((p) => ({ ...p })) }],
+          dayScheduleMap: {},
           subjects: [],
           classes: []
         };
@@ -28367,18 +28372,97 @@ var init_SetupWizardModal = __esm({
         this.footer(body, () => {
         });
       }
-      // ── Step 7: School periods ──────────────────────────────────────────────────
+      wizSelectedSchedule() {
+        const found = this.state.daySchedules.find((s) => s.id === this.wizScheduleId);
+        if (found) return found;
+        this.wizScheduleId = this.state.daySchedules[0].id;
+        return this.state.daySchedules[0];
+      }
       renderStep7(body) {
         this.stepHeading(
           body,
           7,
           "School periods",
-          "Your default periods are pre-loaded. Add, edit or remove them now \u2014 you can always change these in settings later."
+          "Your default periods are pre-loaded into the Standard day. If some days are shaped differently \u2014 a sports afternoon, a half-day Saturday \u2014 add another day schedule and assign those days to it. Everything can be changed in settings later."
         );
+        const barEl = body.createDiv("tp-wizard-schedule-bar");
         const listEl = body.createDiv("tp-wizard-period-list");
+        const renderBar = () => {
+          var _a, _b;
+          barEl.empty();
+          const sel = this.wizSelectedSchedule();
+          const bar = new import_obsidian9.Setting(barEl).setName("Day schedule").setDesc("Choose a schedule to edit. Click a day below to make it use the selected schedule.");
+          bar.addDropdown((d) => {
+            for (const sch of this.state.daySchedules) d.addOption(sch.id, sch.name);
+            d.setValue(sel.id);
+            d.onChange((v) => {
+              this.wizScheduleId = v;
+              renderBar();
+              renderList();
+            });
+          });
+          bar.addExtraButton((b) => b.setIcon("pencil").setTooltip("Rename schedule").onClick(() => {
+            new TextPromptModal(this.app, "Rename day schedule", sel.name, "Schedule name", (name) => {
+              sel.name = name;
+              renderBar();
+            }).open();
+          }));
+          bar.addExtraButton((b) => b.setIcon("plus").setTooltip("New day schedule").onClick(() => {
+            new TextPromptModal(this.app, "New day schedule", "", "e.g. Saturday, Sports day", (name) => {
+              const sch = { id: "schedule-" + Date.now(), name, periods: [] };
+              this.state.daySchedules.push(sch);
+              this.wizScheduleId = sch.id;
+              renderBar();
+              renderList();
+            }).open();
+          }));
+          bar.addExtraButton((b) => b.setIcon("trash").setTooltip("Delete schedule").onClick(() => {
+            if (this.state.daySchedules.length <= 1) {
+              new import_obsidian9.Notice("At least one day schedule is required.");
+              return;
+            }
+            if (!confirm(`Delete schedule "${sel.name}"? Days using it fall back to the first schedule.`)) return;
+            this.state.daySchedules = this.state.daySchedules.filter((s) => s.id !== sel.id);
+            for (const key of Object.keys(this.state.dayScheduleMap)) {
+              if (this.state.dayScheduleMap[key] === sel.id) delete this.state.dayScheduleMap[key];
+            }
+            this.wizScheduleId = this.state.daySchedules[0].id;
+            renderBar();
+            renderList();
+          }));
+          const pillRow = barEl.createDiv("tp-schedule-days");
+          for (const { key, label } of DAYS) {
+            if (!this.state.schoolDays.includes(key)) continue;
+            const mappedId = this.state.dayScheduleMap[key];
+            const dayId = (_b = (_a = this.state.daySchedules.find((s) => s.id === mappedId)) == null ? void 0 : _a.id) != null ? _b : this.state.daySchedules[0].id;
+            const active = dayId === sel.id;
+            const pill = pillRow.createEl("button", { text: label, cls: "tp-schedule-day-pill" });
+            if (active) pill.addClass("tp-schedule-day-pill--active");
+            pill.title = active ? `${label} uses "${sel.name}"` : `Click to use "${sel.name}" on ${label}`;
+            pill.addEventListener("click", () => {
+              if (this.state.daySchedules.length < 2) {
+                new import_obsidian9.Notice("All days use the only schedule. Click + to create a second schedule first.");
+                return;
+              }
+              if (active) {
+                new import_obsidian9.Notice(`${label} already uses "${sel.name}". Select a different schedule to move it.`);
+                return;
+              }
+              this.state.dayScheduleMap[key] = sel.id;
+              renderBar();
+            });
+          }
+          if (this.state.daySchedules.length < 2) {
+            barEl.createEl("p", {
+              text: "All days currently use this schedule. Click + above to add e.g. a Saturday schedule, then click a day pill to assign it.",
+              cls: "setting-item-description"
+            });
+          }
+        };
         const renderList = () => {
           listEl.empty();
-          for (const p of this.state.periods) {
+          const sched = this.wizSelectedSchedule();
+          for (const p of sched.periods) {
             const s = new import_obsidian9.Setting(listEl).setName(p.name).setDesc(`${p.start} \u2013 ${p.end}`);
             s.addText((t) => {
               t.setPlaceholder("Name").setValue(p.name);
@@ -28416,26 +28500,28 @@ var init_SetupWizardModal = __esm({
               });
             });
             s.addExtraButton((btn) => btn.setIcon("trash").setTooltip("Remove").onClick(() => {
-              this.state.periods = this.state.periods.filter((x) => x.id !== p.id);
+              sched.periods = sched.periods.filter((x) => x.id !== p.id);
               renderList();
             }));
           }
           new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
             var _a, _b, _c;
             const defaultType = (_c = (_b = (_a = this.state.periodTypes) == null ? void 0 : _a[0]) == null ? void 0 : _b.id) != null ? _c : "lesson";
-            this.state.periods.push({ id: "p-" + Date.now(), name: "New Period", start: "09:00", end: "10:00", type: defaultType });
+            sched.periods.push({ id: "p-" + Date.now(), name: "New Period", start: "09:00", end: "10:00", type: defaultType });
             renderList();
           })).addButton((btn) => btn.setButtonText("Clear all").setWarning().onClick(() => {
-            if (this.state.periods.length === 0) return;
-            if (!confirm("Remove all school periods?")) return;
-            this.state.periods = [];
+            if (sched.periods.length === 0) return;
+            if (!confirm(`Remove all periods from "${sched.name}"?`)) return;
+            sched.periods = [];
             renderList();
           }));
         };
+        renderBar();
         renderList();
         this.footer(body, () => {
-          if (this.state.periods.length === 0) {
-            new import_obsidian9.Notice("Add at least one period.");
+          const empty2 = this.state.daySchedules.find((s) => s.periods.length === 0);
+          if (empty2) {
+            new import_obsidian9.Notice(`Schedule "${empty2.name}" has no periods \u2014 add at least one or delete the schedule.`);
             return false;
           }
         });
@@ -28581,7 +28667,7 @@ var init_SetupWizardModal = __esm({
       }
       // ── Step 10: Summary ────────────────────────────────────────────────────────
       renderStep10(body) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         this.stepHeading(body, 10, "All done!", "Your planner is ready. Here\u2019s a summary of what was set up.");
         const summary = body.createDiv("tp-wizard-summary");
         const row = (label, value) => {
@@ -28598,7 +28684,7 @@ var init_SetupWizardModal = __esm({
         row("Directed time", (dt == null ? void 0 : dt.enabled) ? `Enabled \u2014 ${(dt.contractedHours * dt.timetablePercentage / 100).toFixed(0)}h effective` : "Disabled");
         row("Holidays / INSET", `${s.weekOverrides.length} range${s.weekOverrides.length !== 1 ? "s" : ""} marked`);
         row("Block types", `${((_c = s.periodTypes) != null ? _c : []).length} defined`);
-        row("Periods", `${s.academicYear.periods.length} periods defined`);
+        row("Day schedules", ((_d = s.academicYear.daySchedules) != null ? _d : []).map((d) => `${d.name} (${d.periods.length})`).join(" \xB7 ") || `${s.academicYear.periods.length} periods`);
         row("Subjects", `${s.subjects.length} subject${s.subjects.length !== 1 ? "s" : ""}`);
         row("Classes", `${s.classes.length} class group${s.classes.length !== 1 ? "s" : ""}`);
         row("Planner folder", s.plannerFolder);
@@ -28624,7 +28710,7 @@ var init_SetupWizardModal = __esm({
             name: this.state.name,
             startDate: this.state.startDate,
             endDate: this.state.endDate,
-            periods: this.state.periods,
+            periods: [],
             abWeekEnabled: this.state.abWeekEnabled,
             abWeekStartsOn: this.state.abWeekStartsOn
           },
@@ -28648,6 +28734,9 @@ var init_SetupWizardModal = __esm({
             slots: []
           }]
         };
+        record.academicYear.daySchedules = this.state.daySchedules;
+        record.academicYear.dayScheduleMap = this.state.dayScheduleMap;
+        syncPeriodsUnion(record.academicYear);
         await this.plugin.createPlanner(record);
         if (this.state.directedTimeEnabled) {
           await this.createDirectedTimeGuideNote(plannerFolder);
@@ -28863,6 +28952,7 @@ __export(SettingsTab_exports, {
   ColourPickerModal: () => ColourPickerModal,
   SUBJECT_EMOJIS: () => SUBJECT_EMOJIS2,
   TeacherPlannerSettingTab: () => TeacherPlannerSettingTab,
+  TextPromptModal: () => TextPromptModal,
   closeEmojiPicker: () => closeEmojiPicker,
   openEmojiPicker: () => openEmojiPicker
 });
@@ -30525,7 +30615,7 @@ init_themeColours();
 init_scheduleUtils();
 init_runtime();
 function add_css3(target) {
-  append_styles(target, "svelte-9d2exk", ".tp-week-view.svelte-9d2exk.svelte-9d2exk{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-9d2exk.svelte-9d2exk{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-9d2exk.svelte-9d2exk{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-9d2exk.svelte-9d2exk{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-9d2exk.svelte-9d2exk{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-9d2exk.svelte-9d2exk{display:flex;gap:4px}.tp-nav-arrow.svelte-9d2exk.svelte-9d2exk{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-9d2exk.svelte-9d2exk{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-9d2exk.svelte-9d2exk{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-9d2exk.svelte-9d2exk{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-9d2exk.svelte-9d2exk{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-9d2exk.svelte-9d2exk{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-9d2exk.svelte-9d2exk:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-9d2exk.svelte-9d2exk:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-9d2exk.svelte-9d2exk{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-9d2exk.svelte-9d2exk:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-9d2exk svg,.tp-btn-icon.svelte-9d2exk svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-9d2exk.svelte-9d2exk{padding:5px 8px}.tp-action-btn--icon-only.svelte-9d2exk svg{width:15px;height:15px}.tp-overflow-btn.svelte-9d2exk.svelte-9d2exk{display:none}.tp-table-scroll.svelte-9d2exk.svelte-9d2exk{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-9d2exk.svelte-9d2exk{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-9d2exk.svelte-9d2exk{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-9d2exk.svelte-9d2exk{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-9d2exk.svelte-9d2exk{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-9d2exk.svelte-9d2exk{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-9d2exk.svelte-9d2exk{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-9d2exk.svelte-9d2exk{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-9d2exk.svelte-9d2exk{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-9d2exk.svelte-9d2exk{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-9d2exk.svelte-9d2exk{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-9d2exk.svelte-9d2exk{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-9d2exk.svelte-9d2exk{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-9d2exk.svelte-9d2exk{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-9d2exk.svelte-9d2exk{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-9d2exk.svelte-9d2exk{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0}.tp-axis-gutter.svelte-9d2exk.svelte-9d2exk{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-9d2exk.svelte-9d2exk{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-9d2exk.svelte-9d2exk{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-9d2exk.svelte-9d2exk{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-9d2exk.svelte-9d2exk{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-9d2exk.svelte-9d2exk{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-9d2exk.svelte-9d2exk{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-block.svelte-9d2exk.svelte-9d2exk{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2}.tp-block--dragover.svelte-9d2exk.svelte-9d2exk{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-9d2exk.svelte-9d2exk{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-9d2exk.svelte-9d2exk{display:flex;gap:6px;align-items:baseline;padding:2px 6px;pointer-events:none}.tp-block-name.svelte-9d2exk.svelte-9d2exk{font-size:11px;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-9d2exk.svelte-9d2exk{font-size:10px;color:var(--text-muted);opacity:0.8;white-space:nowrap;flex-shrink:0}.tp-chip.svelte-9d2exk.svelte-9d2exk{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-9d2exk.svelte-9d2exk:hover{filter:brightness(1.08)}.tp-chip-code.svelte-9d2exk.svelte-9d2exk{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-9d2exk.svelte-9d2exk{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-9d2exk.svelte-9d2exk{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-9d2exk.svelte-9d2exk{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-9d2exk.svelte-9d2exk,.tp-chip-notes.svelte-9d2exk.svelte-9d2exk{display:none}.tp-chip-code.svelte-9d2exk.svelte-9d2exk{font-size:13px}.tp-chip-room.svelte-9d2exk.svelte-9d2exk{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-9d2exk.svelte-9d2exk{font-size:12px}.tp-chip-room.svelte-9d2exk.svelte-9d2exk{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-9d2exk.svelte-9d2exk{display:none}.tp-chip-code.svelte-9d2exk.svelte-9d2exk{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-9d2exk.svelte-9d2exk{font-size:13px}.tp-chip-room.svelte-9d2exk.svelte-9d2exk{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-9d2exk.svelte-9d2exk{font-size:11px}.tp-chip-room.svelte-9d2exk.svelte-9d2exk{font-size:9px}}.tp-now-line.svelte-9d2exk.svelte-9d2exk{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-badge.svelte-9d2exk.svelte-9d2exk{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-9d2exk.svelte-9d2exk{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-9d2exk .tp-chip.svelte-9d2exk{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-9d2exk.svelte-9d2exk{display:none}@container (max-width: 680px){.tp-action-btn.svelte-9d2exk.svelte-9d2exk{display:none}.tp-overflow-btn.svelte-9d2exk.svelte-9d2exk{display:inline-flex !important}.tp-header.svelte-9d2exk.svelte-9d2exk{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-9d2exk.svelte-9d2exk{justify-content:center}.tp-header-identity.svelte-9d2exk.svelte-9d2exk{min-width:0;overflow:hidden}.tp-week-label.svelte-9d2exk.svelte-9d2exk{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-9d2exk.svelte-9d2exk{display:none}.tp-axis-head-day.svelte-9d2exk.svelte-9d2exk{padding:5px 2px}.tp-day-name.svelte-9d2exk.svelte-9d2exk{font-size:12px}.tp-day-date.svelte-9d2exk.svelte-9d2exk{font-size:10px}.tp-day-override-badge.svelte-9d2exk.svelte-9d2exk{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-9d2exk.svelte-9d2exk{min-width:440px}.tp-axis-head-gutter.svelte-9d2exk.svelte-9d2exk,.tp-axis-gutter.svelte-9d2exk.svelte-9d2exk{width:30px}.tp-axis-hour.svelte-9d2exk.svelte-9d2exk{right:3px;font-size:9px}.tp-block-time.svelte-9d2exk.svelte-9d2exk{display:none}.tp-day-name.svelte-9d2exk.svelte-9d2exk{font-size:11px}.tp-day-date.svelte-9d2exk.svelte-9d2exk{font-size:10px}}");
+  append_styles(target, "svelte-w1cb13", ".tp-week-view.svelte-w1cb13.svelte-w1cb13{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-w1cb13.svelte-w1cb13{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-w1cb13.svelte-w1cb13{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-w1cb13.svelte-w1cb13{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-w1cb13.svelte-w1cb13{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-w1cb13.svelte-w1cb13{display:flex;gap:4px}.tp-nav-arrow.svelte-w1cb13.svelte-w1cb13{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-w1cb13.svelte-w1cb13{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-w1cb13.svelte-w1cb13{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-w1cb13.svelte-w1cb13{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-w1cb13.svelte-w1cb13{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-w1cb13.svelte-w1cb13{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-w1cb13.svelte-w1cb13:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-w1cb13.svelte-w1cb13:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-w1cb13.svelte-w1cb13{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-w1cb13.svelte-w1cb13:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-w1cb13 svg,.tp-btn-icon.svelte-w1cb13 svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-w1cb13.svelte-w1cb13{padding:5px 8px}.tp-action-btn--icon-only.svelte-w1cb13 svg{width:15px;height:15px}.tp-overflow-btn.svelte-w1cb13.svelte-w1cb13{display:none}.tp-table-scroll.svelte-w1cb13.svelte-w1cb13{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-w1cb13.svelte-w1cb13{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-w1cb13.svelte-w1cb13{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-w1cb13.svelte-w1cb13{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-w1cb13.svelte-w1cb13{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-w1cb13.svelte-w1cb13{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-w1cb13.svelte-w1cb13{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-w1cb13.svelte-w1cb13{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-w1cb13.svelte-w1cb13{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-w1cb13.svelte-w1cb13{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-w1cb13.svelte-w1cb13{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-w1cb13.svelte-w1cb13{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-w1cb13.svelte-w1cb13{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-w1cb13.svelte-w1cb13{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-w1cb13.svelte-w1cb13{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-w1cb13.svelte-w1cb13{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0}.tp-axis-gutter.svelte-w1cb13.svelte-w1cb13{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-w1cb13.svelte-w1cb13{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-w1cb13.svelte-w1cb13{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-w1cb13.svelte-w1cb13{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-w1cb13.svelte-w1cb13{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-w1cb13.svelte-w1cb13{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-w1cb13.svelte-w1cb13{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-block.svelte-w1cb13.svelte-w1cb13{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block--dragover.svelte-w1cb13.svelte-w1cb13{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-w1cb13.svelte-w1cb13{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-w1cb13.svelte-w1cb13{display:flex;gap:6px;align-items:baseline;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-w1cb13.svelte-w1cb13{flex:0 0 auto;max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-w1cb13.svelte-w1cb13{flex:0 1 auto;min-width:0;font-size:10px;color:var(--text-muted);opacity:0.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@container block (max-width: 140px){.tp-block-time.svelte-w1cb13.svelte-w1cb13{display:none}}.tp-chip.svelte-w1cb13.svelte-w1cb13{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-w1cb13.svelte-w1cb13:hover{filter:brightness(1.08)}.tp-chip-code.svelte-w1cb13.svelte-w1cb13{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-w1cb13.svelte-w1cb13{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-w1cb13.svelte-w1cb13{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-w1cb13.svelte-w1cb13{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-w1cb13.svelte-w1cb13,.tp-chip-notes.svelte-w1cb13.svelte-w1cb13{display:none}.tp-chip-code.svelte-w1cb13.svelte-w1cb13{font-size:13px}.tp-chip-room.svelte-w1cb13.svelte-w1cb13{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-w1cb13.svelte-w1cb13{font-size:12px}.tp-chip-room.svelte-w1cb13.svelte-w1cb13{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-w1cb13.svelte-w1cb13{display:none}.tp-chip-code.svelte-w1cb13.svelte-w1cb13{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-w1cb13.svelte-w1cb13{font-size:13px}.tp-chip-room.svelte-w1cb13.svelte-w1cb13{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-w1cb13.svelte-w1cb13{font-size:11px}.tp-chip-room.svelte-w1cb13.svelte-w1cb13{font-size:9px}}.tp-now-line.svelte-w1cb13.svelte-w1cb13{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-badge.svelte-w1cb13.svelte-w1cb13{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-w1cb13.svelte-w1cb13{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-w1cb13 .tp-chip.svelte-w1cb13{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-w1cb13.svelte-w1cb13{display:none}@container (max-width: 680px){.tp-action-btn.svelte-w1cb13.svelte-w1cb13{display:none}.tp-overflow-btn.svelte-w1cb13.svelte-w1cb13{display:inline-flex !important}.tp-header.svelte-w1cb13.svelte-w1cb13{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-w1cb13.svelte-w1cb13{justify-content:center}.tp-header-identity.svelte-w1cb13.svelte-w1cb13{min-width:0;overflow:hidden}.tp-week-label.svelte-w1cb13.svelte-w1cb13{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-w1cb13.svelte-w1cb13{display:none}.tp-axis-head-day.svelte-w1cb13.svelte-w1cb13{padding:5px 2px}.tp-day-name.svelte-w1cb13.svelte-w1cb13{font-size:12px}.tp-day-date.svelte-w1cb13.svelte-w1cb13{font-size:10px}.tp-day-override-badge.svelte-w1cb13.svelte-w1cb13{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-w1cb13.svelte-w1cb13{min-width:440px}.tp-axis-head-gutter.svelte-w1cb13.svelte-w1cb13,.tp-axis-gutter.svelte-w1cb13.svelte-w1cb13{width:30px}.tp-axis-hour.svelte-w1cb13.svelte-w1cb13{right:3px;font-size:9px}.tp-block-time.svelte-w1cb13.svelte-w1cb13{display:none}.tp-day-name.svelte-w1cb13.svelte-w1cb13{font-size:11px}.tp-day-date.svelte-w1cb13.svelte-w1cb13{font-size:10px}}");
 }
 function get_each_context3(ctx, list, i) {
   const child_ctx = ctx.slice();
@@ -30689,7 +30779,7 @@ function create_if_block_142(ctx) {
         ctx[4]
       );
       attr(span, "class", span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx[4].toLowerCase() + " svelte-9d2exk");
+      ctx[4].toLowerCase() + " svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -30705,7 +30795,7 @@ function create_if_block_142(ctx) {
       );
       if (dirty[0] & /*abWeekType*/
       16 && span_class_value !== (span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx2[4].toLowerCase() + " svelte-9d2exk")) {
+      ctx2[4].toLowerCase() + " svelte-w1cb13")) {
         attr(span, "class", span_class_value);
       }
     },
@@ -30722,7 +30812,7 @@ function create_if_block_132(ctx) {
     c() {
       span = element("span");
       span.textContent = "Inset";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-9d2exk");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -30740,7 +30830,7 @@ function create_if_block_122(ctx) {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-9d2exk");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -30798,11 +30888,11 @@ function create_each_block_52(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-name svelte-9d2exk");
-      attr(span1, "class", "tp-day-date svelte-9d2exk");
-      attr(span2, "class", "tp-day-label svelte-9d2exk");
-      attr(div0, "class", "tp-th-day-inner svelte-9d2exk");
-      attr(div1, "class", "tp-axis-head-day svelte-9d2exk");
+      attr(span0, "class", "tp-day-name svelte-w1cb13");
+      attr(span1, "class", "tp-day-date svelte-w1cb13");
+      attr(span2, "class", "tp-day-label svelte-w1cb13");
+      attr(div0, "class", "tp-th-day-inner svelte-w1cb13");
+      attr(div1, "class", "tp-axis-head-day svelte-w1cb13");
       toggle_class(div1, "tp-th-day--today", isToday(
         /*day*/
         ctx[97].offset,
@@ -30903,7 +30993,7 @@ function create_each_block_42(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-hour svelte-9d2exk");
+      attr(div, "class", "tp-axis-hour svelte-w1cb13");
       set_style(
         div,
         "top",
@@ -30950,7 +31040,7 @@ function create_if_block_112(ctx) {
         /*currentTimeStr*/
         ctx[10]
       );
-      attr(div, "class", "tp-now-badge svelte-9d2exk");
+      attr(div, "class", "tp-now-badge svelte-w1cb13");
       set_style(
         div,
         "top",
@@ -30991,7 +31081,7 @@ function create_each_block_32(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-axis-line svelte-9d2exk");
+      attr(div, "class", "tp-axis-line svelte-w1cb13");
       set_style(
         div,
         "top",
@@ -31127,7 +31217,7 @@ function create_if_block3(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-override-label svelte-9d2exk");
+      attr(div, "class", "tp-axis-override-label svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -31176,9 +31266,9 @@ function create_if_block_102(ctx) {
       t2 = text(t2_value);
       t3 = text("\u2013");
       t4 = text(t4_value);
-      attr(span0, "class", "tp-block-name svelte-9d2exk");
-      attr(span1, "class", "tp-block-time svelte-9d2exk");
-      attr(div, "class", "tp-block-label svelte-9d2exk");
+      attr(span0, "class", "tp-block-name svelte-w1cb13");
+      attr(span1, "class", "tp-block-time svelte-w1cb13");
+      attr(div, "class", "tp-block-label svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -31280,7 +31370,7 @@ function create_if_block_24(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-event-stack svelte-9d2exk");
+      attr(div, "class", "tp-event-stack svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -31389,8 +31479,8 @@ function create_if_block_62(ctx) {
       if (if_block1) if_block1.c();
       t3 = space();
       if (if_block2) if_block2.c();
-      attr(span, "class", "tp-chip-code svelte-9d2exk");
-      attr(div, "class", "tp-chip svelte-9d2exk");
+      attr(span, "class", "tp-chip-code svelte-w1cb13");
+      attr(div, "class", "tp-chip svelte-w1cb13");
       attr(div, "draggable", "true");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
@@ -31522,7 +31612,7 @@ function create_if_block_92(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-9d2exk");
+      attr(span, "class", "tp-chip-meta svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -31555,7 +31645,7 @@ function create_if_block_82(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-9d2exk");
+      attr(span, "class", "tp-chip-room svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -31584,7 +31674,7 @@ function create_if_block_72(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-9d2exk");
+      attr(span, "class", "tp-chip-notes svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -31613,7 +31703,7 @@ function create_if_block_52(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-9d2exk");
+      attr(span, "class", "tp-chip-meta svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -31642,7 +31732,7 @@ function create_if_block_42(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-9d2exk");
+      attr(span, "class", "tp-chip-room svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -31671,7 +31761,7 @@ function create_if_block_32(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-9d2exk");
+      attr(span, "class", "tp-chip-notes svelte-w1cb13");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -31751,8 +31841,8 @@ function create_each_block_22(key_2, ctx) {
       if (if_block1) if_block1.c();
       t3 = space();
       if (if_block2) if_block2.c();
-      attr(span, "class", "tp-chip-code svelte-9d2exk");
-      attr(div, "class", "tp-chip tp-chip--event svelte-9d2exk");
+      attr(span, "class", "tp-chip-code svelte-w1cb13");
+      attr(div, "class", "tp-chip tp-chip--event svelte-w1cb13");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
       attr(div, "draggable", "true");
@@ -31921,7 +32011,7 @@ function create_each_block_13(key_2, ctx) {
       if (if_block0) if_block0.c();
       t = space();
       if_block1.c();
-      attr(div, "class", "tp-block svelte-9d2exk");
+      attr(div, "class", "tp-block svelte-w1cb13");
       set_style(
         div,
         "top",
@@ -32072,7 +32162,7 @@ function create_if_block_110(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-now-line svelte-9d2exk");
+      attr(div, "class", "tp-now-line svelte-w1cb13");
       set_style(
         div,
         "top",
@@ -32131,7 +32221,7 @@ function create_each_block3(ctx) {
       t0 = space();
       if_block.c();
       t1 = space();
-      attr(div, "class", "tp-axis-col svelte-9d2exk");
+      attr(div, "class", "tp-axis-col svelte-w1cb13");
       set_style(
         div,
         "height",
@@ -32381,43 +32471,43 @@ function create_fragment3(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(span0, "class", "tp-week-label svelte-9d2exk");
-      attr(span1, "class", "tp-date-range svelte-9d2exk");
-      attr(div0, "class", "tp-header-identity svelte-9d2exk");
-      attr(button0, "class", "tp-btn tp-nav-arrow svelte-9d2exk");
+      attr(span0, "class", "tp-week-label svelte-w1cb13");
+      attr(span1, "class", "tp-date-range svelte-w1cb13");
+      attr(div0, "class", "tp-header-identity svelte-w1cb13");
+      attr(button0, "class", "tp-btn tp-nav-arrow svelte-w1cb13");
       attr(button0, "aria-label", "Previous week");
       button0.disabled = button0_disabled_value = !/*canGoPrev*/
       ctx[9];
-      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-9d2exk");
-      attr(button2, "class", "tp-btn tp-nav-arrow svelte-9d2exk");
+      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-w1cb13");
+      attr(button2, "class", "tp-btn tp-nav-arrow svelte-w1cb13");
       attr(button2, "aria-label", "Next week");
       button2.disabled = button2_disabled_value = !/*canGoNext*/
       ctx[8];
-      attr(nav, "class", "tp-nav svelte-9d2exk");
+      attr(nav, "class", "tp-nav svelte-w1cb13");
       attr(nav, "aria-label", "Week navigation");
-      attr(span2, "class", "tp-btn-icon svelte-9d2exk");
-      attr(button3, "class", "tp-btn tp-action-btn svelte-9d2exk");
+      attr(span2, "class", "tp-btn-icon svelte-w1cb13");
+      attr(button3, "class", "tp-btn tp-action-btn svelte-w1cb13");
       attr(button3, "aria-label", "Add event");
-      attr(span3, "class", "tp-btn-icon svelte-9d2exk");
-      attr(button4, "class", "tp-btn tp-action-btn svelte-9d2exk");
+      attr(span3, "class", "tp-btn-icon svelte-w1cb13");
+      attr(button4, "class", "tp-btn tp-action-btn svelte-w1cb13");
       attr(button4, "aria-label", "Edit timetable");
-      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-9d2exk");
+      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-w1cb13");
       attr(button5, "aria-label", "Settings");
-      attr(button6, "class", "tp-btn tp-overflow-btn svelte-9d2exk");
+      attr(button6, "class", "tp-btn tp-overflow-btn svelte-w1cb13");
       attr(button6, "aria-label", "More options");
-      attr(div1, "class", "tp-header-actions svelte-9d2exk");
-      attr(header, "class", "tp-header svelte-9d2exk");
-      attr(div2, "class", "tp-axis-head-gutter svelte-9d2exk");
-      attr(div3, "class", "tp-axis-head svelte-9d2exk");
-      attr(div4, "class", "tp-axis-gutter svelte-9d2exk");
+      attr(div1, "class", "tp-header-actions svelte-w1cb13");
+      attr(header, "class", "tp-header svelte-w1cb13");
+      attr(div2, "class", "tp-axis-head-gutter svelte-w1cb13");
+      attr(div3, "class", "tp-axis-head svelte-w1cb13");
+      attr(div4, "class", "tp-axis-gutter svelte-w1cb13");
       set_style(
         div4,
         "height",
         /*axisHeight*/
         ctx[15] + "px"
       );
-      attr(div5, "class", "tp-axis-body svelte-9d2exk");
-      attr(div6, "class", "tp-axis svelte-9d2exk");
+      attr(div5, "class", "tp-axis-body svelte-w1cb13");
+      attr(div6, "class", "tp-axis svelte-w1cb13");
       set_style(div6, "--grid-colour", colourToCss(
         /*plugin*/
         ctx[0].settings.gridLineColour,
@@ -32440,8 +32530,8 @@ function create_fragment3(ctx) {
         /*plugin*/
         ((_b = ctx[0].settings.blockBorderWeight) != null ? _b : 1) + "px"
       );
-      attr(div7, "class", "tp-table-scroll svelte-9d2exk");
-      attr(div8, "class", "tp-week-view svelte-9d2exk");
+      attr(div7, "class", "tp-table-scroll svelte-w1cb13");
+      attr(div8, "class", "tp-week-view svelte-w1cb13");
       attr(div8, "data-tp-theme", div8_data_tp_theme_value = /*plugin*/
       (_c = ctx[0].settings.theme) != null ? _c : "carbon");
       attr(div8, "data-tp-mode", div8_data_tp_mode_value = /*plugin*/
@@ -35505,6 +35595,10 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian1
     this.plannerData.planners.push(record);
     this.plannerData.activePlannerId = record.id;
     this.populateSettings();
+    try {
+      ensureDaySchedules(this.settings.academicYear);
+    } catch (e) {
+    }
     await this.ensurePlannerFolder(record.plannerFolder);
     await this.saveData(this.plannerData);
     this.refreshViews();

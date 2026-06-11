@@ -2,13 +2,14 @@ import { App, Modal, Notice, Setting, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type {
   PlannerRecord, SchoolPeriod, Subject, ClassGroup, SchoolDay,
-  WeekOverride, PeriodTypeConfig, Activity,
+  WeekOverride, PeriodTypeConfig, Activity, DaySchedule,
 } from "../types";
 import { DEFAULT_PLANNER, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, FALLBACK_PERIOD_TYPE_COLOUR } from "../settings";
 import { resolveColour } from "../utils/themeColours";
 import { isValidIsoDate, findOverlappingOverrides } from "../utils/weekUtils";
+import { syncPeriodsUnion } from "../utils/scheduleUtils";
 import { TimetableEditorModal } from "./TimetableEditorModal";
-import { openEmojiPicker, closeEmojiPicker, SUBJECT_EMOJIS } from "../settings/SettingsTab";
+import { openEmojiPicker, closeEmojiPicker, SUBJECT_EMOJIS, TextPromptModal } from "../settings/SettingsTab";
 
 // ── Wizard state ───────────────────────────────────────────────────────────────
 
@@ -26,7 +27,8 @@ interface WizardState {
   abWeekEnabled: boolean;
   abWeekStartsOn: "A" | "B";
   periodTypes: PeriodTypeConfig[];
-  periods: SchoolPeriod[];
+  daySchedules: DaySchedule[];
+  dayScheduleMap: Partial<Record<SchoolDay, string>>;
   subjects: Subject[];
   classes: ClassGroup[];
 }
@@ -74,7 +76,8 @@ export class SetupWizardModal extends Modal {
       abWeekEnabled:                false,
       abWeekStartsOn:               "A",
       periodTypes:                  DEFAULT_SETTINGS.periodTypes.map(p => ({ ...p })),
-      periods:                      ay.periods.map(p => ({ ...p })),
+      daySchedules:                 [{ id: "schedule-standard", name: "Standard day", periods: ay.periods.map(p => ({ ...p })) }],
+      dayScheduleMap:               {},
       subjects:                     [],
       classes:                      [],
     };
@@ -529,16 +532,94 @@ export class SetupWizardModal extends Modal {
 
   // ── Step 7: School periods ──────────────────────────────────────────────────
 
+  /** Schedule selected for editing in Step 7. */
+  private wizScheduleId: string | null = null;
+
+  private wizSelectedSchedule(): DaySchedule {
+    const found = this.state.daySchedules.find(s => s.id === this.wizScheduleId);
+    if (found) return found;
+    this.wizScheduleId = this.state.daySchedules[0].id;
+    return this.state.daySchedules[0];
+  }
+
   private renderStep7(body: HTMLElement) {
     this.stepHeading(body, 7, "School periods",
-      "Your default periods are pre-loaded. Add, edit or remove them now — you can always change these in settings later.");
+      "Your default periods are pre-loaded into the Standard day. If some days are shaped differently — a sports afternoon, a half-day Saturday — add another day schedule and assign those days to it. Everything can be changed in settings later.");
 
+    const barEl  = body.createDiv("tp-wizard-schedule-bar");
     const listEl = body.createDiv("tp-wizard-period-list");
+
+    const renderBar = () => {
+      barEl.empty();
+      const sel = this.wizSelectedSchedule();
+
+      const bar = new Setting(barEl)
+        .setName("Day schedule")
+        .setDesc("Choose a schedule to edit. Click a day below to make it use the selected schedule.");
+      bar.addDropdown(d => {
+        for (const sch of this.state.daySchedules) d.addOption(sch.id, sch.name);
+        d.setValue(sel.id);
+        d.onChange(v => { this.wizScheduleId = v; renderBar(); renderList(); });
+      });
+      bar.addExtraButton(b => b.setIcon("pencil").setTooltip("Rename schedule").onClick(() => {
+        new TextPromptModal(this.app, "Rename day schedule", sel.name, "Schedule name", (name) => {
+          sel.name = name;
+          renderBar();
+        }).open();
+      }));
+      bar.addExtraButton(b => b.setIcon("plus").setTooltip("New day schedule").onClick(() => {
+        new TextPromptModal(this.app, "New day schedule", "", "e.g. Saturday, Sports day", (name) => {
+          const sch: DaySchedule = { id: "schedule-" + Date.now(), name, periods: [] };
+          this.state.daySchedules.push(sch);
+          this.wizScheduleId = sch.id;
+          renderBar();
+          renderList();
+        }).open();
+      }));
+      bar.addExtraButton(b => b.setIcon("trash").setTooltip("Delete schedule").onClick(() => {
+        if (this.state.daySchedules.length <= 1) { new Notice("At least one day schedule is required."); return; }
+        if (!confirm(`Delete schedule "${sel.name}"? Days using it fall back to the first schedule.`)) return;
+        this.state.daySchedules = this.state.daySchedules.filter(s => s.id !== sel.id);
+        for (const key of Object.keys(this.state.dayScheduleMap)) {
+          if ((this.state.dayScheduleMap as any)[key] === sel.id) delete (this.state.dayScheduleMap as any)[key];
+        }
+        this.wizScheduleId = this.state.daySchedules[0].id;
+        renderBar();
+        renderList();
+      }));
+
+      const pillRow = barEl.createDiv("tp-schedule-days");
+      for (const { key, label } of DAYS) {
+        if (!this.state.schoolDays.includes(key)) continue;
+        const mappedId = this.state.dayScheduleMap[key];
+        const dayId = this.state.daySchedules.find(s => s.id === mappedId)?.id ?? this.state.daySchedules[0].id;
+        const active = dayId === sel.id;
+        const pill = pillRow.createEl("button", { text: label, cls: "tp-schedule-day-pill" });
+        if (active) pill.addClass("tp-schedule-day-pill--active");
+        pill.title = active ? `${label} uses "${sel.name}"` : `Click to use "${sel.name}" on ${label}`;
+        pill.addEventListener("click", () => {
+          if (this.state.daySchedules.length < 2) {
+            new Notice("All days use the only schedule. Click + to create a second schedule first.");
+            return;
+          }
+          if (active) { new Notice(`${label} already uses "${sel.name}". Select a different schedule to move it.`); return; }
+          this.state.dayScheduleMap[key] = sel.id;
+          renderBar();
+        });
+      }
+      if (this.state.daySchedules.length < 2) {
+        barEl.createEl("p", {
+          text: "All days currently use this schedule. Click + above to add e.g. a Saturday schedule, then click a day pill to assign it.",
+          cls: "setting-item-description",
+        });
+      }
+    };
 
     const renderList = () => {
       listEl.empty();
+      const sched = this.wizSelectedSchedule();
 
-      for (const p of this.state.periods) {
+      for (const p of sched.periods) {
         // Match SettingsTab.renderPeriodRow — Setting with editable name/times
         const s = new Setting(listEl)
           .setName(p.name)
@@ -578,7 +659,7 @@ export class SetupWizardModal extends Modal {
           d.setValue(p.type).onChange(v => { p.type = v; });
         });
         s.addExtraButton(btn => btn.setIcon("trash").setTooltip("Remove").onClick(() => {
-          this.state.periods = this.state.periods.filter(x => x.id !== p.id);
+          sched.periods = sched.periods.filter(x => x.id !== p.id);
           renderList();
         }));
       }
@@ -587,21 +668,23 @@ export class SetupWizardModal extends Modal {
         .addButton(btn => btn.setButtonText("+ Add period").setCta()
           .onClick(() => {
             const defaultType = this.state.periodTypes?.[0]?.id ?? "lesson";
-            this.state.periods.push({ id: "p-" + Date.now(), name: "New Period", start: "09:00", end: "10:00", type: defaultType });
+            sched.periods.push({ id: "p-" + Date.now(), name: "New Period", start: "09:00", end: "10:00", type: defaultType });
             renderList();
           }))
         .addButton(btn => btn.setButtonText("Clear all").setWarning()
           .onClick(() => {
-            if (this.state.periods.length === 0) return;
-            if (!confirm("Remove all school periods?")) return;
-            this.state.periods = [];
+            if (sched.periods.length === 0) return;
+            if (!confirm(`Remove all periods from "${sched.name}"?`)) return;
+            sched.periods = [];
             renderList();
           }));
     };
+    renderBar();
     renderList();
 
     this.footer(body, () => {
-      if (this.state.periods.length === 0) { new Notice("Add at least one period."); return false; }
+      const empty = this.state.daySchedules.find(s => s.periods.length === 0);
+      if (empty) { new Notice(`Schedule "${empty.name}" has no periods — add at least one or delete the schedule.`); return false; }
     });
   }
 
@@ -752,7 +835,7 @@ export class SetupWizardModal extends Modal {
     row("Directed time",    dt?.enabled ? `Enabled — ${(dt.contractedHours * dt.timetablePercentage / 100).toFixed(0)}h effective` : "Disabled");
     row("Holidays / INSET", `${s.weekOverrides.length} range${s.weekOverrides.length !== 1 ? "s" : ""} marked`);
     row("Block types",      `${(s.periodTypes ?? []).length} defined`);
-    row("Periods",          `${s.academicYear.periods.length} periods defined`);
+    row("Day schedules",    (s.academicYear.daySchedules ?? []).map(d => `${d.name} (${d.periods.length})`).join(" · ") || `${s.academicYear.periods.length} periods`);
     row("Subjects",         `${s.subjects.length} subject${s.subjects.length !== 1 ? "s" : ""}`);
     row("Classes",          `${s.classes.length} class group${s.classes.length !== 1 ? "s" : ""}`);
     row("Planner folder",   s.plannerFolder);
@@ -782,7 +865,7 @@ export class SetupWizardModal extends Modal {
         name:           this.state.name,
         startDate:      this.state.startDate,
         endDate:        this.state.endDate,
-        periods:        this.state.periods,
+        periods:        [],
         abWeekEnabled:  this.state.abWeekEnabled,
         abWeekStartsOn: this.state.abWeekStartsOn,
       },
@@ -806,6 +889,10 @@ export class SetupWizardModal extends Modal {
         slots:     [],
       }],
     };
+
+    record.academicYear.daySchedules   = this.state.daySchedules;
+    record.academicYear.dayScheduleMap = this.state.dayScheduleMap;
+    syncPeriodsUnion(record.academicYear);
 
     await this.plugin.createPlanner(record);
 

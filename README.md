@@ -2,7 +2,7 @@
 
 > A customisable academic planner for teachers — not just a calendar. Track your timetable, monitor workload, and keep lesson notes, all inside your Obsidian vault.
 
-![Week view](docs/screenshots/week-view.gif)
+![Week view](docs/screenshots/week-view.png)
 
 ---
 
@@ -73,11 +73,14 @@ Define the types of slot that make up your school day — Lesson, Break, Registr
 
 ## Screenshots
 
-**Adding a special event:**
-![Adding an event](docs/screenshots/add-event.gif)
+**Building your timetable** — assign classes to periods in the timetable editor:
+![Timetable editor](docs/screenshots/timetable-template.gif)
 
-**Timetable editor:**
-![Timetable editor](docs/screenshots/timetable-editor.gif)
+**Lesson notes** — open, create, and edit a lesson's note straight from the week view:
+![Lesson notes](docs/screenshots/lesson-notes-editing.gif)
+
+**Guided setup** — school days, A/B rotation, and per-day schedules in the wizard:
+![Setup wizard](docs/screenshots/wizard-school-days.png)
 
 ---
 
@@ -85,14 +88,11 @@ Define the types of slot that make up your school day — Lesson, Break, Registr
 
 The plugin is fully configurable from **Settings → Teacher Planner**. A few of the most-used panels:
 
-**Directed Time Tracker** — set your contracted hours, timetable fraction (for part-time staff), default lesson duration, and export a weekly Excel report:
-![Directed time tracker settings](docs/screenshots/settings-directed-time.png)
+**Directed Time Tracker** — enable in the wizard or settings; set contracted hours, timetable fraction (for part-time staff), default lesson duration, and directed-time activities:
+![Directed time tracker setup](docs/screenshots/wizard-directed-time.png)
 
-**Events — Directed time** — define the activities that count toward directed time (cover, CPD, duty, meetings, tutor time, protected time, and so on). Each activity has a colour, optional default classroom, and default duration:
-![Directed time events settings](docs/screenshots/settings-directed-time-events.png)
-
-**School Timetable** — define the periods that make up your school day. Each period has a name, start/end time, and block type (Lesson, Break, Registration, Administration). Block colours shade the week view:
-![School timetable settings](docs/screenshots/settings-school-timetable.png)
+**Subjects & classes** — emoji-identified subjects with nested class groups, per-class colours and default classrooms:
+![Lessons settings](docs/screenshots/settings-lessons.png)
 
 ---
 

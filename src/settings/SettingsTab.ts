@@ -83,7 +83,7 @@ export function openEmojiPicker(
 }
 
 /** Minimal text-input modal — window.prompt() is disabled in Obsidian. */
-class TextPromptModal extends Modal {
+export class TextPromptModal extends Modal {
   private title: string;
   private initial: string;
   private placeholder: string;
