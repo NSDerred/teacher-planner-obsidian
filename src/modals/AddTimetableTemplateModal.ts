@@ -118,7 +118,7 @@ export class AddTimetableTemplateModal extends Modal {
           const radio = (value: string, label: string) => {
             const row = gapBox.createDiv();
             row.setCssStyles({ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" });
-            const r = row.createEl("input", { type: "radio" }) as HTMLInputElement;
+            const r = row.createEl("input", { type: "radio" });
             r.name = "gap-mode";
             r.value = value;
             r.checked = gapFillMode === value;
@@ -143,7 +143,7 @@ export class AddTimetableTemplateModal extends Modal {
     cancelBtn.addEventListener("click", () => this.close());
 
     const createBtn = footer.createEl("button", { text: "Create Template", cls: "tp-btn tp-btn--primary" });
-    createBtn.addEventListener("click", async () => {
+    createBtn.addEventListener("click", () => { void (async () => {
       const name = nameInput.value.trim();
       const startDate = dateInput.value;
 
@@ -203,7 +203,7 @@ export class AddTimetableTemplateModal extends Modal {
       await this.plugin.saveSettings();
       this.close();
       this.onCreated(newId);
-    });
+    })(); });
   }
 
   private label(parent: HTMLElement, text: string) {

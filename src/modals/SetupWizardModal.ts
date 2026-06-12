@@ -9,7 +9,7 @@ import { resolveColour } from "../utils/themeColours";
 import { isValidIsoDate, findOverlappingOverrides } from "../utils/weekUtils";
 import { syncPeriodsUnion } from "../utils/scheduleUtils";
 import { TimetableEditorModal } from "./TimetableEditorModal";
-import { openEmojiPicker, closeEmojiPicker, TextPromptModal } from "../settings/SettingsTab";
+import { openEmojiPicker, closeEmojiPicker, TextPromptModal, ConfirmModal } from "../settings/SettingsTab";
 
 // ── Wizard state ───────────────────────────────────────────────────────────────
 
@@ -267,12 +267,12 @@ export class SetupWizardModal extends Modal {
 
         const swatch = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
         swatch.setCssStyles({ background: act.colour });
-        swatch.addEventListener("click", async () => {
+        swatch.addEventListener("click", () => { void (async () => {
           const { ColourPickerModal } = await import("../settings/SettingsTab");
           new ColourPickerModal(this.app, act.colour, act.label, async (colour: string) => {
             act.colour = colour; swatch.setCssStyles({ background: colour });
           }).open();
-        });
+        })(); });
 
         const labelIn = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
         labelIn.value = act.label; labelIn.placeholder = "Activity name";
@@ -419,12 +419,13 @@ export class SetupWizardModal extends Modal {
             this.state.weekOverrides.push({ startDate: today, type: "holiday" });
             renderOverrides();
           }))
-        .addButton(btn => btn.setButtonText("Clear all").setWarning()
+        .addButton(btn => btn.setButtonText("Clear all").setClass("mod-warning")
           .onClick(() => {
             if (this.state.weekOverrides.length === 0) return;
-            if (!confirm("Remove all holidays and INSET days?")) return;
-            this.state.weekOverrides = [];
-            renderOverrides();
+            new ConfirmModal(this.app, "Remove all holidays and INSET days?", () => {
+              this.state.weekOverrides = [];
+              renderOverrides();
+            }, "Remove all").open();
           }));
     };
     renderOverrides();
@@ -500,12 +501,12 @@ export class SetupWizardModal extends Modal {
 
         const swatch = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
         swatch.setCssStyles({ background: resolveColour(pt.colour) });
-        swatch.addEventListener("click", async () => {
+        swatch.addEventListener("click", () => { void (async () => {
           const { ColourPickerModal } = await import("../settings/SettingsTab");
           new ColourPickerModal(this.app, pt.colour, pt.label, async (colour: string) => {
             pt.colour = colour; swatch.setCssStyles({ background: resolveColour(colour) });
           }, true).open();
-        });
+        })(); });
 
         const labelIn = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
         labelIn.value = pt.label; labelIn.placeholder = "Block type name";
@@ -578,14 +579,15 @@ export class SetupWizardModal extends Modal {
       }));
       bar.addExtraButton(b => b.setIcon("trash").setTooltip("Delete schedule").onClick(() => {
         if (this.state.daySchedules.length <= 1) { new Notice("At least one day schedule is required."); return; }
-        if (!confirm(`Delete schedule "${sel.name}"? Days using it fall back to the first schedule.`)) return;
-        this.state.daySchedules = this.state.daySchedules.filter(s => s.id !== sel.id);
-        for (const key of Object.keys(this.state.dayScheduleMap)) {
-          if ((this.state.dayScheduleMap as any)[key] === sel.id) delete (this.state.dayScheduleMap as any)[key];
-        }
-        this.wizScheduleId = this.state.daySchedules[0].id;
-        renderBar();
-        renderList();
+        new ConfirmModal(this.app, `Delete schedule "${sel.name}"? Days using it fall back to the first schedule.`, () => {
+          this.state.daySchedules = this.state.daySchedules.filter(s => s.id !== sel.id);
+          for (const key of Object.keys(this.state.dayScheduleMap) as SchoolDay[]) {
+            if (this.state.dayScheduleMap[key] === sel.id) delete this.state.dayScheduleMap[key];
+          }
+          this.wizScheduleId = this.state.daySchedules[0].id;
+          renderBar();
+          renderList();
+        }, "Delete").open();
       }));
 
       const pillRow = barEl.createDiv("tp-schedule-days");
@@ -671,12 +673,13 @@ export class SetupWizardModal extends Modal {
             sched.periods.push({ id: "p-" + Date.now(), name: "New Period", start: "09:00", end: "10:00", type: defaultType });
             renderList();
           }))
-        .addButton(btn => btn.setButtonText("Clear all").setWarning()
+        .addButton(btn => btn.setButtonText("Clear all").setClass("mod-warning")
           .onClick(() => {
             if (sched.periods.length === 0) return;
-            if (!confirm(`Remove all periods from "${sched.name}"?`)) return;
-            sched.periods = [];
-            renderList();
+            new ConfirmModal(this.app, `Remove all periods from "${sched.name}"?`, () => {
+              sched.periods = [];
+              renderList();
+            }, "Remove all").open();
           }));
     };
     renderBar();
@@ -720,7 +723,7 @@ export class SetupWizardModal extends Modal {
         addCls.addEventListener("click", () => {
           this.state.classes.push({
             id: "cls-" + Date.now(), year: "", code: "",
-            subjectId: subj.id, colour: subj.colour, colourOverridden: false, lessonCount: 0,
+            subjectId: subj.id, colour: subj.colour ?? CLASS_COLOUR_PALETTE[0], colourOverridden: false, lessonCount: 0,
           });
           renderList();
         });
@@ -743,14 +746,14 @@ export class SetupWizardModal extends Modal {
             const clsSwatch = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
             clsSwatch.setCssStyles({ background: cls.colour });
             clsSwatch.title = "Override class colour";
-            clsSwatch.addEventListener("click", async () => {
+            clsSwatch.addEventListener("click", () => { void (async () => {
               const { ColourPickerModal } = await import("../settings/SettingsTab");
               new ColourPickerModal(this.app, cls.colour, cls.code || "Class", async (colour: string) => {
                 cls.colour = colour;
                 cls.colourOverridden = colour !== subj.colour;
                 clsSwatch.setCssStyles({ background: colour });
               }).open();
-            });
+            })(); });
 
             const yearIn = row.createEl("input", { type: "text", cls: "tp-year-input" });
             yearIn.value = cls.year ?? ""; yearIn.placeholder = "Year (e.g. Y12)";
@@ -843,10 +846,10 @@ export class SetupWizardModal extends Modal {
     const footer = body.createDiv("tp-wizard-footer");
     footer.createDiv();
     const openBtn = footer.createEl("button", { text: "Open planner →", cls: "tp-btn tp-btn--primary" });
-    openBtn.addEventListener("click", async () => {
+    openBtn.addEventListener("click", () => { void (async () => {
       this.close();
       await this.plugin.activateView();
-    });
+    })(); });
   }
 
   // ── Commit the planner to plugin data ───────────────────────────────────────
@@ -1014,7 +1017,7 @@ class WizardCloseConfirmModal extends Modal {
         .onClick(() => this.close()))
       .addButton(btn => btn
         .setButtonText("Exit without saving")
-        .setWarning()
+        .setClass("mod-warning")
         .onClick(() => { this.close(); this.onConfirm(); }));
   }
 

@@ -12,6 +12,37 @@ export interface ExportDestination {
   systemPath: string | null;
 }
 
+// ── Typed access to Electron / Node modules exposed on desktop ─────────────
+
+type NodeRequireFn = (module: string) => unknown;
+
+interface OpenDialogResult { canceled: boolean; filePaths?: string[] }
+interface ElectronDialog {
+  showOpenDialog(options: { title?: string; properties: string[] }): Promise<OpenDialogResult>;
+}
+interface ElectronShell { openPath(path: string): Promise<string> }
+interface ElectronRemote { dialog: ElectronDialog; shell?: ElectronShell }
+interface ElectronModule { remote?: ElectronRemote; shell?: ElectronShell }
+interface FsPromisesLike { writeFile(path: string, data: string | Uint8Array, encoding?: string): Promise<void> }
+interface PathLike { join(...parts: string[]): string }
+
+function getRequire(): NodeRequireFn | undefined {
+  return (window as Window & { require?: NodeRequireFn }).require;
+}
+
+function getElectronRemote(noticeText: string): ElectronRemote | null {
+  const req = getRequire();
+  if (!req) { new Notice(noticeText); return null; }
+  const electron = req("electron") as ElectronModule | undefined;
+  if (electron?.remote) return electron.remote;
+  try {
+    return req("@electron/remote") as ElectronRemote;
+  } catch {
+    new Notice(noticeText);
+    return null;
+  }
+}
+
 /**
  * Append a Destination section (label + vault input + Browse button + summary)
  * to a modal body. Mutates `state` in place as the user types/picks.
@@ -46,13 +77,15 @@ export function renderDestinationPicker(
       text: "Browse on computer…",
       cls: "tp-btn",
     });
-    browseBtn.addEventListener("click", async () => {
-      const picked = await openOSFolderPicker();
-      if (picked) {
-        state.systemPath = picked;
-        state.mode = "system";
-        updateSummary();
-      }
+    browseBtn.addEventListener("click", () => {
+      void (async () => {
+        const picked = await openOSFolderPicker();
+        if (picked) {
+          state.systemPath = picked;
+          state.mode = "system";
+          updateSummary();
+        }
+      })();
     });
   }
 
@@ -74,25 +107,14 @@ export function renderDestinationPicker(
  */
 export async function openOSFolderPicker(): Promise<string | null> {
   try {
-    const electron = (window as any).require?.("electron");
-    if (!electron) {
-      new Notice("Folder picker is not available in this environment.");
-      return null;
-    }
-    let remote: any = electron.remote;
-    if (!remote) {
-      try { remote = (window as any).require("@electron/remote"); }
-      catch {
-        new Notice("Folder picker is not available — please use a vault path.");
-        return null;
-      }
-    }
+    const remote = getElectronRemote("Folder picker is not available — please use a vault path.");
+    if (!remote) return null;
     const result = await remote.dialog.showOpenDialog({
       title: "Choose export folder",
       properties: ["openDirectory", "createDirectory"],
     });
     if (result.canceled || !result.filePaths || result.filePaths.length === 0) return null;
-    return result.filePaths[0] as string;
+    return result.filePaths[0];
   } catch (err) {
     console.error("OS folder picker failed:", err);
     new Notice("Could not open folder picker — please use a vault path.");
@@ -105,16 +127,11 @@ export async function openOSFolderPicker(): Promise<string | null> {
  */
 export async function openOSFilePicker(title = "Choose a file"): Promise<string | null> {
   try {
-    const electron = (window as any).require?.("electron");
-    if (!electron) { new Notice("File picker is not available in this environment."); return null; }
-    let remote: any = electron.remote;
-    if (!remote) {
-      try { remote = (window as any).require("@electron/remote"); }
-      catch { new Notice("File picker is not available on this platform."); return null; }
-    }
+    const remote = getElectronRemote("File picker is not available on this platform.");
+    if (!remote) return null;
     const result = await remote.dialog.showOpenDialog({ title, properties: ["openFile"] });
     if (result.canceled || !result.filePaths || result.filePaths.length === 0) return null;
-    return result.filePaths[0] as string;
+    return result.filePaths[0];
   } catch (err) {
     console.error("OS file picker failed:", err);
     new Notice("Could not open the file picker.");
@@ -125,8 +142,13 @@ export async function openOSFilePicker(title = "Choose a file"): Promise<string 
 /** Open an absolute OS path (file or folder) with the system default handler. */
 export async function openSystemPath(absolutePath: string): Promise<void> {
   try {
-    const electron = (window as any).require?.("electron");
-    const shell = electron?.shell ?? (window as any).require?.("@electron/remote")?.shell;
+    const req = getRequire();
+    const electron = req?.("electron") as ElectronModule | undefined;
+    let shell = electron?.shell;
+    if (!shell) {
+      try { shell = (req?.("@electron/remote") as ElectronRemote | undefined)?.shell; }
+      catch { /* fall through to the notice below */ }
+    }
     if (!shell) { new Notice("Opening external paths is only available on desktop."); return; }
     const err = await shell.openPath(absolutePath);
     if (err) new Notice(`Could not open: ${err}`);
@@ -144,12 +166,12 @@ export async function writeSystemFile(
   absolutePath: string,
   data: ArrayBuffer | string,
 ): Promise<void> {
-  const fs = (window as any).require?.("fs/promises");
+  const fs = getRequire()?.("fs/promises") as FsPromisesLike | undefined;
   if (!fs) throw new Error("System filesystem not available on this platform.");
   if (typeof data === "string") {
     await fs.writeFile(absolutePath, data, "utf8");
   } else {
-    await fs.writeFile(absolutePath, Buffer.from(data));
+    await fs.writeFile(absolutePath, new Uint8Array(data));
   }
 }
 
@@ -159,7 +181,7 @@ export async function writeSystemFile(
  */
 export function joinSystemPath(...parts: string[]): string {
   try {
-    const path = (window as any).require?.("path");
+    const path = getRequire()?.("path") as PathLike | undefined;
     if (path) return path.join(...parts);
   } catch { /* fall through */ }
   return parts.filter(Boolean).join("/");

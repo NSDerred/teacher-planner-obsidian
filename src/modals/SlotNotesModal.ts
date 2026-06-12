@@ -95,7 +95,7 @@ export class SlotNotesModal extends Modal {
       footer.setCssStyles({ display: "flex" });
     });
 
-    confirmDeleteBtn.addEventListener("click", async () => {
+    confirmDeleteBtn.addEventListener("click", () => { void (async () => {
       if (!this.plugin.settings.slotExclusions) this.plugin.settings.slotExclusions = [];
       const already = this.plugin.settings.slotExclusions.some(
         ex => ex.slotId === this.slotId && ex.date === this.date
@@ -106,7 +106,7 @@ export class SlotNotesModal extends Modal {
       }
       this.onSaved();
       this.close();
-    });
+    })(); });
 
     // ── Footer ──────────────────────────────────────────────────────────────
     const footer = contentEl.createDiv("tp-modal-footer");
@@ -126,15 +126,15 @@ export class SlotNotesModal extends Modal {
     const cancelBtn = rightBtns.createEl("button", { text: "Cancel", cls: "tp-btn" });
     cancelBtn.addEventListener("click", () => this.close());
     const clearBtn = rightBtns.createEl("button", { text: "Clear", cls: "tp-btn" });
-    clearBtn.addEventListener("click", async () => {
+    clearBtn.addEventListener("click", () => { void (async () => {
       textarea.value = "";
       classroomInput.value = "";
       await this.saveSlot("", "");
-    });
+    })(); });
     const saveBtn = rightBtns.createEl("button", { text: "Save", cls: "tp-btn tp-btn--primary" });
-    saveBtn.addEventListener("click", async () => {
+    saveBtn.addEventListener("click", () => { void (async () => {
       await this.saveSlot(textarea.value.trim(), classroomInput.value.trim());
-    });
+    })(); });
   }
 
   private async saveSlot(notes: string, classroom: string) {

@@ -121,6 +121,36 @@ export class TextPromptModal extends Modal {
   onClose() { this.contentEl.empty(); }
 }
 
+/** Confirmation dialog — window.confirm() is discouraged in Obsidian plugins. */
+export class ConfirmModal extends Modal {
+  private message: string;
+  private confirmLabel: string;
+  private onConfirm: () => void | Promise<void>;
+
+  constructor(app: App, message: string, onConfirm: () => void | Promise<void>, confirmLabel = "Confirm") {
+    super(app);
+    this.message = message;
+    this.onConfirm = onConfirm;
+    this.confirmLabel = confirmLabel;
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    titleEl.setText("Are you sure?");
+    contentEl.createEl("p", { text: this.message, cls: "setting-item-description" });
+    const footer = contentEl.createDiv("tp-modal-footer");
+    footer.createEl("button", { text: "Cancel", cls: "tp-btn" })
+      .addEventListener("click", () => this.close());
+    footer.createEl("button", { text: this.confirmLabel, cls: "tp-btn tp-btn--primary" })
+      .addEventListener("click", () => {
+        this.close();
+        void this.onConfirm();
+      });
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
 export class TeacherPlannerSettingTab extends PluginSettingTab {
   plugin: TeacherPlannerPlugin;
   /** JSON snapshot taken when the tab opens — used to detect unsaved changes on close. */
@@ -160,7 +190,6 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     containerEl.empty();
     // Capture snapshot of current settings so hide() can detect changes
     this._snapshot = JSON.stringify(this.plugin.settings);
-    containerEl.createEl("h2", { text: "Teacher Planner" });
 
     // ── Planners ───────────────────────────────────────────────────────────
     this.renderPlannersSection(containerEl);
@@ -196,7 +225,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       const cb = lbl.createEl("input", { type: "checkbox" });
       cb.checked = (this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(opt.key as any);
       lbl.appendText(opt.label);
-      cb.addEventListener("change", async () => {
+      cb.addEventListener("change", () => { void (async () => {
         const current = this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"];
         if (cb.checked) {
           if (!current.includes(opt.key as any)) current.push(opt.key as any);
@@ -206,7 +235,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         }
         this.plugin.settings.schoolDays = [...current];
         await this.plugin.saveSettings();
-      });
+      })(); });
     }
 
     // ── Directed Time Tracker ──────────────────────────────────────────────
@@ -341,8 +370,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }))
       .addButton(btn => btn.setButtonText("Reset all colours to theme")
         .setTooltip("Discard custom block colours and follow your Obsidian theme")
-        .onClick(async () => {
-          if (!confirm("Reset all block type colours to your Obsidian theme defaults? Custom colours will be discarded.")) return;
+        .onClick(() => {
+          new ConfirmModal(this.app, "Reset all block type colours to your Obsidian theme defaults? Custom colours will be discarded.", async () => {
           for (const pt of this.plugin.settings.periodTypes) {
             pt.colour = DEFAULT_PERIOD_TYPE_COLOURS[pt.id] ?? FALLBACK_PERIOD_TYPE_COLOUR;
           }
@@ -350,6 +379,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           periodTypesContainer.empty();
           this.renderPeriodTypesList(periodTypesContainer);
           new Notice("Block colours reset to theme defaults.");
+          }).open();
         }));
 
     // ── Periods / day schedules ────────────────────────────────────────────
@@ -378,33 +408,35 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         d.onChange(v => { this.selectedScheduleId = v; renderScheduleBar(); refreshPeriods(); });
       });
       bar.addExtraButton(b => b.setIcon("pencil").setTooltip("Rename schedule").onClick(() => {
-        new TextPromptModal(this.app, "Rename day schedule", sel.name, "Schedule name", async (name) => {
+        new TextPromptModal(this.app, "Rename day schedule", sel.name, "Schedule name", (name) => { void (async () => {
           sel.name = name;
           await this.plugin.saveSettings();
           renderScheduleBar();
-        }).open();
+        })(); }).open();
       }));
       bar.addExtraButton(b => b.setIcon("plus").setTooltip("New day schedule").onClick(() => {
-        new TextPromptModal(this.app, "New day schedule", "", "e.g. Saturday, Sports day", async (name) => {
+        new TextPromptModal(this.app, "New day schedule", "", "e.g. Saturday, Sports day", (name) => { void (async () => {
           const sch: DaySchedule = { id: "schedule-" + Date.now(), name, periods: [] };
           ay.daySchedules!.push(sch);
           this.selectedScheduleId = sch.id;
           await this.plugin.saveSettings();
           renderScheduleBar();
           refreshPeriods();
-        }).open();
+        })(); }).open();
       }));
-      bar.addExtraButton(b => b.setIcon("trash").setTooltip("Delete schedule").onClick(async () => {
+      bar.addExtraButton(b => b.setIcon("trash").setTooltip("Delete schedule").onClick(() => {
         if (ay.daySchedules!.length <= 1) { new Notice("At least one day schedule is required."); return; }
-        if (!confirm(`Delete schedule "${sel.name}"? Days using it fall back to "${ay.daySchedules![0].id === sel.id ? ay.daySchedules![1].name : ay.daySchedules![0].name}". Periods unique to it disappear from the timetable (assigned lessons are kept but hidden).`)) return;
-        ay.daySchedules = ay.daySchedules!.filter(s => s.id !== sel.id);
-        for (const key of Object.keys(ay.dayScheduleMap ?? {})) {
-          if ((ay.dayScheduleMap as any)[key] === sel.id) delete (ay.dayScheduleMap as any)[key];
-        }
-        this.selectedScheduleId = ay.daySchedules[0].id;
-        await this.plugin.saveSettings();
-        renderScheduleBar();
-        refreshPeriods();
+        const fallbackName = ay.daySchedules![0].id === sel.id ? ay.daySchedules![1].name : ay.daySchedules![0].name;
+        new ConfirmModal(this.app, `Delete schedule "${sel.name}"? Days using it fall back to "${fallbackName}". Periods unique to it disappear from the timetable (assigned lessons are kept but hidden).`, async () => {
+          ay.daySchedules = ay.daySchedules!.filter(s => s.id !== sel.id);
+          for (const key of Object.keys(ay.dayScheduleMap ?? {}) as SchoolDay[]) {
+            if (ay.dayScheduleMap?.[key] === sel.id) delete ay.dayScheduleMap?.[key];
+          }
+          this.selectedScheduleId = ay.daySchedules[0].id;
+          await this.plugin.saveSettings();
+          renderScheduleBar();
+          refreshPeriods();
+        }, "Delete").open();
       }));
 
       const pillRow = scheduleBar.createDiv("tp-schedule-days");
@@ -422,7 +454,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         pill.title = active
           ? `${label} uses "${sel.name}"`
           : `${label} uses "${daySched?.name ?? "?"}" — click to switch it to "${sel.name}"`;
-        pill.addEventListener("click", async () => {
+        pill.addEventListener("click", () => { void (async () => {
           if (ay.daySchedules!.length < 2) {
             new Notice("All days use the only schedule. Click + to create a second schedule, then assign days to it.");
             return;
@@ -435,7 +467,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           ay.dayScheduleMap[day] = sel.id;
           await this.plugin.saveSettings();
           renderScheduleBar();
-        });
+        })(); });
       }
       if (ay.daySchedules!.length < 2) {
         scheduleBar.createEl("p", {
@@ -582,7 +614,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       chip.setCssStyles({ background: resolveColour(GRID_THEME_TOKEN) });
       chip.dataset.colour = GRID_THEME_TOKEN;
       if (currentBlockColour === GRID_THEME_TOKEN) chip.classList.add("tp-preset-swatch--active");
-      chip.addEventListener("click", async () => { await updateBlockBorderColour(GRID_THEME_TOKEN); });
+      chip.addEventListener("click", () => { void (async () => { await updateBlockBorderColour(GRID_THEME_TOKEN); })(); });
       blockPresetSwatches.push(chip);
     }
 
@@ -591,14 +623,17 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       chip.setCssStyles({ background: grey });
       chip.dataset.colour = grey;
       if (grey === currentBlockColour) chip.classList.add("tp-preset-swatch--active");
-      chip.addEventListener("click", async () => { await updateBlockBorderColour(grey); });
+      chip.addEventListener("click", () => { void (async () => { await updateBlockBorderColour(grey); })(); });
       blockPresetSwatches.push(chip);
     }
 
     new Setting(containerEl).setName("Period block border weight").setDesc("Thickness of period band borders in pixels (1-4).")
-      .addSlider(s => s.setLimits(1, 4, 1).setValue(this.plugin.settings.blockBorderWeight ?? 1)
-        .setDynamicTooltip()
-        .onChange(v => { this.plugin.settings.blockBorderWeight = v; this.plugin.requestSave(); }));
+      .addSlider(s => {
+        const valueLabel = createSpan({ cls: "tp-slider-value", text: `${this.plugin.settings.blockBorderWeight ?? 1}px` });
+        s.setLimits(1, 4, 1).setValue(this.plugin.settings.blockBorderWeight ?? 1)
+          .onChange(v => { this.plugin.settings.blockBorderWeight = v; this.plugin.requestSave(); valueLabel.setText(`${v}px`); });
+        s.sliderEl.after(valueLabel);
+      });
 
     const gridColourSetting = new Setting(containerEl)
       .setName("Time grid line colour")
@@ -633,7 +668,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       chip.setCssStyles({ background: resolveColour(GRID_THEME_TOKEN) });
       chip.dataset.colour = GRID_THEME_TOKEN;
       if (currentGridColour === GRID_THEME_TOKEN) chip.classList.add("tp-preset-swatch--active");
-      chip.addEventListener("click", async () => { await updateGridLineColour(GRID_THEME_TOKEN); });
+      chip.addEventListener("click", () => { void (async () => { await updateGridLineColour(GRID_THEME_TOKEN); })(); });
       gridPresetSwatches.push(chip);
     }
 
@@ -642,18 +677,21 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       chip.setCssStyles({ background: grey });
       chip.dataset.colour = grey;
       if (grey === currentGridColour) chip.classList.add("tp-preset-swatch--active");
-      chip.addEventListener("click", async () => { await updateGridLineColour(grey); });
+      chip.addEventListener("click", () => { void (async () => { await updateGridLineColour(grey); })(); });
       gridPresetSwatches.push(chip);
     }
 
     new Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).")
-      .addSlider(s => s.setLimits(1, 4, 1).setValue(this.plugin.settings.gridLineWeight ?? 1)
-        .setDynamicTooltip()
-        .onChange(v => { this.plugin.settings.gridLineWeight = v; this.plugin.requestSave(); }));
+      .addSlider(s => {
+        const valueLabel = createSpan({ cls: "tp-slider-value", text: `${this.plugin.settings.gridLineWeight ?? 1}px` });
+        s.setLimits(1, 4, 1).setValue(this.plugin.settings.gridLineWeight ?? 1)
+          .onChange(v => { this.plugin.settings.gridLineWeight = v; this.plugin.requestSave(); valueLabel.setText(`${v}px`); });
+        s.sliderEl.after(valueLabel);
+      });
 
     new Setting(containerEl).setName("Reset grid visuals")
       .setDesc("Restore both colours to your Obsidian theme and weights to 1px.")
-      .addButton(btn => btn.setButtonText("Reset to theme defaults").setWarning()
+      .addButton(btn => btn.setButtonText("Reset to theme defaults").setClass("mod-warning")
         .onClick(async () => {
           this.plugin.settings.blockBorderColour = GRID_THEME_TOKEN;
           this.plugin.settings.gridLineColour = GRID_THEME_TOKEN;
@@ -672,10 +710,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addText(t => {
         t.setPlaceholder((this.plugin.settings.plannerFolder || "Teacher Planner") + "/Plans");
         t.setValue(this.plugin.settings.lessonPlansFolder ?? "");
-        t.inputEl.addEventListener("blur", async () => {
+        t.inputEl.addEventListener("blur", () => { void (async () => {
           this.plugin.settings.lessonPlansFolder = t.inputEl.value.trim() || undefined;
           await this.plugin.saveSettings();
-        });
+        })(); });
       });
     new Setting(containerEl)
       .setName("Organise notes into weekly folders")
@@ -704,7 +742,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // ── Reset ──────────────────────────────────────────────────────────────
     new Setting(containerEl).setName("Reset").setHeading();
     new Setting(containerEl).setName("Reset periods to defaults")
-      .addButton(btn => btn.setButtonText("Reset periods").setWarning()
+      .addButton(btn => btn.setButtonText("Reset periods").setClass("mod-warning")
         .onClick(async () => {
           this.getSelectedSchedule().periods = DEFAULT_SETTINGS.academicYear.periods.map(p => ({ ...p }));
           await this.plugin.saveSettings();
@@ -749,10 +787,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
       if (!isActive) {
         const switchBtn = actions.createEl("button", { text: "Switch", cls: "tp-btn tp-btn--primary" });
-        switchBtn.addEventListener("click", async () => {
+        switchBtn.addEventListener("click", () => { void (async () => {
           await this.plugin.switchPlanner(p.id);
           this.display();
-        });
+        })(); });
         const delBtn = actions.createEl("button", { text: "Delete", cls: "tp-btn tp-btn--danger" });
         delBtn.addEventListener("click", () => {
           const isLast = planners.length === 1;
@@ -778,7 +816,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     new Setting(container).addButton(btn => btn.setButtonText("+ New planner").setCta()
       .onClick(() => {
         new SetupWizardModal(this.app, this.plugin, true).open();
-        this.close();
+        (this.app as unknown as { setting?: { close(): void } }).setting?.close();
       }));
   }
 
@@ -834,10 +872,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .setName(period.name).setDesc(`${period.start} - ${period.end}`)
       .addText(t => {
         t.setPlaceholder("Name").setValue(period.name);
-        t.inputEl.addEventListener("blur", async () => {
+        t.inputEl.addEventListener("blur", () => { void (async () => {
           period.name = t.inputEl.value;
           await this.plugin.saveSettings();
-        });
+        })(); });
       })
       .addText(t => {
         t.setPlaceholder("HH:MM").setValue(period.start);
@@ -848,15 +886,15 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           container.empty();
           this.renderPeriodsList(container);
         };
-        t.inputEl.addEventListener("blur", commitStart);
+        t.inputEl.addEventListener("blur", () => { void commitStart(); });
         t.inputEl.addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Enter") t.inputEl.blur(); });
       })
       .addText(t => {
         t.setPlaceholder("HH:MM").setValue(period.end);
-        t.inputEl.addEventListener("blur", async () => {
+        t.inputEl.addEventListener("blur", () => { void (async () => {
           period.end = t.inputEl.value;
           await this.plugin.saveSettings();
-        });
+        })(); });
       })
       .addDropdown(d => {
         const types = this.plugin.settings.periodTypes ?? [];
@@ -898,32 +936,32 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     emojiBtn.title = "Change subject emoji";
     emojiBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      openEmojiPicker(emojiBtn, subject.emoji ?? "📚", async (emoji) => {
+      openEmojiPicker(emojiBtn, subject.emoji ?? "📚", (emoji) => { void (async () => {
         subject.emoji = emoji;
         await this.plugin.saveSettings();
         emojiBtn.textContent = emoji;
-      });
+      })(); });
     });
 
     const nameInput = header.createEl("input", { type: "text", cls: "tp-subject-name-input" });
     nameInput.value = subject.name;
     nameInput.placeholder = "Subject name";
-    nameInput.addEventListener("change", async () => { subject.name = nameInput.value; await this.plugin.saveSettings(); });
+    nameInput.addEventListener("change", () => { void (async () => { subject.name = nameInput.value; await this.plugin.saveSettings(); })(); });
 
     const addClassBtn = header.createEl("button", { text: "+ Class", cls: "tp-btn-small tp-btn-small--cta" });
-    addClassBtn.addEventListener("click", async () => {
+    addClassBtn.addEventListener("click", () => { void (async () => {
       this.plugin.settings.classes.push({
         id: `cls-${Date.now()}`, year: "", code: "NEW 00",
-        subjectId: subject.id, colour: subject.colour, colourOverridden: false, lessonCount: 0,
+        subjectId: subject.id, colour: subject.colour ?? CLASS_COLOUR_PALETTE[0], colourOverridden: false, lessonCount: 0,
       });
       await this.plugin.saveSettings();
       container.empty(); this.renderSubjectsList(container);
-    });
+    })(); });
 
     const delSubjectBtn = header.createEl("button", { cls: "tp-icon-btn" });
     setIcon(delSubjectBtn, "trash-2");
     delSubjectBtn.title = "Delete subject and all its classes";
-    delSubjectBtn.addEventListener("click", async () => {
+    delSubjectBtn.addEventListener("click", () => { void (async () => {
       this.plugin.settings.subjects = this.plugin.settings.subjects.filter(s => s.id !== subject.id);
       this.plugin.settings.classes = this.plugin.settings.classes.filter(c => c.subjectId !== subject.id);
       this.plugin.settings.timetable = this.plugin.settings.timetable.filter(
@@ -931,7 +969,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       );
       await this.plugin.saveSettings();
       container.empty(); this.renderSubjectsList(container);
-    });
+    })(); });
 
     if (activeClasses.length > 0) {
       const classesEl = block.createDiv("tp-class-rows");
@@ -976,27 +1014,27 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const yearInput = row.createEl("input", { type: "text", cls: "tp-year-input" });
     yearInput.value = cls.year ?? "";
     yearInput.placeholder = "Year (e.g. Y12)";
-    yearInput.addEventListener("change", async () => { cls.year = yearInput.value; await this.plugin.saveSettings(); });
+    yearInput.addEventListener("change", () => { void (async () => { cls.year = yearInput.value; await this.plugin.saveSettings(); })(); });
 
     const codeInput = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
     codeInput.value = cls.code;
     codeInput.placeholder = "Class code (e.g. IB DP1)";
-    codeInput.addEventListener("change", async () => { cls.code = codeInput.value; await this.plugin.saveSettings(); });
+    codeInput.addEventListener("change", () => { void (async () => { cls.code = codeInput.value; await this.plugin.saveSettings(); })(); });
 
     const classroomInput = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
     classroomInput.value = cls.classroom ?? "";
     classroomInput.placeholder = "Classroom";
     classroomInput.setCssStyles({ opacity: "0.7" });
-    classroomInput.addEventListener("change", async () => { cls.classroom = classroomInput.value; await this.plugin.saveSettings(); });
+    classroomInput.addEventListener("change", () => { void (async () => { cls.classroom = classroomInput.value; await this.plugin.saveSettings(); })(); });
 
     if (cls.colourOverridden && !isArchived) {
       const resetBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Reset to subject colour" });
       setIcon(resetBtn, "rotate-ccw");
-      resetBtn.addEventListener("click", async () => {
-        cls.colour = subject.colour; cls.colourOverridden = false;
+      resetBtn.addEventListener("click", () => { void (async () => {
+        cls.colour = subject.colour ?? CLASS_COLOUR_PALETTE[0]; cls.colourOverridden = false;
         await this.plugin.saveSettings();
         parentContainer.empty(); this.renderSubjectsList(parentContainer);
-      });
+      })(); });
     }
 
     const archiveBtn = row.createEl("button", {
@@ -1004,20 +1042,20 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       title: isArchived ? "Restore class" : "Archive class (hides from timetable editor)",
     });
     setIcon(archiveBtn, isArchived ? "rotate-ccw" : "archive");
-    archiveBtn.addEventListener("click", async () => {
+    archiveBtn.addEventListener("click", () => { void (async () => {
       cls.archived = !isArchived;
       await this.plugin.saveSettings();
       parentContainer.empty(); this.renderSubjectsList(parentContainer);
-    });
+    })(); });
 
     const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete class" });
     setIcon(delBtn, "trash-2");
-    delBtn.addEventListener("click", async () => {
+    delBtn.addEventListener("click", () => { void (async () => {
       this.plugin.settings.classes = this.plugin.settings.classes.filter(c => c.id !== cls.id);
       this.plugin.settings.timetable = this.plugin.settings.timetable.filter(t => t.classId !== cls.id);
       await this.plugin.saveSettings();
       parentContainer.empty(); this.renderSubjectsList(parentContainer);
-    });
+    })(); });
   }
 
   /**
@@ -1089,19 +1127,19 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const labelInput = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
     labelInput.value = activity.label;
     labelInput.placeholder = "Activity name";
-    labelInput.addEventListener("change", async () => { activity.label = labelInput.value; await this.plugin.saveSettings(); });
+    labelInput.addEventListener("change", () => { void (async () => { activity.label = labelInput.value; await this.plugin.saveSettings(); })(); });
 
     const infoInput = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
     infoInput.value = activity.info ?? "";
     infoInput.placeholder = "Info";
     infoInput.setCssStyles({ opacity: "0.7" });
-    infoInput.addEventListener("change", async () => { activity.info = infoInput.value; await this.plugin.saveSettings(); });
+    infoInput.addEventListener("change", () => { void (async () => { activity.info = infoInput.value; await this.plugin.saveSettings(); })(); });
 
     const classroomInputAct = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
     classroomInputAct.value = activity.classroom ?? "";
     classroomInputAct.placeholder = "Classroom";
     classroomInputAct.setCssStyles({ opacity: "0.7" });
-    classroomInputAct.addEventListener("change", async () => { activity.classroom = classroomInputAct.value; await this.plugin.saveSettings(); });
+    classroomInputAct.addEventListener("change", () => { void (async () => { activity.classroom = classroomInputAct.value; await this.plugin.saveSettings(); })(); });
 
     // Duration field — only for directed activities
     if (typeFilter === "directed") {
@@ -1112,11 +1150,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       durInput.max = "480";
       durInput.title = "Default duration for this activity (minutes)";
       // Width handled by .tp-dur-input class (responsive on narrow viewports)
-      durInput.addEventListener("change", async () => {
+      durInput.addEventListener("change", () => { void (async () => {
         const n = parseInt(durInput.value);
         activity.durationMinutes = isNaN(n) || durInput.value === "" ? undefined : n;
         await this.plugin.saveSettings();
-      });
+      })(); });
     }
 
     const archiveBtn = row.createEl("button", {
@@ -1124,19 +1162,19 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       title: isArchived ? "Restore" : "Archive (hides from timetable editor)",
     });
     setIcon(archiveBtn, isArchived ? "rotate-ccw" : "archive");
-    archiveBtn.addEventListener("click", async () => {
+    archiveBtn.addEventListener("click", () => { void (async () => {
       activity.archived = !isArchived;
       await this.plugin.saveSettings();
       outerContainer.empty(); this.renderActivitiesList(outerContainer, typeFilter);
-    });
+    })(); });
 
     const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete" });
     setIcon(delBtn, "trash-2");
-    delBtn.addEventListener("click", async () => {
+    delBtn.addEventListener("click", () => { void (async () => {
       this.plugin.settings.activities = this.plugin.settings.activities.filter(a => a.id !== activity.id);
       await this.plugin.saveSettings();
       outerContainer.empty(); this.renderActivitiesList(outerContainer, typeFilter);
-    });
+    })(); });
   }
 
   private renderPeriodTypesList(container: HTMLElement) {
@@ -1164,22 +1202,22 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const labelInput = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
     labelInput.value = pt.label;
     labelInput.placeholder = "Type name";
-    labelInput.addEventListener("change", async () => { pt.label = labelInput.value; await this.plugin.saveSettings(); });
+    labelInput.addEventListener("change", () => { void (async () => { pt.label = labelInput.value; await this.plugin.saveSettings(); })(); });
     const resetBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Reset colour to theme default" });
     setIcon(resetBtn, "rotate-ccw");
-    resetBtn.addEventListener("click", async () => {
+    resetBtn.addEventListener("click", () => { void (async () => {
       pt.colour = DEFAULT_PERIOD_TYPE_COLOURS[pt.id] ?? FALLBACK_PERIOD_TYPE_COLOUR;
       await this.plugin.saveSettings();
       swatchBtn.setCssStyles({ background: resolveColour(pt.colour) });
       swatchBtn.title = "Following your Obsidian theme";
-    });
+    })(); });
     const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete type" });
     setIcon(delBtn, "trash-2");
-    delBtn.addEventListener("click", async () => {
+    delBtn.addEventListener("click", () => { void (async () => {
       this.plugin.settings.periodTypes = this.plugin.settings.periodTypes.filter(t => t.id !== pt.id);
       await this.plugin.saveSettings();
       container.empty(); this.renderPeriodTypesList(container);
-    });
+    })(); });
   }
 
   private getMondayStr(date: Date): string {
@@ -1223,7 +1261,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const fromInput = row.controlEl.createEl("input", { type: "date", cls: "tp-override-date-input" });
     fromInput.value = override.startDate;
     fromInput.title = "First day of the holiday/INSET period";
-    fromInput.addEventListener("change", async () => {
+    fromInput.addEventListener("change", () => { void (async () => {
       override.startDate = fromInput.value;
       // Keep endDate >= startDate
       if (override.endDate && override.endDate < override.startDate) {
@@ -1232,7 +1270,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }
       await this.plugin.saveSettings();
       this.warnIfOverridesOverlap();
-    });
+    })(); });
 
     row.controlEl.createSpan({ text: "–", cls: "tp-override-sep" });
 
@@ -1240,13 +1278,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const toInput = row.controlEl.createEl("input", { type: "date", cls: "tp-override-date-input" });
     toInput.value = override.endDate ?? override.startDate;
     toInput.title = "Last day of the holiday/INSET period (same as start = single day)";
-    toInput.addEventListener("change", async () => {
+    toInput.addEventListener("change", () => { void (async () => {
       const val = toInput.value;
       // If same as startDate, clear endDate (single-day override)
       override.endDate = val === override.startDate ? undefined : val;
       await this.plugin.saveSettings();
       this.warnIfOverridesOverlap();
-    });
+    })(); });
 
     // ── Type ───────────────────────────────────────────────────────────────
     const typeSelect = row.controlEl.createEl("select", { cls: "tp-override-type-select" });
@@ -1259,10 +1297,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const labelInput = row.controlEl.createEl("input", { type: "text", cls: "tp-override-label-input" });
     labelInput.value = override.label ?? "";
     labelInput.placeholder = "Label (e.g. Christmas)";
-    labelInput.addEventListener("change", async () => {
+    labelInput.addEventListener("change", () => { void (async () => {
       override.label = labelInput.value;
       await this.plugin.saveSettings();
-    });
+    })(); });
 
     // ── Delete ─────────────────────────────────────────────────────────────
     new ButtonComponent(row.controlEl).setIcon("trash").setTooltip("Remove").onClick(async () => {
@@ -1286,17 +1324,17 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     hoursInput.title = "Total directed hours for this entire INSET period";
     hoursInput.value = override.insetHours != null ? String(override.insetHours) : "";
     insetRow.createSpan({ text: "h", cls: "tp-override-hours-label" });
-    hoursInput.addEventListener("change", async () => {
+    hoursInput.addEventListener("change", () => { void (async () => {
       const n = parseFloat(hoursInput.value);
       override.insetHours = isNaN(n) || n <= 0 ? undefined : n;
       await this.plugin.saveSettings();
-    });
+    })(); });
 
-    typeSelect.addEventListener("change", async () => {
+    typeSelect.addEventListener("change", () => { void (async () => {
       override.type = typeSelect.value as "holiday" | "inset" | "custom";
       insetRow.setCssStyles({ display: override.type === "inset" && dtEnabled() ? "flex" : "none" });
       await this.plugin.saveSettings();
-    });
+    })(); });
   }
 
   // ── Directed time guide note ───────────────────────────────────────────────
@@ -1420,7 +1458,7 @@ class SettingsAppliedModal extends Modal {
         .onClick(() => this.close()))
       .addButton(btn => btn
         .setButtonText("Revert changes")
-        .setWarning()
+        .setClass("mod-warning")
         .onClick(async () => {
           const original = JSON.parse(this.snapshot);
           Object.assign(this.plugin.settings, original);
@@ -1508,7 +1546,7 @@ class DeletePlannerModal extends Modal {
       .addButton(btn => btn.setButtonText("Cancel").onClick(() => this.close()))
       .addButton(btn => btn
         .setButtonText(this.isLast ? "Delete & restart wizard" : "Delete planner")
-        .setWarning()
+        .setClass("mod-warning")
         .onClick(async () => {
           await this.plugin.deletePlanner(this.plannerId);
           this.close();

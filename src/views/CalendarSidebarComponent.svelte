@@ -234,6 +234,7 @@
 
       {#each calendarDays as d}
         <!-- svelte-ignore a11y-interactive-supports-focus -->
+        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
         <div
           class="tp-cal-day"
           class:tp-cal-day--today={isToday(d)}
@@ -274,7 +275,7 @@
         <button class="tp-fmt-btn tp-fmt-hl-caret" aria-label="Highlight colour"
                 on:mousedown|preventDefault={toggleSwatches} use:icon={"chevron-down"}></button>
         {#if showSwatches}
-          <div class="tp-fmt-swatches" on:mousedown={(e) => e.stopPropagation()}>
+          <div class="tp-fmt-swatches" role="toolbar" tabindex="-1" aria-label="Highlight colours" on:mousedown={(e) => e.stopPropagation()}>
             {#each HL_COLOURS as c}
               <span class="tp-fmt-swatch" title={c.name} style="background:{c.value}"
                     class:tp-fmt-swatch--active={c.value === lastHighlight}

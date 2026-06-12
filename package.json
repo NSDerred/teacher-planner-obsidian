@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
-    "typecheck": "tsc -noEmit -skipLibCheck"
+    "typecheck": "tsc -noEmit -skipLibCheck",
+    "lint": "eslint src --ext .ts"
   },
   "keywords": [
     "obsidian",
@@ -18,10 +19,11 @@
   "license": "GPL-3.0-only",
   "devDependencies": {
     "@types/node": "^18.19.130",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "esbuild": "^0.21.0",
     "esbuild-svelte": "^0.8.1",
+    "eslint": "^8.57.1",
     "obsidian": "latest",
     "svelte": "^4.2.0",
     "svelte-preprocess": "^5.1.0",

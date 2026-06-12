@@ -53,7 +53,7 @@ export class AddPeriodModal extends Modal {
     const cancelBtn = footer.createEl("button", { text: "Cancel", cls: "tp-btn" });
     cancelBtn.addEventListener("click", () => this.close());
     const addBtn = footer.createEl("button", { text: "Add period", cls: "tp-btn tp-btn--primary" });
-    addBtn.addEventListener("click", async () => {
+    addBtn.addEventListener("click", () => { void (async () => {
       const trimmedName = name.trim();
       const trimmedStart = start.trim();
       const trimmedEnd = end.trim();
@@ -64,7 +64,7 @@ export class AddPeriodModal extends Modal {
       if (trimmedEnd <= trimmedStart) { new Notice("End time must be after the start time."); return; }
       await this.onAdd({ id: `period-${Date.now()}`, name: trimmedName, start: trimmedStart, end: trimmedEnd, type });
       this.close();
-    });
+    })(); });
   }
 
   onClose() { this.contentEl.empty(); }

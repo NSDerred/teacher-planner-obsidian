@@ -46,7 +46,7 @@ export class LessonPlanSuggestModal extends FuzzySuggestModal<PlanChoice> {
   onChooseItem(item: PlanChoice): void {
     if (item.file) { this.onPick(item.file.path); return; }
     // Create new plan from template
-    new TextPromptModal(this.app, "New lesson plan", `${this.classCode} — `, "Plan name", async (name) => {
+    new TextPromptModal(this.app, "New lesson plan", `${this.classCode} — `, "Plan name", (name) => { void (async () => {
       const folder = defaultPlansFolder(this.plugin.settings);
       if (!(this.app.vault.getAbstractFileByPath(folder) instanceof TFolder)) {
         try { await this.app.vault.createFolder(folder); } catch { /* non-fatal */ }
@@ -71,6 +71,6 @@ export class LessonPlanSuggestModal extends FuzzySuggestModal<PlanChoice> {
         console.error("Teacher Planner: failed to create lesson plan.", err);
         new Notice("Could not create the plan note — see console.");
       }
-    }).open();
+    })(); }).open();
   }
 }

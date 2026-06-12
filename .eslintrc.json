@@ -1,0 +1,11 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": { "project": "./tsconfig.json", "sourceType": "module" },
+  "plugins": ["@typescript-eslint"],
+  "ignorePatterns": ["main.js", "esbuild.config.mjs", "node_modules/"],
+  "rules": {
+    "@typescript-eslint/no-misused-promises": ["warn", { "checksVoidReturn": true }],
+    "@typescript-eslint/no-floating-promises": "warn"
+  }
+}

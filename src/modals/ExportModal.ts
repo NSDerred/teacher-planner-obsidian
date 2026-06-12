@@ -1,4 +1,4 @@
-import { App, Modal, Notice, TFile } from "obsidian";
+import { App, Modal, Notice, Platform, TFile } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import * as XLSX from "xlsx";
 import {
@@ -144,7 +144,7 @@ export class ExportModal extends Modal {
 
     // Destination (vault or computer)
     this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
-    renderDestinationPicker(form, this.destination, (this.app as any).isMobile === true);
+    renderDestinationPicker(form, this.destination, Platform.isMobile);
 
     // Footer
     const footer = contentEl.createDiv("tp-modal-footer");
@@ -152,7 +152,7 @@ export class ExportModal extends Modal {
       .addEventListener("click", () => this.close());
 
     const exportBtn = footer.createEl("button", { text: "Export", cls: "tp-btn tp-btn--primary" });
-    exportBtn.addEventListener("click", async () => {
+    exportBtn.addEventListener("click", () => { void (async () => {
       exportBtn.disabled = true;
       exportBtn.textContent = "Exporting...";
       try {
@@ -166,7 +166,7 @@ export class ExportModal extends Modal {
         exportBtn.disabled = false;
         exportBtn.textContent = "Export";
       }
-    });
+    })(); });
   }
 
   // ── Data builders ──────────────────────────────────────────────────────────
@@ -307,7 +307,7 @@ export class ExportModal extends Modal {
       const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
       await this.ensureFolder(folder);
       const path = `${folder}/${filename}`;
-      await (this.app.vault.adapter as any).writeBinary(path, buf);
+      await this.app.vault.adapter.writeBinary(path, buf);
       new Notice(`Exported to ${path}`);
     }
   }

@@ -18,6 +18,12 @@ Compliance release addressing the Obsidian community plugin review bot.
 - Timers and animation frames are window-scoped and `document` swapped for `activeDocument` where flagged, for popout-window compatibility
 - Command `open-teacher-planner` renamed to `open` ("Open planner") per guidelines — re-bind your hotkey if you had one
 - Removed the one `!important` in styles.css and various unused imports
+- Internal typing pass to clear review-bot warnings: typed Svelte component imports, Electron export-dialog access, settings sync helpers and legacy-data migration — no `any` casts remain in flagged areas
+- `window.confirm()` replaced with a proper in-app confirmation dialog (reset block colours, delete day schedule, clear holidays, clear periods) — keyboard- and theme-friendly
+- All 51 "Promise returned where void expected" review-bot warnings cleared: async callbacks are now explicitly void-wrapped; an `npm run lint` script (typescript-eslint) guards against regressions
+- Deprecated API swept: `setWarning()` → `setClass("mod-warning")` (same styling, works on every Obsidian version), `setDynamicTooltip()` replaced by an inline px value label next to the weight sliders
+- New GitHub Actions release workflow: tag a version and CI builds the plugin, verifies the tag matches manifest.json, attests build provenance, and drafts the release with main.js / manifest.json / styles.css attached
+- Accessibility: colour-picker sliders expose aria-valuenow/min/max, highlight swatch row is a labelled toolbar — the build is now completely warning-free
 
 ## [0.2.1] — 2026-06-11
 

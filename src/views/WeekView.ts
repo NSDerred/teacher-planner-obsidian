@@ -4,9 +4,17 @@ import WeekViewComponent from "./WeekView.svelte";
 
 export const WEEK_VIEW_TYPE = "teacher-planner-week-view";
 
+/** The Svelte component instance plus its component-specific exported functions. */
+type WeekViewInstance = WeekViewComponent & {
+  prevWeek(): void;
+  nextWeek(): void;
+  updateSize(): void;
+  refreshEvents(): void;
+};
+
 export class WeekView extends ItemView {
   private plugin: TeacherPlannerPlugin;
-  private component: WeekViewComponent | null = null;
+  private component: WeekViewInstance | null = null;
   /** The element the Svelte component is mounted into. */
   private mountTarget: HTMLElement | null = null;
   /** Observes the container so we can mount/refresh when it gets dimensions. */
@@ -93,7 +101,7 @@ export class WeekView extends ItemView {
     this.component = new WeekViewComponent({
       target: container,
       props: { plugin: this.plugin, initialDate: new Date() },
-    });
+    }) as WeekViewInstance;
   }
 
   async onClose() {

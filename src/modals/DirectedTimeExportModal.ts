@@ -1,4 +1,4 @@
-import { App, Modal, Notice } from "obsidian";
+import { App, Modal, Notice, Platform } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import * as XLSX from "xlsx";
 import {
@@ -39,14 +39,14 @@ export class DirectedTimeExportModal extends Modal {
 
     // Destination (vault or computer)
     this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
-    renderDestinationPicker(body, this.destination, (this.app as any).isMobile === true);
+    renderDestinationPicker(body, this.destination, Platform.isMobile);
 
     const footer = contentEl.createDiv("tp-modal-footer");
     footer.createEl("button", { text: "Cancel", cls: "tp-btn" })
       .addEventListener("click", () => this.close());
 
     const exportBtn = footer.createEl("button", { text: "Export XLSX…", cls: "tp-btn tp-btn--primary" });
-    exportBtn.addEventListener("click", async () => {
+    exportBtn.addEventListener("click", () => { void (async () => {
       exportBtn.disabled = true;
       exportBtn.textContent = "Exporting…";
       try {
@@ -58,7 +58,7 @@ export class DirectedTimeExportModal extends Modal {
         exportBtn.disabled = false;
         exportBtn.textContent = "Export XLSX…";
       }
-    });
+    })(); });
   }
 
   private async doExport() {
@@ -139,7 +139,7 @@ export class DirectedTimeExportModal extends Modal {
         try { await this.app.vault.createFolder(vaultFolder); } catch { /* non-fatal */ }
       }
       const path = `${vaultFolder}/${filename}`;
-      await (this.app.vault.adapter as any).writeBinary(path, buf);
+      await this.app.vault.adapter.writeBinary(path, buf);
       new Notice(`Directed time exported to ${path}`);
     }
   }

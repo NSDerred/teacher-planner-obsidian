@@ -1367,3 +1367,11 @@
 .tp-section-collapsed { display: none; }
 .tp-collapsible-chevron { display: inline-block; transition: transform 0.12s; }
 .tp-collapsible-chevron--open { transform: rotate(90deg); }
+
+/* Slider value label (replaces deprecated setDynamicTooltip) */
+.tp-slider-value {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  min-width: 3ch;
+  margin-left: 8px;
+}

@@ -1,5 +1,5 @@
 import { Plugin } from "obsidian";
-import type { TeacherPlannerSettings, TimetableSlot, GlobalPluginData, PlannerRecord } from "./types";
+import type { TeacherPlannerSettings, TimetableSlot, GlobalPluginData, PlannerRecord, WeekOverride } from "./types";
 import { DEFAULT_SETTINGS, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA } from "./settings";
 import { WeekView, WEEK_VIEW_TYPE } from "./views/WeekView";
 import { CalendarSidebarView, CALENDAR_SIDEBAR_VIEW_TYPE } from "./views/CalendarSidebarView";
@@ -7,6 +7,32 @@ import { TeacherPlannerSettingTab } from "./settings/SettingsTab";
 import { isValidIsoDate } from "./utils/weekUtils";
 import { ensureDaySchedules, syncPeriodsUnion } from "./utils/scheduleUtils";
 import { renamePlanPaths } from "./utils/planLinkUtils";
+
+type SharedPlannerKey = keyof PlannerRecord & keyof TeacherPlannerSettings;
+type SharedGlobalKey  = keyof GlobalPluginData & keyof TeacherPlannerSettings;
+
+/** Old flat-format fields that may linger in stored data from pre-0.1 versions. */
+interface LegacyArtifacts {
+  gridBorderColour?: string;
+  gridBorderWeight?: number;
+}
+
+function copyPlannerToSettings<K extends SharedPlannerKey>(dst: TeacherPlannerSettings, src: PlannerRecord, k: K): void {
+  dst[k] = src[k] as TeacherPlannerSettings[K];
+}
+function copySettingsToPlanner<K extends SharedPlannerKey>(dst: PlannerRecord, src: TeacherPlannerSettings, k: K): void {
+  const value = src[k];
+  // Don't clobber existing planner values with undefined — keeps
+  // partially-loaded settings from wiping persisted data.
+  if (value !== undefined) dst[k] = value as PlannerRecord[K];
+}
+function copyGlobalToSettings<K extends SharedGlobalKey>(dst: TeacherPlannerSettings, src: GlobalPluginData, k: K): void {
+  dst[k] = src[k] as TeacherPlannerSettings[K];
+}
+function copySettingsToGlobal<K extends SharedGlobalKey>(dst: GlobalPluginData, src: TeacherPlannerSettings, k: K): void {
+  const value = src[k];
+  if (value !== undefined) dst[k] = value as GlobalPluginData[K];
+}
 
 export default class TeacherPlannerPlugin extends Plugin {
   settings: TeacherPlannerSettings;
@@ -175,12 +201,12 @@ export default class TeacherPlannerPlugin extends Plugin {
   private populateSettings() {
     const planner = this.getActivePlanner();
     if (!planner) return;
-    const settings = { ...DEFAULT_SETTINGS } as TeacherPlannerSettings;
+    const settings: TeacherPlannerSettings = { ...DEFAULT_SETTINGS };
     for (const k of TeacherPlannerPlugin.PLANNER_FIELDS) {
-      (settings as any)[k] = (planner as any)[k];
+      copyPlannerToSettings(settings, planner, k);
     }
     for (const k of TeacherPlannerPlugin.GLOBAL_FIELDS) {
-      (settings as any)[k] = (this.plannerData as any)[k];
+      copyGlobalToSettings(settings, this.plannerData, k);
     }
     this.settings = settings;
   }
@@ -190,10 +216,7 @@ export default class TeacherPlannerPlugin extends Plugin {
     const planner = this.getActivePlanner();
     if (planner) {
       for (const k of TeacherPlannerPlugin.PLANNER_FIELDS) {
-        const value = (this.settings as any)[k];
-        // Don't clobber existing planner values with undefined — keeps
-        // partially-loaded settings from wiping persisted data.
-        if (value !== undefined) (planner as any)[k] = value;
+        copySettingsToPlanner(planner, this.settings, k);
       }
       // Defensive defaults for fields that have explicit fallbacks
       planner.dateEvents      = planner.dateEvents      ?? [];
@@ -203,8 +226,7 @@ export default class TeacherPlannerPlugin extends Plugin {
       planner.notesHeight    = planner.notesHeight    ?? 120;
     }
     for (const k of TeacherPlannerPlugin.GLOBAL_FIELDS) {
-      const value = (this.settings as any)[k];
-      if (value !== undefined) (this.plannerData as any)[k] = value;
+      copySettingsToGlobal(this.plannerData, this.settings, k);
     }
     // Defensive defaults for global visual settings
     this.plannerData.gridLineColour    = this.plannerData.gridLineColour    ?? DEFAULT_GLOBAL_DATA.gridLineColour;
@@ -263,11 +285,13 @@ export default class TeacherPlannerPlugin extends Plugin {
   // ── Settings persistence ──────────────────────────────────────────────────────────────────────────
 
   async loadSettings() {
-    const raw = await this.loadData();
+    const raw = (await this.loadData()) as
+      | (Partial<GlobalPluginData> & Partial<TeacherPlannerSettings> & LegacyArtifacts & { _version?: number })
+      | null;
 
     if (raw?._version === 2) {
       // New multi-planner format — merge over defaults to fill any new fields
-      this.plannerData = Object.assign({}, DEFAULT_GLOBAL_DATA, raw);
+      this.plannerData = Object.assign({}, DEFAULT_GLOBAL_DATA, raw as Partial<GlobalPluginData>);
     } else if (raw && Object.keys(raw).length > 0) {
       // Legacy flat format — migrate automatically
       this.plannerData = this.migrateFromLegacy(raw);
@@ -344,7 +368,7 @@ export default class TeacherPlannerPlugin extends Plugin {
    * Convert the old flat settings object to the new GlobalPluginData shape.
    * The migrated planner keeps its original plannerFolder so existing note links are not broken.
    */
-  private migrateFromLegacy(raw: any): GlobalPluginData {
+  private migrateFromLegacy(raw: Partial<TeacherPlannerSettings> & LegacyArtifacts): GlobalPluginData {
     const planner: PlannerRecord = {
       id:                 "planner-" + Date.now(),
       name:               raw.academicYear?.name ?? "My Planner",
@@ -411,11 +435,12 @@ export default class TeacherPlannerPlugin extends Plugin {
     if (!this.settings.periodTypes.find(pt => pt.id === "administration")) {
       this.settings.periodTypes.push({ id: "administration", label: "Administration", colour: "theme:surface" });
     }
-    if (!this.settings.gridLineColour)  this.settings.gridLineColour  = (this.settings as any).gridBorderColour ?? "theme:border";
-    if (this.settings.gridLineWeight  === undefined) this.settings.gridLineWeight  = (this.settings as any).gridBorderWeight ?? 1;
+    const legacy = this.settings as TeacherPlannerSettings & LegacyArtifacts;
+    if (!this.settings.gridLineColour)  this.settings.gridLineColour  = legacy.gridBorderColour ?? "theme:border";
+    if (this.settings.gridLineWeight  === undefined) this.settings.gridLineWeight  = legacy.gridBorderWeight ?? 1;
     if (!this.settings.blockBorderColour) this.settings.blockBorderColour = "theme:border";
     if (this.settings.blockBorderWeight  === undefined) this.settings.blockBorderWeight = 1;
-    if (!(this.settings as any).dateEvents) this.settings.dateEvents = [];
+    if (!this.settings.dateEvents) this.settings.dateEvents = [];
     if (!this.settings.slotExclusions) this.settings.slotExclusions = [];
     if (!this.settings.directedTime) {
       this.settings.directedTime = {
@@ -429,9 +454,10 @@ export default class TeacherPlannerPlugin extends Plugin {
       this.settings.academicYear.abWeekStartsOn = "A";
     }
     for (const o of this.settings.weekOverrides ?? []) {
-      if ((o as any).weekStart && !o.startDate) {
-        o.startDate = (o as any).weekStart;
-        delete (o as any).weekStart;
+      const legacyOverride = o as WeekOverride & { weekStart?: string };
+      if (legacyOverride.weekStart && !o.startDate) {
+        o.startDate = legacyOverride.weekStart;
+        delete legacyOverride.weekStart;
       }
     }
     if (!this.settings.schoolDays) {

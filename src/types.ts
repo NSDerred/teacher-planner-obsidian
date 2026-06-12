@@ -5,6 +5,9 @@ export interface PeriodTypeConfig {
    *  resolved from the user's active Obsidian theme — see utils/themeColours. */
   colour: string;
 }
+/** Period block type id — references PeriodTypeConfig.id ("lesson", "break", custom ids…). */
+export type PeriodType = string;
+
 export interface SchoolPeriod {
   id: string;
   name: string;

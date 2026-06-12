@@ -38,14 +38,14 @@ function isClassId(classId: string, s: TeacherPlannerSettings): boolean {
   return !!s.classes?.find(c => c.id === classId);
 }
 
-function resolveSlotMins(slot: any, s: TeacherPlannerSettings, def: number): number {
+function resolveSlotMins(slot: { durationMinutes?: number; classId: string }, s: TeacherPlannerSettings, def: number): number {
   if (slot.durationMinutes) return slot.durationMinutes;
   const act = s.activities?.find(a => a.id === slot.classId);
   if (act?.durationMinutes) return act.durationMinutes;
   return def;
 }
 
-function resolveEventMins(ev: any, s: TeacherPlannerSettings, def: number): number {
+function resolveEventMins(ev: { durationMinutes?: number; classId: string }, s: TeacherPlannerSettings, def: number): number {
   if (ev.durationMinutes) return ev.durationMinutes;
   const act = s.activities?.find(a => a.id === ev.classId);
   if (act?.durationMinutes) return act.durationMinutes;

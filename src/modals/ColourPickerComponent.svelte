@@ -199,6 +199,9 @@
     on:mousedown={onSquareMouseDown}
     role="slider"
     aria-label="Colour picker"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    aria-valuenow={Math.round(value * 100)}
     tabindex="0"
   >
     <div class="cp-square-white"></div>
@@ -221,6 +224,9 @@
     on:mousedown={onHueMouseDown}
     role="slider"
     aria-label="Hue"
+    aria-valuemin="0"
+    aria-valuemax="360"
+    aria-valuenow={Math.round(hue)}
     tabindex="0"
   >
     <div

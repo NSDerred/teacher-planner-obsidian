@@ -1,7 +1,7 @@
 <script lang="ts">
   import type TeacherPlannerPlugin from "../main";
   import type { TimetableSlot, SchoolPeriod, DateEvent, SchoolDay } from "../types";
-  import { TFile, Menu, Notice, setIcon } from "obsidian";
+  import { TFile, Menu, Notice, Platform, setIcon } from "obsidian";
 
   // Svelte action: renders an Obsidian Lucide icon into the element
   function obsIcon(node: HTMLElement, id: string) {
@@ -637,7 +637,7 @@
   }
 
   // ── Weekly note folders ("WC - <Monday>") ─────────────────────────────────
-  const _isMobileApp = (plugin.app as any).isMobile === true;
+  const _isMobileApp = Platform.isMobile;
 
   function wcFolderFor(dateIso: string): string {
     const base = plugin.settings.plannerFolder || "Teacher Planner";

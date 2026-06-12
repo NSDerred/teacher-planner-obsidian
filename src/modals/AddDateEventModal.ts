@@ -119,7 +119,7 @@ export class AddDateEventModal extends Modal {
           updateDurationRow();
         });
       }
-      const active = pickerList.querySelector(".tp-picker-item--active") as HTMLElement | null;
+      const active = pickerList.querySelector<HTMLElement>(".tp-picker-item--active");
       if (active) active.scrollIntoView({ block: "nearest" });
     };
 
@@ -178,14 +178,14 @@ export class AddDateEventModal extends Modal {
     if (isEdit) {
       const delBtn = footer.createEl("button", { text: "Delete event", cls: "tp-btn tp-btn--danger" });
       delBtn.setCssStyles({ marginRight: "auto" });
-      delBtn.addEventListener("click", async () => {
+      delBtn.addEventListener("click", () => { void (async () => {
         if (!this.existingEvent) return;
         this.plugin.settings.dateEvents = (this.plugin.settings.dateEvents ?? [])
           .filter(e => e.id !== this.existingEvent!.id);
         await this.plugin.saveSettings();
         this.onSaved();
         this.close();
-      });
+      })(); });
     }
 
     const cancelBtn = footer.createEl("button", { text: "Cancel", cls: "tp-btn" });
@@ -195,7 +195,7 @@ export class AddDateEventModal extends Modal {
       text: isEdit ? "Save changes" : "Add event",
       cls: "tp-btn tp-btn--primary",
     });
-    saveBtn.addEventListener("click", async () => {
+    saveBtn.addEventListener("click", () => { void (async () => {
       if (!date || !periodId || !classId) {
         new Notice("Please select a date, period, and item.");
         return;
@@ -233,7 +233,7 @@ export class AddDateEventModal extends Modal {
       await this.plugin.saveSettings();
       this.onSaved();
       this.close();
-    });
+    })(); });
 
     window.setTimeout(() => dateInput.focus(), 50);
   }
