@@ -1,7 +1,7 @@
 
 import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
-import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity, DaySchedule, SchoolDay } from "../types";
+import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity, DaySchedule, SchoolDay, TeacherPlannerSettings } from "../types";
 import { ensureDaySchedules, getScheduleForDay } from "../utils/scheduleUtils";
 import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR } from "../settings";
 import { resolveColour, isThemeToken, GRID_THEME_TOKEN } from "../utils/themeColours";
@@ -1460,7 +1460,7 @@ class SettingsAppliedModal extends Modal {
         .setButtonText("Revert changes")
         .setClass("mod-warning")
         .onClick(async () => {
-          const original = JSON.parse(this.snapshot);
+          const original = JSON.parse(this.snapshot) as Partial<TeacherPlannerSettings>;
           Object.assign(this.plugin.settings, original);
           await this.plugin.saveSettings();
           this.close();

@@ -46,7 +46,7 @@ export class AddPeriodModal extends Modal {
         d.addOption("lesson", "Lesson").addOption("break", "Break")
           .addOption("registration", "Registration").addOption("free", "Free");
         d.setValue("lesson");
-        d.onChange(v => { type = v as PeriodType; });
+        d.onChange(v => { type = v; });
       });
 
     const footer = contentEl.createDiv("tp-modal-footer");
