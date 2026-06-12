@@ -207,7 +207,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         .onChange(v => { this.plugin.settings.academicYear.endDate = v; this.plugin.requestSave(); }));
 
     // ── School days ────────────────────────────────────────────────────────
-    const schoolDayOptions: { key: string; label: string }[] = [
+    const schoolDayOptions: { key: SchoolDay; label: string }[] = [
       { key: "monday",    label: "Mon" },
       { key: "tuesday",  label: "Tue" },
       { key: "wednesday",label: "Wed" },
@@ -223,14 +223,14 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     for (const opt of schoolDayOptions) {
       const lbl = sdWrap.createEl("label", { cls: "tp-school-day-label" });
       const cb = lbl.createEl("input", { type: "checkbox" });
-      cb.checked = (this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(opt.key as any);
+      cb.checked = (this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(opt.key);
       lbl.appendText(opt.label);
       cb.addEventListener("change", () => { void (async () => {
         const current = this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"];
         if (cb.checked) {
-          if (!current.includes(opt.key as any)) current.push(opt.key as any);
+          if (!current.includes(opt.key)) current.push(opt.key);
         } else {
-          const idx = current.indexOf(opt.key as any);
+          const idx = current.indexOf(opt.key);
           if (idx !== -1) current.splice(idx, 1);
         }
         this.plugin.settings.schoolDays = [...current];
@@ -1471,7 +1471,7 @@ class SettingsAppliedModal extends Modal {
 }
 
 export class ColourPickerModal extends Modal {
-  private component: any;
+  private component: ColourPickerComponent | null = null;
   private initialColour: string;
   private label: string;
   private onSave: (colour: string) => Promise<void>;

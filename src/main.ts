@@ -92,7 +92,6 @@ export default class TeacherPlannerPlugin extends Plugin {
       catch (err) { console.error("Teacher Planner: refreshViews() failed.", err); }
     });
 
-    console.log("Teacher Planner loaded.");
   }
 
   onunload() {
@@ -102,7 +101,6 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.flushPendingSave().catch(err => {
       console.error("Teacher Planner: flushPendingSave on unload failed.", err);
     });
-    console.log("Teacher Planner unloaded.");
   }
 
   // ── View helpers ──────────────────────────────────────────────────────────────────────────

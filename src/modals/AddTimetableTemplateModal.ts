@@ -115,14 +115,14 @@ export class AddTimetableTemplateModal extends Modal {
           }).setCssStyles({ margin: "0 0 8px", fontWeight: "600" });
           gapBox.createEl("p", { text: "How should this gap be handled?" }).setCssStyles({ margin: "0 0 6px" });
 
-          const radio = (value: string, label: string) => {
+          const radio = (value: "previous" | "blank", label: string) => {
             const row = gapBox.createDiv();
             row.setCssStyles({ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" });
             const r = row.createEl("input", { type: "radio" });
             r.name = "gap-mode";
             r.value = value;
             r.checked = gapFillMode === value;
-            r.addEventListener("change", () => { gapFillMode = value as any; });
+            r.addEventListener("change", () => { gapFillMode = value; });
             row.createEl("label", { text: label });
           };
           radio("previous", `Apply "${prev.name}" to this gap`);

@@ -7,7 +7,7 @@
 
   function icon(node: HTMLElement, name: string) {
     setIcon(node, name);
-    return { update(n: string) { node.innerHTML = ""; setIcon(node, n); } };
+    return { update(n: string) { node.empty(); setIcon(node, n); } };
   }
 
   export let plugin: TeacherPlannerPlugin;
@@ -16,6 +16,8 @@
   export let currentWeek: Date = getMondayOfWeek(new Date());
 
   let _tick = 0;
+  /** Registers a reactive dependency on `_t` and returns `value` (TS-clean alternative to the comma idiom). */
+  function _dep<T>(_t: unknown, value: T): T { return value; }
   function invalidate() { _tick++; }
 
   // ── Calendar display month (fully independent — not driven by the planner) ─
@@ -44,14 +46,14 @@
   }
 
   // ── Calendar grid ─────────────────────────────────────────────────────────
-  $: calendarDays = (_tick, buildCalendar(viewYear, viewMonth));
+  $: calendarDays = _dep(_tick, buildCalendar(viewYear, viewMonth));
 
-  function buildCalendar(year: number, month: number): (Date | null)[] {
+  function buildCalendar(year: number, month: number): Date[] {
     const firstDay = new Date(year, month, 1);
     const dow = firstDay.getDay();
     const startOffset = dow === 0 ? 6 : dow - 1;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const days: (Date | null)[] = [];
+    const days: Date[] = [];
     // Fill leading nulls from prev month
     const prevMonthDays = new Date(year, month, 0).getDate();
     for (let i = 0; i < startOffset; i++) days.push(new Date(year, month - 1, prevMonthDays - startOffset + i + 1));
@@ -90,7 +92,7 @@
 
   // ── Week notes ────────────────────────────────────────────────────────────
   $: currentWeekKey = weekKey(getMondayOfWeek(currentWeek));
-  $: notesValue = (_tick, (plugin.settings.weekNotes ?? {})[currentWeekKey] ?? "");
+  $: notesValue = _dep(_tick, (plugin.settings.weekNotes ?? {})[currentWeekKey] ?? "");
 
   // Dynamic placeholder shows the Monday date of the currently selected week
   $: notesPlaceholder = (() => {
@@ -203,7 +205,7 @@
   $: dtEnabled = plugin.settings.directedTime?.enabled ?? false;
 
   // Recalculates whenever settings change (_tick ensures Svelte tracks it as a dependency)
-  $: dtCalc = (_tick, dtEnabled ? calcDirectedTime(plugin.settings) : null);
+  $: dtCalc = _dep(_tick, dtEnabled ? calcDirectedTime(plugin.settings) : null);
 
   const MONTH_NAMES = ["January","February","March","April","May","June",
                        "July","August","September","October","November","December"];

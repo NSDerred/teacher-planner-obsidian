@@ -5,6 +5,25 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] — 2026-06-12
+
+### Fixed
+
+- **Event chips were unclickable** — clicking a one-off event in the week view threw `getEventPlan is not defined` (a missing import) before its menu could open. Events can be clicked, edited and removed again.
+- **Bulk-apply and undo confirmations now use the in-app dialog** — "Apply plan to future lessons", "Undo last bulk apply" and timetable template deletion relied on `window.confirm()`, which Obsidian can suppress; they now use the same themed confirmation modal as the rest of the plugin.
+- **"Save Timetable" no longer bypasses the past-week warning** — the click event was accidentally passed as the `force` flag, skipping the "you are editing a past week" confirmation.
+
+### Changed
+
+- **Adaptive hover cards** — hovering a block with a lesson or event now shows a card that fits its content exactly: the blank space below short chips (e.g. a Cover in a long period) is gone, while clipped chips still expand to reveal hidden lines. The block quietly keeps its original footprint as the hover area, so nothing flickers.
+- New `npm run check:svelte` (svelte-check) and `npm run verify` pipeline — Svelte components are now fully type-checked, so a missing import like the one above can never reach a release again; all 40 latent type errors in the Svelte components fixed in the process
+- Internal typing pass to clear review-bot warnings: typed Svelte component imports, Electron export-dialog access, settings sync helpers and legacy-data migration — no `any` casts remain in flagged areas
+- `window.confirm()` replaced with a proper in-app confirmation dialog (reset block colours, delete day schedule, clear holidays, clear periods) — keyboard- and theme-friendly
+- All 51 "Promise returned where void expected" review-bot warnings cleared: async callbacks are now explicitly void-wrapped; an `npm run lint` script (typescript-eslint) guards against regressions
+- Deprecated API swept: `setWarning()` → `setClass("mod-warning")` (same styling, works on every Obsidian version), `setDynamicTooltip()` replaced by an inline px value label next to the weight sliders
+- New GitHub Actions release workflow: tag a version and CI builds the plugin, verifies the tag matches manifest.json, attests build provenance, and drafts the release with main.js / manifest.json / styles.css attached
+- Accessibility: colour-picker sliders expose aria-valuenow/min/max, highlight swatch row is a labelled toolbar — the build is now completely warning-free
+
 ## [0.2.2] — 2026-06-11
 
 Compliance release addressing the Obsidian community plugin review bot.
@@ -18,12 +37,6 @@ Compliance release addressing the Obsidian community plugin review bot.
 - Timers and animation frames are window-scoped and `document` swapped for `activeDocument` where flagged, for popout-window compatibility
 - Command `open-teacher-planner` renamed to `open` ("Open planner") per guidelines — re-bind your hotkey if you had one
 - Removed the one `!important` in styles.css and various unused imports
-- Internal typing pass to clear review-bot warnings: typed Svelte component imports, Electron export-dialog access, settings sync helpers and legacy-data migration — no `any` casts remain in flagged areas
-- `window.confirm()` replaced with a proper in-app confirmation dialog (reset block colours, delete day schedule, clear holidays, clear periods) — keyboard- and theme-friendly
-- All 51 "Promise returned where void expected" review-bot warnings cleared: async callbacks are now explicitly void-wrapped; an `npm run lint` script (typescript-eslint) guards against regressions
-- Deprecated API swept: `setWarning()` → `setClass("mod-warning")` (same styling, works on every Obsidian version), `setDynamicTooltip()` replaced by an inline px value label next to the weight sliders
-- New GitHub Actions release workflow: tag a version and CI builds the plugin, verifies the tag matches manifest.json, attests build provenance, and drafts the release with main.js / manifest.json / styles.css attached
-- Accessibility: colour-picker sliders expose aria-valuenow/min/max, highlight swatch row is a labelled toolbar — the build is now completely warning-free
 
 ## [0.2.1] — 2026-06-11
 

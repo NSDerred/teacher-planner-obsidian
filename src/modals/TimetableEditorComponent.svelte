@@ -4,12 +4,13 @@
   import type { TimetableSlot, SchoolPeriod, TimetableTemplate, SchoolDay } from "../types";
   import { AddTimetableTemplateModal } from "./AddTimetableTemplateModal";
   import { setIcon } from "obsidian";
+  import { ConfirmModal } from "../settings/SettingsTab";
   import { resolveColour } from "../utils/themeColours";
   import { periodAppliesTo } from "../utils/scheduleUtils";
 
   function icon(node: HTMLElement, name: string) {
     setIcon(node, name);
-    return { update(n: string) { node.innerHTML = ""; setIcon(node, n); } };
+    return { update(n: string) { node.empty(); setIcon(node, n); } };
   }
 
   export let plugin: TeacherPlannerPlugin;
@@ -24,15 +25,17 @@
     { key: "saturday",  label: "Sat" },
     { key: "sunday",    label: "Sun" },
   ];
-  $: DAYS = (_tick, ALL_DAYS.filter(d =>
+  $: DAYS = _dep(_tick, ALL_DAYS.filter(d =>
     (plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(d.key)
   ));
 
   // ── Template management ────────────────────────────────────────────────────
   let _tick = 0;
+  /** Registers a reactive dependency on `_t` and returns `value` (TS-clean alternative to the comma idiom). */
+  function _dep<T>(_t: unknown, value: T): T { return value; }
   function invalidate() { _tick++; }
 
-  $: allTemplates  = (_tick, plugin.settings.timetableTemplates ?? []);
+  $: allTemplates  = _dep(_tick, plugin.settings.timetableTemplates ?? []);
   $: classes       = plugin.settings.classes ?? [];
   $: subjects      = plugin.settings.subjects ?? [];
   $: activities    = plugin.settings.activities ?? [];
@@ -338,15 +341,16 @@
   }
 
   // ── Delete template ────────────────────────────────────────────────────────
-  async function deleteTemplate() {
+  function deleteTemplate() {
     if (allTemplates.length <= 1) return;
-    if (!confirm(`Delete "${activeTemplate?.name}"? This cannot be undone.`)) return;
-    plugin.settings.timetableTemplates = allTemplates.filter(t => t.id !== activeTemplateId);
-    await plugin.saveSettings();
-    const remaining = plugin.settings.timetableTemplates;
-    activeTemplateId = remaining[remaining.length - 1]?.id ?? "";
-    const tmpl = remaining.find(t => t.id === activeTemplateId);
-    slots = JSON.parse(JSON.stringify(tmpl?.slots ?? []));
+    new ConfirmModal(plugin.app, `Delete "${activeTemplate?.name}"? This cannot be undone.`, async () => {
+      plugin.settings.timetableTemplates = allTemplates.filter(t => t.id !== activeTemplateId);
+      await plugin.saveSettings();
+      const remaining = plugin.settings.timetableTemplates;
+      activeTemplateId = remaining[remaining.length - 1]?.id ?? "";
+      const tmpl = remaining.find(t => t.id === activeTemplateId);
+      slots = JSON.parse(JSON.stringify(tmpl?.slots ?? []));
+    }, "Delete").open();
   }
 
   // ── Picker positioning ─────────────────────────────────────────────────────
@@ -407,9 +411,9 @@
 <svelte:window
   on:keydown={(e) => e.key === "Escape" && (renamingId ? renamingId = null : durationEditKey ? durationEditKey = null : closePicker())}
   on:mousedown={(e) => {
-    const t = /** @type {Element} */ (e.target);
-    if (pickerEl && !t?.closest?.(".tp-te-picker") && !t?.closest?.(".tp-te-cell")) closePicker();
-    if (renamingId && !t?.closest?.(".tp-te-rename-input")) commitRename();
+    const t = e.target instanceof Element ? e.target : null;
+    if (pickerEl && !t?.closest(".tp-te-picker") && !t?.closest(".tp-te-cell")) closePicker();
+    if (renamingId && !t?.closest(".tp-te-rename-input")) commitRename();
   }}
 />
 
@@ -604,7 +608,7 @@
         {#if getSlot(pickerDay, pickerPeriodId, currentWeek)}
           <button
             class="tp-te-picker-clear"
-            on:click={() => { clearSlot(pickerDay, pickerPeriodId, currentWeek); closePicker(); }}
+            on:click={() => { if (pickerDay && pickerPeriodId) clearSlot(pickerDay, pickerPeriodId, currentWeek); closePicker(); }}
           ><span use:icon={"x"}></span> Remove</button>
           <div class="tp-te-picker-divider"></div>
         {/if}
@@ -619,7 +623,7 @@
                 <button
                   class="tp-te-picker-item"
                   style="border-left: 3px solid {cls.colour};"
-                  on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if(p) { assignItem(pickerDay, p, cls.id, currentWeek); closePicker(); } }}
+                  on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, cls.id, currentWeek); closePicker(); } }}
                 >
                   <span class="tp-te-picker-item-text">
                     <span class="tp-te-picker-code">{cls.code}</span>
@@ -640,7 +644,7 @@
               <button
                 class="tp-te-picker-item"
                 style="border-left: 3px solid {act.colour};"
-                on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if(p) { assignItem(pickerDay, p, act.id, currentWeek); closePicker(); } }}
+                on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, act.id, currentWeek); closePicker(); } }}
               >
                 <span class="tp-te-picker-item-text">
                   <span class="tp-te-picker-code">{act.label}</span>
@@ -660,7 +664,7 @@
               <button
                 class="tp-te-picker-item"
                 style="border-left: 3px solid {act.colour};"
-                on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if(p) { assignItem(pickerDay, p, act.id, currentWeek); closePicker(); } }}
+                on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, act.id, currentWeek); closePicker(); } }}
               >
                 <span class="tp-te-picker-item-text">
                   <span class="tp-te-picker-code">{act.label}</span>
@@ -724,7 +728,7 @@
   <!-- ── Footer ────────────────────────────────────────────────────────────── -->
   <div class="tp-te-footer">
     <button class="tp-te-btn" on:click={onCancel}>Cancel</button>
-    <button class="tp-te-btn tp-te-btn-primary" on:click={save}>Save Timetable</button>
+    <button class="tp-te-btn tp-te-btn-primary" on:click={() => void save()}>Save Timetable</button>
   </div>
 </div>
 

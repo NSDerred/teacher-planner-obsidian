@@ -14,12 +14,12 @@
   } from "../utils/weekUtils";
   import { TimetableEditorModal } from "../modals/TimetableEditorModal";
   import { SlotNotesModal } from "../modals/SlotNotesModal";
-  import { ColourPickerModal } from "../settings/SettingsTab";
+  import { ColourPickerModal, ConfirmModal } from "../settings/SettingsTab";
   import { AddDateEventModal } from "../modals/AddDateEventModal";
   import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
   import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
   import {
-    getSlotPlan, setSlotPlan, clearSlotPlan, setEventPlan, clearEventPlan,
+    getSlotPlan, setSlotPlan, clearSlotPlan, getEventPlan, setEventPlan, clearEventPlan,
     migrateSlotPlanToEvent, bulkApplyPlan, undoBulkApply,
     getSlotExternal, setSlotExternal, clearSlotExternal,
     getEventExternal, setEventExternal, clearEventExternal, migrateSlotExternalToEvent,
@@ -40,12 +40,14 @@
     { key: "saturday",  label: "Sat", offset: 5 },
     { key: "sunday",    label: "Sun", offset: 6 },
   ];
-  $: DAYS = (_tick, ALL_DAYS.filter(d =>
+  $: DAYS = _dep(_tick, ALL_DAYS.filter(d =>
     (plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(d.key)
   ));
 
   // ── Reactivity tick ───────────────────────────────────────────────────────
   let _tick = 0;
+  /** Registers a reactive dependency on `_t` and returns `value` (TS-clean alternative to the comma idiom). */
+  function _dep<T>(_t: unknown, value: T): T { return value; }
   function invalidate() { _tick++; }
 
   // ── Public API (called by WeekView.ts) ────────────────────────────────────
@@ -86,16 +88,16 @@
   })();
 
   // ── Settings data (re-read on _tick) ─────────────────────────────────────
-  $: _periods     = (_tick, plugin.settings.academicYear.periods);
-  $: _periodTypes = (_tick, plugin.settings.periodTypes ?? []);
-  $: _templates   = (_tick, plugin.settings.timetableTemplates ?? []);
-  $: _classes     = (_tick, plugin.settings.classes ?? []);
-  $: _subjects    = (_tick, plugin.settings.subjects ?? []);
-  $: _activities  = (_tick, plugin.settings.activities ?? []);
-  $: _dateEvents      = (_tick, plugin.settings.dateEvents ?? []);
-  $: _slotExclusions  = (_tick, plugin.settings.slotExclusions ?? []);
-  $: _planLinks       = (_tick, plugin.settings.lessonPlanLinks ?? []);
-  $: _showUnplanned   = (_tick, plugin.settings.showUnplannedDot ?? true);
+  $: _periods     = _dep(_tick, plugin.settings.academicYear.periods);
+  $: _periodTypes = _dep(_tick, plugin.settings.periodTypes ?? []);
+  $: _templates   = _dep(_tick, plugin.settings.timetableTemplates ?? []);
+  $: _classes     = _dep(_tick, plugin.settings.classes ?? []);
+  $: _subjects    = _dep(_tick, plugin.settings.subjects ?? []);
+  $: _activities  = _dep(_tick, plugin.settings.activities ?? []);
+  $: _dateEvents      = _dep(_tick, plugin.settings.dateEvents ?? []);
+  $: _slotExclusions  = _dep(_tick, plugin.settings.slotExclusions ?? []);
+  $: _planLinks       = _dep(_tick, plugin.settings.lessonPlanLinks ?? []);
+  $: _showUnplanned   = _dep(_tick, plugin.settings.showUnplannedDot ?? true);
   $: _slotPlanMap = (() => {
     const m: Record<string, string> = {};
     for (const l of _planLinks) if (l.slotId && l.date) m[l.slotId + "|" + l.date] = l.path;
@@ -410,15 +412,16 @@
         const itemLabel = getSlotLabel(slot).code;
         if (planPath) {
           menu.addItem(i => i.setTitle("Open lesson plan").setIcon("file-text").onClick(() => openPlan(planPath)));
-          menu.addItem(i => i.setTitle("Apply plan to future lessons").setIcon("copy-plus").onClick(async () => {
+          menu.addItem(i => i.setTitle("Apply plan to future lessons").setIcon("copy-plus").onClick(() => {
             const dry = bulkApplyPlan(plugin.settings, slot.classId, date, planPath, true);
             if (dry.count === 0) { new Notice("No future lessons of this item found."); return; }
-            if (!confirm(`Link this plan to ${dry.count} future lesson${dry.count === 1 ? "" : "s"} of ${itemLabel} (until the end of the academic year)?`)) return;
-            const res = bulkApplyPlan(plugin.settings, slot.classId, date, planPath);
-            plugin.settings.lastBulkApply = { path: planPath, entries: res.entries };
-            await plugin.saveSettings();
-            invalidate();
-            showBulkUndoNotice(res.count);
+            new ConfirmModal(plugin.app, `Link this plan to ${dry.count} future lesson${dry.count === 1 ? "" : "s"} of ${itemLabel} (until the end of the academic year)?`, async () => {
+              const res = bulkApplyPlan(plugin.settings, slot.classId, date, planPath);
+              plugin.settings.lastBulkApply = { path: planPath, entries: res.entries };
+              await plugin.saveSettings();
+              invalidate();
+              showBulkUndoNotice(res.count);
+            }, "Apply").open();
           }));
           menu.addItem(i => i.setTitle("Unlink lesson plan").setIcon("unlink").onClick(async () => {
             clearSlotPlan(plugin.settings, slot.id, date);
@@ -583,8 +586,8 @@
   // ── Academic-year bounds ──────────────────────────────────────────────────
   function _ayStart(): Date { return new Date(plugin.settings.academicYear.startDate + "T00:00:00"); }
   function _ayEnd():   Date { return new Date(plugin.settings.academicYear.endDate   + "T23:59:59"); }
-  $: canGoPrev = (_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart());
-  $: canGoNext = (_tick, getMondayOfWeek(addWeeks(currentDate,  1)) <= _ayEnd());
+  $: canGoPrev = _dep(_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart());
+  $: canGoNext = _dep(_tick, getMondayOfWeek(addWeeks(currentDate,  1)) <= _ayEnd());
 
   // Sync sidebar notes to the current planner week whenever it changes
   $: (plugin as any).notifySidebar(currentMonday);
@@ -668,14 +671,15 @@
   }
 
   // ── Bulk apply: confirm + journaled undo ──────────────────────────────────
-  async function doUndoBulkApply() {
+  function doUndoBulkApply() {
     const journal = plugin.settings.lastBulkApply;
     if (!journal) { new Notice("Nothing to undo."); return; }
-    if (!confirm(`Undo the last bulk plan apply (${journal.entries.length} lesson${journal.entries.length === 1 ? "" : "s"})? Previously linked plans will be restored.`)) return;
-    const n = undoBulkApply(plugin.settings);
-    await plugin.saveSettings();
-    invalidate();
-    new Notice(`Bulk apply undone — ${n} lesson${n === 1 ? "" : "s"} reverted.`);
+    new ConfirmModal(plugin.app, `Undo the last bulk plan apply (${journal.entries.length} lesson${journal.entries.length === 1 ? "" : "s"})? Previously linked plans will be restored.`, async () => {
+      const n = undoBulkApply(plugin.settings);
+      await plugin.saveSettings();
+      invalidate();
+      new Notice(`Bulk apply undone — ${n} lesson${n === 1 ? "" : "s"} reverted.`);
+    }, "Undo").open();
   }
 
   function showBulkUndoNotice(count: number) {
@@ -1047,13 +1051,31 @@
     box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);
     outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border));
   }
-  .tp-block:hover .tp-event-stack { position:relative; inset:auto; height:auto; min-height:calc(var(--bh, 20px) - 6px); margin:3px; }
+  /* Adaptive hover for blocks with chips: the block keeps its timetable
+     footprint as an invisible hover hit-area (no flicker), while the card
+     itself is painted on the chip stack, which hugs the content exactly. */
+  .tp-block:hover:has(.tp-event-stack) {
+    min-height:var(--bh, 20px);
+    padding-bottom:0;
+    overflow:visible;
+    background:transparent !important;
+    border-color:transparent !important;
+    box-shadow:none;
+    outline:none;
+  }
+  .tp-block:hover .tp-event-stack {
+    position:relative; inset:auto; height:auto; margin:3px;
+    border-radius:4px;
+    background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary);
+    box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);
+    outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border));
+  }
   .tp-block:hover .tp-block-label { padding:4px 8px; }
   .tp-block:hover .tp-chip {
     container-type:normal;
     background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important;
   }
-  .tp-block:hover .tp-chip-notes { display:block; -webkit-line-clamp:unset; overflow:visible; }
+  .tp-block:hover .tp-chip-notes { display:block; -webkit-line-clamp:unset; line-clamp:unset; overflow:visible; }
   .tp-chip-period-time { display:none; font-size:10px; color:var(--text-muted); opacity:0.85; }
   .tp-block:hover .tp-chip-period-time { display:block; }
 
@@ -1063,7 +1085,7 @@
   .tp-chip-code  { font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
   .tp-chip-meta  { font-size:13px; color:var(--text-normal); opacity:0.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
   .tp-chip-room  { font-size:12px; color:var(--text-normal); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; font-style:italic; }
-  .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; }
+  .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; }
 
   @container chip (max-height: 58px) {
     .tp-chip-meta,

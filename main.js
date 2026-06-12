@@ -1374,6 +1374,50 @@ var init_AddTimetableTemplateModal = __esm({
   }
 });
 
+// src/utils/scheduleUtils.ts
+function ensureDaySchedules(ay) {
+  var _a;
+  if (!ay.daySchedules || ay.daySchedules.length === 0) {
+    ay.daySchedules = [{
+      id: "schedule-standard",
+      name: "Standard day",
+      periods: (_a = ay.periods) != null ? _a : []
+    }];
+  }
+  if (!ay.dayScheduleMap) ay.dayScheduleMap = {};
+  syncPeriodsUnion(ay);
+}
+function getScheduleForDay(ay, day) {
+  var _a, _b, _c;
+  const schedules = (_a = ay.daySchedules) != null ? _a : [];
+  if (schedules.length === 0) return void 0;
+  const mapped = (_b = ay.dayScheduleMap) == null ? void 0 : _b[day];
+  return (_c = schedules.find((s) => s.id === mapped)) != null ? _c : schedules[0];
+}
+function getPeriodsForDay(ay, day) {
+  var _a;
+  const sched = getScheduleForDay(ay, day);
+  return sched ? sched.periods : (_a = ay.periods) != null ? _a : [];
+}
+function periodAppliesTo(ay, periodId, day) {
+  if (!ay.daySchedules || ay.daySchedules.length === 0) return true;
+  return getPeriodsForDay(ay, day).some((p) => p.id === periodId);
+}
+function syncPeriodsUnion(ay) {
+  if (!ay.daySchedules || ay.daySchedules.length === 0) return;
+  const seen = /* @__PURE__ */ new Map();
+  for (const sched of ay.daySchedules) {
+    for (const p of sched.periods) {
+      if (!seen.has(p.id)) seen.set(p.id, p);
+    }
+  }
+  ay.periods = [...seen.values()].sort((a, b) => a.start.localeCompare(b.start));
+}
+var init_scheduleUtils = __esm({
+  "src/utils/scheduleUtils.ts"() {
+  }
+});
+
 // src/utils/themeColours.ts
 function findToken(token) {
   var _a;
@@ -1444,4151 +1488,6 @@ var init_themeColours = __esm({
   }
 });
 
-// src/utils/scheduleUtils.ts
-function ensureDaySchedules(ay) {
-  var _a;
-  if (!ay.daySchedules || ay.daySchedules.length === 0) {
-    ay.daySchedules = [{
-      id: "schedule-standard",
-      name: "Standard day",
-      periods: (_a = ay.periods) != null ? _a : []
-    }];
-  }
-  if (!ay.dayScheduleMap) ay.dayScheduleMap = {};
-  syncPeriodsUnion(ay);
-}
-function getScheduleForDay(ay, day) {
-  var _a, _b, _c;
-  const schedules = (_a = ay.daySchedules) != null ? _a : [];
-  if (schedules.length === 0) return void 0;
-  const mapped = (_b = ay.dayScheduleMap) == null ? void 0 : _b[day];
-  return (_c = schedules.find((s) => s.id === mapped)) != null ? _c : schedules[0];
-}
-function getPeriodsForDay(ay, day) {
-  var _a;
-  const sched = getScheduleForDay(ay, day);
-  return sched ? sched.periods : (_a = ay.periods) != null ? _a : [];
-}
-function periodAppliesTo(ay, periodId, day) {
-  if (!ay.daySchedules || ay.daySchedules.length === 0) return true;
-  return getPeriodsForDay(ay, day).some((p) => p.id === periodId);
-}
-function syncPeriodsUnion(ay) {
-  if (!ay.daySchedules || ay.daySchedules.length === 0) return;
-  const seen = /* @__PURE__ */ new Map();
-  for (const sched of ay.daySchedules) {
-    for (const p of sched.periods) {
-      if (!seen.has(p.id)) seen.set(p.id, p);
-    }
-  }
-  ay.periods = [...seen.values()].sort((a, b) => a.start.localeCompare(b.start));
-}
-var init_scheduleUtils = __esm({
-  "src/utils/scheduleUtils.ts"() {
-  }
-});
-
-// src/modals/TimetableEditorComponent.svelte
-function add_css(target) {
-  append_styles(target, "svelte-pnrkh9", ".tp-te-wrap.svelte-pnrkh9.svelte-pnrkh9{display:flex;flex-direction:column;width:100%;box-sizing:border-box;height:auto;overflow:visible;font-size:14px;position:relative}.tp-te-tmpl-bar.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:flex-start;gap:8px;padding:8px 48px 12px 0;flex-shrink:0;flex-wrap:wrap}.tp-te-tmpl-tabs.svelte-pnrkh9.svelte-pnrkh9{display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:0}.tp-te-tmpl-tab-wrap.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:center;gap:2px}.tp-te-tmpl-tab.svelte-pnrkh9.svelte-pnrkh9{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 16px 11px;min-height:54px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;cursor:pointer;transition:all 0.15s;text-align:left}.tp-te-tmpl-tab--active.svelte-pnrkh9.svelte-pnrkh9{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-tmpl-tab--past.svelte-pnrkh9.svelte-pnrkh9:not(.tp-te-tmpl-tab--active){opacity:0.65}.tp-te-tmpl-name.svelte-pnrkh9.svelte-pnrkh9{font-weight:600;line-height:1.2}.tp-te-tmpl-dates.svelte-pnrkh9.svelte-pnrkh9{font-size:11px;opacity:0.75;line-height:1.2;margin-top:1px}.tp-te-tmpl-rename-btn.svelte-pnrkh9.svelte-pnrkh9{background:transparent;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:0.6;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-rename-btn.svelte-pnrkh9.svelte-pnrkh9:hover{opacity:1}.tp-te-tmpl-rename-btn.svelte-pnrkh9 svg{width:13px;height:13px}.tp-te-rename-input.svelte-pnrkh9.svelte-pnrkh9{font-size:13px;font-weight:600;padding:4px 8px;border:1px solid var(--interactive-accent);border-radius:6px;background:var(--background-primary);color:var(--text-normal);width:140px}.tp-te-tmpl-actions.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:center;gap:6px;flex-shrink:0}.tp-te-tmpl-add-btn.svelte-pnrkh9.svelte-pnrkh9{padding:10px 16px;border-radius:6px;border:1.5px dashed var(--interactive-accent);background:transparent;color:var(--interactive-accent);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap}.tp-te-tmpl-add-btn.svelte-pnrkh9.svelte-pnrkh9:hover{background:color-mix(in srgb, var(--interactive-accent) 10%, transparent)}.tp-te-tmpl-del-btn.svelte-pnrkh9.svelte-pnrkh9{background:transparent;border:none;cursor:pointer;font-size:16px;padding:4px;opacity:0.5;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-del-btn.svelte-pnrkh9.svelte-pnrkh9:hover{opacity:1}.tp-te-tmpl-del-btn.svelte-pnrkh9 svg{width:15px;height:15px}.tp-te-edit-warn.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;margin-bottom:12px;background:color-mix(in srgb, var(--color-yellow, #f59e0b) 12%, transparent);border:1px solid var(--color-yellow, #f59e0b);border-radius:6px;font-size:13px;color:var(--text-normal);flex-shrink:0}.tp-te-edit-warn--collapsed.svelte-pnrkh9.svelte-pnrkh9{align-items:center;padding:6px 12px}.tp-te-edit-warn--confirm.svelte-pnrkh9.svelte-pnrkh9{align-items:center}.tp-te-edit-warn-body.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0}.tp-te-edit-warn-icon.svelte-pnrkh9.svelte-pnrkh9{flex-shrink:0}.tp-te-edit-warn-text.svelte-pnrkh9.svelte-pnrkh9{line-height:1.5}.tp-te-edit-warn-actions.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:2px}.tp-te-edit-warn-pill.svelte-pnrkh9.svelte-pnrkh9{color:var(--text-muted);font-size:12px}.tp-te-edit-warn-show-btn.svelte-pnrkh9.svelte-pnrkh9{padding:3px 10px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-past-confirm-btn.svelte-pnrkh9.svelte-pnrkh9{padding:4px 12px;border-radius:4px;border:none;background:var(--color-red, #f38ba8);color:#fff;font-size:12px;cursor:pointer}.tp-te-past-cancel-btn.svelte-pnrkh9.svelte-pnrkh9{padding:4px 12px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-week-tabs.svelte-pnrkh9.svelte-pnrkh9{display:flex;gap:6px;margin-bottom:14px;flex-shrink:0}.tp-te-week-tab.svelte-pnrkh9.svelte-pnrkh9{padding:6px 20px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}.tp-te-week-tab--active.svelte-pnrkh9.svelte-pnrkh9{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-grid-wrap.svelte-pnrkh9.svelte-pnrkh9{overflow:auto;max-height:55vh;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-te-grid.svelte-pnrkh9.svelte-pnrkh9{width:100%;border-collapse:collapse;table-layout:fixed}.tp-te-th.svelte-pnrkh9.svelte-pnrkh9{padding:10px 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);text-align:center;background:var(--background-secondary);border-bottom:1px solid var(--background-modifier-border);position:sticky;top:0;z-index:2}.tp-te-th--period.svelte-pnrkh9.svelte-pnrkh9{text-align:left;width:130px}.tp-te-period-cell.svelte-pnrkh9.svelte-pnrkh9{padding:6px 10px;border-bottom:1px solid var(--background-modifier-border);vertical-align:middle}.tp-te-period-name.svelte-pnrkh9.svelte-pnrkh9{display:block;font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-period-time.svelte-pnrkh9.svelte-pnrkh9{display:block;font-size:11px;color:var(--text-normal);margin-top:1px}.tp-te-cell.svelte-pnrkh9.svelte-pnrkh9{height:52px;padding:4px;border-bottom:1px solid var(--background-modifier-border);border-left:1px solid var(--background-modifier-border);vertical-align:middle;position:relative}.tp-te-cell.svelte-pnrkh9:hover .tp-te-add.svelte-pnrkh9{opacity:1}.tp-te-add.svelte-pnrkh9.svelte-pnrkh9{opacity:0;width:100%;height:100%;border:1.5px dashed var(--background-modifier-border);border-radius:6px;background:transparent;color:var(--text-faint);font-size:18px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center}.tp-te-add.svelte-pnrkh9.svelte-pnrkh9:hover{border-color:var(--interactive-accent);color:var(--interactive-accent);background:var(--background-modifier-hover)}.tp-te-chip.svelte-pnrkh9.svelte-pnrkh9{width:100%;height:100%;border-radius:6px;border:none;cursor:pointer;padding:4px 6px;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden;transition:filter 0.1s}.tp-te-chip.svelte-pnrkh9.svelte-pnrkh9:hover{filter:brightness(1.1)}.tp-te-chip-code.svelte-pnrkh9.svelte-pnrkh9{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-chip-sub.svelte-pnrkh9.svelte-pnrkh9{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-duration-badge.svelte-pnrkh9.svelte-pnrkh9{position:absolute;bottom:3px;right:4px;font-size:10px;font-weight:700;background:rgba(0,0,0,0.30);color:#fff;border-radius:3px;padding:1px 4px;cursor:pointer;line-height:1.4;transition:background 0.1s;z-index:1;pointer-events:all}.tp-te-duration-badge.svelte-pnrkh9.svelte-pnrkh9:hover{background:rgba(0,0,0,0.50)}.tp-te-duration-input.svelte-pnrkh9.svelte-pnrkh9{position:absolute;bottom:3px;right:4px;width:46px;font-size:10px;padding:1px 3px;border:1px solid var(--interactive-accent);border-radius:3px;background:var(--background-primary);color:var(--text-normal);z-index:2;text-align:center}.tp-te-picker.svelte-pnrkh9.svelte-pnrkh9{position:fixed;z-index:1000;width:240px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.3);overflow:hidden}.tp-te-picker-inner.svelte-pnrkh9.svelte-pnrkh9{max-height:360px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:2px}.tp-te-picker-search.svelte-pnrkh9.svelte-pnrkh9{width:100%;box-sizing:border-box;padding:6px 10px;margin-bottom:2px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-secondary);color:var(--text-normal);font-size:13px;outline:none;flex-shrink:0}.tp-te-picker-search.svelte-pnrkh9.svelte-pnrkh9:focus{border-color:var(--interactive-accent)}.tp-te-picker-group-label.svelte-pnrkh9.svelte-pnrkh9{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);padding:4px 8px 2px}.tp-te-picker-divider.svelte-pnrkh9.svelte-pnrkh9{height:1px;background:var(--background-modifier-border);margin:4px 0}.tp-te-picker-row.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:center;gap:2px}.tp-te-picker-item.svelte-pnrkh9.svelte-pnrkh9{flex:1;display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;text-align:left;width:100%;transition:background 0.1s;min-width:0}.tp-te-picker-item.svelte-pnrkh9.svelte-pnrkh9:hover{background:var(--background-modifier-hover)}.tp-te-picker-item--archived.svelte-pnrkh9.svelte-pnrkh9{cursor:default;pointer-events:none}.tp-te-picker-item-text.svelte-pnrkh9.svelte-pnrkh9{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1;min-width:0}.tp-te-picker-code.svelte-pnrkh9.svelte-pnrkh9{font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-room.svelte-pnrkh9.svelte-pnrkh9{font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-clear.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-red, #f38ba8);font-size:13px;width:100%;transition:background 0.1s}.tp-te-picker-clear.svelte-pnrkh9 svg{width:13px;height:13px;flex-shrink:0}.tp-te-picker-clear.svelte-pnrkh9.svelte-pnrkh9:hover{background:var(--background-modifier-hover)}.tp-te-archive-btn.svelte-pnrkh9.svelte-pnrkh9{background:transparent;border:none;cursor:pointer;font-size:14px;padding:4px 5px;opacity:0;flex-shrink:0;border-radius:4px;transition:opacity 0.1s, background 0.1s;display:inline-flex;align-items:center}.tp-te-archive-btn.svelte-pnrkh9 svg{width:13px;height:13px}.tp-te-picker-row.svelte-pnrkh9:hover .tp-te-archive-btn.svelte-pnrkh9{opacity:0.6}.tp-te-picker-row--archived.svelte-pnrkh9 .tp-te-archive-btn.svelte-pnrkh9{opacity:0.7}.tp-te-archive-btn.svelte-pnrkh9.svelte-pnrkh9:hover{opacity:1 !important;background:var(--background-modifier-hover)}.tp-te-show-archived-btn.svelte-pnrkh9.svelte-pnrkh9{background:transparent;border:none;cursor:pointer;color:var(--text-faint);font-size:12px;padding:4px 8px;text-align:left;width:100%;border-radius:4px}.tp-te-show-archived-btn.svelte-pnrkh9.svelte-pnrkh9:hover{background:var(--background-modifier-hover);color:var(--text-muted)}.tp-te-unsaved-overlay.svelte-pnrkh9.svelte-pnrkh9{position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;border-radius:8px}.tp-te-unsaved-dialog.svelte-pnrkh9.svelte-pnrkh9{background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;padding:20px 24px;max-width:340px;width:100%;box-shadow:0 8px 28px rgba(0,0,0,0.35);display:flex;flex-direction:column;gap:14px}.tp-te-unsaved-msg.svelte-pnrkh9.svelte-pnrkh9{font-size:14px;color:var(--text-normal);margin:0;line-height:1.4}.tp-te-unsaved-actions.svelte-pnrkh9.svelte-pnrkh9{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.tp-te-btn-danger.svelte-pnrkh9.svelte-pnrkh9{background:var(--color-red,#f38ba8);color:var(--text-on-accent);border-color:var(--color-red,#f38ba8)}.tp-te-btn-danger.svelte-pnrkh9.svelte-pnrkh9:hover{filter:brightness(1.1)}.tp-te-footer.svelte-pnrkh9.svelte-pnrkh9{display:flex;justify-content:flex-end;gap:8px;padding-top:14px;flex-shrink:0}.tp-te-btn.svelte-pnrkh9.svelte-pnrkh9{padding:8px 18px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:14px;cursor:pointer;transition:background 0.1s}.tp-te-btn.svelte-pnrkh9.svelte-pnrkh9:hover{background:var(--background-modifier-hover)}.tp-te-btn-primary.svelte-pnrkh9.svelte-pnrkh9{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-btn-primary.svelte-pnrkh9.svelte-pnrkh9:hover{filter:brightness(1.08)}.tp-te-cell--na.svelte-pnrkh9.svelte-pnrkh9{background:var(--background-secondary);opacity:0.5;pointer-events:none}");
-}
-function get_each_context(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[124] = list[i];
-  return child_ctx;
-}
-function get_each_context_1(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[127] = list[i];
-  return child_ctx;
-}
-function get_each_context_2(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[124] = list[i];
-  return child_ctx;
-}
-function get_each_context_3(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[124] = list[i];
-  return child_ctx;
-}
-function get_each_context_4(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[134] = list[i];
-  const constants_0 = (
-    /*pickerFilteredClasses*/
-    child_ctx[25].filter(function func_1(...args) {
-      return (
-        /*func_1*/
-        ctx[99](
-          /*subj*/
-          child_ctx[134],
-          ...args
-        )
-      );
-    }).sort((a, b) => a.code.localeCompare(b.code))
-  );
-  child_ctx[135] = constants_0;
-  return child_ctx;
-}
-function get_each_context_5(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[127] = list[i];
-  const constants_0 = [
-    /*cls*/
-    child_ctx[127].year,
-    /*subj*/
-    child_ctx[134].name
-  ].filter(Boolean).join(" \xB7 ");
-  child_ctx[138] = constants_0;
-  return child_ctx;
-}
-function get_each_context_6(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[141] = list[i];
-  const constants_0 = (
-    /*getPeriodTypeColour*/
-    child_ctx[56](
-      /*period*/
-      child_ctx[141].type
-    )
-  );
-  child_ctx[142] = constants_0;
-  return child_ctx;
-}
-function get_each_context_7(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[145] = list[i];
-  const constants_0 = (
-    /*_slotGrid*/
-    child_ctx[28][
-      /*day*/
-      child_ctx[145].key + ":" + /*period*/
-      child_ctx[141].id
-    ]
-  );
-  child_ctx[146] = constants_0;
-  const constants_1 = (
-    /*pickerDay*/
-    child_ctx[20] === /*day*/
-    child_ctx[145].key && /*pickerPeriodId*/
-    child_ctx[21] === /*period*/
-    child_ctx[141].id
-  );
-  child_ctx[147] = constants_1;
-  const constants_2 = (
-    /*day*/
-    child_ctx[145].key + ":" + /*period*/
-    child_ctx[141].id
-  );
-  child_ctx[148] = constants_2;
-  const constants_3 = !periodAppliesTo(
-    /*plugin*/
-    child_ctx[0].settings.academicYear,
-    /*period*/
-    child_ctx[141].id,
-    /*day*/
-    child_ctx[145].key
-  );
-  child_ctx[149] = constants_3;
-  return child_ctx;
-}
-function get_if_ctx(ctx) {
-  const child_ctx = ctx.slice();
-  const constants_0 = (
-    /*getLabel*/
-    child_ctx[47](
-      /*slot*/
-      child_ctx[146]
-    )
-  );
-  child_ctx[152] = constants_0;
-  return child_ctx;
-}
-function get_each_context_8(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[145] = list[i];
-  return child_ctx;
-}
-function get_each_context_9(ctx, list, i) {
-  const child_ctx = ctx.slice();
-  child_ctx[155] = list[i];
-  return child_ctx;
-}
-function create_else_block_3(ctx) {
-  let button;
-  let span0;
-  let t0_value = (
-    /*tmpl*/
-    ctx[155].name + ""
-  );
-  let t0;
-  let t1;
-  let span1;
-  let t2_value = fmtDate2(
-    /*tmpl*/
-    ctx[155].startDate
-  ) + "";
-  let t2;
-  let t3;
-  let t4_value = fmtDate2(
-    /*tmpl*/
-    ctx[155].endDate
-  ) + "";
-  let t4;
-  let t5;
-  let if_block_anchor;
-  let mounted;
-  let dispose;
-  function click_handler_2() {
-    return (
-      /*click_handler_2*/
-      ctx[82](
-        /*tmpl*/
-        ctx[155]
-      )
-    );
-  }
-  let if_block = (
-    /*tmpl*/
-    ctx[155].id === /*activeTemplateId*/
-    ctx[1] && create_if_block_23(ctx)
-  );
-  return {
-    c() {
-      button = element("button");
-      span0 = element("span");
-      t0 = text(t0_value);
-      t1 = space();
-      span1 = element("span");
-      t2 = text(t2_value);
-      t3 = text(" \u2013 ");
-      t4 = text(t4_value);
-      t5 = space();
-      if (if_block) if_block.c();
-      if_block_anchor = empty();
-      attr(span0, "class", "tp-te-tmpl-name svelte-pnrkh9");
-      attr(span1, "class", "tp-te-tmpl-dates svelte-pnrkh9");
-      attr(button, "class", "tp-te-tmpl-tab svelte-pnrkh9");
-      toggle_class(
-        button,
-        "tp-te-tmpl-tab--active",
-        /*tmpl*/
-        ctx[155].id === /*activeTemplateId*/
-        ctx[1]
-      );
-      toggle_class(
-        button,
-        "tp-te-tmpl-tab--past",
-        /*tmpl*/
-        ctx[155].endDate < /*today*/
-        ctx[37]
-      );
-    },
-    m(target, anchor) {
-      insert(target, button, anchor);
-      append(button, span0);
-      append(span0, t0);
-      append(button, t1);
-      append(button, span1);
-      append(span1, t2);
-      append(span1, t3);
-      append(span1, t4);
-      insert(target, t5, anchor);
-      if (if_block) if_block.m(target, anchor);
-      insert(target, if_block_anchor, anchor);
-      if (!mounted) {
-        dispose = listen(button, "click", click_handler_2);
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*allTemplates*/
-      32 && t0_value !== (t0_value = /*tmpl*/
-      ctx[155].name + "")) set_data(t0, t0_value);
-      if (dirty[0] & /*allTemplates*/
-      32 && t2_value !== (t2_value = fmtDate2(
-        /*tmpl*/
-        ctx[155].startDate
-      ) + "")) set_data(t2, t2_value);
-      if (dirty[0] & /*allTemplates*/
-      32 && t4_value !== (t4_value = fmtDate2(
-        /*tmpl*/
-        ctx[155].endDate
-      ) + "")) set_data(t4, t4_value);
-      if (dirty[0] & /*allTemplates, activeTemplateId*/
-      34) {
-        toggle_class(
-          button,
-          "tp-te-tmpl-tab--active",
-          /*tmpl*/
-          ctx[155].id === /*activeTemplateId*/
-          ctx[1]
-        );
-      }
-      if (dirty[0] & /*allTemplates*/
-      32 | dirty[1] & /*today*/
-      64) {
-        toggle_class(
-          button,
-          "tp-te-tmpl-tab--past",
-          /*tmpl*/
-          ctx[155].endDate < /*today*/
-          ctx[37]
-        );
-      }
-      if (
-        /*tmpl*/
-        ctx[155].id === /*activeTemplateId*/
-        ctx[1]
-      ) {
-        if (if_block) {
-          if_block.p(ctx, dirty);
-        } else {
-          if_block = create_if_block_23(ctx);
-          if_block.c();
-          if_block.m(if_block_anchor.parentNode, if_block_anchor);
-        }
-      } else if (if_block) {
-        if_block.d(1);
-        if_block = null;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(button);
-        detach(t5);
-        detach(if_block_anchor);
-      }
-      if (if_block) if_block.d(detaching);
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_if_block_22(ctx) {
-  let input;
-  let mounted;
-  let dispose;
-  return {
-    c() {
-      input = element("input");
-      attr(input, "class", "tp-te-rename-input svelte-pnrkh9");
-      input.autofocus = true;
-    },
-    m(target, anchor) {
-      insert(target, input, anchor);
-      set_input_value(
-        input,
-        /*renameValue*/
-        ctx[18]
-      );
-      input.focus();
-      if (!mounted) {
-        dispose = [
-          listen(
-            input,
-            "input",
-            /*input_input_handler*/
-            ctx[80]
-          ),
-          listen(
-            input,
-            "keydown",
-            /*keydown_handler_1*/
-            ctx[81]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*renameValue*/
-      262144 && input.value !== /*renameValue*/
-      ctx2[18]) {
-        set_input_value(
-          input,
-          /*renameValue*/
-          ctx2[18]
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(input);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block_23(ctx) {
-  let button;
-  let icon_action;
-  let mounted;
-  let dispose;
-  function click_handler_3() {
-    return (
-      /*click_handler_3*/
-      ctx[83](
-        /*tmpl*/
-        ctx[155]
-      )
-    );
-  }
-  return {
-    c() {
-      button = element("button");
-      attr(button, "class", "tp-te-tmpl-rename-btn svelte-pnrkh9");
-      attr(button, "title", "Rename");
-    },
-    m(target, anchor) {
-      insert(target, button, anchor);
-      if (!mounted) {
-        dispose = [
-          listen(button, "click", click_handler_3),
-          action_destroyer(icon_action = /*icon*/
-          ctx[31].call(null, button, "pencil"))
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(button);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_each_block_9(key_1, ctx) {
-  let div;
-  let t;
-  function select_block_type(ctx2, dirty) {
-    if (
-      /*renamingId*/
-      ctx2[17] === /*tmpl*/
-      ctx2[155].id
-    ) return create_if_block_22;
-    return create_else_block_3;
-  }
-  let current_block_type = select_block_type(ctx, [-1, -1, -1, -1, -1, -1]);
-  let if_block = current_block_type(ctx);
-  return {
-    key: key_1,
-    first: null,
-    c() {
-      div = element("div");
-      if_block.c();
-      t = space();
-      attr(div, "class", "tp-te-tmpl-tab-wrap svelte-pnrkh9");
-      this.first = div;
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      if_block.m(div, null);
-      append(div, t);
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (current_block_type === (current_block_type = select_block_type(ctx, dirty)) && if_block) {
-        if_block.p(ctx, dirty);
-      } else {
-        if_block.d(1);
-        if_block = current_block_type(ctx);
-        if (if_block) {
-          if_block.c();
-          if_block.m(div, t);
-        }
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      if_block.d();
-    }
-  };
-}
-function create_if_block_21(ctx) {
-  let button;
-  let icon_action;
-  let mounted;
-  let dispose;
-  return {
-    c() {
-      button = element("button");
-      attr(button, "class", "tp-te-tmpl-del-btn svelte-pnrkh9");
-      attr(button, "title", "Delete this template");
-    },
-    m(target, anchor) {
-      insert(target, button, anchor);
-      if (!mounted) {
-        dispose = [
-          listen(
-            button,
-            "click",
-            /*deleteTemplate*/
-            ctx[55]
-          ),
-          action_destroyer(icon_action = /*icon*/
-          ctx[31].call(null, button, "trash-2"))
-        ];
-        mounted = true;
-      }
-    },
-    p: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(button);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block_17(ctx) {
-  let if_block_anchor;
-  function select_block_type_1(ctx2, dirty) {
-    if (
-      /*warnCollapsed*/
-      ctx2[16]
-    ) return create_if_block_18;
-    if (
-      /*showPastConfirm*/
-      ctx2[15]
-    ) return create_if_block_19;
-    return create_else_block_2;
-  }
-  let current_block_type = select_block_type_1(ctx, [-1, -1, -1, -1, -1, -1]);
-  let if_block = current_block_type(ctx);
-  return {
-    c() {
-      if_block.c();
-      if_block_anchor = empty();
-    },
-    m(target, anchor) {
-      if_block.m(target, anchor);
-      insert(target, if_block_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (current_block_type === (current_block_type = select_block_type_1(ctx2, dirty)) && if_block) {
-        if_block.p(ctx2, dirty);
-      } else {
-        if_block.d(1);
-        if_block = current_block_type(ctx2);
-        if (if_block) {
-          if_block.c();
-          if_block.m(if_block_anchor.parentNode, if_block_anchor);
-        }
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(if_block_anchor);
-      }
-      if_block.d(detaching);
-    }
-  };
-}
-function create_else_block_2(ctx) {
-  let div3;
-  let div1;
-  let span;
-  let t1;
-  let div0;
-  let t2;
-  let t3;
-  let div2;
-  let button;
-  let mounted;
-  let dispose;
-  let if_block = (
-    /*isPast*/
-    ctx[27] && create_if_block_20(ctx)
-  );
-  return {
-    c() {
-      div3 = element("div");
-      div1 = element("div");
-      span = element("span");
-      span.textContent = "\u26A0\uFE0F";
-      t1 = space();
-      div0 = element("div");
-      if (if_block) if_block.c();
-      t2 = text("\n            Editing this template affects your directed time records for all weeks it covers. If your timetable has changed, create a new template from the date of the change to keep records accurate.");
-      t3 = space();
-      div2 = element("div");
-      button = element("button");
-      button.textContent = "Dismiss";
-      attr(span, "class", "tp-te-edit-warn-icon svelte-pnrkh9");
-      attr(div0, "class", "tp-te-edit-warn-text svelte-pnrkh9");
-      attr(div1, "class", "tp-te-edit-warn-body svelte-pnrkh9");
-      attr(button, "class", "tp-te-past-cancel-btn svelte-pnrkh9");
-      attr(button, "title", "Dismiss warning");
-      attr(div2, "class", "tp-te-edit-warn-actions svelte-pnrkh9");
-      attr(div3, "class", "tp-te-edit-warn svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div3, anchor);
-      append(div3, div1);
-      append(div1, span);
-      append(div1, t1);
-      append(div1, div0);
-      if (if_block) if_block.m(div0, null);
-      append(div0, t2);
-      append(div3, t3);
-      append(div3, div2);
-      append(div2, button);
-      if (!mounted) {
-        dispose = listen(
-          button,
-          "click",
-          /*click_handler_6*/
-          ctx[86]
-        );
-        mounted = true;
-      }
-    },
-    p(ctx2, dirty) {
-      if (
-        /*isPast*/
-        ctx2[27]
-      ) {
-        if (if_block) {
-          if_block.p(ctx2, dirty);
-        } else {
-          if_block = create_if_block_20(ctx2);
-          if_block.c();
-          if_block.m(div0, t2);
-        }
-      } else if (if_block) {
-        if_block.d(1);
-        if_block = null;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div3);
-      }
-      if (if_block) if_block.d();
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_if_block_19(ctx) {
-  let div1;
-  let span;
-  let t0;
-  let t1_value = fmtDate2(
-    /*activeTemplate*/
-    ctx[6].endDate
-  ) + "";
-  let t1;
-  let t2;
-  let t3;
-  let div0;
-  let button0;
-  let t5;
-  let button1;
-  let mounted;
-  let dispose;
-  return {
-    c() {
-      div1 = element("div");
-      span = element("span");
-      t0 = text("\u26A0\uFE0F This template ended ");
-      t1 = text(t1_value);
-      t2 = text(". Saving will change historical records. Continue?");
-      t3 = space();
-      div0 = element("div");
-      button0 = element("button");
-      button0.textContent = "Yes, save anyway";
-      t5 = space();
-      button1 = element("button");
-      button1.textContent = "Cancel";
-      attr(button0, "class", "tp-te-past-confirm-btn svelte-pnrkh9");
-      attr(button1, "class", "tp-te-past-cancel-btn svelte-pnrkh9");
-      attr(div0, "class", "tp-te-edit-warn-actions svelte-pnrkh9");
-      attr(div1, "class", "tp-te-edit-warn tp-te-edit-warn--confirm svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div1, anchor);
-      append(div1, span);
-      append(span, t0);
-      append(span, t1);
-      append(span, t2);
-      append(div1, t3);
-      append(div1, div0);
-      append(div0, button0);
-      append(div0, t5);
-      append(div0, button1);
-      if (!mounted) {
-        dispose = [
-          listen(
-            button0,
-            "click",
-            /*confirmPastSave*/
-            ctx[53]
-          ),
-          listen(
-            button1,
-            "click",
-            /*click_handler_5*/
-            ctx[85]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*activeTemplate*/
-      64 && t1_value !== (t1_value = fmtDate2(
-        /*activeTemplate*/
-        ctx2[6].endDate
-      ) + "")) set_data(t1, t1_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div1);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block_18(ctx) {
-  let div;
-  let span;
-  let t1;
-  let button;
-  let mounted;
-  let dispose;
-  return {
-    c() {
-      div = element("div");
-      span = element("span");
-      span.textContent = "\u26A0\uFE0F Warning hidden";
-      t1 = space();
-      button = element("button");
-      button.textContent = "Show";
-      attr(span, "class", "tp-te-edit-warn-pill svelte-pnrkh9");
-      attr(button, "class", "tp-te-edit-warn-show-btn svelte-pnrkh9");
-      attr(div, "class", "tp-te-edit-warn tp-te-edit-warn--collapsed svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, span);
-      append(div, t1);
-      append(div, button);
-      if (!mounted) {
-        dispose = listen(
-          button,
-          "click",
-          /*click_handler_4*/
-          ctx[84]
-        );
-        mounted = true;
-      }
-    },
-    p: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_if_block_20(ctx) {
-  let strong;
-  let t0;
-  let t1_value = fmtDate2(
-    /*activeTemplate*/
-    ctx[6].endDate
-  ) + "";
-  let t1;
-  let t2;
-  let t3_value = " ";
-  let t3;
-  return {
-    c() {
-      strong = element("strong");
-      t0 = text("This template ended ");
-      t1 = text(t1_value);
-      t2 = text(".");
-      t3 = text(t3_value);
-    },
-    m(target, anchor) {
-      insert(target, strong, anchor);
-      append(strong, t0);
-      append(strong, t1);
-      append(strong, t2);
-      insert(target, t3, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*activeTemplate*/
-      64 && t1_value !== (t1_value = fmtDate2(
-        /*activeTemplate*/
-        ctx2[6].endDate
-      ) + "")) set_data(t1, t1_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(strong);
-        detach(t3);
-      }
-    }
-  };
-}
-function create_if_block_16(ctx) {
-  let div;
-  let button0;
-  let t1;
-  let button1;
-  let mounted;
-  let dispose;
-  return {
-    c() {
-      div = element("div");
-      button0 = element("button");
-      button0.textContent = "Week A";
-      t1 = space();
-      button1 = element("button");
-      button1.textContent = "Week B";
-      attr(button0, "class", "tp-te-week-tab svelte-pnrkh9");
-      toggle_class(
-        button0,
-        "tp-te-week-tab--active",
-        /*activeWeek*/
-        ctx[3] === "A"
-      );
-      attr(button1, "class", "tp-te-week-tab tp-te-week-tab--b svelte-pnrkh9");
-      toggle_class(
-        button1,
-        "tp-te-week-tab--active",
-        /*activeWeek*/
-        ctx[3] === "B"
-      );
-      attr(div, "class", "tp-te-week-tabs svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, button0);
-      append(div, t1);
-      append(div, button1);
-      if (!mounted) {
-        dispose = [
-          listen(
-            button0,
-            "click",
-            /*click_handler_7*/
-            ctx[87]
-          ),
-          listen(
-            button1,
-            "click",
-            /*click_handler_8*/
-            ctx[88]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*activeWeek*/
-      8) {
-        toggle_class(
-          button0,
-          "tp-te-week-tab--active",
-          /*activeWeek*/
-          ctx2[3] === "A"
-        );
-      }
-      if (dirty[0] & /*activeWeek*/
-      8) {
-        toggle_class(
-          button1,
-          "tp-te-week-tab--active",
-          /*activeWeek*/
-          ctx2[3] === "B"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_each_block_8(ctx) {
-  let th;
-  let t_value = (
-    /*day*/
-    ctx[145].label + ""
-  );
-  let t;
-  return {
-    c() {
-      th = element("th");
-      t = text(t_value);
-      attr(th, "class", "tp-te-th svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, th, anchor);
-      append(th, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*DAYS*/
-      2048 && t_value !== (t_value = /*day*/
-      ctx2[145].label + "")) set_data(t, t_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(th);
-      }
-    }
-  };
-}
-function create_else_block_1(ctx) {
-  let button;
-  let mounted;
-  let dispose;
-  function click_handler_11(...args) {
-    return (
-      /*click_handler_11*/
-      ctx[94](
-        /*day*/
-        ctx[145],
-        /*period*/
-        ctx[141],
-        ...args
-      )
-    );
-  }
-  return {
-    c() {
-      button = element("button");
-      button.textContent = "+";
-      attr(button, "class", "tp-te-add svelte-pnrkh9");
-      attr(button, "aria-label", "Assign");
-    },
-    m(target, anchor) {
-      insert(target, button, anchor);
-      if (!mounted) {
-        dispose = listen(button, "click", click_handler_11);
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(button);
-      }
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_if_block_12(ctx) {
-  let button;
-  let span;
-  let t0_value = (
-    /*lbl*/
-    ctx[152].code + ""
-  );
-  let t0;
-  let t1;
-  let button_title_value;
-  let t2;
-  let show_if = (
-    /*directedTimeEnabled*/
-    ctx[30] && /*isDirectedSlot*/
-    ctx[33](
-      /*slot*/
-      ctx[146]
-    )
-  );
-  let if_block1_anchor;
-  let mounted;
-  let dispose;
-  let if_block0 = (
-    /*lbl*/
-    (ctx[152].sub || /*lbl*/
-    ctx[152].classroom) && create_if_block_15(ctx)
-  );
-  function click_handler_9(...args) {
-    return (
-      /*click_handler_9*/
-      ctx[89](
-        /*day*/
-        ctx[145],
-        /*period*/
-        ctx[141],
-        ...args
-      )
-    );
-  }
-  let if_block1 = show_if && create_if_block_13(ctx);
-  return {
-    c() {
-      button = element("button");
-      span = element("span");
-      t0 = text(t0_value);
-      t1 = space();
-      if (if_block0) if_block0.c();
-      t2 = space();
-      if (if_block1) if_block1.c();
-      if_block1_anchor = empty();
-      attr(span, "class", "tp-te-chip-code svelte-pnrkh9");
-      set_style(
-        span,
-        "color",
-        /*lbl*/
-        ctx[152].colour
-      );
-      attr(button, "class", "tp-te-chip svelte-pnrkh9");
-      set_style(button, "border-left", "3px solid " + /*lbl*/
-      ctx[152].colour);
-      set_style(
-        button,
-        "background",
-        /*lbl*/
-        ctx[152].colour + "22"
-      );
-      attr(button, "title", button_title_value = /*lbl*/
-      ctx[152].code + /*lbl*/
-      (ctx[152].classroom ? " \xB7 " + /*lbl*/
-      ctx[152].classroom : ""));
-    },
-    m(target, anchor) {
-      insert(target, button, anchor);
-      append(button, span);
-      append(span, t0);
-      append(button, t1);
-      if (if_block0) if_block0.m(button, null);
-      insert(target, t2, anchor);
-      if (if_block1) if_block1.m(target, anchor);
-      insert(target, if_block1_anchor, anchor);
-      if (!mounted) {
-        dispose = listen(button, "click", click_handler_9);
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      268438528 && t0_value !== (t0_value = /*lbl*/
-      ctx[152].code + "")) set_data(t0, t0_value);
-      if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      268438528) {
-        set_style(
-          span,
-          "color",
-          /*lbl*/
-          ctx[152].colour
-        );
-      }
-      if (
-        /*lbl*/
-        ctx[152].sub || /*lbl*/
-        ctx[152].classroom
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx, dirty);
-        } else {
-          if_block0 = create_if_block_15(ctx);
-          if_block0.c();
-          if_block0.m(button, null);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      268438528) {
-        set_style(button, "border-left", "3px solid " + /*lbl*/
-        ctx[152].colour);
-      }
-      if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      268438528) {
-        set_style(
-          button,
-          "background",
-          /*lbl*/
-          ctx[152].colour + "22"
-        );
-      }
-      if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      268438528 && button_title_value !== (button_title_value = /*lbl*/
-      ctx[152].code + /*lbl*/
-      (ctx[152].classroom ? " \xB7 " + /*lbl*/
-      ctx[152].classroom : ""))) {
-        attr(button, "title", button_title_value);
-      }
-      if (dirty[0] & /*directedTimeEnabled, _slotGrid, DAYS, periods*/
-      1342180352) show_if = /*directedTimeEnabled*/
-      ctx[30] && /*isDirectedSlot*/
-      ctx[33](
-        /*slot*/
-        ctx[146]
-      );
-      if (show_if) {
-        if (if_block1) {
-          if_block1.p(ctx, dirty);
-        } else {
-          if_block1 = create_if_block_13(ctx);
-          if_block1.c();
-          if_block1.m(if_block1_anchor.parentNode, if_block1_anchor);
-        }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(button);
-        detach(t2);
-        detach(if_block1_anchor);
-      }
-      if (if_block0) if_block0.d();
-      if (if_block1) if_block1.d(detaching);
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_if_block_11(ctx) {
-  return { c: noop, m: noop, p: noop, d: noop };
-}
-function create_if_block_15(ctx) {
-  let span;
-  let t_value = [
-    /*lbl*/
-    ctx[152].sub,
-    /*lbl*/
-    ctx[152].classroom
-  ].filter(Boolean).join(" \xB7 ") + "";
-  let t;
-  return {
-    c() {
-      span = element("span");
-      t = text(t_value);
-      attr(span, "class", "tp-te-chip-sub svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      268438528 && t_value !== (t_value = [
-        /*lbl*/
-        ctx2[152].sub,
-        /*lbl*/
-        ctx2[152].classroom
-      ].filter(Boolean).join(" \xB7 ") + "")) set_data(t, t_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_if_block_13(ctx) {
-  let if_block_anchor;
-  function select_block_type_3(ctx2, dirty) {
-    if (
-      /*durationEditKey*/
-      ctx2[13] === /*cellKey*/
-      ctx2[148]
-    ) return create_if_block_14;
-    return create_else_block;
-  }
-  let current_block_type = select_block_type_3(ctx, [-1, -1, -1, -1, -1, -1]);
-  let if_block = current_block_type(ctx);
-  return {
-    c() {
-      if_block.c();
-      if_block_anchor = empty();
-    },
-    m(target, anchor) {
-      if_block.m(target, anchor);
-      insert(target, if_block_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (current_block_type === (current_block_type = select_block_type_3(ctx2, dirty)) && if_block) {
-        if_block.p(ctx2, dirty);
-      } else {
-        if_block.d(1);
-        if_block = current_block_type(ctx2);
-        if (if_block) {
-          if_block.c();
-          if_block.m(if_block_anchor.parentNode, if_block_anchor);
-        }
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(if_block_anchor);
-      }
-      if_block.d(detaching);
-    }
-  };
-}
-function create_else_block(ctx) {
-  let span;
-  let t0_value = (
-    /*getSlotDuration*/
-    ctx[32](
-      /*slot*/
-      ctx[146]
-    ) + ""
-  );
-  let t0;
-  let t1;
-  let span_title_value;
-  let mounted;
-  let dispose;
-  function click_handler_10(...args) {
-    return (
-      /*click_handler_10*/
-      ctx[93](
-        /*slot*/
-        ctx[146],
-        /*cellKey*/
-        ctx[148],
-        ...args
-      )
-    );
-  }
-  return {
-    c() {
-      span = element("span");
-      t0 = text(t0_value);
-      t1 = text("m");
-      attr(span, "class", "tp-te-duration-badge svelte-pnrkh9");
-      attr(span, "title", span_title_value = "Duration: " + /*getSlotDuration*/
-      ctx[32](
-        /*slot*/
-        ctx[146]
-      ) + " min \u2014 click to edit");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t0);
-      append(span, t1);
-      if (!mounted) {
-        dispose = listen(span, "click", stop_propagation(click_handler_10));
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      268438528 && t0_value !== (t0_value = /*getSlotDuration*/
-      ctx[32](
-        /*slot*/
-        ctx[146]
-      ) + "")) set_data(t0, t0_value);
-      if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      268438528 && span_title_value !== (span_title_value = "Duration: " + /*getSlotDuration*/
-      ctx[32](
-        /*slot*/
-        ctx[146]
-      ) + " min \u2014 click to edit")) {
-        attr(span, "title", span_title_value);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_if_block_14(ctx) {
-  let input;
-  let mounted;
-  let dispose;
-  function keydown_handler_2(...args) {
-    return (
-      /*keydown_handler_2*/
-      ctx[91](
-        /*slot*/
-        ctx[146],
-        ...args
-      )
-    );
-  }
-  function blur_handler() {
-    return (
-      /*blur_handler*/
-      ctx[92](
-        /*slot*/
-        ctx[146]
-      )
-    );
-  }
-  return {
-    c() {
-      input = element("input");
-      attr(input, "class", "tp-te-duration-input svelte-pnrkh9");
-      attr(input, "type", "number");
-      attr(input, "min", "1");
-      attr(input, "max", "480");
-      input.autofocus = true;
-    },
-    m(target, anchor) {
-      insert(target, input, anchor);
-      set_input_value(
-        input,
-        /*durationEditValue*/
-        ctx[14]
-      );
-      input.focus();
-      if (!mounted) {
-        dispose = [
-          listen(
-            input,
-            "input",
-            /*input_input_handler_1*/
-            ctx[90]
-          ),
-          listen(input, "click", stop_propagation(
-            /*click_handler*/
-            ctx[77]
-          )),
-          listen(input, "keydown", keydown_handler_2),
-          listen(input, "blur", blur_handler)
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*durationEditValue*/
-      16384 && to_number(input.value) !== /*durationEditValue*/
-      ctx[14]) {
-        set_input_value(
-          input,
-          /*durationEditValue*/
-          ctx[14]
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(input);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_each_block_7(ctx) {
-  let td;
-  function select_block_type_2(ctx2, dirty) {
-    if (
-      /*isNA*/
-      ctx2[149]
-    ) return create_if_block_11;
-    if (
-      /*slot*/
-      ctx2[146]
-    ) return create_if_block_12;
-    return create_else_block_1;
-  }
-  function select_block_ctx(ctx2, type) {
-    if (type === create_if_block_12) return get_if_ctx(ctx2);
-    return ctx2;
-  }
-  let current_block_type = select_block_type_2(ctx, [-1, -1, -1, -1, -1, -1]);
-  let if_block = current_block_type(select_block_ctx(ctx, current_block_type));
-  return {
-    c() {
-      td = element("td");
-      if_block.c();
-      attr(td, "class", "tp-te-cell svelte-pnrkh9");
-      toggle_class(td, "tp-te-cell--filled", !!/*slot*/
-      ctx[146] && !/*isNA*/
-      ctx[149]);
-      toggle_class(
-        td,
-        "tp-te-cell--open",
-        /*isOpen*/
-        ctx[147]
-      );
-      toggle_class(
-        td,
-        "tp-te-cell--na",
-        /*isNA*/
-        ctx[149]
-      );
-    },
-    m(target, anchor) {
-      insert(target, td, anchor);
-      if_block.m(td, null);
-    },
-    p(ctx2, dirty) {
-      if (current_block_type === (current_block_type = select_block_type_2(ctx2, dirty)) && if_block) {
-        if_block.p(select_block_ctx(ctx2, current_block_type), dirty);
-      } else {
-        if_block.d(1);
-        if_block = current_block_type(select_block_ctx(ctx2, current_block_type));
-        if (if_block) {
-          if_block.c();
-          if_block.m(td, null);
-        }
-      }
-      if (dirty[0] & /*_slotGrid, DAYS, periods, plugin*/
-      268438529) {
-        toggle_class(td, "tp-te-cell--filled", !!/*slot*/
-        ctx2[146] && !/*isNA*/
-        ctx2[149]);
-      }
-      if (dirty[0] & /*pickerDay, DAYS, pickerPeriodId, periods*/
-      3148800) {
-        toggle_class(
-          td,
-          "tp-te-cell--open",
-          /*isOpen*/
-          ctx2[147]
-        );
-      }
-      if (dirty[0] & /*plugin, periods, DAYS*/
-      3073) {
-        toggle_class(
-          td,
-          "tp-te-cell--na",
-          /*isNA*/
-          ctx2[149]
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(td);
-      }
-      if_block.d();
-    }
-  };
-}
-function create_each_block_6(ctx) {
-  let tr;
-  let td;
-  let span0;
-  let t0_value = (
-    /*period*/
-    ctx[141].name + ""
-  );
-  let t0;
-  let t1;
-  let span1;
-  let t2_value = (
-    /*period*/
-    ctx[141].start + ""
-  );
-  let t2;
-  let t3;
-  let t4_value = (
-    /*period*/
-    ctx[141].end + ""
-  );
-  let t4;
-  let t5;
-  let t6;
-  let each_value_7 = ensure_array_like(
-    /*DAYS*/
-    ctx[11]
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_7.length; i += 1) {
-    each_blocks[i] = create_each_block_7(get_each_context_7(ctx, each_value_7, i));
-  }
-  return {
-    c() {
-      tr = element("tr");
-      td = element("td");
-      span0 = element("span");
-      t0 = text(t0_value);
-      t1 = space();
-      span1 = element("span");
-      t2 = text(t2_value);
-      t3 = text("\u2013");
-      t4 = text(t4_value);
-      t5 = space();
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      t6 = space();
-      attr(span0, "class", "tp-te-period-name svelte-pnrkh9");
-      attr(span1, "class", "tp-te-period-time svelte-pnrkh9");
-      attr(td, "class", "tp-te-period-cell svelte-pnrkh9");
-      set_style(td, "background", hexToRgba(
-        /*tc*/
-        ctx[142],
-        0.25
-      ));
-      set_style(td, "border-left", "3px solid " + /*tc*/
-      ctx[142]);
-      set_style(tr, "background", hexToRgba(
-        /*tc*/
-        ctx[142],
-        0.05
-      ));
-    },
-    m(target, anchor) {
-      insert(target, tr, anchor);
-      append(tr, td);
-      append(td, span0);
-      append(span0, t0);
-      append(td, t1);
-      append(td, span1);
-      append(span1, t2);
-      append(span1, t3);
-      append(span1, t4);
-      append(tr, t5);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(tr, null);
-        }
-      }
-      append(tr, t6);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*periods*/
-      1024 && t0_value !== (t0_value = /*period*/
-      ctx2[141].name + "")) set_data(t0, t0_value);
-      if (dirty[0] & /*periods*/
-      1024 && t2_value !== (t2_value = /*period*/
-      ctx2[141].start + "")) set_data(t2, t2_value);
-      if (dirty[0] & /*periods*/
-      1024 && t4_value !== (t4_value = /*period*/
-      ctx2[141].end + "")) set_data(t4, t4_value);
-      if (dirty[0] & /*periods*/
-      1024) {
-        set_style(td, "background", hexToRgba(
-          /*tc*/
-          ctx2[142],
-          0.25
-        ));
-      }
-      if (dirty[0] & /*periods*/
-      1024) {
-        set_style(td, "border-left", "3px solid " + /*tc*/
-        ctx2[142]);
-      }
-      if (dirty[0] & /*_slotGrid, DAYS, periods, plugin, pickerDay, pickerPeriodId, durationEditValue, durationEditKey, directedTimeEnabled, currentWeek*/
-      1345354753 | dirty[1] & /*commitDurationEdit, getSlotDuration, startDurationEdit, isDirectedSlot, getLabel, openPicker*/
-      196638) {
-        each_value_7 = ensure_array_like(
-          /*DAYS*/
-          ctx2[11]
-        );
-        let i;
-        for (i = 0; i < each_value_7.length; i += 1) {
-          const child_ctx = get_each_context_7(ctx2, each_value_7, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_7(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(tr, t6);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_7.length;
-      }
-      if (dirty[0] & /*periods*/
-      1024) {
-        set_style(tr, "background", hexToRgba(
-          /*tc*/
-          ctx2[142],
-          0.05
-        ));
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(tr);
-      }
-      destroy_each(each_blocks, detaching);
-    }
-  };
-}
-function create_if_block_1(ctx) {
-  let div1;
-  let div0;
-  let input;
-  let focusPicker_action;
-  let t0;
-  let show_if_1 = (
-    /*getSlot*/
-    ctx[46](
-      /*pickerDay*/
-      ctx[20],
-      /*pickerPeriodId*/
-      ctx[21],
-      /*currentWeek*/
-      ctx[12]
-    )
-  );
-  let t1;
-  let show_if = (
-    /*sortedSubjects*/
-    ctx[26].some(
-      /*func*/
-      ctx[75]
-    )
-  );
-  let t2;
-  let t3;
-  let t4;
-  let div1_style_value;
-  let mounted;
-  let dispose;
-  let if_block0 = show_if_1 && create_if_block_10(ctx);
-  let if_block1 = show_if && create_if_block_8(ctx);
-  let if_block2 = (
-    /*pickerFilteredDirected*/
-    ctx[24].length && create_if_block_6(ctx)
-  );
-  let if_block3 = (
-    /*pickerFilteredOther*/
-    ctx[23].length && create_if_block_4(ctx)
-  );
-  let if_block4 = (
-    /*archivedCount*/
-    ctx[29] > 0 && create_if_block_2(ctx)
-  );
-  return {
-    c() {
-      div1 = element("div");
-      div0 = element("div");
-      input = element("input");
-      t0 = space();
-      if (if_block0) if_block0.c();
-      t1 = space();
-      if (if_block1) if_block1.c();
-      t2 = space();
-      if (if_block2) if_block2.c();
-      t3 = space();
-      if (if_block3) if_block3.c();
-      t4 = space();
-      if (if_block4) if_block4.c();
-      attr(input, "class", "tp-te-picker-search svelte-pnrkh9");
-      attr(input, "type", "text");
-      attr(input, "placeholder", "Search\u2026");
-      attr(div0, "class", "tp-te-picker-inner svelte-pnrkh9");
-      attr(div1, "class", "tp-te-picker svelte-pnrkh9");
-      attr(div1, "style", div1_style_value = getPickerStyle(
-        /*pickerEl*/
-        ctx[22]
-      ));
-    },
-    m(target, anchor) {
-      insert(target, div1, anchor);
-      append(div1, div0);
-      append(div0, input);
-      set_input_value(
-        input,
-        /*pickerSearch*/
-        ctx[4]
-      );
-      append(div0, t0);
-      if (if_block0) if_block0.m(div0, null);
-      append(div0, t1);
-      if (if_block1) if_block1.m(div0, null);
-      append(div0, t2);
-      if (if_block2) if_block2.m(div0, null);
-      append(div0, t3);
-      if (if_block3) if_block3.m(div0, null);
-      append(div0, t4);
-      if (if_block4) if_block4.m(div0, null);
-      if (!mounted) {
-        dispose = [
-          listen(
-            input,
-            "input",
-            /*input_input_handler_2*/
-            ctx[95]
-          ),
-          action_destroyer(focusPicker_action = focusPicker.call(null, input)),
-          listen(input, "click", stop_propagation(
-            /*click_handler_1*/
-            ctx[76]
-          ))
-        ];
-        mounted = true;
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*pickerSearch*/
-      16 && input.value !== /*pickerSearch*/
-      ctx2[4]) {
-        set_input_value(
-          input,
-          /*pickerSearch*/
-          ctx2[4]
-        );
-      }
-      if (dirty[0] & /*pickerDay, pickerPeriodId, currentWeek*/
-      3149824) show_if_1 = /*getSlot*/
-      ctx2[46](
-        /*pickerDay*/
-        ctx2[20],
-        /*pickerPeriodId*/
-        ctx2[21],
-        /*currentWeek*/
-        ctx2[12]
-      );
-      if (show_if_1) {
-        if (if_block0) {
-          if_block0.p(ctx2, dirty);
-        } else {
-          if_block0 = create_if_block_10(ctx2);
-          if_block0.c();
-          if_block0.m(div0, t1);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (dirty[0] & /*sortedSubjects, pickerFilteredClasses*/
-      100663296) show_if = /*sortedSubjects*/
-      ctx2[26].some(
-        /*func*/
-        ctx2[75]
-      );
-      if (show_if) {
-        if (if_block1) {
-          if_block1.p(ctx2, dirty);
-        } else {
-          if_block1 = create_if_block_8(ctx2);
-          if_block1.c();
-          if_block1.m(div0, t2);
-        }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
-      }
-      if (
-        /*pickerFilteredDirected*/
-        ctx2[24].length
-      ) {
-        if (if_block2) {
-          if_block2.p(ctx2, dirty);
-        } else {
-          if_block2 = create_if_block_6(ctx2);
-          if_block2.c();
-          if_block2.m(div0, t3);
-        }
-      } else if (if_block2) {
-        if_block2.d(1);
-        if_block2 = null;
-      }
-      if (
-        /*pickerFilteredOther*/
-        ctx2[23].length
-      ) {
-        if (if_block3) {
-          if_block3.p(ctx2, dirty);
-        } else {
-          if_block3 = create_if_block_4(ctx2);
-          if_block3.c();
-          if_block3.m(div0, t4);
-        }
-      } else if (if_block3) {
-        if_block3.d(1);
-        if_block3 = null;
-      }
-      if (
-        /*archivedCount*/
-        ctx2[29] > 0
-      ) {
-        if (if_block4) {
-          if_block4.p(ctx2, dirty);
-        } else {
-          if_block4 = create_if_block_2(ctx2);
-          if_block4.c();
-          if_block4.m(div0, null);
-        }
-      } else if (if_block4) {
-        if_block4.d(1);
-        if_block4 = null;
-      }
-      if (dirty[0] & /*pickerEl*/
-      4194304 && div1_style_value !== (div1_style_value = getPickerStyle(
-        /*pickerEl*/
-        ctx2[22]
-      ))) {
-        attr(div1, "style", div1_style_value);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div1);
-      }
-      if (if_block0) if_block0.d();
-      if (if_block1) if_block1.d();
-      if (if_block2) if_block2.d();
-      if (if_block3) if_block3.d();
-      if (if_block4) if_block4.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block_10(ctx) {
-  let button;
-  let span;
-  let icon_action;
-  let t0;
-  let t1;
-  let div;
-  let mounted;
-  let dispose;
-  return {
-    c() {
-      button = element("button");
-      span = element("span");
-      t0 = text(" Remove");
-      t1 = space();
-      div = element("div");
-      attr(button, "class", "tp-te-picker-clear svelte-pnrkh9");
-      attr(div, "class", "tp-te-picker-divider svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, button, anchor);
-      append(button, span);
-      append(button, t0);
-      insert(target, t1, anchor);
-      insert(target, div, anchor);
-      if (!mounted) {
-        dispose = [
-          action_destroyer(icon_action = /*icon*/
-          ctx[31].call(null, span, "x")),
-          listen(
-            button,
-            "click",
-            /*click_handler_12*/
-            ctx[96]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(button);
-        detach(t1);
-        detach(div);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block_8(ctx) {
-  let div;
-  let t1;
-  let each_1_anchor;
-  let each_value_4 = ensure_array_like(
-    /*sortedSubjects*/
-    ctx[26]
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_4.length; i += 1) {
-    each_blocks[i] = create_each_block_4(get_each_context_4(ctx, each_value_4, i));
-  }
-  return {
-    c() {
-      div = element("div");
-      div.textContent = "Classes";
-      t1 = space();
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      each_1_anchor = empty();
-      attr(div, "class", "tp-te-picker-group-label svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      insert(target, t1, anchor);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(target, anchor);
-        }
-      }
-      insert(target, each_1_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*pickerFilteredClasses, sortedSubjects, periods, pickerPeriodId, pickerDay, currentWeek*/
-      103814144 | dirty[1] & /*toggleArchiveClass, assignItem, closePicker*/
-      786944) {
-        each_value_4 = ensure_array_like(
-          /*sortedSubjects*/
-          ctx2[26]
-        );
-        let i;
-        for (i = 0; i < each_value_4.length; i += 1) {
-          const child_ctx = get_each_context_4(ctx2, each_value_4, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_4(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_4.length;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-        detach(t1);
-        detach(each_1_anchor);
-      }
-      destroy_each(each_blocks, detaching);
-    }
-  };
-}
-function create_if_block_9(ctx) {
-  let span;
-  let t_value = (
-    /*secondary*/
-    ctx[138] + ""
-  );
-  let t;
-  return {
-    c() {
-      span = element("span");
-      t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
-      100663296 && t_value !== (t_value = /*secondary*/
-      ctx2[138] + "")) set_data(t, t_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_each_block_5(ctx) {
-  let div;
-  let button0;
-  let span1;
-  let span0;
-  let t0_value = (
-    /*cls*/
-    ctx[127].code + ""
-  );
-  let t0;
-  let t1;
-  let t2;
-  let button1;
-  let icon_action;
-  let t3;
-  let mounted;
-  let dispose;
-  let if_block = (
-    /*secondary*/
-    ctx[138] && create_if_block_9(ctx)
-  );
-  function click_handler_13() {
-    return (
-      /*click_handler_13*/
-      ctx[97](
-        /*cls*/
-        ctx[127]
-      )
-    );
-  }
-  function click_handler_14() {
-    return (
-      /*click_handler_14*/
-      ctx[98](
-        /*cls*/
-        ctx[127]
-      )
-    );
-  }
-  return {
-    c() {
-      div = element("div");
-      button0 = element("button");
-      span1 = element("span");
-      span0 = element("span");
-      t0 = text(t0_value);
-      t1 = space();
-      if (if_block) if_block.c();
-      t2 = space();
-      button1 = element("button");
-      t3 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-pnrkh9");
-      attr(span1, "class", "tp-te-picker-item-text svelte-pnrkh9");
-      attr(button0, "class", "tp-te-picker-item svelte-pnrkh9");
-      set_style(button0, "border-left", "3px solid " + /*cls*/
-      ctx[127].colour);
-      attr(button1, "class", "tp-te-archive-btn svelte-pnrkh9");
-      attr(button1, "title", "Archive class");
-      attr(div, "class", "tp-te-picker-row svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, button0);
-      append(button0, span1);
-      append(span1, span0);
-      append(span0, t0);
-      append(span1, t1);
-      if (if_block) if_block.m(span1, null);
-      append(div, t2);
-      append(div, button1);
-      append(div, t3);
-      if (!mounted) {
-        dispose = [
-          listen(button0, "click", click_handler_13),
-          listen(button1, "click", stop_propagation(click_handler_14)),
-          action_destroyer(icon_action = /*icon*/
-          ctx[31].call(null, button1, "archive"))
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
-      100663296 && t0_value !== (t0_value = /*cls*/
-      ctx[127].code + "")) set_data(t0, t0_value);
-      if (
-        /*secondary*/
-        ctx[138]
-      ) {
-        if (if_block) {
-          if_block.p(ctx, dirty);
-        } else {
-          if_block = create_if_block_9(ctx);
-          if_block.c();
-          if_block.m(span1, null);
-        }
-      } else if (if_block) {
-        if_block.d(1);
-        if_block = null;
-      }
-      if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
-      100663296) {
-        set_style(button0, "border-left", "3px solid " + /*cls*/
-        ctx[127].colour);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      if (if_block) if_block.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_each_block_4(ctx) {
-  let each_1_anchor;
-  let each_value_5 = ensure_array_like(
-    /*subjClasses*/
-    ctx[135]
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_5.length; i += 1) {
-    each_blocks[i] = create_each_block_5(get_each_context_5(ctx, each_value_5, i));
-  }
-  return {
-    c() {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      each_1_anchor = empty();
-    },
-    m(target, anchor) {
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(target, anchor);
-        }
-      }
-      insert(target, each_1_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*pickerFilteredClasses, sortedSubjects, periods, pickerPeriodId, pickerDay, currentWeek*/
-      103814144 | dirty[1] & /*toggleArchiveClass, assignItem, closePicker*/
-      786944) {
-        each_value_5 = ensure_array_like(
-          /*subjClasses*/
-          ctx2[135]
-        );
-        let i;
-        for (i = 0; i < each_value_5.length; i += 1) {
-          const child_ctx = get_each_context_5(ctx2, each_value_5, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_5(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_5.length;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(each_1_anchor);
-      }
-      destroy_each(each_blocks, detaching);
-    }
-  };
-}
-function create_if_block_6(ctx) {
-  let div0;
-  let t0;
-  let div1;
-  let t2;
-  let each_1_anchor;
-  let each_value_3 = ensure_array_like(
-    /*pickerFilteredDirected*/
-    ctx[24]
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_3.length; i += 1) {
-    each_blocks[i] = create_each_block_3(get_each_context_3(ctx, each_value_3, i));
-  }
-  return {
-    c() {
-      div0 = element("div");
-      t0 = space();
-      div1 = element("div");
-      div1.textContent = "Directed time";
-      t2 = space();
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      each_1_anchor = empty();
-      attr(div0, "class", "tp-te-picker-divider svelte-pnrkh9");
-      attr(div1, "class", "tp-te-picker-group-label svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div0, anchor);
-      insert(target, t0, anchor);
-      insert(target, div1, anchor);
-      insert(target, t2, anchor);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(target, anchor);
-        }
-      }
-      insert(target, each_1_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*pickerFilteredDirected, periods, pickerPeriodId, pickerDay, currentWeek*/
-      19928064 | dirty[1] & /*toggleArchiveActivity, assignItem, closePicker*/
-      787456) {
-        each_value_3 = ensure_array_like(
-          /*pickerFilteredDirected*/
-          ctx2[24]
-        );
-        let i;
-        for (i = 0; i < each_value_3.length; i += 1) {
-          const child_ctx = get_each_context_3(ctx2, each_value_3, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_3(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_3.length;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div0);
-        detach(t0);
-        detach(div1);
-        detach(t2);
-        detach(each_1_anchor);
-      }
-      destroy_each(each_blocks, detaching);
-    }
-  };
-}
-function create_if_block_7(ctx) {
-  let span;
-  let t_value = (
-    /*act*/
-    ctx[124].classroom + ""
-  );
-  let t;
-  return {
-    c() {
-      span = element("span");
-      t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*pickerFilteredDirected*/
-      16777216 && t_value !== (t_value = /*act*/
-      ctx2[124].classroom + "")) set_data(t, t_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_each_block_3(ctx) {
-  let div;
-  let button0;
-  let span1;
-  let span0;
-  let t0_value = (
-    /*act*/
-    ctx[124].label + ""
-  );
-  let t0;
-  let t1;
-  let t2;
-  let button1;
-  let icon_action;
-  let t3;
-  let mounted;
-  let dispose;
-  let if_block = (
-    /*act*/
-    ctx[124].classroom && create_if_block_7(ctx)
-  );
-  function click_handler_15() {
-    return (
-      /*click_handler_15*/
-      ctx[100](
-        /*act*/
-        ctx[124]
-      )
-    );
-  }
-  function click_handler_16() {
-    return (
-      /*click_handler_16*/
-      ctx[101](
-        /*act*/
-        ctx[124]
-      )
-    );
-  }
-  return {
-    c() {
-      div = element("div");
-      button0 = element("button");
-      span1 = element("span");
-      span0 = element("span");
-      t0 = text(t0_value);
-      t1 = space();
-      if (if_block) if_block.c();
-      t2 = space();
-      button1 = element("button");
-      t3 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-pnrkh9");
-      attr(span1, "class", "tp-te-picker-item-text svelte-pnrkh9");
-      attr(button0, "class", "tp-te-picker-item svelte-pnrkh9");
-      set_style(button0, "border-left", "3px solid " + /*act*/
-      ctx[124].colour);
-      attr(button1, "class", "tp-te-archive-btn svelte-pnrkh9");
-      attr(button1, "title", "Archive activity");
-      attr(div, "class", "tp-te-picker-row svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, button0);
-      append(button0, span1);
-      append(span1, span0);
-      append(span0, t0);
-      append(span1, t1);
-      if (if_block) if_block.m(span1, null);
-      append(div, t2);
-      append(div, button1);
-      append(div, t3);
-      if (!mounted) {
-        dispose = [
-          listen(button0, "click", click_handler_15),
-          listen(button1, "click", stop_propagation(click_handler_16)),
-          action_destroyer(icon_action = /*icon*/
-          ctx[31].call(null, button1, "archive"))
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*pickerFilteredDirected*/
-      16777216 && t0_value !== (t0_value = /*act*/
-      ctx[124].label + "")) set_data(t0, t0_value);
-      if (
-        /*act*/
-        ctx[124].classroom
-      ) {
-        if (if_block) {
-          if_block.p(ctx, dirty);
-        } else {
-          if_block = create_if_block_7(ctx);
-          if_block.c();
-          if_block.m(span1, null);
-        }
-      } else if (if_block) {
-        if_block.d(1);
-        if_block = null;
-      }
-      if (dirty[0] & /*pickerFilteredDirected*/
-      16777216) {
-        set_style(button0, "border-left", "3px solid " + /*act*/
-        ctx[124].colour);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      if (if_block) if_block.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block_4(ctx) {
-  let div0;
-  let t0;
-  let div1;
-  let t2;
-  let each_1_anchor;
-  let each_value_2 = ensure_array_like(
-    /*pickerFilteredOther*/
-    ctx[23]
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_2.length; i += 1) {
-    each_blocks[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
-  }
-  return {
-    c() {
-      div0 = element("div");
-      t0 = space();
-      div1 = element("div");
-      div1.textContent = "Other events";
-      t2 = space();
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      each_1_anchor = empty();
-      attr(div0, "class", "tp-te-picker-divider svelte-pnrkh9");
-      attr(div1, "class", "tp-te-picker-group-label svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div0, anchor);
-      insert(target, t0, anchor);
-      insert(target, div1, anchor);
-      insert(target, t2, anchor);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(target, anchor);
-        }
-      }
-      insert(target, each_1_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*pickerFilteredOther, periods, pickerPeriodId, pickerDay, currentWeek*/
-      11539456 | dirty[1] & /*toggleArchiveActivity, assignItem, closePicker*/
-      787456) {
-        each_value_2 = ensure_array_like(
-          /*pickerFilteredOther*/
-          ctx2[23]
-        );
-        let i;
-        for (i = 0; i < each_value_2.length; i += 1) {
-          const child_ctx = get_each_context_2(ctx2, each_value_2, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_2(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_2.length;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div0);
-        detach(t0);
-        detach(div1);
-        detach(t2);
-        detach(each_1_anchor);
-      }
-      destroy_each(each_blocks, detaching);
-    }
-  };
-}
-function create_if_block_5(ctx) {
-  let span;
-  let t_value = (
-    /*act*/
-    ctx[124].classroom + ""
-  );
-  let t;
-  return {
-    c() {
-      span = element("span");
-      t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*pickerFilteredOther*/
-      8388608 && t_value !== (t_value = /*act*/
-      ctx2[124].classroom + "")) set_data(t, t_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_each_block_2(ctx) {
-  let div;
-  let button0;
-  let span1;
-  let span0;
-  let t0_value = (
-    /*act*/
-    ctx[124].label + ""
-  );
-  let t0;
-  let t1;
-  let t2;
-  let button1;
-  let icon_action;
-  let t3;
-  let mounted;
-  let dispose;
-  let if_block = (
-    /*act*/
-    ctx[124].classroom && create_if_block_5(ctx)
-  );
-  function click_handler_17() {
-    return (
-      /*click_handler_17*/
-      ctx[102](
-        /*act*/
-        ctx[124]
-      )
-    );
-  }
-  function click_handler_18() {
-    return (
-      /*click_handler_18*/
-      ctx[103](
-        /*act*/
-        ctx[124]
-      )
-    );
-  }
-  return {
-    c() {
-      div = element("div");
-      button0 = element("button");
-      span1 = element("span");
-      span0 = element("span");
-      t0 = text(t0_value);
-      t1 = space();
-      if (if_block) if_block.c();
-      t2 = space();
-      button1 = element("button");
-      t3 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-pnrkh9");
-      attr(span1, "class", "tp-te-picker-item-text svelte-pnrkh9");
-      attr(button0, "class", "tp-te-picker-item svelte-pnrkh9");
-      set_style(button0, "border-left", "3px solid " + /*act*/
-      ctx[124].colour);
-      attr(button1, "class", "tp-te-archive-btn svelte-pnrkh9");
-      attr(button1, "title", "Archive activity");
-      attr(div, "class", "tp-te-picker-row svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, button0);
-      append(button0, span1);
-      append(span1, span0);
-      append(span0, t0);
-      append(span1, t1);
-      if (if_block) if_block.m(span1, null);
-      append(div, t2);
-      append(div, button1);
-      append(div, t3);
-      if (!mounted) {
-        dispose = [
-          listen(button0, "click", click_handler_17),
-          listen(button1, "click", stop_propagation(click_handler_18)),
-          action_destroyer(icon_action = /*icon*/
-          ctx[31].call(null, button1, "archive"))
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*pickerFilteredOther*/
-      8388608 && t0_value !== (t0_value = /*act*/
-      ctx[124].label + "")) set_data(t0, t0_value);
-      if (
-        /*act*/
-        ctx[124].classroom
-      ) {
-        if (if_block) {
-          if_block.p(ctx, dirty);
-        } else {
-          if_block = create_if_block_5(ctx);
-          if_block.c();
-          if_block.m(span1, null);
-        }
-      } else if (if_block) {
-        if_block.d(1);
-        if_block = null;
-      }
-      if (dirty[0] & /*pickerFilteredOther*/
-      8388608) {
-        set_style(button0, "border-left", "3px solid " + /*act*/
-        ctx[124].colour);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      if (if_block) if_block.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block_2(ctx) {
-  let div;
-  let t0;
-  let button;
-  let t1_value = (
-    /*showArchived*/
-    ctx[2] ? "Hide archived" : `Show archived (${/*archivedCount*/
-    ctx[29]})`
-  );
-  let t1;
-  let t2;
-  let if_block_anchor;
-  let mounted;
-  let dispose;
-  let if_block = (
-    /*showArchived*/
-    ctx[2] && create_if_block_3(ctx)
-  );
-  return {
-    c() {
-      div = element("div");
-      t0 = space();
-      button = element("button");
-      t1 = text(t1_value);
-      t2 = space();
-      if (if_block) if_block.c();
-      if_block_anchor = empty();
-      attr(div, "class", "tp-te-picker-divider svelte-pnrkh9");
-      attr(button, "class", "tp-te-show-archived-btn svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      insert(target, t0, anchor);
-      insert(target, button, anchor);
-      append(button, t1);
-      insert(target, t2, anchor);
-      if (if_block) if_block.m(target, anchor);
-      insert(target, if_block_anchor, anchor);
-      if (!mounted) {
-        dispose = listen(
-          button,
-          "click",
-          /*click_handler_19*/
-          ctx[104]
-        );
-        mounted = true;
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*showArchived, archivedCount*/
-      536870916 && t1_value !== (t1_value = /*showArchived*/
-      ctx2[2] ? "Hide archived" : `Show archived (${/*archivedCount*/
-      ctx2[29]})`)) set_data(t1, t1_value);
-      if (
-        /*showArchived*/
-        ctx2[2]
-      ) {
-        if (if_block) {
-          if_block.p(ctx2, dirty);
-        } else {
-          if_block = create_if_block_3(ctx2);
-          if_block.c();
-          if_block.m(if_block_anchor.parentNode, if_block_anchor);
-        }
-      } else if (if_block) {
-        if_block.d(1);
-        if_block = null;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-        detach(t0);
-        detach(button);
-        detach(t2);
-        detach(if_block_anchor);
-      }
-      if (if_block) if_block.d(detaching);
-      mounted = false;
-      dispose();
-    }
-  };
-}
-function create_if_block_3(ctx) {
-  let t;
-  let each1_anchor;
-  let each_value_1 = ensure_array_like(
-    /*classes*/
-    ctx[9].filter(func_3)
-  );
-  let each_blocks_1 = [];
-  for (let i = 0; i < each_value_1.length; i += 1) {
-    each_blocks_1[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
-  }
-  let each_value = ensure_array_like(
-    /*activities*/
-    ctx[8].filter(func_4)
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value.length; i += 1) {
-    each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
-  }
-  return {
-    c() {
-      for (let i = 0; i < each_blocks_1.length; i += 1) {
-        each_blocks_1[i].c();
-      }
-      t = space();
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      each1_anchor = empty();
-    },
-    m(target, anchor) {
-      for (let i = 0; i < each_blocks_1.length; i += 1) {
-        if (each_blocks_1[i]) {
-          each_blocks_1[i].m(target, anchor);
-        }
-      }
-      insert(target, t, anchor);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(target, anchor);
-        }
-      }
-      insert(target, each1_anchor, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*classes*/
-      512 | dirty[1] & /*toggleArchiveClass*/
-      512) {
-        each_value_1 = ensure_array_like(
-          /*classes*/
-          ctx2[9].filter(func_3)
-        );
-        let i;
-        for (i = 0; i < each_value_1.length; i += 1) {
-          const child_ctx = get_each_context_1(ctx2, each_value_1, i);
-          if (each_blocks_1[i]) {
-            each_blocks_1[i].p(child_ctx, dirty);
-          } else {
-            each_blocks_1[i] = create_each_block_1(child_ctx);
-            each_blocks_1[i].c();
-            each_blocks_1[i].m(t.parentNode, t);
-          }
-        }
-        for (; i < each_blocks_1.length; i += 1) {
-          each_blocks_1[i].d(1);
-        }
-        each_blocks_1.length = each_value_1.length;
-      }
-      if (dirty[0] & /*activities*/
-      256 | dirty[1] & /*toggleArchiveActivity*/
-      1024) {
-        each_value = ensure_array_like(
-          /*activities*/
-          ctx2[8].filter(func_4)
-        );
-        let i;
-        for (i = 0; i < each_value.length; i += 1) {
-          const child_ctx = get_each_context(ctx2, each_value, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(each1_anchor.parentNode, each1_anchor);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value.length;
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(t);
-        detach(each1_anchor);
-      }
-      destroy_each(each_blocks_1, detaching);
-      destroy_each(each_blocks, detaching);
-    }
-  };
-}
-function create_each_block_1(ctx) {
-  let div;
-  let span2;
-  let span1;
-  let span0;
-  let t0_value = (
-    /*cls*/
-    ctx[127].code + ""
-  );
-  let t0;
-  let t1;
-  let button;
-  let icon_action;
-  let mounted;
-  let dispose;
-  function click_handler_20() {
-    return (
-      /*click_handler_20*/
-      ctx[105](
-        /*cls*/
-        ctx[127]
-      )
-    );
-  }
-  return {
-    c() {
-      div = element("div");
-      span2 = element("span");
-      span1 = element("span");
-      span0 = element("span");
-      t0 = text(t0_value);
-      t1 = space();
-      button = element("button");
-      attr(span0, "class", "tp-te-picker-code svelte-pnrkh9");
-      attr(span1, "class", "tp-te-picker-item-text svelte-pnrkh9");
-      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-pnrkh9");
-      set_style(span2, "border-left", "3px solid " + /*cls*/
-      ctx[127].colour);
-      set_style(span2, "opacity", "0.5");
-      attr(button, "class", "tp-te-archive-btn svelte-pnrkh9");
-      attr(button, "title", "Restore");
-      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, span2);
-      append(span2, span1);
-      append(span1, span0);
-      append(span0, t0);
-      append(div, t1);
-      append(div, button);
-      if (!mounted) {
-        dispose = [
-          listen(button, "click", click_handler_20),
-          action_destroyer(icon_action = /*icon*/
-          ctx[31].call(null, button, "rotate-ccw"))
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*classes*/
-      512 && t0_value !== (t0_value = /*cls*/
-      ctx[127].code + "")) set_data(t0, t0_value);
-      if (dirty[0] & /*classes*/
-      512) {
-        set_style(span2, "border-left", "3px solid " + /*cls*/
-        ctx[127].colour);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_each_block(ctx) {
-  let div;
-  let span2;
-  let span1;
-  let span0;
-  let t0_value = (
-    /*act*/
-    ctx[124].label + ""
-  );
-  let t0;
-  let t1;
-  let button;
-  let icon_action;
-  let t2;
-  let mounted;
-  let dispose;
-  function click_handler_21() {
-    return (
-      /*click_handler_21*/
-      ctx[106](
-        /*act*/
-        ctx[124]
-      )
-    );
-  }
-  return {
-    c() {
-      div = element("div");
-      span2 = element("span");
-      span1 = element("span");
-      span0 = element("span");
-      t0 = text(t0_value);
-      t1 = space();
-      button = element("button");
-      t2 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-pnrkh9");
-      attr(span1, "class", "tp-te-picker-item-text svelte-pnrkh9");
-      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-pnrkh9");
-      set_style(span2, "border-left", "3px solid " + /*act*/
-      ctx[124].colour);
-      set_style(span2, "opacity", "0.5");
-      attr(button, "class", "tp-te-archive-btn svelte-pnrkh9");
-      attr(button, "title", "Restore");
-      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, span2);
-      append(span2, span1);
-      append(span1, span0);
-      append(span0, t0);
-      append(div, t1);
-      append(div, button);
-      append(div, t2);
-      if (!mounted) {
-        dispose = [
-          listen(button, "click", click_handler_21),
-          action_destroyer(icon_action = /*icon*/
-          ctx[31].call(null, button, "rotate-ccw"))
-        ];
-        mounted = true;
-      }
-    },
-    p(new_ctx, dirty) {
-      ctx = new_ctx;
-      if (dirty[0] & /*activities*/
-      256 && t0_value !== (t0_value = /*act*/
-      ctx[124].label + "")) set_data(t0, t0_value);
-      if (dirty[0] & /*activities*/
-      256) {
-        set_style(span2, "border-left", "3px solid " + /*act*/
-        ctx[124].colour);
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_if_block(ctx) {
-  let div2;
-  let div1;
-  let p;
-  let t1;
-  let div0;
-  let button0;
-  let t3;
-  let button1;
-  let t5;
-  let button2;
-  let mounted;
-  let dispose;
-  return {
-    c() {
-      div2 = element("div");
-      div1 = element("div");
-      p = element("p");
-      p.textContent = "You have unsaved changes. What would you like to do?";
-      t1 = space();
-      div0 = element("div");
-      button0 = element("button");
-      button0.textContent = "Save";
-      t3 = space();
-      button1 = element("button");
-      button1.textContent = "Discard";
-      t5 = space();
-      button2 = element("button");
-      button2.textContent = "Keep editing";
-      attr(p, "class", "tp-te-unsaved-msg svelte-pnrkh9");
-      attr(button0, "class", "tp-te-btn tp-te-btn-primary svelte-pnrkh9");
-      attr(button1, "class", "tp-te-btn tp-te-btn-danger svelte-pnrkh9");
-      attr(button2, "class", "tp-te-btn svelte-pnrkh9");
-      attr(div0, "class", "tp-te-unsaved-actions svelte-pnrkh9");
-      attr(div1, "class", "tp-te-unsaved-dialog svelte-pnrkh9");
-      attr(div2, "class", "tp-te-unsaved-overlay svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div2, anchor);
-      append(div2, div1);
-      append(div1, p);
-      append(div1, t1);
-      append(div1, div0);
-      append(div0, button0);
-      append(div0, t3);
-      append(div0, button1);
-      append(div0, t5);
-      append(div0, button2);
-      if (!mounted) {
-        dispose = [
-          listen(
-            button0,
-            "click",
-            /*confirmUnsaved_save*/
-            ctx[42]
-          ),
-          listen(
-            button1,
-            "click",
-            /*confirmUnsaved_discard*/
-            ctx[43]
-          ),
-          listen(
-            button2,
-            "click",
-            /*confirmUnsaved_cancel*/
-            ctx[44]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(div2);
-      }
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function create_fragment(ctx) {
-  let div5;
-  let div2;
-  let div0;
-  let each_blocks_2 = [];
-  let each0_lookup = /* @__PURE__ */ new Map();
-  let t0;
-  let div1;
-  let button0;
-  let t2;
-  let t3;
-  let t4;
-  let t5;
-  let div3;
-  let table;
-  let thead;
-  let tr;
-  let th;
-  let t7;
-  let t8;
-  let tbody;
-  let t9;
-  let t10;
-  let t11;
-  let div4;
-  let button1;
-  let t13;
-  let button2;
-  let mounted;
-  let dispose;
-  let each_value_9 = ensure_array_like(
-    /*allTemplates*/
-    ctx[5]
-  );
-  const get_key = (ctx2) => (
-    /*tmpl*/
-    ctx2[155].id
-  );
-  for (let i = 0; i < each_value_9.length; i += 1) {
-    let child_ctx = get_each_context_9(ctx, each_value_9, i);
-    let key = get_key(child_ctx);
-    each0_lookup.set(key, each_blocks_2[i] = create_each_block_9(key, child_ctx));
-  }
-  let if_block0 = (
-    /*allTemplates*/
-    ctx[5].length > 1 && create_if_block_21(ctx)
-  );
-  let if_block1 = (
-    /*activeTemplate*/
-    ctx[6] && create_if_block_17(ctx)
-  );
-  let if_block2 = (
-    /*abEnabled*/
-    ctx[7] && create_if_block_16(ctx)
-  );
-  let each_value_8 = ensure_array_like(
-    /*DAYS*/
-    ctx[11]
-  );
-  let each_blocks_1 = [];
-  for (let i = 0; i < each_value_8.length; i += 1) {
-    each_blocks_1[i] = create_each_block_8(get_each_context_8(ctx, each_value_8, i));
-  }
-  let each_value_6 = ensure_array_like(
-    /*periods*/
-    ctx[10]
-  );
-  let each_blocks = [];
-  for (let i = 0; i < each_value_6.length; i += 1) {
-    each_blocks[i] = create_each_block_6(get_each_context_6(ctx, each_value_6, i));
-  }
-  let if_block3 = (
-    /*pickerDay*/
-    ctx[20] && /*pickerPeriodId*/
-    ctx[21] && /*pickerEl*/
-    ctx[22] && create_if_block_1(ctx)
-  );
-  let if_block4 = (
-    /*showUnsavedConfirm*/
-    ctx[19] && create_if_block(ctx)
-  );
-  return {
-    c() {
-      div5 = element("div");
-      div2 = element("div");
-      div0 = element("div");
-      for (let i = 0; i < each_blocks_2.length; i += 1) {
-        each_blocks_2[i].c();
-      }
-      t0 = space();
-      div1 = element("div");
-      button0 = element("button");
-      button0.textContent = "+ New Template";
-      t2 = space();
-      if (if_block0) if_block0.c();
-      t3 = space();
-      if (if_block1) if_block1.c();
-      t4 = space();
-      if (if_block2) if_block2.c();
-      t5 = space();
-      div3 = element("div");
-      table = element("table");
-      thead = element("thead");
-      tr = element("tr");
-      th = element("th");
-      th.textContent = "Period";
-      t7 = space();
-      for (let i = 0; i < each_blocks_1.length; i += 1) {
-        each_blocks_1[i].c();
-      }
-      t8 = space();
-      tbody = element("tbody");
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        each_blocks[i].c();
-      }
-      t9 = space();
-      if (if_block3) if_block3.c();
-      t10 = space();
-      if (if_block4) if_block4.c();
-      t11 = space();
-      div4 = element("div");
-      button1 = element("button");
-      button1.textContent = "Cancel";
-      t13 = space();
-      button2 = element("button");
-      button2.textContent = "Save Timetable";
-      attr(div0, "class", "tp-te-tmpl-tabs svelte-pnrkh9");
-      attr(button0, "class", "tp-te-tmpl-add-btn svelte-pnrkh9");
-      attr(div1, "class", "tp-te-tmpl-actions svelte-pnrkh9");
-      attr(div2, "class", "tp-te-tmpl-bar svelte-pnrkh9");
-      attr(th, "class", "tp-te-th tp-te-th--period svelte-pnrkh9");
-      attr(table, "class", "tp-te-grid svelte-pnrkh9");
-      attr(div3, "class", "tp-te-grid-wrap svelte-pnrkh9");
-      attr(button1, "class", "tp-te-btn svelte-pnrkh9");
-      attr(button2, "class", "tp-te-btn tp-te-btn-primary svelte-pnrkh9");
-      attr(div4, "class", "tp-te-footer svelte-pnrkh9");
-      attr(div5, "class", "tp-te-wrap svelte-pnrkh9");
-    },
-    m(target, anchor) {
-      insert(target, div5, anchor);
-      append(div5, div2);
-      append(div2, div0);
-      for (let i = 0; i < each_blocks_2.length; i += 1) {
-        if (each_blocks_2[i]) {
-          each_blocks_2[i].m(div0, null);
-        }
-      }
-      append(div2, t0);
-      append(div2, div1);
-      append(div1, button0);
-      append(div1, t2);
-      if (if_block0) if_block0.m(div1, null);
-      append(div5, t3);
-      if (if_block1) if_block1.m(div5, null);
-      append(div5, t4);
-      if (if_block2) if_block2.m(div5, null);
-      append(div5, t5);
-      append(div5, div3);
-      append(div3, table);
-      append(table, thead);
-      append(thead, tr);
-      append(tr, th);
-      append(tr, t7);
-      for (let i = 0; i < each_blocks_1.length; i += 1) {
-        if (each_blocks_1[i]) {
-          each_blocks_1[i].m(tr, null);
-        }
-      }
-      append(table, t8);
-      append(table, tbody);
-      for (let i = 0; i < each_blocks.length; i += 1) {
-        if (each_blocks[i]) {
-          each_blocks[i].m(tbody, null);
-        }
-      }
-      append(div5, t9);
-      if (if_block3) if_block3.m(div5, null);
-      append(div5, t10);
-      if (if_block4) if_block4.m(div5, null);
-      append(div5, t11);
-      append(div5, div4);
-      append(div4, button1);
-      append(div4, t13);
-      append(div4, button2);
-      if (!mounted) {
-        dispose = [
-          listen(
-            window_1,
-            "keydown",
-            /*keydown_handler*/
-            ctx[78]
-          ),
-          listen(
-            window_1,
-            "mousedown",
-            /*mousedown_handler*/
-            ctx[79]
-          ),
-          listen(
-            button0,
-            "click",
-            /*openAddTemplate*/
-            ctx[54]
-          ),
-          listen(
-            button1,
-            "click",
-            /*onCancel*/
-            ctx[45]
-          ),
-          listen(
-            button2,
-            "click",
-            /*save*/
-            ctx[52]
-          )
-        ];
-        mounted = true;
-      }
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*renameValue, renamingId, allTemplates, activeTemplateId*/
-      393250 | dirty[1] & /*commitRename, startRename, today, switchTemplate*/
-      480) {
-        each_value_9 = ensure_array_like(
-          /*allTemplates*/
-          ctx2[5]
-        );
-        each_blocks_2 = update_keyed_each(each_blocks_2, dirty, get_key, 1, ctx2, each_value_9, each0_lookup, div0, destroy_block, create_each_block_9, null, get_each_context_9);
-      }
-      if (
-        /*allTemplates*/
-        ctx2[5].length > 1
-      ) {
-        if (if_block0) {
-          if_block0.p(ctx2, dirty);
-        } else {
-          if_block0 = create_if_block_21(ctx2);
-          if_block0.c();
-          if_block0.m(div1, null);
-        }
-      } else if (if_block0) {
-        if_block0.d(1);
-        if_block0 = null;
-      }
-      if (
-        /*activeTemplate*/
-        ctx2[6]
-      ) {
-        if (if_block1) {
-          if_block1.p(ctx2, dirty);
-        } else {
-          if_block1 = create_if_block_17(ctx2);
-          if_block1.c();
-          if_block1.m(div5, t4);
-        }
-      } else if (if_block1) {
-        if_block1.d(1);
-        if_block1 = null;
-      }
-      if (
-        /*abEnabled*/
-        ctx2[7]
-      ) {
-        if (if_block2) {
-          if_block2.p(ctx2, dirty);
-        } else {
-          if_block2 = create_if_block_16(ctx2);
-          if_block2.c();
-          if_block2.m(div5, t5);
-        }
-      } else if (if_block2) {
-        if_block2.d(1);
-        if_block2 = null;
-      }
-      if (dirty[0] & /*DAYS*/
-      2048) {
-        each_value_8 = ensure_array_like(
-          /*DAYS*/
-          ctx2[11]
-        );
-        let i;
-        for (i = 0; i < each_value_8.length; i += 1) {
-          const child_ctx = get_each_context_8(ctx2, each_value_8, i);
-          if (each_blocks_1[i]) {
-            each_blocks_1[i].p(child_ctx, dirty);
-          } else {
-            each_blocks_1[i] = create_each_block_8(child_ctx);
-            each_blocks_1[i].c();
-            each_blocks_1[i].m(tr, null);
-          }
-        }
-        for (; i < each_blocks_1.length; i += 1) {
-          each_blocks_1[i].d(1);
-        }
-        each_blocks_1.length = each_value_8.length;
-      }
-      if (dirty[0] & /*periods, DAYS, _slotGrid, plugin, pickerDay, pickerPeriodId, durationEditValue, durationEditKey, directedTimeEnabled, currentWeek*/
-      1345354753 | dirty[1] & /*getPeriodTypeColour, commitDurationEdit, getSlotDuration, startDurationEdit, isDirectedSlot, getLabel, openPicker*/
-      33751070) {
-        each_value_6 = ensure_array_like(
-          /*periods*/
-          ctx2[10]
-        );
-        let i;
-        for (i = 0; i < each_value_6.length; i += 1) {
-          const child_ctx = get_each_context_6(ctx2, each_value_6, i);
-          if (each_blocks[i]) {
-            each_blocks[i].p(child_ctx, dirty);
-          } else {
-            each_blocks[i] = create_each_block_6(child_ctx);
-            each_blocks[i].c();
-            each_blocks[i].m(tbody, null);
-          }
-        }
-        for (; i < each_blocks.length; i += 1) {
-          each_blocks[i].d(1);
-        }
-        each_blocks.length = each_value_6.length;
-      }
-      if (
-        /*pickerDay*/
-        ctx2[20] && /*pickerPeriodId*/
-        ctx2[21] && /*pickerEl*/
-        ctx2[22]
-      ) {
-        if (if_block3) {
-          if_block3.p(ctx2, dirty);
-        } else {
-          if_block3 = create_if_block_1(ctx2);
-          if_block3.c();
-          if_block3.m(div5, t10);
-        }
-      } else if (if_block3) {
-        if_block3.d(1);
-        if_block3 = null;
-      }
-      if (
-        /*showUnsavedConfirm*/
-        ctx2[19]
-      ) {
-        if (if_block4) {
-          if_block4.p(ctx2, dirty);
-        } else {
-          if_block4 = create_if_block(ctx2);
-          if_block4.c();
-          if_block4.m(div5, t11);
-        }
-      } else if (if_block4) {
-        if_block4.d(1);
-        if_block4 = null;
-      }
-    },
-    i: noop,
-    o: noop,
-    d(detaching) {
-      if (detaching) {
-        detach(div5);
-      }
-      for (let i = 0; i < each_blocks_2.length; i += 1) {
-        each_blocks_2[i].d();
-      }
-      if (if_block0) if_block0.d();
-      if (if_block1) if_block1.d();
-      if (if_block2) if_block2.d();
-      destroy_each(each_blocks_1, detaching);
-      destroy_each(each_blocks, detaching);
-      if (if_block3) if_block3.d();
-      if (if_block4) if_block4.d();
-      mounted = false;
-      run_all(dispose);
-    }
-  };
-}
-function focusPicker(node) {
-  setTimeout(() => node.focus(), 30);
-}
-function getPickerStyle(el) {
-  if (!el) return "display:none";
-  const rect = el.getBoundingClientRect();
-  const spaceBelow = window.innerHeight - rect.bottom;
-  const pickerH = 320;
-  if (spaceBelow >= pickerH || spaceBelow > rect.top) {
-    return "top:" + (rect.bottom + 4) + "px; left:" + rect.left + "px;";
-  }
-  return "bottom:" + (window.innerHeight - rect.top + 4) + "px; left:" + rect.left + "px;";
-}
-function fmtDate2(dateStr) {
-  const d = /* @__PURE__ */ new Date(dateStr + "T12:00:00");
-  return d.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric"
-  });
-}
-function hexToRgba(hex, alpha) {
-  const clean = hex.replace("#", "");
-  const r = parseInt(clean.substring(0, 2), 16);
-  const g = parseInt(clean.substring(2, 4), 16);
-  const b = parseInt(clean.substring(4, 6), 16);
-  if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(128,128,128,${alpha})`;
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-function instance($$self, $$props, $$invalidate) {
-  let DAYS2;
-  let allTemplates;
-  let classes;
-  let subjects;
-  let activities;
-  let abEnabled;
-  let periods;
-  let directedTimeEnabled;
-  let defaultDuration;
-  let activeTemplate;
-  let isPast;
-  let visibleClasses;
-  let visibleActivities;
-  let visibleDirected;
-  let visibleOther;
-  let archivedCount;
-  let currentWeek;
-  let _slotGrid;
-  let sortedSubjects;
-  let pickerFilteredClasses;
-  let pickerFilteredDirected;
-  let pickerFilteredOther;
-  let periodTypes;
-  var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
-  function icon(node, name) {
-    (0, import_obsidian2.setIcon)(node, name);
-    return {
-      update(n) {
-        node.innerHTML = "";
-        (0, import_obsidian2.setIcon)(node, n);
-      }
-    };
-  }
-  let { plugin } = $$props;
-  let { modal } = $$props;
-  const ALL_DAYS = [
-    { key: "monday", label: "Mon" },
-    { key: "tuesday", label: "Tue" },
-    { key: "wednesday", label: "Wed" },
-    { key: "thursday", label: "Thu" },
-    { key: "friday", label: "Fri" },
-    { key: "saturday", label: "Sat" },
-    { key: "sunday", label: "Sun" }
-  ];
-  let _tick = 0;
-  function invalidate() {
-    $$invalidate(68, _tick++, _tick);
-  }
-  let durationEditKey = null;
-  let durationEditValue = 60;
-  function getSlotDuration(slot) {
-    if (slot.durationMinutes) return slot.durationMinutes;
-    const act = activities.find((a) => a.id === slot.classId);
-    if (act === null || act === void 0 ? void 0 : act.durationMinutes) return act.durationMinutes;
-    return defaultDuration;
-  }
-  function isDirectedSlot(slot) {
-    const cls = classes.find((c) => c.id === slot.classId);
-    if (cls) return true;
-    const act = activities.find((a) => a.id === slot.classId);
-    return (act === null || act === void 0 ? void 0 : act.activityType) !== "other";
-  }
-  function startDurationEdit(slot, key, e) {
-    e.stopPropagation();
-    $$invalidate(13, durationEditKey = key);
-    $$invalidate(14, durationEditValue = getSlotDuration(slot));
-  }
-  function commitDurationEdit(slot) {
-    if (durationEditValue >= 1 && durationEditValue <= 480) {
-      slot.durationMinutes = durationEditValue;
-      $$invalidate(69, slots = [...slots]);
-      markDirty();
-    }
-    $$invalidate(13, durationEditKey = null);
-  }
-  const _initTmpls = (_j = plugin.settings.timetableTemplates) !== null && _j !== void 0 ? _j : [];
-  const _initTmpl = (_k = _initTmpls[_initTmpls.length - 1]) !== null && _k !== void 0 ? _k : _initTmpls[0];
-  let activeTemplateId = (_l = _initTmpl === null || _initTmpl === void 0 ? void 0 : _initTmpl.id) !== null && _l !== void 0 ? _l : "";
-  let slots = JSON.parse(JSON.stringify((_o = _initTmpl === null || _initTmpl === void 0 ? void 0 : _initTmpl.slots) !== null && _o !== void 0 ? _o : []));
-  function doSwitchTemplate(id) {
-    var _a2, _b2;
-    $$invalidate(1, activeTemplateId = id);
-    const tmpl = ((_a2 = plugin.settings.timetableTemplates) !== null && _a2 !== void 0 ? _a2 : []).find((t) => t.id === id);
-    $$invalidate(69, slots = JSON.parse(JSON.stringify((_b2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b2 !== void 0 ? _b2 : [])));
-    $$invalidate(3, activeWeek = plugin.settings.academicYear.abWeekEnabled ? "A" : null);
-    closePicker();
-    $$invalidate(15, showPastConfirm = false);
-    isDirty = false;
-  }
-  function switchTemplate(id) {
-    if (id === activeTemplateId) return;
-    if (isDirty) {
-      pendingSwitchId = id;
-      unsavedAction = "switch";
-      $$invalidate(19, showUnsavedConfirm = true);
-      return;
-    }
-    doSwitchTemplate(id);
-  }
-  const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-  let showPastConfirm = false;
-  let warnCollapsed = false;
-  let renamingId = null;
-  let renameValue = "";
-  function startRename(tmpl) {
-    $$invalidate(17, renamingId = tmpl.id);
-    $$invalidate(18, renameValue = tmpl.name);
-  }
-  async function commitRename() {
-    const tmpl = allTemplates.find((t) => t.id === renamingId);
-    if (tmpl && renameValue.trim()) {
-      tmpl.name = renameValue.trim();
-      await plugin.saveSettings();
-    }
-    $$invalidate(17, renamingId = null);
-  }
-  let showArchived = false;
-  async function toggleArchiveClass(id) {
-    const cls = classes.find((c) => c.id === id);
-    if (cls) {
-      cls.archived = !cls.archived;
-      await plugin.saveSettings();
-    }
-  }
-  async function toggleArchiveActivity(id) {
-    const act = activities.find((a) => a.id === id);
-    if (act) {
-      act.archived = !act.archived;
-      await plugin.saveSettings();
-    }
-  }
-  let activeWeek = plugin.settings.academicYear.abWeekEnabled ? "A" : null;
-  let isDirty = false;
-  let showUnsavedConfirm = false;
-  let pendingSwitchId = null;
-  let unsavedAction = "close";
-  function markDirty() {
-    isDirty = true;
-  }
-  async function saveWithoutClose() {
-    var _a2;
-    const tmpl = (_a2 = plugin.settings.timetableTemplates) === null || _a2 === void 0 ? void 0 : _a2.find((t) => t.id === activeTemplateId);
-    if (tmpl) {
-      tmpl.slots = slots;
-      await plugin.saveSettings();
-    }
-    isDirty = false;
-  }
-  async function confirmUnsaved_save() {
-    $$invalidate(19, showUnsavedConfirm = false);
-    if (unsavedAction === "switch" && pendingSwitchId) {
-      await saveWithoutClose();
-      doSwitchTemplate(pendingSwitchId);
-      pendingSwitchId = null;
-    } else {
-      await save(true);
-    }
-  }
-  function confirmUnsaved_discard() {
-    $$invalidate(19, showUnsavedConfirm = false);
-    isDirty = false;
-    if (unsavedAction === "switch" && pendingSwitchId) {
-      doSwitchTemplate(pendingSwitchId);
-      pendingSwitchId = null;
-    } else {
-      modal.close();
-    }
-  }
-  function confirmUnsaved_cancel() {
-    $$invalidate(19, showUnsavedConfirm = false);
-    pendingSwitchId = null;
-  }
-  function onCancel() {
-    if (isDirty) {
-      unsavedAction = "close";
-      $$invalidate(19, showUnsavedConfirm = true);
-      return;
-    }
-    modal.close();
-  }
-  let pickerDay = null;
-  let pickerPeriodId = null;
-  let pickerWeek = null;
-  let pickerEl = null;
-  let pickerSearch = "";
-  function getSlot(day, periodId, week) {
-    if (!abEnabled || !week) return slots.find((s) => s.day === day && s.periodId === periodId);
-    return slots.find((s) => s.day === day && s.periodId === periodId && (s.weekType === week || s.weekType === "both" || s.weekType == null));
-  }
-  function getLabel(slot) {
-    var _a2, _b2, _c2, _d2;
-    const cls = classes.find((c) => c.id === slot.classId);
-    if (cls) {
-      const subj = subjects.find((s) => s.id === cls.subjectId);
-      return {
-        code: cls.code,
-        sub: (_a2 = subj === null || subj === void 0 ? void 0 : subj.name) !== null && _a2 !== void 0 ? _a2 : "",
-        colour: cls.colour,
-        classroom: (_b2 = cls.classroom) !== null && _b2 !== void 0 ? _b2 : ""
-      };
-    }
-    const act = activities.find((a) => a.id === slot.classId);
-    if (act) return {
-      code: act.label,
-      sub: (_c2 = act.info) !== null && _c2 !== void 0 ? _c2 : "",
-      colour: act.colour,
-      classroom: (_d2 = act.classroom) !== null && _d2 !== void 0 ? _d2 : ""
-    };
-    return {
-      code: "?",
-      sub: "",
-      colour: "#888",
-      classroom: ""
-    };
-  }
-  function openPicker(day, periodId, week, el) {
-    if (pickerDay === day && pickerPeriodId === periodId && pickerWeek === week) {
-      closePicker();
-      return;
-    }
-    $$invalidate(20, pickerDay = day);
-    $$invalidate(21, pickerPeriodId = periodId);
-    pickerWeek = week;
-    $$invalidate(22, pickerEl = el);
-  }
-  function closePicker() {
-    $$invalidate(20, pickerDay = null);
-    $$invalidate(21, pickerPeriodId = null);
-    pickerWeek = null;
-    $$invalidate(22, pickerEl = null);
-    $$invalidate(4, pickerSearch = "");
-  }
-  function assignItem(day, period, itemId, week) {
-    if (abEnabled && week) {
-      const exact = slots.find((s) => s.day === day && s.periodId === period.id && s.weekType === week);
-      if (exact) {
-        exact.classId = itemId;
-        $$invalidate(69, slots = [...slots]);
-      } else {
-        $$invalidate(69, slots = [
-          ...slots,
-          {
-            id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-            day,
-            periodId: period.id,
-            classId: itemId,
-            start: period.start,
-            end: period.end,
-            weekType: week
-          }
-        ]);
-      }
-    } else {
-      const exact = slots.find((s) => s.day === day && s.periodId === period.id);
-      if (exact) {
-        exact.classId = itemId;
-        $$invalidate(69, slots = [...slots]);
-      } else {
-        $$invalidate(69, slots = [
-          ...slots,
-          {
-            id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-            day,
-            periodId: period.id,
-            classId: itemId,
-            start: period.start,
-            end: period.end
-          }
-        ]);
-      }
-    }
-    markDirty();
-    closePicker();
-  }
-  function clearSlot(day, periodId, week) {
-    if (abEnabled && week) {
-      $$invalidate(69, slots = slots.filter((s) => !(s.day === day && s.periodId === periodId && (s.weekType === week || s.weekType == null))));
-    } else {
-      $$invalidate(69, slots = slots.filter((s) => !(s.day === day && s.periodId === periodId)));
-    }
-    markDirty();
-  }
-  async function save(force = false) {
-    var _a2;
-    if (isPast && !force) {
-      $$invalidate(15, showPastConfirm = true);
-      return;
-    }
-    const tmpl = (_a2 = plugin.settings.timetableTemplates) === null || _a2 === void 0 ? void 0 : _a2.find((t) => t.id === activeTemplateId);
-    if (tmpl) {
-      tmpl.slots = slots;
-      await plugin.saveSettings();
-    }
-    isDirty = false;
-    modal.close();
-  }
-  async function confirmPastSave() {
-    $$invalidate(15, showPastConfirm = false);
-    await save(true);
-  }
-  function openAddTemplate() {
-    new AddTimetableTemplateModal(
-      plugin.app,
-      plugin,
-      (newId) => {
-        var _a2, _b2;
-        invalidate();
-        $$invalidate(1, activeTemplateId = newId);
-        const tmpl = (_a2 = plugin.settings.timetableTemplates) === null || _a2 === void 0 ? void 0 : _a2.find((t) => t.id === newId);
-        $$invalidate(69, slots = JSON.parse(JSON.stringify((_b2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b2 !== void 0 ? _b2 : [])));
-        $$invalidate(3, activeWeek = plugin.settings.academicYear.abWeekEnabled ? "A" : null);
-        isDirty = false;
-      }
-    ).open();
-  }
-  async function deleteTemplate() {
-    var _a2, _b2, _c2;
-    if (allTemplates.length <= 1) return;
-    if (!confirm(`Delete "${activeTemplate === null || activeTemplate === void 0 ? void 0 : activeTemplate.name}"? This cannot be undone.`)) return;
-    $$invalidate(0, plugin.settings.timetableTemplates = allTemplates.filter((t) => t.id !== activeTemplateId), plugin);
-    await plugin.saveSettings();
-    const remaining = plugin.settings.timetableTemplates;
-    $$invalidate(1, activeTemplateId = (_b2 = (_a2 = remaining[remaining.length - 1]) === null || _a2 === void 0 ? void 0 : _a2.id) !== null && _b2 !== void 0 ? _b2 : "");
-    const tmpl = remaining.find((t) => t.id === activeTemplateId);
-    $$invalidate(69, slots = JSON.parse(JSON.stringify((_c2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _c2 !== void 0 ? _c2 : [])));
-  }
-  function getPeriodTypeColour(typeId) {
-    var _a2, _b2;
-    return resolveColour((_b2 = (_a2 = periodTypes.find((t) => t.id === typeId)) === null || _a2 === void 0 ? void 0 : _a2.colour) !== null && _b2 !== void 0 ? _b2 : "#888888");
-  }
-  const func = (s) => pickerFilteredClasses.some((c) => c.subjectId === s.id);
-  function click_handler_1(event) {
-    bubble.call(this, $$self, event);
-  }
-  function click_handler(event) {
-    bubble.call(this, $$self, event);
-  }
-  const keydown_handler = (e) => e.key === "Escape" && (renamingId ? $$invalidate(17, renamingId = null) : durationEditKey ? $$invalidate(13, durationEditKey = null) : closePicker());
-  const mousedown_handler = (e) => {
-    var _a2, _b2, _c2;
-    const t = (
-      /** @type {Element} */
-      e.target
-    );
-    if (pickerEl && !((_a2 = t == null ? void 0 : t.closest) == null ? void 0 : _a2.call(t, ".tp-te-picker")) && !((_b2 = t == null ? void 0 : t.closest) == null ? void 0 : _b2.call(t, ".tp-te-cell"))) closePicker();
-    if (renamingId && !((_c2 = t == null ? void 0 : t.closest) == null ? void 0 : _c2.call(t, ".tp-te-rename-input"))) commitRename();
-  };
-  function input_input_handler() {
-    renameValue = this.value;
-    $$invalidate(18, renameValue);
-  }
-  const keydown_handler_1 = (e) => {
-    if (e.key === "Enter") commitRename();
-    if (e.key === "Escape") $$invalidate(17, renamingId = null);
-  };
-  const click_handler_2 = (tmpl) => switchTemplate(tmpl.id);
-  const click_handler_3 = (tmpl) => startRename(tmpl);
-  const click_handler_4 = () => $$invalidate(16, warnCollapsed = false);
-  const click_handler_5 = () => $$invalidate(15, showPastConfirm = false);
-  const click_handler_6 = () => $$invalidate(16, warnCollapsed = true);
-  const click_handler_7 = () => {
-    $$invalidate(3, activeWeek = "A");
-    closePicker();
-  };
-  const click_handler_8 = () => {
-    $$invalidate(3, activeWeek = "B");
-    closePicker();
-  };
-  const click_handler_9 = (day, period, e) => openPicker(day.key, period.id, currentWeek, e.currentTarget);
-  function input_input_handler_1() {
-    durationEditValue = to_number(this.value);
-    $$invalidate(14, durationEditValue);
-  }
-  const keydown_handler_2 = (slot, e) => {
-    if (e.key === "Enter") commitDurationEdit(slot);
-    if (e.key === "Escape") $$invalidate(13, durationEditKey = null);
-  };
-  const blur_handler = (slot) => commitDurationEdit(slot);
-  const click_handler_10 = (slot, cellKey2, e) => startDurationEdit(slot, cellKey2, e);
-  const click_handler_11 = (day, period, e) => openPicker(day.key, period.id, currentWeek, e.currentTarget);
-  function input_input_handler_2() {
-    pickerSearch = this.value;
-    $$invalidate(4, pickerSearch);
-  }
-  const click_handler_12 = () => {
-    clearSlot(pickerDay, pickerPeriodId, currentWeek);
-    closePicker();
-  };
-  const click_handler_13 = (cls) => {
-    const p = periods.find((p2) => p2.id === pickerPeriodId);
-    if (p) {
-      assignItem(pickerDay, p, cls.id, currentWeek);
-      closePicker();
-    }
-  };
-  const click_handler_14 = (cls) => toggleArchiveClass(cls.id);
-  const func_1 = (subj, c) => c.subjectId === subj.id;
-  const click_handler_15 = (act) => {
-    const p = periods.find((p2) => p2.id === pickerPeriodId);
-    if (p) {
-      assignItem(pickerDay, p, act.id, currentWeek);
-      closePicker();
-    }
-  };
-  const click_handler_16 = (act) => toggleArchiveActivity(act.id);
-  const click_handler_17 = (act) => {
-    const p = periods.find((p2) => p2.id === pickerPeriodId);
-    if (p) {
-      assignItem(pickerDay, p, act.id, currentWeek);
-      closePicker();
-    }
-  };
-  const click_handler_18 = (act) => toggleArchiveActivity(act.id);
-  const click_handler_19 = () => $$invalidate(2, showArchived = !showArchived);
-  const click_handler_20 = (cls) => toggleArchiveClass(cls.id);
-  const click_handler_21 = (act) => toggleArchiveActivity(act.id);
-  $$self.$$set = ($$props2) => {
-    if ("plugin" in $$props2) $$invalidate(0, plugin = $$props2.plugin);
-    if ("modal" in $$props2) $$invalidate(57, modal = $$props2.modal);
-  };
-  $$self.$$.update = () => {
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[2] & /*_tick*/
-    64) {
-      $: $$invalidate(11, DAYS2 = (_tick, ALL_DAYS.filter((d) => {
-        var _a2;
-        return ((_a2 = plugin.settings.schoolDays) !== null && _a2 !== void 0 ? _a2 : ["monday", "tuesday", "wednesday", "thursday", "friday"]).includes(d.key);
-      })));
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[1] & /*_a*/
-    134217728 | $$self.$$.dirty[2] & /*_tick*/
-    64) {
-      $: $$invalidate(5, allTemplates = (_tick, $$invalidate(58, _a = plugin.settings.timetableTemplates) !== null && _a !== void 0 ? _a : []));
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[1] & /*_b*/
-    268435456) {
-      $: $$invalidate(9, classes = $$invalidate(59, _b = plugin.settings.classes) !== null && _b !== void 0 ? _b : []);
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[1] & /*_c*/
-    536870912) {
-      $: $$invalidate(72, subjects = $$invalidate(60, _c = plugin.settings.subjects) !== null && _c !== void 0 ? _c : []);
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[1] & /*_d*/
-    1073741824) {
-      $: $$invalidate(8, activities = $$invalidate(61, _d = plugin.settings.activities) !== null && _d !== void 0 ? _d : []);
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1) {
-      $: $$invalidate(7, abEnabled = plugin.settings.academicYear.abWeekEnabled);
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1) {
-      $: $$invalidate(10, periods = plugin.settings.academicYear.periods);
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[2] & /*_e, _f*/
-    3) {
-      $: $$invalidate(30, directedTimeEnabled = $$invalidate(63, _f = $$invalidate(62, _e = plugin.settings.directedTime) === null || _e === void 0 ? void 0 : _e.enabled) !== null && _f !== void 0 ? _f : false);
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[2] & /*_g, _h*/
-    12) {
-      $: defaultDuration = $$invalidate(65, _h = $$invalidate(64, _g = plugin.settings.directedTime) === null || _g === void 0 ? void 0 : _g.defaultLessonDurationMinutes) !== null && _h !== void 0 ? _h : 60;
-    }
-    if ($$self.$$.dirty[0] & /*allTemplates, activeTemplateId*/
-    34 | $$self.$$.dirty[2] & /*_m*/
-    16) {
-      $: $$invalidate(6, activeTemplate = $$invalidate(66, _m = allTemplates.find((t) => t.id === activeTemplateId)) !== null && _m !== void 0 ? _m : allTemplates[0]);
-    }
-    if ($$self.$$.dirty[0] & /*activeTemplate*/
-    64) {
-      $: $$invalidate(27, isPast = activeTemplate ? activeTemplate.endDate < today : false);
-    }
-    if ($$self.$$.dirty[0] & /*activeTemplateId*/
-    2) {
-      $: if (activeTemplateId) {
-        $$invalidate(15, showPastConfirm = false);
-        $$invalidate(16, warnCollapsed = false);
-      }
-    }
-    if ($$self.$$.dirty[0] & /*showArchived, classes*/
-    516) {
-      $: $$invalidate(73, visibleClasses = showArchived ? classes : classes.filter((c) => !c.archived));
-    }
-    if ($$self.$$.dirty[0] & /*showArchived, activities*/
-    260) {
-      $: $$invalidate(74, visibleActivities = showArchived ? activities : activities.filter((a) => !a.archived));
-    }
-    if ($$self.$$.dirty[2] & /*visibleActivities*/
-    4096) {
-      $: $$invalidate(71, visibleDirected = visibleActivities.filter((a) => a.activityType !== "other"));
-    }
-    if ($$self.$$.dirty[2] & /*visibleActivities*/
-    4096) {
-      $: $$invalidate(70, visibleOther = visibleActivities.filter((a) => a.activityType === "other"));
-    }
-    if ($$self.$$.dirty[0] & /*classes, activities*/
-    768) {
-      $: $$invalidate(29, archivedCount = classes.filter((c) => !!c.archived).length + activities.filter((a) => !!a.archived).length);
-    }
-    if ($$self.$$.dirty[0] & /*abEnabled, activeWeek*/
-    136) {
-      $: $$invalidate(12, currentWeek = abEnabled ? activeWeek : null);
-    }
-    if ($$self.$$.dirty[0] & /*currentWeek, abEnabled, DAYS, periods*/
-    7296 | $$self.$$.dirty[2] & /*slots*/
-    128) {
-      $: $$invalidate(28, _slotGrid = (() => {
-        const _s = slots;
-        const _w = currentWeek;
-        const _ab = abEnabled;
-        const m = {};
-        for (const d of DAYS2) {
-          for (const p of periods) {
-            if (!_ab || !_w) {
-              m[d.key + ":" + p.id] = _s.find((s) => s.day === d.key && s.periodId === p.id);
-            } else {
-              m[d.key + ":" + p.id] = _s.find((s) => s.day === d.key && s.periodId === p.id && (s.weekType === _w || s.weekType === "both" || s.weekType == null));
-            }
-          }
-        }
-        return m;
-      })());
-    }
-    if ($$self.$$.dirty[2] & /*subjects*/
-    1024) {
-      $: $$invalidate(26, sortedSubjects = [...subjects].sort((a, b) => a.name.localeCompare(b.name)));
-    }
-    if ($$self.$$.dirty[0] & /*pickerSearch*/
-    16 | $$self.$$.dirty[2] & /*visibleClasses, subjects*/
-    3072) {
-      $: $$invalidate(25, pickerFilteredClasses = (() => {
-        const q = pickerSearch.toLowerCase();
-        if (!q) return visibleClasses;
-        return visibleClasses.filter((c) => {
-          var _a2, _b2, _c2;
-          const subj = subjects.find((s) => s.id === c.subjectId);
-          return c.code.toLowerCase().includes(q) || ((_a2 = subj === null || subj === void 0 ? void 0 : subj.name) !== null && _a2 !== void 0 ? _a2 : "").toLowerCase().includes(q) || ((_b2 = c.year) !== null && _b2 !== void 0 ? _b2 : "").toLowerCase().includes(q) || ((_c2 = c.classroom) !== null && _c2 !== void 0 ? _c2 : "").toLowerCase().includes(q);
-        });
-      })());
-    }
-    if ($$self.$$.dirty[0] & /*pickerSearch*/
-    16 | $$self.$$.dirty[2] & /*visibleDirected*/
-    512) {
-      $: $$invalidate(24, pickerFilteredDirected = pickerSearch ? visibleDirected.filter((a) => a.label.toLowerCase().includes(pickerSearch.toLowerCase())) : visibleDirected);
-    }
-    if ($$self.$$.dirty[0] & /*pickerSearch*/
-    16 | $$self.$$.dirty[2] & /*visibleOther*/
-    256) {
-      $: $$invalidate(23, pickerFilteredOther = pickerSearch ? visibleOther.filter((a) => a.label.toLowerCase().includes(pickerSearch.toLowerCase())) : visibleOther);
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[2] & /*_p*/
-    32) {
-      $: periodTypes = $$invalidate(67, _p = plugin.settings.periodTypes) !== null && _p !== void 0 ? _p : [];
-    }
-  };
-  return [
-    plugin,
-    activeTemplateId,
-    showArchived,
-    activeWeek,
-    pickerSearch,
-    allTemplates,
-    activeTemplate,
-    abEnabled,
-    activities,
-    classes,
-    periods,
-    DAYS2,
-    currentWeek,
-    durationEditKey,
-    durationEditValue,
-    showPastConfirm,
-    warnCollapsed,
-    renamingId,
-    renameValue,
-    showUnsavedConfirm,
-    pickerDay,
-    pickerPeriodId,
-    pickerEl,
-    pickerFilteredOther,
-    pickerFilteredDirected,
-    pickerFilteredClasses,
-    sortedSubjects,
-    isPast,
-    _slotGrid,
-    archivedCount,
-    directedTimeEnabled,
-    icon,
-    getSlotDuration,
-    isDirectedSlot,
-    startDurationEdit,
-    commitDurationEdit,
-    switchTemplate,
-    today,
-    startRename,
-    commitRename,
-    toggleArchiveClass,
-    toggleArchiveActivity,
-    confirmUnsaved_save,
-    confirmUnsaved_discard,
-    confirmUnsaved_cancel,
-    onCancel,
-    getSlot,
-    getLabel,
-    openPicker,
-    closePicker,
-    assignItem,
-    clearSlot,
-    save,
-    confirmPastSave,
-    openAddTemplate,
-    deleteTemplate,
-    getPeriodTypeColour,
-    modal,
-    _a,
-    _b,
-    _c,
-    _d,
-    _e,
-    _f,
-    _g,
-    _h,
-    _m,
-    _p,
-    _tick,
-    slots,
-    visibleOther,
-    visibleDirected,
-    subjects,
-    visibleClasses,
-    visibleActivities,
-    func,
-    click_handler_1,
-    click_handler,
-    keydown_handler,
-    mousedown_handler,
-    input_input_handler,
-    keydown_handler_1,
-    click_handler_2,
-    click_handler_3,
-    click_handler_4,
-    click_handler_5,
-    click_handler_6,
-    click_handler_7,
-    click_handler_8,
-    click_handler_9,
-    input_input_handler_1,
-    keydown_handler_2,
-    blur_handler,
-    click_handler_10,
-    click_handler_11,
-    input_input_handler_2,
-    click_handler_12,
-    click_handler_13,
-    click_handler_14,
-    func_1,
-    click_handler_15,
-    click_handler_16,
-    click_handler_17,
-    click_handler_18,
-    click_handler_19,
-    click_handler_20,
-    click_handler_21
-  ];
-}
-var import_obsidian2, window_1, func_3, func_4, TimetableEditorComponent, TimetableEditorComponent_default;
-var init_TimetableEditorComponent = __esm({
-  "src/modals/TimetableEditorComponent.svelte"() {
-    init_internal();
-    init_disclose_version();
-    init_AddTimetableTemplateModal();
-    import_obsidian2 = require("obsidian");
-    init_themeColours();
-    init_scheduleUtils();
-    ({ window: window_1 } = globals);
-    func_3 = (c) => c.archived;
-    func_4 = (a) => a.archived;
-    TimetableEditorComponent = class extends SvelteComponent {
-      constructor(options) {
-        super();
-        init(this, options, instance, create_fragment, safe_not_equal, { plugin: 0, modal: 57 }, add_css, [-1, -1, -1, -1, -1, -1]);
-      }
-    };
-    TimetableEditorComponent_default = TimetableEditorComponent;
-  }
-});
-
-// src/modals/TimetableEditorModal.ts
-var import_obsidian3, TimetableEditorModal;
-var init_TimetableEditorModal = __esm({
-  "src/modals/TimetableEditorModal.ts"() {
-    import_obsidian3 = require("obsidian");
-    init_TimetableEditorComponent();
-    TimetableEditorModal = class extends import_obsidian3.Modal {
-      constructor(app, plugin) {
-        super(app);
-        this.component = null;
-        this.plugin = plugin;
-      }
-      onOpen() {
-        this.modalEl.setCssStyles({ width: "min(95vw, 1100px)" });
-        this.modalEl.setCssStyles({ maxWidth: "95vw" });
-        this.modalEl.setCssStyles({ maxHeight: "min(90vh, 900px)" });
-        this.modalEl.setCssStyles({ minWidth: "600px" });
-        this.modalEl.setCssStyles({ boxSizing: "border-box" });
-        const { contentEl } = this;
-        contentEl.empty();
-        contentEl.addClass("tp-timetable-modal");
-        this.component = new TimetableEditorComponent_default({
-          target: contentEl,
-          props: { plugin: this.plugin, modal: this }
-        });
-      }
-      onClose() {
-        var _a;
-        (_a = this.component) == null ? void 0 : _a.$destroy();
-        this.contentEl.empty();
-      }
-    };
-  }
-});
-
 // node_modules/svelte/src/runtime/index.js
 var init_runtime = __esm({
   "node_modules/svelte/src/runtime/index.js"() {
@@ -5597,20 +1496,20 @@ var init_runtime = __esm({
 });
 
 // src/modals/ColourPickerComponent.svelte
-function add_css2(target) {
+function add_css(target) {
   append_styles(target, "svelte-15zt4m3", ".cp-root.svelte-15zt4m3{display:flex;flex-direction:column;gap:12px;min-width:280px}.cp-title.svelte-15zt4m3{margin:0;font-size:16px;font-weight:700;color:var(--text-normal)}.cp-preview.svelte-15zt4m3{padding:6px 10px;border-left:4px solid;border-radius:4px;font-size:13px;font-weight:700;transition:background 0.1s, color 0.1s}.cp-square.svelte-15zt4m3{position:relative;width:100%;height:180px;background:var(--hue-bg);border-radius:6px;cursor:crosshair;overflow:hidden;user-select:none}.cp-square-white.svelte-15zt4m3{position:absolute;inset:0;background:linear-gradient(to right, #fff, transparent)}.cp-square-black.svelte-15zt4m3{position:absolute;inset:0;background:linear-gradient(to bottom, transparent, #000)}.cp-cursor.svelte-15zt4m3{position:absolute;width:12px;height:12px;border-radius:50%;border:2px solid #fff;transform:translate(-50%, -50%);pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,0.3)}.cp-hue.svelte-15zt4m3{position:relative;height:14px;border-radius:7px;cursor:pointer;user-select:none;background:linear-gradient(to right,\n      hsl(0,100%,50%), hsl(30,100%,50%), hsl(60,100%,50%),\n      hsl(90,100%,50%), hsl(120,100%,50%), hsl(150,100%,50%),\n      hsl(180,100%,50%), hsl(210,100%,50%), hsl(240,100%,50%),\n      hsl(270,100%,50%), hsl(300,100%,50%), hsl(330,100%,50%),\n      hsl(360,100%,50%)\n    )}.cp-hue-cursor.svelte-15zt4m3{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid rgba(0,0,0,0.3);transform:translate(-50%, -50%);pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,0.4)}.cp-inputs.svelte-15zt4m3{display:flex;align-items:center;gap:8px}.cp-hex-row.svelte-15zt4m3{display:flex;align-items:center;gap:4px;background:var(--background-modifier-form-field);border:1px solid var(--background-modifier-border);border-radius:4px;padding:4px 8px;flex:1}.cp-hex-label.svelte-15zt4m3{font-size:13px;color:var(--text-muted);font-family:var(--font-monospace)}.cp-hex-input.svelte-15zt4m3{border:none;background:transparent;color:var(--text-normal);font-size:13px;font-family:var(--font-monospace);width:70px;outline:none}.cp-colour-dot.svelte-15zt4m3{width:28px;height:28px;border-radius:50%;flex-shrink:0;border:2px solid var(--background-modifier-border)}.cp-theme-section.svelte-15zt4m3{display:flex;flex-direction:column;gap:6px}.cp-theme-label.svelte-15zt4m3{font-size:12px;font-weight:600;color:var(--text-normal)}.cp-theme-hint.svelte-15zt4m3{font-weight:400;color:var(--text-muted)}.cp-palette.svelte-15zt4m3{display:flex;gap:6px;flex-wrap:wrap}.cp-swatch.svelte-15zt4m3{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform 0.1s, border-color 0.1s}.cp-swatch.svelte-15zt4m3:hover{transform:scale(1.15)}.cp-swatch--active.svelte-15zt4m3{border-color:var(--text-normal);transform:scale(1.15)}.cp-footer.svelte-15zt4m3{display:flex;justify-content:flex-end;gap:8px;padding-top:4px;border-top:1px solid var(--background-modifier-border)}.tp-btn.svelte-15zt4m3{padding:5px 16px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s}.tp-btn.svelte-15zt4m3:hover{background:var(--background-modifier-hover)}.tp-btn--primary.svelte-15zt4m3{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn--primary.svelte-15zt4m3:hover{background:var(--interactive-accent-hover)}");
 }
-function get_each_context2(ctx, list, i) {
+function get_each_context(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[35] = list[i];
   return child_ctx;
 }
-function get_each_context_12(ctx, list, i) {
+function get_each_context_1(ctx, list, i) {
   const child_ctx = ctx.slice();
   child_ctx[38] = list[i];
   return child_ctx;
 }
-function create_if_block2(ctx) {
+function create_if_block(ctx) {
   let div2;
   let div0;
   let t2;
@@ -5623,9 +1522,9 @@ function create_if_block2(ctx) {
     ctx2[38].token
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
-    let child_ctx = get_each_context_12(ctx, each_value_1, i);
+    let child_ctx = get_each_context_1(ctx, each_value_1, i);
     let key = get_key(child_ctx);
-    each_1_lookup.set(key, each_blocks[i] = create_each_block_12(key, child_ctx));
+    each_1_lookup.set(key, each_blocks[i] = create_each_block_1(key, child_ctx));
   }
   return {
     c() {
@@ -5656,7 +1555,7 @@ function create_if_block2(ctx) {
       if (dirty[0] & /*selectedToken, pickThemeToken*/
       131200) {
         each_value_1 = ensure_array_like(THEME_COLOUR_TOKENS);
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_1, each_1_lookup, div1, destroy_block, create_each_block_12, null, get_each_context_12);
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_1, each_1_lookup, div1, destroy_block, create_each_block_1, null, get_each_context_1);
       }
     },
     d(detaching) {
@@ -5669,7 +1568,7 @@ function create_if_block2(ctx) {
     }
   };
 }
-function create_each_block_12(key_1, ctx) {
+function create_each_block_1(key_1, ctx) {
   let button;
   let button_title_value;
   let button_aria_label_value;
@@ -5736,7 +1635,7 @@ function create_each_block_12(key_1, ctx) {
     }
   };
 }
-function create_each_block2(ctx) {
+function create_each_block(ctx) {
   let button;
   let button_aria_label_value;
   let mounted;
@@ -5799,7 +1698,7 @@ function create_each_block2(ctx) {
     }
   };
 }
-function create_fragment2(ctx) {
+function create_fragment(ctx) {
   let div12;
   let h3;
   let t0;
@@ -5839,12 +1738,12 @@ function create_fragment2(ctx) {
   let dispose;
   let if_block = (
     /*showThemeRow*/
-    ctx[2] && create_if_block2(ctx)
+    ctx[2] && create_if_block(ctx)
   );
   let each_value = ensure_array_like(CLASS_COLOUR_PALETTE);
   let each_blocks = [];
   for (let i = 0; i < each_value.length; i += 1) {
-    each_blocks[i] = create_each_block2(get_each_context2(ctx, each_value, i));
+    each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
   }
   return {
     c() {
@@ -6183,7 +2082,7 @@ function create_fragment2(ctx) {
         if (if_block) {
           if_block.p(ctx, dirty);
         } else {
-          if_block = create_if_block2(ctx);
+          if_block = create_if_block(ctx);
           if_block.c();
           if_block.m(div12, t13);
         }
@@ -6196,11 +2095,11 @@ function create_fragment2(ctx) {
         each_value = ensure_array_like(CLASS_COLOUR_PALETTE);
         let i;
         for (i = 0; i < each_value.length; i += 1) {
-          const child_ctx = get_each_context2(ctx, each_value, i);
+          const child_ctx = get_each_context(ctx, each_value, i);
           if (each_blocks[i]) {
             each_blocks[i].p(child_ctx, dirty);
           } else {
-            each_blocks[i] = create_each_block2(child_ctx);
+            each_blocks[i] = create_each_block(child_ctx);
             each_blocks[i].c();
             each_blocks[i].m(div10, null);
           }
@@ -6276,14 +2175,14 @@ function hexToHsv(hex) {
   if (h < 0) h += 360;
   return { h, s: max === 0 ? 0 : d / max, v: max };
 }
-function hexToRgba2(hex, alpha) {
+function hexToRgba(hex, alpha) {
   const clean = hex.replace("#", "");
   const r = parseInt(clean.substring(0, 2), 16);
   const g = parseInt(clean.substring(2, 4), 16);
   const b = parseInt(clean.substring(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
-function instance2($$self, $$props, $$invalidate) {
+function instance($$self, $$props, $$invalidate) {
   let currentHex;
   let squareBg;
   let previewBg;
@@ -6411,7 +2310,7 @@ function instance2($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*currentHex*/
     64) {
-      $: $$invalidate(11, previewBg = hexToRgba2(currentHex, 0.18));
+      $: $$invalidate(11, previewBg = hexToRgba(currentHex, 0.18));
     }
     if ($$self.$$.dirty[0] & /*currentHex*/
     64) {
@@ -6460,8 +2359,8 @@ var init_ColourPickerComponent = __esm({
         init(
           this,
           options,
-          instance2,
-          create_fragment2,
+          instance,
+          create_fragment,
           safe_not_equal,
           {
             initialColour: 19,
@@ -6470,7 +2369,7 @@ var init_ColourPickerComponent = __esm({
             onCancel: 1,
             showThemeRow: 2
           },
-          add_css2,
+          add_css,
           [-1, -1]
         );
       }
@@ -6480,11 +2379,11 @@ var init_ColourPickerComponent = __esm({
 });
 
 // src/modals/AddPeriodModal.ts
-var import_obsidian5, AddPeriodModal;
+var import_obsidian2, AddPeriodModal;
 var init_AddPeriodModal = __esm({
   "src/modals/AddPeriodModal.ts"() {
-    import_obsidian5 = require("obsidian");
-    AddPeriodModal = class extends import_obsidian5.Modal {
+    import_obsidian2 = require("obsidian");
+    AddPeriodModal = class extends import_obsidian2.Modal {
       constructor(app, onAdd) {
         super(app);
         this.onAdd = onAdd;
@@ -6498,26 +2397,26 @@ var init_AddPeriodModal = __esm({
         let start = "";
         let end = "";
         let type = "lesson";
-        new import_obsidian5.Setting(contentEl).setName("Period name").setDesc("e.g. Period 1, Break, Lunch").addText((t) => {
+        new import_obsidian2.Setting(contentEl).setName("Period name").setDesc("e.g. Period 1, Break, Lunch").addText((t) => {
           t.setPlaceholder("Period 1");
           t.inputEl.addEventListener("input", () => {
             name = t.inputEl.value;
           });
           window.setTimeout(() => t.inputEl.focus(), 50);
         });
-        new import_obsidian5.Setting(contentEl).setName("Start time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
+        new import_obsidian2.Setting(contentEl).setName("Start time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
           t.setPlaceholder("08:50");
           t.inputEl.addEventListener("input", () => {
             start = t.inputEl.value;
           });
         });
-        new import_obsidian5.Setting(contentEl).setName("End time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
+        new import_obsidian2.Setting(contentEl).setName("End time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
           t.setPlaceholder("10:05");
           t.inputEl.addEventListener("input", () => {
             end = t.inputEl.value;
           });
         });
-        new import_obsidian5.Setting(contentEl).setName("Type").addDropdown((d) => {
+        new import_obsidian2.Setting(contentEl).setName("Type").addDropdown((d) => {
           d.addOption("lesson", "Lesson").addOption("break", "Break").addOption("registration", "Registration").addOption("free", "Free");
           d.setValue("lesson");
           d.onChange((v) => {
@@ -6534,20 +2433,20 @@ var init_AddPeriodModal = __esm({
             const trimmedStart = start.trim();
             const trimmedEnd = end.trim();
             if (!trimmedName) {
-              new import_obsidian5.Notice("Please enter a period name.");
+              new import_obsidian2.Notice("Please enter a period name.");
               return;
             }
             const timeRe = /^([01]\d|2[0-3]):[0-5]\d$/;
             if (!timeRe.test(trimmedStart)) {
-              new import_obsidian5.Notice("Start time must be HH:MM (e.g. 08:50).");
+              new import_obsidian2.Notice("Start time must be HH:MM (e.g. 08:50).");
               return;
             }
             if (!timeRe.test(trimmedEnd)) {
-              new import_obsidian5.Notice("End time must be HH:MM (e.g. 10:05).");
+              new import_obsidian2.Notice("End time must be HH:MM (e.g. 10:05).");
               return;
             }
             if (trimmedEnd <= trimmedStart) {
-              new import_obsidian5.Notice("End time must be after the start time.");
+              new import_obsidian2.Notice("End time must be after the start time.");
               return;
             }
             await this.onAdd({ id: `period-${Date.now()}`, name: trimmedName, start: trimmedStart, end: trimmedEnd, type });
@@ -26919,7 +22818,7 @@ function getRequire() {
 function getElectronRemote(noticeText) {
   const req = getRequire();
   if (!req) {
-    new import_obsidian6.Notice(noticeText);
+    new import_obsidian3.Notice(noticeText);
     return null;
   }
   const electron = req("electron");
@@ -26927,7 +22826,7 @@ function getElectronRemote(noticeText) {
   try {
     return req("@electron/remote");
   } catch (e) {
-    new import_obsidian6.Notice(noticeText);
+    new import_obsidian3.Notice(noticeText);
     return null;
   }
 }
@@ -26984,7 +22883,7 @@ async function openOSFolderPicker() {
     return result.filePaths[0];
   } catch (err) {
     console.error("OS folder picker failed:", err);
-    new import_obsidian6.Notice("Could not open folder picker \u2014 please use a vault path.");
+    new import_obsidian3.Notice("Could not open folder picker \u2014 please use a vault path.");
     return null;
   }
 }
@@ -26997,7 +22896,7 @@ async function openOSFilePicker(title = "Choose a file") {
     return result.filePaths[0];
   } catch (err) {
     console.error("OS file picker failed:", err);
-    new import_obsidian6.Notice("Could not open the file picker.");
+    new import_obsidian3.Notice("Could not open the file picker.");
     return null;
   }
 }
@@ -27014,14 +22913,14 @@ async function openSystemPath(absolutePath) {
       }
     }
     if (!shell) {
-      new import_obsidian6.Notice("Opening external paths is only available on desktop.");
+      new import_obsidian3.Notice("Opening external paths is only available on desktop.");
       return;
     }
     const err = await shell.openPath(absolutePath);
-    if (err) new import_obsidian6.Notice(`Could not open: ${err}`);
+    if (err) new import_obsidian3.Notice(`Could not open: ${err}`);
   } catch (e) {
     console.error("openSystemPath failed:", e);
-    new import_obsidian6.Notice("Could not open the external resource.");
+    new import_obsidian3.Notice("Could not open the external resource.");
   }
 }
 async function writeSystemFile(absolutePath, data) {
@@ -27043,10 +22942,10 @@ function joinSystemPath(...parts) {
   }
   return parts.filter(Boolean).join("/");
 }
-var import_obsidian6;
+var import_obsidian3;
 var init_exportDestination = __esm({
   "src/utils/exportDestination.ts"() {
-    import_obsidian6 = require("obsidian");
+    import_obsidian3 = require("obsidian");
   }
 });
 
@@ -27251,15 +23150,15 @@ var init_icalUtils = __esm({
 });
 
 // src/modals/ExportModal.ts
-var import_obsidian7, ExportModal;
+var import_obsidian4, ExportModal;
 var init_ExportModal = __esm({
   "src/modals/ExportModal.ts"() {
-    import_obsidian7 = require("obsidian");
+    import_obsidian4 = require("obsidian");
     init_xlsx();
     init_exportDestination();
     init_icalUtils();
     init_weekUtils();
-    ExportModal = class extends import_obsidian7.Modal {
+    ExportModal = class extends import_obsidian4.Modal {
       constructor(app, plugin) {
         super(app);
         this.dataset = "both";
@@ -27396,7 +23295,7 @@ var init_ExportModal = __esm({
         };
         updateSections();
         this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
-        renderDestinationPicker(form, this.destination, import_obsidian7.Platform.isMobile);
+        renderDestinationPicker(form, this.destination, import_obsidian4.Platform.isMobile);
         const footer = contentEl.createDiv("tp-modal-footer");
         footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
         const exportBtn = footer.createEl("button", { text: "Export", cls: "tp-btn tp-btn--primary" });
@@ -27416,7 +23315,7 @@ var init_ExportModal = __esm({
               this.close();
             } catch (err) {
               console.error("Export error:", err);
-              new import_obsidian7.Notice("Export failed - see console for details.");
+              new import_obsidian4.Notice("Export failed - see console for details.");
               exportBtn.disabled = false;
               exportBtn.textContent = "Export";
             }
@@ -27511,7 +23410,7 @@ var init_ExportModal = __esm({
       }
       async writeText(path, content) {
         const existing = this.app.vault.getAbstractFileByPath(path);
-        if (existing instanceof import_obsidian7.TFile) {
+        if (existing instanceof import_obsidian4.TFile) {
           await this.app.vault.modify(existing, content);
         } else {
           await this.app.vault.create(path, content);
@@ -27532,14 +23431,14 @@ var init_ExportModal = __esm({
           for (const [name, content] of targets) {
             await writeSystemFile(joinSystemPath(this.destination.systemPath, name), content);
           }
-          new import_obsidian7.Notice(`Exported ${targets.length} file(s) to ${this.destination.systemPath}`);
+          new import_obsidian4.Notice(`Exported ${targets.length} file(s) to ${this.destination.systemPath}`);
         } else {
           const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
           await this.ensureFolder(folder);
           for (const [name, content] of targets) {
             await this.writeText(`${folder}/${name}`, content);
           }
-          new import_obsidian7.Notice(`Exported ${targets.length} file(s) to ${folder}`);
+          new import_obsidian4.Notice(`Exported ${targets.length} file(s) to ${folder}`);
         }
       }
       async exportXLSX() {
@@ -27555,32 +23454,32 @@ var init_ExportModal = __esm({
         if (this.destination.mode === "system" && this.destination.systemPath) {
           const absPath = joinSystemPath(this.destination.systemPath, filename);
           await writeSystemFile(absPath, buf);
-          new import_obsidian7.Notice(`Exported to ${absPath}`);
+          new import_obsidian4.Notice(`Exported to ${absPath}`);
         } else {
           const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
           await this.ensureFolder(folder);
           const path = `${folder}/${filename}`;
           await this.app.vault.adapter.writeBinary(path, buf);
-          new import_obsidian7.Notice(`Exported to ${path}`);
+          new import_obsidian4.Notice(`Exported to ${path}`);
         }
       }
       /** Returns false on validation failure (modal stays open). */
       async exportICal() {
         var _a;
         if (!isValidIsoDate(this.icalFrom) || !isValidIsoDate(this.icalTo)) {
-          new import_obsidian7.Notice("Please enter valid from/to dates.");
+          new import_obsidian4.Notice("Please enter valid from/to dates.");
           return false;
         }
         if (this.icalTo < this.icalFrom) {
-          new import_obsidian7.Notice("The 'to' date must not be before the 'from' date.");
+          new import_obsidian4.Notice("The 'to' date must not be before the 'from' date.");
           return false;
         }
         if (!this.icalLessons && !this.icalDateEvents && !this.icalOverrides && !this.icalNonLessons) {
-          new import_obsidian7.Notice("Select at least one thing to include.");
+          new import_obsidian4.Notice("Select at least one thing to include.");
           return false;
         }
         if (this.icalDays && this.icalDays.length === 0) {
-          new import_obsidian7.Notice("Select at least one day to include.");
+          new import_obsidian4.Notice("Select at least one day to include.");
           return false;
         }
         const s = this.plugin.settings;
@@ -27599,12 +23498,12 @@ var init_ExportModal = __esm({
         if (this.destination.mode === "system" && this.destination.systemPath) {
           const absPath = joinSystemPath(this.destination.systemPath, filename);
           await writeSystemFile(absPath, content);
-          new import_obsidian7.Notice(`Exported to ${absPath}`);
+          new import_obsidian4.Notice(`Exported to ${absPath}`);
         } else {
           const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
           await this.ensureFolder(folder);
           await this.writeText(`${folder}/${filename}`, content);
-          new import_obsidian7.Notice(`Exported to ${folder}/${filename}`);
+          new import_obsidian4.Notice(`Exported to ${folder}/${filename}`);
         }
         return true;
       }
@@ -27814,14 +23713,14 @@ var init_directedTimeUtils = __esm({
 });
 
 // src/modals/DirectedTimeExportModal.ts
-var import_obsidian8, DirectedTimeExportModal;
+var import_obsidian5, DirectedTimeExportModal;
 var init_DirectedTimeExportModal = __esm({
   "src/modals/DirectedTimeExportModal.ts"() {
-    import_obsidian8 = require("obsidian");
+    import_obsidian5 = require("obsidian");
     init_xlsx();
     init_exportDestination();
     init_directedTimeUtils();
-    DirectedTimeExportModal = class extends import_obsidian8.Modal {
+    DirectedTimeExportModal = class extends import_obsidian5.Modal {
       constructor(app, plugin) {
         super(app);
         this.destination = { mode: "vault", vaultPath: "", systemPath: null };
@@ -27843,7 +23742,7 @@ var init_DirectedTimeExportModal = __esm({
           cls: "tp-modal-label"
         });
         this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
-        renderDestinationPicker(body, this.destination, import_obsidian8.Platform.isMobile);
+        renderDestinationPicker(body, this.destination, import_obsidian5.Platform.isMobile);
         const footer = contentEl.createDiv("tp-modal-footer");
         footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
         const exportBtn = footer.createEl("button", { text: "Export XLSX\u2026", cls: "tp-btn tp-btn--primary" });
@@ -27856,7 +23755,7 @@ var init_DirectedTimeExportModal = __esm({
               this.close();
             } catch (err) {
               console.error("Directed time export error:", err);
-              new import_obsidian8.Notice("Export failed \u2014 see console for details.");
+              new import_obsidian5.Notice("Export failed \u2014 see console for details.");
               exportBtn.disabled = false;
               exportBtn.textContent = "Export XLSX\u2026";
             }
@@ -27930,7 +23829,7 @@ var init_DirectedTimeExportModal = __esm({
         if (this.destination.mode === "system" && this.destination.systemPath) {
           const absPath = joinSystemPath(this.destination.systemPath, filename);
           await writeSystemFile(absPath, buf);
-          new import_obsidian8.Notice(`Directed time exported to ${absPath}`);
+          new import_obsidian5.Notice(`Directed time exported to ${absPath}`);
         } else {
           const vaultFolder = this.destination.vaultPath || folder;
           if (!this.app.vault.getAbstractFileByPath(vaultFolder)) {
@@ -27941,7 +23840,7 @@ var init_DirectedTimeExportModal = __esm({
           }
           const path = `${vaultFolder}/${filename}`;
           await this.app.vault.adapter.writeBinary(path, buf);
-          new import_obsidian8.Notice(`Directed time exported to ${path}`);
+          new import_obsidian5.Notice(`Directed time exported to ${path}`);
         }
       }
       onClose() {
@@ -27956,10 +23855,10 @@ var SetupWizardModal_exports = {};
 __export(SetupWizardModal_exports, {
   SetupWizardModal: () => SetupWizardModal
 });
-var import_obsidian9, DAYS, TOTAL_STEPS, SetupWizardModal, WizardCloseConfirmModal;
+var import_obsidian6, DAYS, TOTAL_STEPS, SetupWizardModal, WizardCloseConfirmModal;
 var init_SetupWizardModal = __esm({
   "src/modals/SetupWizardModal.ts"() {
-    import_obsidian9 = require("obsidian");
+    import_obsidian6 = require("obsidian");
     init_settings();
     init_themeColours();
     init_weekUtils();
@@ -27976,7 +23875,7 @@ var init_SetupWizardModal = __esm({
       { key: "sunday", label: "Sun" }
     ];
     TOTAL_STEPS = 10;
-    SetupWizardModal = class extends import_obsidian9.Modal {
+    SetupWizardModal = class extends import_obsidian6.Modal {
       constructor(app, plugin, isNewPlanner = false) {
         super(app);
         this.step = 1;
@@ -28111,7 +24010,7 @@ var init_SetupWizardModal = __esm({
           "Give this planner a name \u2014 usually the academic year. It will also be used as the vault subfolder."
         );
         let nameInput;
-        new import_obsidian9.Setting(body).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => {
+        new import_obsidian6.Setting(body).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => {
           t.setPlaceholder("2025-26").setValue(this.state.name);
           t.inputEl.maxLength = 60;
           nameInput = t.inputEl;
@@ -28120,7 +24019,7 @@ var init_SetupWizardModal = __esm({
         this.footer(body, () => {
           const v = nameInput.value.trim();
           if (!v) {
-            new import_obsidian9.Notice("Please enter a planner name.");
+            new import_obsidian6.Notice("Please enter a planner name.");
             return false;
           }
           this.state.name = v;
@@ -28135,7 +24034,7 @@ var init_SetupWizardModal = __esm({
           "Track your statutory directed time (STPCD). Enable this to configure your contract details and add directed time activity types."
         );
         let dtPanel;
-        new import_obsidian9.Setting(body).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(this.state.directedTimeEnabled).onChange((v) => {
+        new import_obsidian6.Setting(body).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(this.state.directedTimeEnabled).onChange((v) => {
           this.state.directedTimeEnabled = v;
           dtPanel.setCssStyles({ display: v ? "" : "none" });
         }));
@@ -28144,14 +24043,14 @@ var init_SetupWizardModal = __esm({
         const dtCallout = dtPanel.createDiv("tp-dt-callout");
         dtCallout.createEl("p", { text: "\u2139\uFE0F  How it works: Directed time is counted only from items placed in your planner. The tracker shows hours accrued to today and a projection based on future planned events. Keep your planner up to date for accurate figures." });
         dtCallout.createEl("p", { text: "\u26A0\uFE0F  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice \u2014 always consult your union representative for formal disputes." });
-        new import_obsidian9.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD).").addText((t) => {
+        new import_obsidian6.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD).").addText((t) => {
           t.setPlaceholder("1265").setValue(String(this.state.contractedHours));
           t.onChange((v) => {
             const n = parseFloat(v);
             if (!isNaN(n) && n > 0) this.state.contractedHours = n;
           });
         });
-        new import_obsidian9.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Default: 100 (full-time).").addText((t) => {
+        new import_obsidian6.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Default: 100 (full-time).").addText((t) => {
           t.setPlaceholder("100").setValue(String(this.state.timetablePercentage));
           t.onChange((v) => {
             const n = parseFloat(v);
@@ -28161,13 +24060,13 @@ var init_SetupWizardModal = __esm({
         const lessonDurOptions = ["45", "50", "60"];
         const lessonDurDropValue = lessonDurOptions.includes(String(this.state.defaultLessonDurationMinutes)) ? String(this.state.defaultLessonDurationMinutes) : "custom";
         let customDurSetting;
-        new import_obsidian9.Setting(dtPanel).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange((v) => {
+        new import_obsidian6.Setting(dtPanel).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange((v) => {
           if (v !== "custom") {
             this.state.defaultLessonDurationMinutes = parseInt(v);
           }
           customDurSetting.settingEl.setCssStyles({ display: v === "custom" ? "" : "none" });
         }));
-        customDurSetting = new import_obsidian9.Setting(dtPanel).setName("Custom lesson duration (minutes)").addText((t) => {
+        customDurSetting = new import_obsidian6.Setting(dtPanel).setName("Custom lesson duration (minutes)").addText((t) => {
           t.setPlaceholder("e.g. 55").setValue(lessonDurDropValue === "custom" ? String(this.state.defaultLessonDurationMinutes) : "");
           t.onChange((v) => {
             const n = parseInt(v);
@@ -28221,13 +24120,13 @@ var init_SetupWizardModal = __esm({
               act.durationMinutes = isNaN(n) || durIn.value === "" ? void 0 : n;
             });
             const delBtn = row.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian9.setIcon)(delBtn, "trash-2");
+            (0, import_obsidian6.setIcon)(delBtn, "trash-2");
             delBtn.addEventListener("click", () => {
               this.state.activities = this.state.activities.filter((a) => a.id !== act.id);
               renderActs();
             });
           }
-          new import_obsidian9.Setting(actList).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(() => {
+          new import_obsidian6.Setting(actList).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(() => {
             const colour = CLASS_COLOUR_PALETTE[this.state.activities.length % CLASS_COLOUR_PALETTE.length];
             this.state.activities.push({ id: "act-" + Date.now(), label: "New Activity", colour, activityType: "directed" });
             renderActs();
@@ -28247,24 +24146,24 @@ var init_SetupWizardModal = __esm({
         );
         let startInput;
         let endInput;
-        const startSetting = new import_obsidian9.Setting(body).setName("Start date").setDesc("YYYY-MM-DD");
+        const startSetting = new import_obsidian6.Setting(body).setName("Start date").setDesc("YYYY-MM-DD");
         startInput = startSetting.controlEl.createEl("input", { type: "date" });
         startInput.value = this.state.startDate;
-        const endSetting = new import_obsidian9.Setting(body).setName("End date").setDesc("YYYY-MM-DD");
+        const endSetting = new import_obsidian6.Setting(body).setName("End date").setDesc("YYYY-MM-DD");
         endInput = endSetting.controlEl.createEl("input", { type: "date" });
         endInput.value = this.state.endDate;
         this.footer(body, () => {
           const s = startInput.value, e = endInput.value;
           if (!s || !e) {
-            new import_obsidian9.Notice("Please enter both dates.");
+            new import_obsidian6.Notice("Please enter both dates.");
             return false;
           }
           if (!isValidIsoDate(s) || !isValidIsoDate(e)) {
-            new import_obsidian9.Notice("Please enter valid dates in YYYY-MM-DD format.");
+            new import_obsidian6.Notice("Please enter valid dates in YYYY-MM-DD format.");
             return false;
           }
           if (s >= e) {
-            new import_obsidian9.Notice("End date must be after start date.");
+            new import_obsidian6.Notice("End date must be after start date.");
             return false;
           }
           this.state.startDate = s;
@@ -28288,7 +24187,7 @@ var init_SetupWizardModal = __esm({
           }
           for (const ov of this.state.weekOverrides) {
             const wrapper = listEl.createDiv("tp-override-entry");
-            const row = new import_obsidian9.Setting(wrapper).setName("").setDesc("");
+            const row = new import_obsidian6.Setting(wrapper).setName("").setDesc("");
             row.settingEl.addClass("tp-override-row");
             const fromInput = row.controlEl.createEl("input", { type: "date", cls: "tp-override-date-input" });
             fromInput.value = ov.startDate;
@@ -28317,7 +24216,7 @@ var init_SetupWizardModal = __esm({
               ov.label = labelInput.value || void 0;
             });
             const delBtn = row.controlEl.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian9.setIcon)(delBtn, "trash");
+            (0, import_obsidian6.setIcon)(delBtn, "trash");
             delBtn.addEventListener("click", () => {
               this.state.weekOverrides = this.state.weekOverrides.filter((w) => w !== ov);
               renderOverrides();
@@ -28342,7 +24241,7 @@ var init_SetupWizardModal = __esm({
               insetRow.setCssStyles({ display: ov.type === "inset" && this.state.directedTimeEnabled ? "flex" : "none" });
             });
           }
-          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET").setCta().onClick(() => {
+          new import_obsidian6.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET").setCta().onClick(() => {
             const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
             this.state.weekOverrides.push({ startDate: today, type: "holiday" });
             renderOverrides();
@@ -28359,7 +24258,7 @@ var init_SetupWizardModal = __esm({
           const overlap = findOverlappingOverrides(this.state.weekOverrides);
           if (overlap) {
             const name = (o) => o.label || (o.type === "inset" ? "INSET" : "Holiday");
-            new import_obsidian9.Notice(
+            new import_obsidian6.Notice(
               `"${name(overlap[0])}" (from ${overlap[0].startDate}) and "${name(overlap[1])}" (from ${overlap[1].startDate}) overlap \u2014 please adjust the dates.`,
               6e3
             );
@@ -28391,18 +24290,18 @@ var init_SetupWizardModal = __esm({
           });
         }
         let abPanel;
-        new import_obsidian9.Setting(body).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.state.abWeekEnabled).onChange((v) => {
+        new import_obsidian6.Setting(body).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.state.abWeekEnabled).onChange((v) => {
           this.state.abWeekEnabled = v;
           abPanel.setCssStyles({ display: v ? "" : "none" });
         }));
         abPanel = body.createDiv();
         abPanel.setCssStyles({ display: this.state.abWeekEnabled ? "" : "none" });
-        new import_obsidian9.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.state.abWeekStartsOn).onChange((v) => {
+        new import_obsidian6.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.state.abWeekStartsOn).onChange((v) => {
           this.state.abWeekStartsOn = v;
         }));
         this.footer(body, () => {
           if (this.state.schoolDays.length === 0) {
-            new import_obsidian9.Notice("Please select at least one school day.");
+            new import_obsidian6.Notice("Please select at least one school day.");
             return false;
           }
         });
@@ -28441,13 +24340,13 @@ var init_SetupWizardModal = __esm({
               pt.label = labelIn.value;
             });
             const delBtn = row.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian9.setIcon)(delBtn, "trash-2");
+            (0, import_obsidian6.setIcon)(delBtn, "trash-2");
             delBtn.addEventListener("click", () => {
               this.state.periodTypes = this.state.periodTypes.filter((t) => t.id !== pt.id);
               renderList();
             });
           }
-          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(() => {
+          new import_obsidian6.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(() => {
             this.state.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: FALLBACK_PERIOD_TYPE_COLOUR });
             renderList();
           }));
@@ -28475,7 +24374,7 @@ var init_SetupWizardModal = __esm({
           var _a, _b;
           barEl.empty();
           const sel = this.wizSelectedSchedule();
-          const bar = new import_obsidian9.Setting(barEl).setName("Day schedule").setDesc("Choose a schedule to edit. Click a day below to make it use the selected schedule.");
+          const bar = new import_obsidian6.Setting(barEl).setName("Day schedule").setDesc("Choose a schedule to edit. Click a day below to make it use the selected schedule.");
           bar.addDropdown((d) => {
             for (const sch of this.state.daySchedules) d.addOption(sch.id, sch.name);
             d.setValue(sel.id);
@@ -28502,7 +24401,7 @@ var init_SetupWizardModal = __esm({
           }));
           bar.addExtraButton((b) => b.setIcon("trash").setTooltip("Delete schedule").onClick(() => {
             if (this.state.daySchedules.length <= 1) {
-              new import_obsidian9.Notice("At least one day schedule is required.");
+              new import_obsidian6.Notice("At least one day schedule is required.");
               return;
             }
             new ConfirmModal(this.app, `Delete schedule "${sel.name}"? Days using it fall back to the first schedule.`, () => {
@@ -28526,11 +24425,11 @@ var init_SetupWizardModal = __esm({
             pill.title = active ? `${label} uses "${sel.name}"` : `Click to use "${sel.name}" on ${label}`;
             pill.addEventListener("click", () => {
               if (this.state.daySchedules.length < 2) {
-                new import_obsidian9.Notice("All days use the only schedule. Click + to create a second schedule first.");
+                new import_obsidian6.Notice("All days use the only schedule. Click + to create a second schedule first.");
                 return;
               }
               if (active) {
-                new import_obsidian9.Notice(`${label} already uses "${sel.name}". Select a different schedule to move it.`);
+                new import_obsidian6.Notice(`${label} already uses "${sel.name}". Select a different schedule to move it.`);
                 return;
               }
               this.state.dayScheduleMap[key] = sel.id;
@@ -28548,7 +24447,7 @@ var init_SetupWizardModal = __esm({
           listEl.empty();
           const sched = this.wizSelectedSchedule();
           for (const p of sched.periods) {
-            const s = new import_obsidian9.Setting(listEl).setName(p.name).setDesc(`${p.start} \u2013 ${p.end}`);
+            const s = new import_obsidian6.Setting(listEl).setName(p.name).setDesc(`${p.start} \u2013 ${p.end}`);
             s.addText((t) => {
               t.setPlaceholder("Name").setValue(p.name);
               t.inputEl.addEventListener("change", () => {
@@ -28589,7 +24488,7 @@ var init_SetupWizardModal = __esm({
               renderList();
             }));
           }
-          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
+          new import_obsidian6.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
             var _a, _b, _c;
             const defaultType = (_c = (_b = (_a = this.state.periodTypes) == null ? void 0 : _a[0]) == null ? void 0 : _b.id) != null ? _c : "lesson";
             sched.periods.push({ id: "p-" + Date.now(), name: "New Period", start: "09:00", end: "10:00", type: defaultType });
@@ -28607,7 +24506,7 @@ var init_SetupWizardModal = __esm({
         this.footer(body, () => {
           const empty2 = this.state.daySchedules.find((s) => s.periods.length === 0);
           if (empty2) {
-            new import_obsidian9.Notice(`Schedule "${empty2.name}" has no periods \u2014 add at least one or delete the schedule.`);
+            new import_obsidian6.Notice(`Schedule "${empty2.name}" has no periods \u2014 add at least one or delete the schedule.`);
             return false;
           }
         });
@@ -28658,7 +24557,7 @@ var init_SetupWizardModal = __esm({
               renderList();
             });
             const delSubj = hdr.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian9.setIcon)(delSubj, "trash-2");
+            (0, import_obsidian6.setIcon)(delSubj, "trash-2");
             delSubj.addEventListener("click", () => {
               this.state.subjects = this.state.subjects.filter((s) => s.id !== subj.id);
               this.state.classes = this.state.classes.filter((c) => c.subjectId !== subj.id);
@@ -28701,7 +24600,7 @@ var init_SetupWizardModal = __esm({
                   cls.classroom = roomIn.value;
                 });
                 const delCls = row.createEl("button", { cls: "tp-icon-btn" });
-                (0, import_obsidian9.setIcon)(delCls, "trash-2");
+                (0, import_obsidian6.setIcon)(delCls, "trash-2");
                 delCls.addEventListener("click", () => {
                   this.state.classes = this.state.classes.filter((c) => c.id !== cls.id);
                   renderList();
@@ -28709,7 +24608,7 @@ var init_SetupWizardModal = __esm({
               }
             }
           }
-          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(() => {
+          new import_obsidian6.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(() => {
             const colour = CLASS_COLOUR_PALETTE[this.state.subjects.length % CLASS_COLOUR_PALETTE.length];
             this.state.subjects.push({ id: "subj-" + Date.now(), name: "New Subject", colour, emoji: "\u{1F4DA}" });
             renderList();
@@ -28917,7 +24816,7 @@ var init_SetupWizardModal = __esm({
         }
       }
     };
-    WizardCloseConfirmModal = class extends import_obsidian9.Modal {
+    WizardCloseConfirmModal = class extends import_obsidian6.Modal {
       constructor(app, onConfirm) {
         super(app);
         this.onConfirm = onConfirm;
@@ -28929,7 +24828,7 @@ var init_SetupWizardModal = __esm({
           text: "Your planner has not been saved yet. If you exit now, all progress will be lost and you will need to start the setup again.",
           cls: "setting-item-description"
         });
-        new import_obsidian9.Setting(contentEl).addButton((btn) => btn.setButtonText("Continue setup").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Exit without saving").setClass("mod-warning").onClick(() => {
+        new import_obsidian6.Setting(contentEl).addButton((btn) => btn.setButtonText("Continue setup").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Exit without saving").setClass("mod-warning").onClick(() => {
           this.close();
           this.onConfirm();
         }));
@@ -28955,13 +24854,13 @@ function dayDiff(a, b) {
   const db = (/* @__PURE__ */ new Date(b + "T12:00:00")).getTime();
   return Math.round((db - da) / 864e5);
 }
-var import_obsidian10, ISO_RE, EditPlannerModal;
+var import_obsidian7, ISO_RE, EditPlannerModal;
 var init_EditPlannerModal = __esm({
   "src/modals/EditPlannerModal.ts"() {
-    import_obsidian10 = require("obsidian");
+    import_obsidian7 = require("obsidian");
     init_weekUtils();
     ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
-    EditPlannerModal = class extends import_obsidian10.Modal {
+    EditPlannerModal = class extends import_obsidian7.Modal {
       constructor(app, plugin, onSaved) {
         super(app);
         this.plugin = plugin;
@@ -28978,39 +24877,39 @@ var init_EditPlannerModal = __esm({
           text: "Update this planner's name and date range. Holidays, INSET days, events and notes keep their own dates \u2014 only the planner window moves. The timetable and its A/B weeks realign to the new range.",
           cls: "setting-item-description"
         });
-        new import_obsidian10.Setting(contentEl).setName("Planner name").addText((t) => {
+        new import_obsidian7.Setting(contentEl).setName("Planner name").addText((t) => {
           t.setValue(name);
           t.inputEl.addEventListener("input", () => {
             name = t.inputEl.value;
           });
         });
-        new import_obsidian10.Setting(contentEl).setName("Start date").addText((t) => {
+        new import_obsidian7.Setting(contentEl).setName("Start date").addText((t) => {
           t.inputEl.type = "date";
           t.setValue(startDate);
           t.inputEl.addEventListener("change", () => {
             startDate = t.inputEl.value;
           });
         });
-        new import_obsidian10.Setting(contentEl).setName("End date").addText((t) => {
+        new import_obsidian7.Setting(contentEl).setName("End date").addText((t) => {
           t.inputEl.type = "date";
           t.setValue(endDate);
           t.inputEl.addEventListener("change", () => {
             endDate = t.inputEl.value;
           });
         });
-        new import_obsidian10.Setting(contentEl).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close())).addButton((btn) => btn.setButtonText("Save changes").setCta().onClick(async () => {
+        new import_obsidian7.Setting(contentEl).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close())).addButton((btn) => btn.setButtonText("Save changes").setCta().onClick(async () => {
           var _a;
           const trimmedName = name.trim();
           if (!trimmedName) {
-            new import_obsidian10.Notice("Please enter a planner name.");
+            new import_obsidian7.Notice("Please enter a planner name.");
             return;
           }
           if (!isValidIsoDate(startDate) || !isValidIsoDate(endDate)) {
-            new import_obsidian10.Notice("Please enter valid dates in YYYY-MM-DD format.");
+            new import_obsidian7.Notice("Please enter valid dates in YYYY-MM-DD format.");
             return;
           }
           if (endDate <= startDate) {
-            new import_obsidian10.Notice("End date must be after the start date.");
+            new import_obsidian7.Notice("End date must be after the start date.");
             return;
           }
           const oldStart = this.plugin.settings.academicYear.startDate;
@@ -29025,7 +24924,7 @@ var init_EditPlannerModal = __esm({
             }
           }
           await this.plugin.saveSettings();
-          new import_obsidian10.Notice("Planner updated.");
+          new import_obsidian7.Notice("Planner updated.");
           this.close();
           this.onSaved();
         }));
@@ -29090,10 +24989,10 @@ function openEmojiPicker(anchor, current, onSelect) {
   }, 0);
   _activeEmojiCleanup = cleanup;
 }
-var import_obsidian11, import_obsidian12, SUBJECT_EMOJIS, _activeEmojiCleanup, TextPromptModal, ConfirmModal, TeacherPlannerSettingTab, SettingsAppliedModal, ColourPickerModal, DeletePlannerModal;
+var import_obsidian8, import_obsidian9, SUBJECT_EMOJIS, _activeEmojiCleanup, TextPromptModal, ConfirmModal, TeacherPlannerSettingTab, SettingsAppliedModal, ColourPickerModal, DeletePlannerModal;
 var init_SettingsTab = __esm({
   "src/settings/SettingsTab.ts"() {
-    import_obsidian11 = require("obsidian");
+    import_obsidian8 = require("obsidian");
     init_scheduleUtils();
     init_settings();
     init_themeColours();
@@ -29102,7 +25001,7 @@ var init_SettingsTab = __esm({
     init_AddPeriodModal();
     init_ExportModal();
     init_DirectedTimeExportModal();
-    import_obsidian12 = require("obsidian");
+    import_obsidian9 = require("obsidian");
     init_SetupWizardModal();
     init_EditPlannerModal();
     SUBJECT_EMOJIS = [
@@ -29138,7 +25037,7 @@ var init_SettingsTab = __esm({
       "\u{1F9EC}"
     ];
     _activeEmojiCleanup = null;
-    TextPromptModal = class extends import_obsidian11.Modal {
+    TextPromptModal = class extends import_obsidian8.Modal {
       constructor(app, title, initial, placeholder, onSubmit) {
         super(app);
         this.title = title;
@@ -29155,7 +25054,7 @@ var init_SettingsTab = __esm({
         const submit = () => {
           const v = input.value.trim();
           if (!v) {
-            new import_obsidian11.Notice("Please enter a name.");
+            new import_obsidian8.Notice("Please enter a name.");
             return;
           }
           this.close();
@@ -29176,7 +25075,7 @@ var init_SettingsTab = __esm({
         this.contentEl.empty();
       }
     };
-    ConfirmModal = class extends import_obsidian11.Modal {
+    ConfirmModal = class extends import_obsidian8.Modal {
       constructor(app, message, onConfirm, confirmLabel = "Confirm") {
         super(app);
         this.message = message;
@@ -29198,7 +25097,7 @@ var init_SettingsTab = __esm({
         this.contentEl.empty();
       }
     };
-    TeacherPlannerSettingTab = class extends import_obsidian11.PluginSettingTab {
+    TeacherPlannerSettingTab = class extends import_obsidian8.PluginSettingTab {
       constructor(app, plugin) {
         super(app, plugin);
         /** JSON snapshot taken when the tab opens — used to detect unsaved changes on close. */
@@ -29232,16 +25131,16 @@ var init_SettingsTab = __esm({
         containerEl.empty();
         this._snapshot = JSON.stringify(this.plugin.settings);
         this.renderPlannersSection(containerEl);
-        new import_obsidian11.Setting(containerEl).setName("Academic Year").setHeading();
-        new import_obsidian11.Setting(containerEl).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => t.setPlaceholder("2025-26").setValue(this.plugin.settings.academicYear.name).onChange((v) => {
+        new import_obsidian8.Setting(containerEl).setName("Academic Year").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => t.setPlaceholder("2025-26").setValue(this.plugin.settings.academicYear.name).onChange((v) => {
           this.plugin.settings.academicYear.name = v;
           this.plugin.requestSave();
         }));
-        new import_obsidian11.Setting(containerEl).setName("Start date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2025-09-01").setValue(this.plugin.settings.academicYear.startDate).onChange((v) => {
+        new import_obsidian8.Setting(containerEl).setName("Start date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2025-09-01").setValue(this.plugin.settings.academicYear.startDate).onChange((v) => {
           this.plugin.settings.academicYear.startDate = v;
           this.plugin.requestSave();
         }));
-        new import_obsidian11.Setting(containerEl).setName("End date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2026-07-15").setValue(this.plugin.settings.academicYear.endDate).onChange((v) => {
+        new import_obsidian8.Setting(containerEl).setName("End date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2026-07-15").setValue(this.plugin.settings.academicYear.endDate).onChange((v) => {
           this.plugin.settings.academicYear.endDate = v;
           this.plugin.requestSave();
         }));
@@ -29254,7 +25153,7 @@ var init_SettingsTab = __esm({
           { key: "saturday", label: "Sat" },
           { key: "sunday", label: "Sun" }
         ];
-        const schoolDaysSetting = new import_obsidian11.Setting(containerEl).setName("School days").setDesc("Enable Saturday or Sunday for boarding or Saturday schools.");
+        const schoolDaysSetting = new import_obsidian8.Setting(containerEl).setName("School days").setDesc("Enable Saturday or Sunday for boarding or Saturday schools.");
         const sdWrap = schoolDaysSetting.controlEl.createDiv("tp-school-days-wrap");
         for (const opt of schoolDayOptions) {
           const lbl = sdWrap.createEl("label", { cls: "tp-school-day-label" });
@@ -29276,12 +25175,12 @@ var init_SettingsTab = __esm({
             })();
           });
         }
-        new import_obsidian11.Setting(containerEl).setName("Directed Time Tracker").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("Directed Time Tracker").setHeading();
         if (!this.plugin.settings.directedTime) {
           this.plugin.settings.directedTime = { enabled: false, contractedHours: 1265, timetablePercentage: 100, defaultLessonDurationMinutes: 60 };
         }
         const dt = this.plugin.settings.directedTime;
-        new import_obsidian11.Setting(containerEl).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(dt.enabled).onChange(async (v) => {
+        new import_obsidian8.Setting(containerEl).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(dt.enabled).onChange(async (v) => {
           dt.enabled = v;
           await this.plugin.saveSettings();
           if (v) await this.createDirectedTimeGuideNote();
@@ -29293,14 +25192,14 @@ var init_SettingsTab = __esm({
           const callout = dtPanel.createDiv("tp-dt-callout");
           callout.createEl("p", { text: "\u2139\uFE0F  How it works: Directed time is counted only from items placed in your planner. The tracker shows hours accrued to today and a projection based on future planned events. Keep your planner up to date for accurate figures." });
           callout.createEl("p", { text: "\u26A0\uFE0F  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice \u2014 always consult your union representative for formal disputes." });
-          new import_obsidian11.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts.").addText((t) => t.setPlaceholder("1265").setValue(String(dt.contractedHours)).onChange((v) => {
+          new import_obsidian8.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts.").addText((t) => t.setPlaceholder("1265").setValue(String(dt.contractedHours)).onChange((v) => {
             const n = parseFloat(v);
             if (!isNaN(n) && n > 0) {
               dt.contractedHours = n;
               this.plugin.requestSave();
             }
           }));
-          new import_obsidian11.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Your directed time maximum = contracted hours \xD7 this %. Default: 100 (full-time).").addText((t) => t.setPlaceholder("100").setValue(String(dt.timetablePercentage)).onChange((v) => {
+          new import_obsidian8.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Your directed time maximum = contracted hours \xD7 this %. Default: 100 (full-time).").addText((t) => t.setPlaceholder("100").setValue(String(dt.timetablePercentage)).onChange((v) => {
             const n = parseFloat(v);
             if (!isNaN(n) && n > 0 && n <= 100) {
               dt.timetablePercentage = n;
@@ -29309,14 +25208,14 @@ var init_SettingsTab = __esm({
           }));
           const lessonDurOptions = ["45", "50", "60"];
           const lessonDurDropValue = lessonDurOptions.includes(String(dt.defaultLessonDurationMinutes)) ? String(dt.defaultLessonDurationMinutes) : "custom";
-          new import_obsidian11.Setting(dtPanel).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden on individual slots.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange(async (v) => {
+          new import_obsidian8.Setting(dtPanel).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden on individual slots.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange(async (v) => {
             if (v !== "custom") {
               dt.defaultLessonDurationMinutes = parseInt(v);
               await this.plugin.saveSettings();
             }
             customDurSetting.settingEl.setCssStyles({ display: v === "custom" ? "" : "none" });
           }));
-          const customDurSetting = new import_obsidian11.Setting(dtPanel).setName("Custom lesson duration (minutes)").addText((t) => t.setPlaceholder("e.g. 55").setValue(String(dt.defaultLessonDurationMinutes)).onChange((v) => {
+          const customDurSetting = new import_obsidian8.Setting(dtPanel).setName("Custom lesson duration (minutes)").addText((t) => t.setPlaceholder("e.g. 55").setValue(String(dt.defaultLessonDurationMinutes)).onChange((v) => {
             const n = parseInt(v);
             if (!isNaN(n) && n > 0) {
               dt.defaultLessonDurationMinutes = n;
@@ -29324,22 +25223,22 @@ var init_SettingsTab = __esm({
             }
           }));
           customDurSetting.settingEl.setCssStyles({ display: lessonDurDropValue === "custom" ? "" : "none" });
-          new import_obsidian11.Setting(dtPanel).setName("Export directed time").setDesc("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management.").addButton((btn) => btn.setButtonText("Export XLSX\u2026").setCta().onClick(() => new DirectedTimeExportModal(this.app, this.plugin).open()));
-          new import_obsidian11.Setting(dtPanel).setName("Directed time guide").setDesc("Open the guide note explaining how the tracker works and your statutory rights.").addButton((btn) => btn.setButtonText("Open guide").onClick(async () => {
+          new import_obsidian8.Setting(dtPanel).setName("Export directed time").setDesc("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management.").addButton((btn) => btn.setButtonText("Export XLSX\u2026").setCta().onClick(() => new DirectedTimeExportModal(this.app, this.plugin).open()));
+          new import_obsidian8.Setting(dtPanel).setName("Directed time guide").setDesc("Open the guide note explaining how the tracker works and your statutory rights.").addButton((btn) => btn.setButtonText("Open guide").onClick(async () => {
             await this.createDirectedTimeGuideNote();
             const path = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/Directed Time \u2014 Guide.md";
             const file = this.app.vault.getAbstractFileByPath(path);
-            if (file instanceof import_obsidian12.TFile) await this.app.workspace.getLeaf(false).openFile(file);
+            if (file instanceof import_obsidian9.TFile) await this.app.workspace.getLeaf(false).openFile(file);
           }));
         }
-        new import_obsidian11.Setting(containerEl).setName("Holidays & INSET Days").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("Holidays & INSET Days").setHeading();
         containerEl.createEl("p", {
           text: "Mark date ranges as holidays or INSET training days. Individual day columns are greyed out in the planner.",
           cls: "setting-item-description"
         });
         const overridesContainer = containerEl.createDiv("tp-overrides-list");
         this.renderWeekOverridesList(overridesContainer);
-        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET range").setCta().onClick(async () => {
+        new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET range").setCta().onClick(async () => {
           var _a2;
           const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
           const newOverride = { startDate: today, type: "holiday", label: "" };
@@ -29348,7 +25247,7 @@ var init_SettingsTab = __esm({
           (_a2 = overridesContainer.querySelector("p")) == null ? void 0 : _a2.remove();
           this.renderWeekOverrideRow(overridesContainer, newOverride);
         }));
-        new import_obsidian11.Setting(containerEl).setName("School Day Blocks").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("School Day Blocks").setHeading();
         containerEl.createEl("p", {
           text: "Define the types of block that make up your school day \u2014 lessons, breaks, registration, admin time, and so on. Each block type has a colour that appears as a shaded band in the week view, making it easy to see your day structure at a glance. Assign block types to individual periods in School Timetable.",
           cls: "setting-item-description"
@@ -29356,7 +25255,7 @@ var init_SettingsTab = __esm({
         if (!this.plugin.settings.periodTypes) this.plugin.settings.periodTypes = [];
         const periodTypesContainer = containerEl.createDiv("tp-activities-list");
         this.renderPeriodTypesList(periodTypesContainer);
-        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(async () => {
+        new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(async () => {
           this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: FALLBACK_PERIOD_TYPE_COLOUR });
           await this.plugin.saveSettings();
           periodTypesContainer.empty();
@@ -29370,10 +25269,10 @@ var init_SettingsTab = __esm({
             await this.plugin.saveSettings();
             periodTypesContainer.empty();
             this.renderPeriodTypesList(periodTypesContainer);
-            new import_obsidian11.Notice("Block colours reset to theme defaults.");
+            new import_obsidian8.Notice("Block colours reset to theme defaults.");
           }).open();
         }));
-        new import_obsidian11.Setting(containerEl).setName("School Timetable").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("School Timetable").setHeading();
         containerEl.createEl("p", {
           text: "Periods are grouped into day schedules. Most schools only need the Standard day. Add another schedule for days shaped differently \u2014 a sports afternoon, a half-day Saturday \u2014 and assign it to those days. Colours and types are configured in School Day Blocks above.",
           cls: "setting-item-description"
@@ -29390,7 +25289,7 @@ var init_SettingsTab = __esm({
           scheduleBar.empty();
           const ay = this.plugin.settings.academicYear;
           const sel = this.getSelectedSchedule();
-          const bar = new import_obsidian11.Setting(scheduleBar).setName("Day schedule").setDesc("Choose which schedule to edit. Click a day below to make it use the selected schedule.");
+          const bar = new import_obsidian8.Setting(scheduleBar).setName("Day schedule").setDesc("Choose which schedule to edit. Click a day below to make it use the selected schedule.");
           bar.addDropdown((d) => {
             for (const sch of ay.daySchedules) d.addOption(sch.id, sch.name);
             d.setValue(sel.id);
@@ -29423,7 +25322,7 @@ var init_SettingsTab = __esm({
           }));
           bar.addExtraButton((b) => b.setIcon("trash").setTooltip("Delete schedule").onClick(() => {
             if (ay.daySchedules.length <= 1) {
-              new import_obsidian11.Notice("At least one day schedule is required.");
+              new import_obsidian8.Notice("At least one day schedule is required.");
               return;
             }
             const fallbackName = ay.daySchedules[0].id === sel.id ? ay.daySchedules[1].name : ay.daySchedules[0].name;
@@ -29460,11 +25359,11 @@ var init_SettingsTab = __esm({
             pill.addEventListener("click", () => {
               void (async () => {
                 if (ay.daySchedules.length < 2) {
-                  new import_obsidian11.Notice("All days use the only schedule. Click + to create a second schedule, then assign days to it.");
+                  new import_obsidian8.Notice("All days use the only schedule. Click + to create a second schedule, then assign days to it.");
                   return;
                 }
                 if (active) {
-                  new import_obsidian11.Notice(`${label} already uses "${sel.name}". Select a different schedule above to move ${label} to it.`);
+                  new import_obsidian8.Notice(`${label} already uses "${sel.name}". Select a different schedule above to move ${label} to it.`);
                   return;
                 }
                 if (!ay.dayScheduleMap) ay.dayScheduleMap = {};
@@ -29483,7 +25382,7 @@ var init_SettingsTab = __esm({
         };
         renderScheduleBar();
         this.renderPeriodsList(periodsContainer);
-        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
+        new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
           new AddPeriodModal(this.app, async (period) => {
             this.getSelectedSchedule().periods.push(period);
             this.sortPeriods();
@@ -29491,32 +25390,32 @@ var init_SettingsTab = __esm({
             refreshPeriods();
           }).open();
         }));
-        new import_obsidian11.Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekEnabled).onChange(async (v) => {
+        new import_obsidian8.Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekEnabled).onChange(async (v) => {
           this.plugin.settings.academicYear.abWeekEnabled = v;
           await this.plugin.saveSettings();
           abPanel.setCssStyles({ display: v ? "" : "none" });
         }));
         const abPanel = containerEl.createDiv();
         abPanel.setCssStyles({ display: this.plugin.settings.academicYear.abWeekEnabled ? "" : "none" });
-        new import_obsidian11.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.plugin.settings.academicYear.abWeekStartsOn).onChange(async (v) => {
+        new import_obsidian8.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.plugin.settings.academicYear.abWeekStartsOn).onChange(async (v) => {
           this.plugin.settings.academicYear.abWeekStartsOn = v;
           await this.plugin.saveSettings();
         }));
-        new import_obsidian11.Setting(containerEl).setName("Lessons").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("Lessons").setHeading();
         containerEl.createEl("p", {
           text: "Define your subjects and class groups. Colours appear on lesson blocks in the week view.",
           cls: "setting-item-description"
         });
         const classesContainer = containerEl.createDiv("tp-classes-list");
         this.renderSubjectsList(classesContainer);
-        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(async () => {
+        new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(async () => {
           const colour = CLASS_COLOUR_PALETTE[this.plugin.settings.subjects.length % CLASS_COLOUR_PALETTE.length];
           this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour, emoji: "\u{1F4DA}" });
           await this.plugin.saveSettings();
           classesContainer.empty();
           this.renderSubjectsList(classesContainer);
         }));
-        new import_obsidian11.Setting(containerEl).setName("Events \u2014 Directed time").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("Events \u2014 Directed time").setHeading();
         containerEl.createEl("p", {
           text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Set a default duration so the tracker can calculate your hours automatically \u2014 or leave it blank to enter the duration each time.",
           cls: "setting-item-description"
@@ -29536,33 +25435,33 @@ var init_SettingsTab = __esm({
         activityHeaders.createDiv("tp-activity-header-spacer");
         const activitiesContainer = containerEl.createDiv("tp-activities-list");
         this.renderActivitiesList(activitiesContainer, "directed");
-        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(async () => {
+        new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(async () => {
           this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Activity", colour: "#cba6f7", activityType: "directed" });
           await this.plugin.saveSettings();
           activitiesContainer.empty();
           this.renderActivitiesList(activitiesContainer, "directed");
         }));
-        new import_obsidian11.Setting(containerEl).setName("Events \u2014 Other").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("Events \u2014 Other").setHeading();
         containerEl.createEl("p", {
           text: "\u26A0\uFE0F  Items in this section appear in the planner but are excluded from the directed time count. Use these for personal appointments, reminders, or any non-directed activity.",
           cls: "setting-item-description"
         });
         const otherContainer = containerEl.createDiv("tp-activities-list");
         this.renderActivitiesList(otherContainer, "other");
-        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add other event").setCta().onClick(async () => {
+        new import_obsidian8.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add other event").setCta().onClick(async () => {
           this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Other Event", colour: "#888888", activityType: "other" });
           await this.plugin.saveSettings();
           otherContainer.empty();
           this.renderActivitiesList(otherContainer, "other");
         }));
-        new import_obsidian11.Setting(containerEl).setName("Vault").setHeading();
-        new import_obsidian11.Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created").addText((t) => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder).onChange((v) => {
+        new import_obsidian8.Setting(containerEl).setName("Vault").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created").addText((t) => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder).onChange((v) => {
           this.plugin.settings.plannerFolder = v;
           this.plugin.requestSave();
         }));
-        new import_obsidian11.Setting(containerEl).setName("Grid Visuals").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("Grid Visuals").setHeading();
         const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
-        const blockColourSetting = new import_obsidian11.Setting(containerEl).setName("Period block border colour").setDesc("Border on the top and bottom edge of each period band.");
+        const blockColourSetting = new import_obsidian8.Setting(containerEl).setName("Period block border colour").setDesc("Border on the top and bottom edge of each period band.");
         blockColourSetting.controlEl.setCssStyles({ display: "flex" });
         blockColourSetting.controlEl.setCssStyles({ alignItems: "center" });
         blockColourSetting.controlEl.setCssStyles({ gap: "8px" });
@@ -29608,7 +25507,7 @@ var init_SettingsTab = __esm({
           });
           blockPresetSwatches.push(chip);
         }
-        new import_obsidian11.Setting(containerEl).setName("Period block border weight").setDesc("Thickness of period band borders in pixels (1-4).").addSlider((s) => {
+        new import_obsidian8.Setting(containerEl).setName("Period block border weight").setDesc("Thickness of period band borders in pixels (1-4).").addSlider((s) => {
           var _a2, _b2;
           const valueLabel = createSpan({ cls: "tp-slider-value", text: `${(_a2 = this.plugin.settings.blockBorderWeight) != null ? _a2 : 1}px` });
           s.setLimits(1, 4, 1).setValue((_b2 = this.plugin.settings.blockBorderWeight) != null ? _b2 : 1).onChange((v) => {
@@ -29618,7 +25517,7 @@ var init_SettingsTab = __esm({
           });
           s.sliderEl.after(valueLabel);
         });
-        const gridColourSetting = new import_obsidian11.Setting(containerEl).setName("Time grid line colour").setDesc("Colour of the day-column borders and row dividers.");
+        const gridColourSetting = new import_obsidian8.Setting(containerEl).setName("Time grid line colour").setDesc("Colour of the day-column borders and row dividers.");
         gridColourSetting.controlEl.setCssStyles({ display: "flex" });
         gridColourSetting.controlEl.setCssStyles({ alignItems: "center" });
         gridColourSetting.controlEl.setCssStyles({ gap: "8px" });
@@ -29664,7 +25563,7 @@ var init_SettingsTab = __esm({
           });
           gridPresetSwatches.push(chip);
         }
-        new import_obsidian11.Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).").addSlider((s) => {
+        new import_obsidian8.Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).").addSlider((s) => {
           var _a2, _b2;
           const valueLabel = createSpan({ cls: "tp-slider-value", text: `${(_a2 = this.plugin.settings.gridLineWeight) != null ? _a2 : 1}px` });
           s.setLimits(1, 4, 1).setValue((_b2 = this.plugin.settings.gridLineWeight) != null ? _b2 : 1).onChange((v) => {
@@ -29674,17 +25573,17 @@ var init_SettingsTab = __esm({
           });
           s.sliderEl.after(valueLabel);
         });
-        new import_obsidian11.Setting(containerEl).setName("Reset grid visuals").setDesc("Restore both colours to your Obsidian theme and weights to 1px.").addButton((btn) => btn.setButtonText("Reset to theme defaults").setClass("mod-warning").onClick(async () => {
+        new import_obsidian8.Setting(containerEl).setName("Reset grid visuals").setDesc("Restore both colours to your Obsidian theme and weights to 1px.").addButton((btn) => btn.setButtonText("Reset to theme defaults").setClass("mod-warning").onClick(async () => {
           this.plugin.settings.blockBorderColour = GRID_THEME_TOKEN;
           this.plugin.settings.gridLineColour = GRID_THEME_TOKEN;
           this.plugin.settings.blockBorderWeight = 1;
           this.plugin.settings.gridLineWeight = 1;
           await this.plugin.saveSettings();
-          new import_obsidian11.Notice("Grid visuals reset to theme defaults.");
+          new import_obsidian8.Notice("Grid visuals reset to theme defaults.");
           this.display();
         }));
-        new import_obsidian11.Setting(containerEl).setName("Lesson plans").setHeading();
-        new import_obsidian11.Setting(containerEl).setName("Plans folder").setDesc('Where new lesson plans are created and listed first in the picker. Leave empty for "<planner folder>/Plans".').addText((t) => {
+        new import_obsidian8.Setting(containerEl).setName("Lesson plans").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("Plans folder").setDesc('Where new lesson plans are created and listed first in the picker. Leave empty for "<planner folder>/Plans".').addText((t) => {
           var _a2;
           t.setPlaceholder((this.plugin.settings.plannerFolder || "Teacher Planner") + "/Plans");
           t.setValue((_a2 = this.plugin.settings.lessonPlansFolder) != null ? _a2 : "");
@@ -29695,35 +25594,35 @@ var init_SettingsTab = __esm({
             })();
           });
         });
-        new import_obsidian11.Setting(containerEl).setName("Organise notes into weekly folders").setDesc('Create lesson and event notes inside "WC - <Monday date>" folders under the planner folder. Existing notes stay where they are and keep opening.').addToggle((t) => {
+        new import_obsidian8.Setting(containerEl).setName("Organise notes into weekly folders").setDesc('Create lesson and event notes inside "WC - <Monday date>" folders under the planner folder. Existing notes stay where they are and keep opening.').addToggle((t) => {
           var _a2;
           return t.setValue((_a2 = this.plugin.settings.weeklyNoteFolders) != null ? _a2 : true).onChange(async (v) => {
             this.plugin.settings.weeklyNoteFolders = v;
             await this.plugin.saveSettings();
           });
         });
-        new import_obsidian11.Setting(containerEl).setName("Show unplanned indicator").setDesc("Faint hollow dot on lessons that have no lesson plan linked yet.").addToggle((t) => {
+        new import_obsidian8.Setting(containerEl).setName("Show unplanned indicator").setDesc("Faint hollow dot on lessons that have no lesson plan linked yet.").addToggle((t) => {
           var _a2;
           return t.setValue((_a2 = this.plugin.settings.showUnplannedDot) != null ? _a2 : true).onChange(async (v) => {
             this.plugin.settings.showUnplannedDot = v;
             await this.plugin.saveSettings();
           });
         });
-        new import_obsidian11.Setting(containerEl).setName("Export").setHeading();
-        new import_obsidian11.Setting(containerEl).setName("Export planner data").setDesc("Export timetable and events as Excel or CSV, or as an iCal calendar (.ics) for Google, Apple or Outlook calendar \u2014 to your Planner folder or anywhere on your computer.").addButton((btn) => btn.setButtonText("Export data\u2026").setCta().onClick(() => new ExportModal(this.app, this.plugin).open()));
-        new import_obsidian11.Setting(containerEl).setName("Reset").setHeading();
-        new import_obsidian11.Setting(containerEl).setName("Reset periods to defaults").addButton((btn) => btn.setButtonText("Reset periods").setClass("mod-warning").onClick(async () => {
+        new import_obsidian8.Setting(containerEl).setName("Export").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("Export planner data").setDesc("Export timetable and events as Excel or CSV, or as an iCal calendar (.ics) for Google, Apple or Outlook calendar \u2014 to your Planner folder or anywhere on your computer.").addButton((btn) => btn.setButtonText("Export data\u2026").setCta().onClick(() => new ExportModal(this.app, this.plugin).open()));
+        new import_obsidian8.Setting(containerEl).setName("Reset").setHeading();
+        new import_obsidian8.Setting(containerEl).setName("Reset periods to defaults").addButton((btn) => btn.setButtonText("Reset periods").setClass("mod-warning").onClick(async () => {
           this.getSelectedSchedule().periods = DEFAULT_SETTINGS.academicYear.periods.map((p) => ({ ...p }));
           await this.plugin.saveSettings();
           periodsContainer.empty();
           this.renderPeriodsList(periodsContainer);
-          new import_obsidian11.Notice("Periods reset to defaults.");
+          new import_obsidian8.Notice("Periods reset to defaults.");
         }));
         this.wrapSectionsCollapsible(containerEl);
       }
       // ── Planners section ──────────────────────────────────────────────────────
       renderPlannersSection(container) {
-        new import_obsidian11.Setting(container).setName("Planners").setHeading();
+        new import_obsidian8.Setting(container).setName("Planners").setHeading();
         container.createEl("p", {
           text: "Each planner has its own timetable, classes and academic year. Switch between planners here or create a new one.",
           cls: "setting-item-description"
@@ -29770,7 +25669,7 @@ var init_SettingsTab = __esm({
             disabledDel.setCssStyles({ cursor: "not-allowed" });
           }
         }
-        new import_obsidian11.Setting(container).addButton((btn) => btn.setButtonText("+ New planner").setCta().onClick(() => {
+        new import_obsidian8.Setting(container).addButton((btn) => btn.setButtonText("+ New planner").setCta().onClick(() => {
           var _a;
           new SetupWizardModal(this.app, this.plugin, true).open();
           (_a = this.app.setting) == null ? void 0 : _a.close();
@@ -29816,7 +25715,7 @@ var init_SettingsTab = __esm({
         for (let i = 0; i < periods.length; i++) this.renderPeriodRow(container, periods[i], i);
       }
       renderPeriodRow(container, period, index) {
-        new import_obsidian11.Setting(container).setName(period.name).setDesc(`${period.start} - ${period.end}`).addText((t) => {
+        new import_obsidian8.Setting(container).setName(period.name).setDesc(`${period.start} - ${period.end}`).addText((t) => {
           t.setPlaceholder("Name").setValue(period.name);
           t.inputEl.addEventListener("blur", () => {
             void (async () => {
@@ -29925,7 +25824,7 @@ var init_SettingsTab = __esm({
           })();
         });
         const delSubjectBtn = header.createEl("button", { cls: "tp-icon-btn" });
-        (0, import_obsidian11.setIcon)(delSubjectBtn, "trash-2");
+        (0, import_obsidian8.setIcon)(delSubjectBtn, "trash-2");
         delSubjectBtn.title = "Delete subject and all its classes";
         delSubjectBtn.addEventListener("click", () => {
           void (async () => {
@@ -30004,7 +25903,7 @@ var init_SettingsTab = __esm({
         });
         if (cls.colourOverridden && !isArchived) {
           const resetBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Reset to subject colour" });
-          (0, import_obsidian11.setIcon)(resetBtn, "rotate-ccw");
+          (0, import_obsidian8.setIcon)(resetBtn, "rotate-ccw");
           resetBtn.addEventListener("click", () => {
             void (async () => {
               var _a2;
@@ -30020,7 +25919,7 @@ var init_SettingsTab = __esm({
           cls: "tp-icon-btn",
           title: isArchived ? "Restore class" : "Archive class (hides from timetable editor)"
         });
-        (0, import_obsidian11.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
+        (0, import_obsidian8.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
         archiveBtn.addEventListener("click", () => {
           void (async () => {
             cls.archived = !isArchived;
@@ -30030,7 +25929,7 @@ var init_SettingsTab = __esm({
           })();
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete class" });
-        (0, import_obsidian11.setIcon)(delBtn, "trash-2");
+        (0, import_obsidian8.setIcon)(delBtn, "trash-2");
         delBtn.addEventListener("click", () => {
           void (async () => {
             this.plugin.settings.classes = this.plugin.settings.classes.filter((c) => c.id !== cls.id);
@@ -30141,7 +26040,7 @@ var init_SettingsTab = __esm({
           cls: "tp-icon-btn",
           title: isArchived ? "Restore" : "Archive (hides from timetable editor)"
         });
-        (0, import_obsidian11.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
+        (0, import_obsidian8.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
         archiveBtn.addEventListener("click", () => {
           void (async () => {
             activity.archived = !isArchived;
@@ -30151,7 +26050,7 @@ var init_SettingsTab = __esm({
           })();
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete" });
-        (0, import_obsidian11.setIcon)(delBtn, "trash-2");
+        (0, import_obsidian8.setIcon)(delBtn, "trash-2");
         delBtn.addEventListener("click", () => {
           void (async () => {
             this.plugin.settings.activities = this.plugin.settings.activities.filter((a) => a.id !== activity.id);
@@ -30193,7 +26092,7 @@ var init_SettingsTab = __esm({
           })();
         });
         const resetBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Reset colour to theme default" });
-        (0, import_obsidian11.setIcon)(resetBtn, "rotate-ccw");
+        (0, import_obsidian8.setIcon)(resetBtn, "rotate-ccw");
         resetBtn.addEventListener("click", () => {
           void (async () => {
             var _a;
@@ -30204,7 +26103,7 @@ var init_SettingsTab = __esm({
           })();
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete type" });
-        (0, import_obsidian11.setIcon)(delBtn, "trash-2");
+        (0, import_obsidian8.setIcon)(delBtn, "trash-2");
         delBtn.addEventListener("click", () => {
           void (async () => {
             this.plugin.settings.periodTypes = this.plugin.settings.periodTypes.filter((t) => t.id !== pt.id);
@@ -30236,7 +26135,7 @@ var init_SettingsTab = __esm({
         const overlap = findOverlappingOverrides(this.plugin.settings.weekOverrides);
         if (overlap) {
           const name = (o) => o.label || (o.type === "inset" ? "INSET" : "Holiday");
-          new import_obsidian11.Notice(
+          new import_obsidian8.Notice(
             `Warning: "${name(overlap[0])}" (from ${overlap[0].startDate}) and "${name(overlap[1])}" (from ${overlap[1].startDate}) overlap. Directed time may be miscounted.`,
             6e3
           );
@@ -30245,7 +26144,7 @@ var init_SettingsTab = __esm({
       renderWeekOverrideRow(container, override) {
         var _a, _b;
         const wrapper = container.createDiv("tp-override-entry");
-        const row = new import_obsidian11.Setting(wrapper).setName("").setDesc("");
+        const row = new import_obsidian8.Setting(wrapper).setName("").setDesc("");
         row.settingEl.addClass("tp-override-row");
         const fromInput = row.controlEl.createEl("input", { type: "date", cls: "tp-override-date-input" });
         fromInput.value = override.startDate;
@@ -30287,7 +26186,7 @@ var init_SettingsTab = __esm({
             await this.plugin.saveSettings();
           })();
         });
-        new import_obsidian11.ButtonComponent(row.controlEl).setIcon("trash").setTooltip("Remove").onClick(async () => {
+        new import_obsidian8.ButtonComponent(row.controlEl).setIcon("trash").setTooltip("Remove").onClick(async () => {
           this.plugin.settings.weekOverrides = this.plugin.settings.weekOverrides.filter((w) => w !== override);
           await this.plugin.saveSettings();
           wrapper.remove();
@@ -30414,7 +26313,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         }
       }
     };
-    SettingsAppliedModal = class extends import_obsidian11.Modal {
+    SettingsAppliedModal = class extends import_obsidian8.Modal {
       constructor(app, plugin, snapshot) {
         super(app);
         this.plugin = plugin;
@@ -30427,7 +26326,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
           text: "Your changes have been saved and the planner has been updated.",
           cls: "setting-item-description"
         });
-        new import_obsidian11.Setting(contentEl).addButton((btn) => btn.setButtonText("Got it").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Revert changes").setClass("mod-warning").onClick(async () => {
+        new import_obsidian8.Setting(contentEl).addButton((btn) => btn.setButtonText("Got it").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Revert changes").setClass("mod-warning").onClick(async () => {
           const original = JSON.parse(this.snapshot);
           Object.assign(this.plugin.settings, original);
           await this.plugin.saveSettings();
@@ -30438,9 +26337,10 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         this.contentEl.empty();
       }
     };
-    ColourPickerModal = class extends import_obsidian11.Modal {
+    ColourPickerModal = class extends import_obsidian8.Modal {
       constructor(app, initialColour, label, onSave, showThemeRow = false) {
         super(app);
+        this.component = null;
         this.initialColour = initialColour;
         this.label = label;
         this.onSave = onSave;
@@ -30474,7 +26374,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         this.contentEl.empty();
       }
     };
-    DeletePlannerModal = class extends import_obsidian11.Modal {
+    DeletePlannerModal = class extends import_obsidian8.Modal {
       constructor(app, plugin, plannerId, plannerName, isLast, onDeleted) {
         super(app);
         this.plugin = plugin;
@@ -30490,7 +26390,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
           text: this.isLast ? `"${this.plannerName}" is your only planner. Deleting it will remove all planner data and relaunch the setup wizard. Lesson notes already created in your vault will not be affected.` : `Delete "${this.plannerName}"? All planner data (timetable, classes, events) will be removed. Lesson notes already created in your vault will not be affected.`,
           cls: "setting-item-description"
         });
-        new import_obsidian11.Setting(contentEl).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close())).addButton((btn) => btn.setButtonText(this.isLast ? "Delete & restart wizard" : "Delete planner").setClass("mod-warning").onClick(async () => {
+        new import_obsidian8.Setting(contentEl).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close())).addButton((btn) => btn.setButtonText(this.isLast ? "Delete & restart wizard" : "Delete planner").setClass("mod-warning").onClick(async () => {
           await this.plugin.deletePlanner(this.plannerId);
           this.close();
           if (this.isLast) {
@@ -30502,6 +26402,4115 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         }));
       }
       onClose() {
+        this.contentEl.empty();
+      }
+    };
+  }
+});
+
+// src/modals/TimetableEditorComponent.svelte
+function add_css2(target) {
+  append_styles(target, "svelte-pnrkh9", ".tp-te-wrap.svelte-pnrkh9.svelte-pnrkh9{display:flex;flex-direction:column;width:100%;box-sizing:border-box;height:auto;overflow:visible;font-size:14px;position:relative}.tp-te-tmpl-bar.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:flex-start;gap:8px;padding:8px 48px 12px 0;flex-shrink:0;flex-wrap:wrap}.tp-te-tmpl-tabs.svelte-pnrkh9.svelte-pnrkh9{display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:0}.tp-te-tmpl-tab-wrap.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:center;gap:2px}.tp-te-tmpl-tab.svelte-pnrkh9.svelte-pnrkh9{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 16px 11px;min-height:54px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;cursor:pointer;transition:all 0.15s;text-align:left}.tp-te-tmpl-tab--active.svelte-pnrkh9.svelte-pnrkh9{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-tmpl-tab--past.svelte-pnrkh9.svelte-pnrkh9:not(.tp-te-tmpl-tab--active){opacity:0.65}.tp-te-tmpl-name.svelte-pnrkh9.svelte-pnrkh9{font-weight:600;line-height:1.2}.tp-te-tmpl-dates.svelte-pnrkh9.svelte-pnrkh9{font-size:11px;opacity:0.75;line-height:1.2;margin-top:1px}.tp-te-tmpl-rename-btn.svelte-pnrkh9.svelte-pnrkh9{background:transparent;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:0.6;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-rename-btn.svelte-pnrkh9.svelte-pnrkh9:hover{opacity:1}.tp-te-tmpl-rename-btn.svelte-pnrkh9 svg{width:13px;height:13px}.tp-te-rename-input.svelte-pnrkh9.svelte-pnrkh9{font-size:13px;font-weight:600;padding:4px 8px;border:1px solid var(--interactive-accent);border-radius:6px;background:var(--background-primary);color:var(--text-normal);width:140px}.tp-te-tmpl-actions.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:center;gap:6px;flex-shrink:0}.tp-te-tmpl-add-btn.svelte-pnrkh9.svelte-pnrkh9{padding:10px 16px;border-radius:6px;border:1.5px dashed var(--interactive-accent);background:transparent;color:var(--interactive-accent);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap}.tp-te-tmpl-add-btn.svelte-pnrkh9.svelte-pnrkh9:hover{background:color-mix(in srgb, var(--interactive-accent) 10%, transparent)}.tp-te-tmpl-del-btn.svelte-pnrkh9.svelte-pnrkh9{background:transparent;border:none;cursor:pointer;font-size:16px;padding:4px;opacity:0.5;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-del-btn.svelte-pnrkh9.svelte-pnrkh9:hover{opacity:1}.tp-te-tmpl-del-btn.svelte-pnrkh9 svg{width:15px;height:15px}.tp-te-edit-warn.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;margin-bottom:12px;background:color-mix(in srgb, var(--color-yellow, #f59e0b) 12%, transparent);border:1px solid var(--color-yellow, #f59e0b);border-radius:6px;font-size:13px;color:var(--text-normal);flex-shrink:0}.tp-te-edit-warn--collapsed.svelte-pnrkh9.svelte-pnrkh9{align-items:center;padding:6px 12px}.tp-te-edit-warn--confirm.svelte-pnrkh9.svelte-pnrkh9{align-items:center}.tp-te-edit-warn-body.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0}.tp-te-edit-warn-icon.svelte-pnrkh9.svelte-pnrkh9{flex-shrink:0}.tp-te-edit-warn-text.svelte-pnrkh9.svelte-pnrkh9{line-height:1.5}.tp-te-edit-warn-actions.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:2px}.tp-te-edit-warn-pill.svelte-pnrkh9.svelte-pnrkh9{color:var(--text-muted);font-size:12px}.tp-te-edit-warn-show-btn.svelte-pnrkh9.svelte-pnrkh9{padding:3px 10px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-past-confirm-btn.svelte-pnrkh9.svelte-pnrkh9{padding:4px 12px;border-radius:4px;border:none;background:var(--color-red, #f38ba8);color:#fff;font-size:12px;cursor:pointer}.tp-te-past-cancel-btn.svelte-pnrkh9.svelte-pnrkh9{padding:4px 12px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-week-tabs.svelte-pnrkh9.svelte-pnrkh9{display:flex;gap:6px;margin-bottom:14px;flex-shrink:0}.tp-te-week-tab.svelte-pnrkh9.svelte-pnrkh9{padding:6px 20px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}.tp-te-week-tab--active.svelte-pnrkh9.svelte-pnrkh9{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-grid-wrap.svelte-pnrkh9.svelte-pnrkh9{overflow:auto;max-height:55vh;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-te-grid.svelte-pnrkh9.svelte-pnrkh9{width:100%;border-collapse:collapse;table-layout:fixed}.tp-te-th.svelte-pnrkh9.svelte-pnrkh9{padding:10px 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);text-align:center;background:var(--background-secondary);border-bottom:1px solid var(--background-modifier-border);position:sticky;top:0;z-index:2}.tp-te-th--period.svelte-pnrkh9.svelte-pnrkh9{text-align:left;width:130px}.tp-te-period-cell.svelte-pnrkh9.svelte-pnrkh9{padding:6px 10px;border-bottom:1px solid var(--background-modifier-border);vertical-align:middle}.tp-te-period-name.svelte-pnrkh9.svelte-pnrkh9{display:block;font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-period-time.svelte-pnrkh9.svelte-pnrkh9{display:block;font-size:11px;color:var(--text-normal);margin-top:1px}.tp-te-cell.svelte-pnrkh9.svelte-pnrkh9{height:52px;padding:4px;border-bottom:1px solid var(--background-modifier-border);border-left:1px solid var(--background-modifier-border);vertical-align:middle;position:relative}.tp-te-cell.svelte-pnrkh9:hover .tp-te-add.svelte-pnrkh9{opacity:1}.tp-te-add.svelte-pnrkh9.svelte-pnrkh9{opacity:0;width:100%;height:100%;border:1.5px dashed var(--background-modifier-border);border-radius:6px;background:transparent;color:var(--text-faint);font-size:18px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center}.tp-te-add.svelte-pnrkh9.svelte-pnrkh9:hover{border-color:var(--interactive-accent);color:var(--interactive-accent);background:var(--background-modifier-hover)}.tp-te-chip.svelte-pnrkh9.svelte-pnrkh9{width:100%;height:100%;border-radius:6px;border:none;cursor:pointer;padding:4px 6px;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden;transition:filter 0.1s}.tp-te-chip.svelte-pnrkh9.svelte-pnrkh9:hover{filter:brightness(1.1)}.tp-te-chip-code.svelte-pnrkh9.svelte-pnrkh9{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-chip-sub.svelte-pnrkh9.svelte-pnrkh9{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-duration-badge.svelte-pnrkh9.svelte-pnrkh9{position:absolute;bottom:3px;right:4px;font-size:10px;font-weight:700;background:rgba(0,0,0,0.30);color:#fff;border-radius:3px;padding:1px 4px;cursor:pointer;line-height:1.4;transition:background 0.1s;z-index:1;pointer-events:all}.tp-te-duration-badge.svelte-pnrkh9.svelte-pnrkh9:hover{background:rgba(0,0,0,0.50)}.tp-te-duration-input.svelte-pnrkh9.svelte-pnrkh9{position:absolute;bottom:3px;right:4px;width:46px;font-size:10px;padding:1px 3px;border:1px solid var(--interactive-accent);border-radius:3px;background:var(--background-primary);color:var(--text-normal);z-index:2;text-align:center}.tp-te-picker.svelte-pnrkh9.svelte-pnrkh9{position:fixed;z-index:1000;width:240px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.3);overflow:hidden}.tp-te-picker-inner.svelte-pnrkh9.svelte-pnrkh9{max-height:360px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:2px}.tp-te-picker-search.svelte-pnrkh9.svelte-pnrkh9{width:100%;box-sizing:border-box;padding:6px 10px;margin-bottom:2px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-secondary);color:var(--text-normal);font-size:13px;outline:none;flex-shrink:0}.tp-te-picker-search.svelte-pnrkh9.svelte-pnrkh9:focus{border-color:var(--interactive-accent)}.tp-te-picker-group-label.svelte-pnrkh9.svelte-pnrkh9{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);padding:4px 8px 2px}.tp-te-picker-divider.svelte-pnrkh9.svelte-pnrkh9{height:1px;background:var(--background-modifier-border);margin:4px 0}.tp-te-picker-row.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:center;gap:2px}.tp-te-picker-item.svelte-pnrkh9.svelte-pnrkh9{flex:1;display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;text-align:left;width:100%;transition:background 0.1s;min-width:0}.tp-te-picker-item.svelte-pnrkh9.svelte-pnrkh9:hover{background:var(--background-modifier-hover)}.tp-te-picker-item--archived.svelte-pnrkh9.svelte-pnrkh9{cursor:default;pointer-events:none}.tp-te-picker-item-text.svelte-pnrkh9.svelte-pnrkh9{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1;min-width:0}.tp-te-picker-code.svelte-pnrkh9.svelte-pnrkh9{font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-room.svelte-pnrkh9.svelte-pnrkh9{font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-clear.svelte-pnrkh9.svelte-pnrkh9{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-red, #f38ba8);font-size:13px;width:100%;transition:background 0.1s}.tp-te-picker-clear.svelte-pnrkh9 svg{width:13px;height:13px;flex-shrink:0}.tp-te-picker-clear.svelte-pnrkh9.svelte-pnrkh9:hover{background:var(--background-modifier-hover)}.tp-te-archive-btn.svelte-pnrkh9.svelte-pnrkh9{background:transparent;border:none;cursor:pointer;font-size:14px;padding:4px 5px;opacity:0;flex-shrink:0;border-radius:4px;transition:opacity 0.1s, background 0.1s;display:inline-flex;align-items:center}.tp-te-archive-btn.svelte-pnrkh9 svg{width:13px;height:13px}.tp-te-picker-row.svelte-pnrkh9:hover .tp-te-archive-btn.svelte-pnrkh9{opacity:0.6}.tp-te-picker-row--archived.svelte-pnrkh9 .tp-te-archive-btn.svelte-pnrkh9{opacity:0.7}.tp-te-archive-btn.svelte-pnrkh9.svelte-pnrkh9:hover{opacity:1 !important;background:var(--background-modifier-hover)}.tp-te-show-archived-btn.svelte-pnrkh9.svelte-pnrkh9{background:transparent;border:none;cursor:pointer;color:var(--text-faint);font-size:12px;padding:4px 8px;text-align:left;width:100%;border-radius:4px}.tp-te-show-archived-btn.svelte-pnrkh9.svelte-pnrkh9:hover{background:var(--background-modifier-hover);color:var(--text-muted)}.tp-te-unsaved-overlay.svelte-pnrkh9.svelte-pnrkh9{position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;border-radius:8px}.tp-te-unsaved-dialog.svelte-pnrkh9.svelte-pnrkh9{background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;padding:20px 24px;max-width:340px;width:100%;box-shadow:0 8px 28px rgba(0,0,0,0.35);display:flex;flex-direction:column;gap:14px}.tp-te-unsaved-msg.svelte-pnrkh9.svelte-pnrkh9{font-size:14px;color:var(--text-normal);margin:0;line-height:1.4}.tp-te-unsaved-actions.svelte-pnrkh9.svelte-pnrkh9{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.tp-te-btn-danger.svelte-pnrkh9.svelte-pnrkh9{background:var(--color-red,#f38ba8);color:var(--text-on-accent);border-color:var(--color-red,#f38ba8)}.tp-te-btn-danger.svelte-pnrkh9.svelte-pnrkh9:hover{filter:brightness(1.1)}.tp-te-footer.svelte-pnrkh9.svelte-pnrkh9{display:flex;justify-content:flex-end;gap:8px;padding-top:14px;flex-shrink:0}.tp-te-btn.svelte-pnrkh9.svelte-pnrkh9{padding:8px 18px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:14px;cursor:pointer;transition:background 0.1s}.tp-te-btn.svelte-pnrkh9.svelte-pnrkh9:hover{background:var(--background-modifier-hover)}.tp-te-btn-primary.svelte-pnrkh9.svelte-pnrkh9{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-btn-primary.svelte-pnrkh9.svelte-pnrkh9:hover{filter:brightness(1.08)}.tp-te-cell--na.svelte-pnrkh9.svelte-pnrkh9{background:var(--background-secondary);opacity:0.5;pointer-events:none}");
+}
+function get_each_context2(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[125] = list[i];
+  return child_ctx;
+}
+function get_each_context_12(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[128] = list[i];
+  return child_ctx;
+}
+function get_each_context_2(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[125] = list[i];
+  return child_ctx;
+}
+function get_each_context_3(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[125] = list[i];
+  return child_ctx;
+}
+function get_each_context_4(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[135] = list[i];
+  const constants_0 = (
+    /*pickerFilteredClasses*/
+    child_ctx[25].filter(function func_1(...args) {
+      return (
+        /*func_1*/
+        ctx[99](
+          /*subj*/
+          child_ctx[135],
+          ...args
+        )
+      );
+    }).sort((a, b) => a.code.localeCompare(b.code))
+  );
+  child_ctx[136] = constants_0;
+  return child_ctx;
+}
+function get_each_context_5(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[128] = list[i];
+  const constants_0 = [
+    /*cls*/
+    child_ctx[128].year,
+    /*subj*/
+    child_ctx[135].name
+  ].filter(Boolean).join(" \xB7 ");
+  child_ctx[139] = constants_0;
+  return child_ctx;
+}
+function get_each_context_6(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[142] = list[i];
+  const constants_0 = (
+    /*getPeriodTypeColour*/
+    child_ctx[56](
+      /*period*/
+      child_ctx[142].type
+    )
+  );
+  child_ctx[143] = constants_0;
+  return child_ctx;
+}
+function get_each_context_7(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[146] = list[i];
+  const constants_0 = (
+    /*_slotGrid*/
+    child_ctx[28][
+      /*day*/
+      child_ctx[146].key + ":" + /*period*/
+      child_ctx[142].id
+    ]
+  );
+  child_ctx[147] = constants_0;
+  const constants_1 = (
+    /*pickerDay*/
+    child_ctx[20] === /*day*/
+    child_ctx[146].key && /*pickerPeriodId*/
+    child_ctx[21] === /*period*/
+    child_ctx[142].id
+  );
+  child_ctx[148] = constants_1;
+  const constants_2 = (
+    /*day*/
+    child_ctx[146].key + ":" + /*period*/
+    child_ctx[142].id
+  );
+  child_ctx[149] = constants_2;
+  const constants_3 = !periodAppliesTo(
+    /*plugin*/
+    child_ctx[0].settings.academicYear,
+    /*period*/
+    child_ctx[142].id,
+    /*day*/
+    child_ctx[146].key
+  );
+  child_ctx[150] = constants_3;
+  return child_ctx;
+}
+function get_if_ctx(ctx) {
+  const child_ctx = ctx.slice();
+  const constants_0 = (
+    /*getLabel*/
+    child_ctx[47](
+      /*slot*/
+      child_ctx[147]
+    )
+  );
+  child_ctx[153] = constants_0;
+  return child_ctx;
+}
+function get_each_context_8(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[146] = list[i];
+  return child_ctx;
+}
+function get_each_context_9(ctx, list, i) {
+  const child_ctx = ctx.slice();
+  child_ctx[156] = list[i];
+  return child_ctx;
+}
+function create_else_block_3(ctx) {
+  let button;
+  let span0;
+  let t0_value = (
+    /*tmpl*/
+    ctx[156].name + ""
+  );
+  let t0;
+  let t1;
+  let span1;
+  let t2_value = fmtDate2(
+    /*tmpl*/
+    ctx[156].startDate
+  ) + "";
+  let t2;
+  let t3;
+  let t4_value = fmtDate2(
+    /*tmpl*/
+    ctx[156].endDate
+  ) + "";
+  let t4;
+  let t5;
+  let if_block_anchor;
+  let mounted;
+  let dispose;
+  function click_handler_2() {
+    return (
+      /*click_handler_2*/
+      ctx[82](
+        /*tmpl*/
+        ctx[156]
+      )
+    );
+  }
+  let if_block = (
+    /*tmpl*/
+    ctx[156].id === /*activeTemplateId*/
+    ctx[1] && create_if_block_23(ctx)
+  );
+  return {
+    c() {
+      button = element("button");
+      span0 = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      span1 = element("span");
+      t2 = text(t2_value);
+      t3 = text(" \u2013 ");
+      t4 = text(t4_value);
+      t5 = space();
+      if (if_block) if_block.c();
+      if_block_anchor = empty();
+      attr(span0, "class", "tp-te-tmpl-name svelte-pnrkh9");
+      attr(span1, "class", "tp-te-tmpl-dates svelte-pnrkh9");
+      attr(button, "class", "tp-te-tmpl-tab svelte-pnrkh9");
+      toggle_class(
+        button,
+        "tp-te-tmpl-tab--active",
+        /*tmpl*/
+        ctx[156].id === /*activeTemplateId*/
+        ctx[1]
+      );
+      toggle_class(
+        button,
+        "tp-te-tmpl-tab--past",
+        /*tmpl*/
+        ctx[156].endDate < /*today*/
+        ctx[37]
+      );
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      append(button, span0);
+      append(span0, t0);
+      append(button, t1);
+      append(button, span1);
+      append(span1, t2);
+      append(span1, t3);
+      append(span1, t4);
+      insert(target, t5, anchor);
+      if (if_block) if_block.m(target, anchor);
+      insert(target, if_block_anchor, anchor);
+      if (!mounted) {
+        dispose = listen(button, "click", click_handler_2);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*allTemplates*/
+      32 && t0_value !== (t0_value = /*tmpl*/
+      ctx[156].name + "")) set_data(t0, t0_value);
+      if (dirty[0] & /*allTemplates*/
+      32 && t2_value !== (t2_value = fmtDate2(
+        /*tmpl*/
+        ctx[156].startDate
+      ) + "")) set_data(t2, t2_value);
+      if (dirty[0] & /*allTemplates*/
+      32 && t4_value !== (t4_value = fmtDate2(
+        /*tmpl*/
+        ctx[156].endDate
+      ) + "")) set_data(t4, t4_value);
+      if (dirty[0] & /*allTemplates, activeTemplateId*/
+      34) {
+        toggle_class(
+          button,
+          "tp-te-tmpl-tab--active",
+          /*tmpl*/
+          ctx[156].id === /*activeTemplateId*/
+          ctx[1]
+        );
+      }
+      if (dirty[0] & /*allTemplates*/
+      32 | dirty[1] & /*today*/
+      64) {
+        toggle_class(
+          button,
+          "tp-te-tmpl-tab--past",
+          /*tmpl*/
+          ctx[156].endDate < /*today*/
+          ctx[37]
+        );
+      }
+      if (
+        /*tmpl*/
+        ctx[156].id === /*activeTemplateId*/
+        ctx[1]
+      ) {
+        if (if_block) {
+          if_block.p(ctx, dirty);
+        } else {
+          if_block = create_if_block_23(ctx);
+          if_block.c();
+          if_block.m(if_block_anchor.parentNode, if_block_anchor);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+        detach(t5);
+        detach(if_block_anchor);
+      }
+      if (if_block) if_block.d(detaching);
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_22(ctx) {
+  let input;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      input = element("input");
+      attr(input, "class", "tp-te-rename-input svelte-pnrkh9");
+      input.autofocus = true;
+    },
+    m(target, anchor) {
+      insert(target, input, anchor);
+      set_input_value(
+        input,
+        /*renameValue*/
+        ctx[18]
+      );
+      input.focus();
+      if (!mounted) {
+        dispose = [
+          listen(
+            input,
+            "input",
+            /*input_input_handler*/
+            ctx[80]
+          ),
+          listen(
+            input,
+            "keydown",
+            /*keydown_handler_1*/
+            ctx[81]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*renameValue*/
+      262144 && input.value !== /*renameValue*/
+      ctx2[18]) {
+        set_input_value(
+          input,
+          /*renameValue*/
+          ctx2[18]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(input);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_23(ctx) {
+  let button;
+  let icon_action;
+  let mounted;
+  let dispose;
+  function click_handler_3() {
+    return (
+      /*click_handler_3*/
+      ctx[83](
+        /*tmpl*/
+        ctx[156]
+      )
+    );
+  }
+  return {
+    c() {
+      button = element("button");
+      attr(button, "class", "tp-te-tmpl-rename-btn svelte-pnrkh9");
+      attr(button, "title", "Rename");
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      if (!mounted) {
+        dispose = [
+          listen(button, "click", click_handler_3),
+          action_destroyer(icon_action = /*icon*/
+          ctx[31].call(null, button, "pencil"))
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_each_block_9(key_1, ctx) {
+  let div;
+  let t;
+  function select_block_type(ctx2, dirty) {
+    if (
+      /*renamingId*/
+      ctx2[17] === /*tmpl*/
+      ctx2[156].id
+    ) return create_if_block_22;
+    return create_else_block_3;
+  }
+  let current_block_type = select_block_type(ctx, [-1, -1, -1, -1, -1, -1]);
+  let if_block = current_block_type(ctx);
+  return {
+    key: key_1,
+    first: null,
+    c() {
+      div = element("div");
+      if_block.c();
+      t = space();
+      attr(div, "class", "tp-te-tmpl-tab-wrap svelte-pnrkh9");
+      this.first = div;
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      if_block.m(div, null);
+      append(div, t);
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (current_block_type === (current_block_type = select_block_type(ctx, dirty)) && if_block) {
+        if_block.p(ctx, dirty);
+      } else {
+        if_block.d(1);
+        if_block = current_block_type(ctx);
+        if (if_block) {
+          if_block.c();
+          if_block.m(div, t);
+        }
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      if_block.d();
+    }
+  };
+}
+function create_if_block_21(ctx) {
+  let button;
+  let icon_action;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      button = element("button");
+      attr(button, "class", "tp-te-tmpl-del-btn svelte-pnrkh9");
+      attr(button, "title", "Delete this template");
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      if (!mounted) {
+        dispose = [
+          listen(
+            button,
+            "click",
+            /*deleteTemplate*/
+            ctx[55]
+          ),
+          action_destroyer(icon_action = /*icon*/
+          ctx[31].call(null, button, "trash-2"))
+        ];
+        mounted = true;
+      }
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_17(ctx) {
+  let if_block_anchor;
+  function select_block_type_1(ctx2, dirty) {
+    if (
+      /*warnCollapsed*/
+      ctx2[16]
+    ) return create_if_block_18;
+    if (
+      /*showPastConfirm*/
+      ctx2[15]
+    ) return create_if_block_19;
+    return create_else_block_2;
+  }
+  let current_block_type = select_block_type_1(ctx, [-1, -1, -1, -1, -1, -1]);
+  let if_block = current_block_type(ctx);
+  return {
+    c() {
+      if_block.c();
+      if_block_anchor = empty();
+    },
+    m(target, anchor) {
+      if_block.m(target, anchor);
+      insert(target, if_block_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (current_block_type === (current_block_type = select_block_type_1(ctx2, dirty)) && if_block) {
+        if_block.p(ctx2, dirty);
+      } else {
+        if_block.d(1);
+        if_block = current_block_type(ctx2);
+        if (if_block) {
+          if_block.c();
+          if_block.m(if_block_anchor.parentNode, if_block_anchor);
+        }
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(if_block_anchor);
+      }
+      if_block.d(detaching);
+    }
+  };
+}
+function create_else_block_2(ctx) {
+  let div3;
+  let div1;
+  let span;
+  let t1;
+  let div0;
+  let t2;
+  let t3;
+  let div2;
+  let button;
+  let mounted;
+  let dispose;
+  let if_block = (
+    /*isPast*/
+    ctx[27] && create_if_block_20(ctx)
+  );
+  return {
+    c() {
+      div3 = element("div");
+      div1 = element("div");
+      span = element("span");
+      span.textContent = "\u26A0\uFE0F";
+      t1 = space();
+      div0 = element("div");
+      if (if_block) if_block.c();
+      t2 = text("\n            Editing this template affects your directed time records for all weeks it covers. If your timetable has changed, create a new template from the date of the change to keep records accurate.");
+      t3 = space();
+      div2 = element("div");
+      button = element("button");
+      button.textContent = "Dismiss";
+      attr(span, "class", "tp-te-edit-warn-icon svelte-pnrkh9");
+      attr(div0, "class", "tp-te-edit-warn-text svelte-pnrkh9");
+      attr(div1, "class", "tp-te-edit-warn-body svelte-pnrkh9");
+      attr(button, "class", "tp-te-past-cancel-btn svelte-pnrkh9");
+      attr(button, "title", "Dismiss warning");
+      attr(div2, "class", "tp-te-edit-warn-actions svelte-pnrkh9");
+      attr(div3, "class", "tp-te-edit-warn svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div3, anchor);
+      append(div3, div1);
+      append(div1, span);
+      append(div1, t1);
+      append(div1, div0);
+      if (if_block) if_block.m(div0, null);
+      append(div0, t2);
+      append(div3, t3);
+      append(div3, div2);
+      append(div2, button);
+      if (!mounted) {
+        dispose = listen(
+          button,
+          "click",
+          /*click_handler_6*/
+          ctx[86]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (
+        /*isPast*/
+        ctx2[27]
+      ) {
+        if (if_block) {
+          if_block.p(ctx2, dirty);
+        } else {
+          if_block = create_if_block_20(ctx2);
+          if_block.c();
+          if_block.m(div0, t2);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div3);
+      }
+      if (if_block) if_block.d();
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_19(ctx) {
+  let div1;
+  let span;
+  let t0;
+  let t1_value = fmtDate2(
+    /*activeTemplate*/
+    ctx[6].endDate
+  ) + "";
+  let t1;
+  let t2;
+  let t3;
+  let div0;
+  let button0;
+  let t5;
+  let button1;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      div1 = element("div");
+      span = element("span");
+      t0 = text("\u26A0\uFE0F This template ended ");
+      t1 = text(t1_value);
+      t2 = text(". Saving will change historical records. Continue?");
+      t3 = space();
+      div0 = element("div");
+      button0 = element("button");
+      button0.textContent = "Yes, save anyway";
+      t5 = space();
+      button1 = element("button");
+      button1.textContent = "Cancel";
+      attr(button0, "class", "tp-te-past-confirm-btn svelte-pnrkh9");
+      attr(button1, "class", "tp-te-past-cancel-btn svelte-pnrkh9");
+      attr(div0, "class", "tp-te-edit-warn-actions svelte-pnrkh9");
+      attr(div1, "class", "tp-te-edit-warn tp-te-edit-warn--confirm svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+      append(div1, span);
+      append(span, t0);
+      append(span, t1);
+      append(span, t2);
+      append(div1, t3);
+      append(div1, div0);
+      append(div0, button0);
+      append(div0, t5);
+      append(div0, button1);
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*confirmPastSave*/
+            ctx[53]
+          ),
+          listen(
+            button1,
+            "click",
+            /*click_handler_5*/
+            ctx[85]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*activeTemplate*/
+      64 && t1_value !== (t1_value = fmtDate2(
+        /*activeTemplate*/
+        ctx2[6].endDate
+      ) + "")) set_data(t1, t1_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_18(ctx) {
+  let div;
+  let span;
+  let t1;
+  let button;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      div = element("div");
+      span = element("span");
+      span.textContent = "\u26A0\uFE0F Warning hidden";
+      t1 = space();
+      button = element("button");
+      button.textContent = "Show";
+      attr(span, "class", "tp-te-edit-warn-pill svelte-pnrkh9");
+      attr(button, "class", "tp-te-edit-warn-show-btn svelte-pnrkh9");
+      attr(div, "class", "tp-te-edit-warn tp-te-edit-warn--collapsed svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, span);
+      append(div, t1);
+      append(div, button);
+      if (!mounted) {
+        dispose = listen(
+          button,
+          "click",
+          /*click_handler_4*/
+          ctx[84]
+        );
+        mounted = true;
+      }
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_20(ctx) {
+  let strong;
+  let t0;
+  let t1_value = fmtDate2(
+    /*activeTemplate*/
+    ctx[6].endDate
+  ) + "";
+  let t1;
+  let t2;
+  let t3_value = " ";
+  let t3;
+  return {
+    c() {
+      strong = element("strong");
+      t0 = text("This template ended ");
+      t1 = text(t1_value);
+      t2 = text(".");
+      t3 = text(t3_value);
+    },
+    m(target, anchor) {
+      insert(target, strong, anchor);
+      append(strong, t0);
+      append(strong, t1);
+      append(strong, t2);
+      insert(target, t3, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*activeTemplate*/
+      64 && t1_value !== (t1_value = fmtDate2(
+        /*activeTemplate*/
+        ctx2[6].endDate
+      ) + "")) set_data(t1, t1_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(strong);
+        detach(t3);
+      }
+    }
+  };
+}
+function create_if_block_16(ctx) {
+  let div;
+  let button0;
+  let t1;
+  let button1;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      div = element("div");
+      button0 = element("button");
+      button0.textContent = "Week A";
+      t1 = space();
+      button1 = element("button");
+      button1.textContent = "Week B";
+      attr(button0, "class", "tp-te-week-tab svelte-pnrkh9");
+      toggle_class(
+        button0,
+        "tp-te-week-tab--active",
+        /*activeWeek*/
+        ctx[3] === "A"
+      );
+      attr(button1, "class", "tp-te-week-tab tp-te-week-tab--b svelte-pnrkh9");
+      toggle_class(
+        button1,
+        "tp-te-week-tab--active",
+        /*activeWeek*/
+        ctx[3] === "B"
+      );
+      attr(div, "class", "tp-te-week-tabs svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, button0);
+      append(div, t1);
+      append(div, button1);
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*click_handler_7*/
+            ctx[87]
+          ),
+          listen(
+            button1,
+            "click",
+            /*click_handler_8*/
+            ctx[88]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*activeWeek*/
+      8) {
+        toggle_class(
+          button0,
+          "tp-te-week-tab--active",
+          /*activeWeek*/
+          ctx2[3] === "A"
+        );
+      }
+      if (dirty[0] & /*activeWeek*/
+      8) {
+        toggle_class(
+          button1,
+          "tp-te-week-tab--active",
+          /*activeWeek*/
+          ctx2[3] === "B"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_each_block_8(ctx) {
+  let th;
+  let t_value = (
+    /*day*/
+    ctx[146].label + ""
+  );
+  let t;
+  return {
+    c() {
+      th = element("th");
+      t = text(t_value);
+      attr(th, "class", "tp-te-th svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, th, anchor);
+      append(th, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*DAYS*/
+      2048 && t_value !== (t_value = /*day*/
+      ctx2[146].label + "")) set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(th);
+      }
+    }
+  };
+}
+function create_else_block_1(ctx) {
+  let button;
+  let mounted;
+  let dispose;
+  function click_handler_11(...args) {
+    return (
+      /*click_handler_11*/
+      ctx[94](
+        /*day*/
+        ctx[146],
+        /*period*/
+        ctx[142],
+        ...args
+      )
+    );
+  }
+  return {
+    c() {
+      button = element("button");
+      button.textContent = "+";
+      attr(button, "class", "tp-te-add svelte-pnrkh9");
+      attr(button, "aria-label", "Assign");
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      if (!mounted) {
+        dispose = listen(button, "click", click_handler_11);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_12(ctx) {
+  let button;
+  let span;
+  let t0_value = (
+    /*lbl*/
+    ctx[153].code + ""
+  );
+  let t0;
+  let t1;
+  let button_title_value;
+  let t2;
+  let show_if = (
+    /*directedTimeEnabled*/
+    ctx[30] && /*isDirectedSlot*/
+    ctx[33](
+      /*slot*/
+      ctx[147]
+    )
+  );
+  let if_block1_anchor;
+  let mounted;
+  let dispose;
+  let if_block0 = (
+    /*lbl*/
+    (ctx[153].sub || /*lbl*/
+    ctx[153].classroom) && create_if_block_15(ctx)
+  );
+  function click_handler_9(...args) {
+    return (
+      /*click_handler_9*/
+      ctx[89](
+        /*day*/
+        ctx[146],
+        /*period*/
+        ctx[142],
+        ...args
+      )
+    );
+  }
+  let if_block1 = show_if && create_if_block_13(ctx);
+  return {
+    c() {
+      button = element("button");
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      if (if_block0) if_block0.c();
+      t2 = space();
+      if (if_block1) if_block1.c();
+      if_block1_anchor = empty();
+      attr(span, "class", "tp-te-chip-code svelte-pnrkh9");
+      set_style(
+        span,
+        "color",
+        /*lbl*/
+        ctx[153].colour
+      );
+      attr(button, "class", "tp-te-chip svelte-pnrkh9");
+      set_style(button, "border-left", "3px solid " + /*lbl*/
+      ctx[153].colour);
+      set_style(
+        button,
+        "background",
+        /*lbl*/
+        ctx[153].colour + "22"
+      );
+      attr(button, "title", button_title_value = /*lbl*/
+      ctx[153].code + /*lbl*/
+      (ctx[153].classroom ? " \xB7 " + /*lbl*/
+      ctx[153].classroom : ""));
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      append(button, span);
+      append(span, t0);
+      append(button, t1);
+      if (if_block0) if_block0.m(button, null);
+      insert(target, t2, anchor);
+      if (if_block1) if_block1.m(target, anchor);
+      insert(target, if_block1_anchor, anchor);
+      if (!mounted) {
+        dispose = listen(button, "click", click_handler_9);
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*_slotGrid, DAYS, periods*/
+      268438528 && t0_value !== (t0_value = /*lbl*/
+      ctx[153].code + "")) set_data(t0, t0_value);
+      if (dirty[0] & /*_slotGrid, DAYS, periods*/
+      268438528) {
+        set_style(
+          span,
+          "color",
+          /*lbl*/
+          ctx[153].colour
+        );
+      }
+      if (
+        /*lbl*/
+        ctx[153].sub || /*lbl*/
+        ctx[153].classroom
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx, dirty);
+        } else {
+          if_block0 = create_if_block_15(ctx);
+          if_block0.c();
+          if_block0.m(button, null);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty[0] & /*_slotGrid, DAYS, periods*/
+      268438528) {
+        set_style(button, "border-left", "3px solid " + /*lbl*/
+        ctx[153].colour);
+      }
+      if (dirty[0] & /*_slotGrid, DAYS, periods*/
+      268438528) {
+        set_style(
+          button,
+          "background",
+          /*lbl*/
+          ctx[153].colour + "22"
+        );
+      }
+      if (dirty[0] & /*_slotGrid, DAYS, periods*/
+      268438528 && button_title_value !== (button_title_value = /*lbl*/
+      ctx[153].code + /*lbl*/
+      (ctx[153].classroom ? " \xB7 " + /*lbl*/
+      ctx[153].classroom : ""))) {
+        attr(button, "title", button_title_value);
+      }
+      if (dirty[0] & /*directedTimeEnabled, _slotGrid, DAYS, periods*/
+      1342180352) show_if = /*directedTimeEnabled*/
+      ctx[30] && /*isDirectedSlot*/
+      ctx[33](
+        /*slot*/
+        ctx[147]
+      );
+      if (show_if) {
+        if (if_block1) {
+          if_block1.p(ctx, dirty);
+        } else {
+          if_block1 = create_if_block_13(ctx);
+          if_block1.c();
+          if_block1.m(if_block1_anchor.parentNode, if_block1_anchor);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+        detach(t2);
+        detach(if_block1_anchor);
+      }
+      if (if_block0) if_block0.d();
+      if (if_block1) if_block1.d(detaching);
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_11(ctx) {
+  return { c: noop, m: noop, p: noop, d: noop };
+}
+function create_if_block_15(ctx) {
+  let span;
+  let t_value = [
+    /*lbl*/
+    ctx[153].sub,
+    /*lbl*/
+    ctx[153].classroom
+  ].filter(Boolean).join(" \xB7 ") + "";
+  let t;
+  return {
+    c() {
+      span = element("span");
+      t = text(t_value);
+      attr(span, "class", "tp-te-chip-sub svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*_slotGrid, DAYS, periods*/
+      268438528 && t_value !== (t_value = [
+        /*lbl*/
+        ctx2[153].sub,
+        /*lbl*/
+        ctx2[153].classroom
+      ].filter(Boolean).join(" \xB7 ") + "")) set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_13(ctx) {
+  let if_block_anchor;
+  function select_block_type_3(ctx2, dirty) {
+    if (
+      /*durationEditKey*/
+      ctx2[13] === /*cellKey*/
+      ctx2[149]
+    ) return create_if_block_14;
+    return create_else_block;
+  }
+  let current_block_type = select_block_type_3(ctx, [-1, -1, -1, -1, -1, -1]);
+  let if_block = current_block_type(ctx);
+  return {
+    c() {
+      if_block.c();
+      if_block_anchor = empty();
+    },
+    m(target, anchor) {
+      if_block.m(target, anchor);
+      insert(target, if_block_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (current_block_type === (current_block_type = select_block_type_3(ctx2, dirty)) && if_block) {
+        if_block.p(ctx2, dirty);
+      } else {
+        if_block.d(1);
+        if_block = current_block_type(ctx2);
+        if (if_block) {
+          if_block.c();
+          if_block.m(if_block_anchor.parentNode, if_block_anchor);
+        }
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(if_block_anchor);
+      }
+      if_block.d(detaching);
+    }
+  };
+}
+function create_else_block(ctx) {
+  let span;
+  let t0_value = (
+    /*getSlotDuration*/
+    ctx[32](
+      /*slot*/
+      ctx[147]
+    ) + ""
+  );
+  let t0;
+  let t1;
+  let span_title_value;
+  let mounted;
+  let dispose;
+  function click_handler_10(...args) {
+    return (
+      /*click_handler_10*/
+      ctx[93](
+        /*slot*/
+        ctx[147],
+        /*cellKey*/
+        ctx[149],
+        ...args
+      )
+    );
+  }
+  return {
+    c() {
+      span = element("span");
+      t0 = text(t0_value);
+      t1 = text("m");
+      attr(span, "class", "tp-te-duration-badge svelte-pnrkh9");
+      attr(span, "title", span_title_value = "Duration: " + /*getSlotDuration*/
+      ctx[32](
+        /*slot*/
+        ctx[147]
+      ) + " min \u2014 click to edit");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t0);
+      append(span, t1);
+      if (!mounted) {
+        dispose = listen(span, "click", stop_propagation(click_handler_10));
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*_slotGrid, DAYS, periods*/
+      268438528 && t0_value !== (t0_value = /*getSlotDuration*/
+      ctx[32](
+        /*slot*/
+        ctx[147]
+      ) + "")) set_data(t0, t0_value);
+      if (dirty[0] & /*_slotGrid, DAYS, periods*/
+      268438528 && span_title_value !== (span_title_value = "Duration: " + /*getSlotDuration*/
+      ctx[32](
+        /*slot*/
+        ctx[147]
+      ) + " min \u2014 click to edit")) {
+        attr(span, "title", span_title_value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_14(ctx) {
+  let input;
+  let mounted;
+  let dispose;
+  function keydown_handler_2(...args) {
+    return (
+      /*keydown_handler_2*/
+      ctx[91](
+        /*slot*/
+        ctx[147],
+        ...args
+      )
+    );
+  }
+  function blur_handler() {
+    return (
+      /*blur_handler*/
+      ctx[92](
+        /*slot*/
+        ctx[147]
+      )
+    );
+  }
+  return {
+    c() {
+      input = element("input");
+      attr(input, "class", "tp-te-duration-input svelte-pnrkh9");
+      attr(input, "type", "number");
+      attr(input, "min", "1");
+      attr(input, "max", "480");
+      input.autofocus = true;
+    },
+    m(target, anchor) {
+      insert(target, input, anchor);
+      set_input_value(
+        input,
+        /*durationEditValue*/
+        ctx[14]
+      );
+      input.focus();
+      if (!mounted) {
+        dispose = [
+          listen(
+            input,
+            "input",
+            /*input_input_handler_1*/
+            ctx[90]
+          ),
+          listen(input, "click", stop_propagation(
+            /*click_handler*/
+            ctx[77]
+          )),
+          listen(input, "keydown", keydown_handler_2),
+          listen(input, "blur", blur_handler)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*durationEditValue*/
+      16384 && to_number(input.value) !== /*durationEditValue*/
+      ctx[14]) {
+        set_input_value(
+          input,
+          /*durationEditValue*/
+          ctx[14]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(input);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_each_block_7(ctx) {
+  let td;
+  function select_block_type_2(ctx2, dirty) {
+    if (
+      /*isNA*/
+      ctx2[150]
+    ) return create_if_block_11;
+    if (
+      /*slot*/
+      ctx2[147]
+    ) return create_if_block_12;
+    return create_else_block_1;
+  }
+  function select_block_ctx(ctx2, type) {
+    if (type === create_if_block_12) return get_if_ctx(ctx2);
+    return ctx2;
+  }
+  let current_block_type = select_block_type_2(ctx, [-1, -1, -1, -1, -1, -1]);
+  let if_block = current_block_type(select_block_ctx(ctx, current_block_type));
+  return {
+    c() {
+      td = element("td");
+      if_block.c();
+      attr(td, "class", "tp-te-cell svelte-pnrkh9");
+      toggle_class(td, "tp-te-cell--filled", !!/*slot*/
+      ctx[147] && !/*isNA*/
+      ctx[150]);
+      toggle_class(
+        td,
+        "tp-te-cell--open",
+        /*isOpen*/
+        ctx[148]
+      );
+      toggle_class(
+        td,
+        "tp-te-cell--na",
+        /*isNA*/
+        ctx[150]
+      );
+    },
+    m(target, anchor) {
+      insert(target, td, anchor);
+      if_block.m(td, null);
+    },
+    p(ctx2, dirty) {
+      if (current_block_type === (current_block_type = select_block_type_2(ctx2, dirty)) && if_block) {
+        if_block.p(select_block_ctx(ctx2, current_block_type), dirty);
+      } else {
+        if_block.d(1);
+        if_block = current_block_type(select_block_ctx(ctx2, current_block_type));
+        if (if_block) {
+          if_block.c();
+          if_block.m(td, null);
+        }
+      }
+      if (dirty[0] & /*_slotGrid, DAYS, periods, plugin*/
+      268438529) {
+        toggle_class(td, "tp-te-cell--filled", !!/*slot*/
+        ctx2[147] && !/*isNA*/
+        ctx2[150]);
+      }
+      if (dirty[0] & /*pickerDay, DAYS, pickerPeriodId, periods*/
+      3148800) {
+        toggle_class(
+          td,
+          "tp-te-cell--open",
+          /*isOpen*/
+          ctx2[148]
+        );
+      }
+      if (dirty[0] & /*plugin, periods, DAYS*/
+      3073) {
+        toggle_class(
+          td,
+          "tp-te-cell--na",
+          /*isNA*/
+          ctx2[150]
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(td);
+      }
+      if_block.d();
+    }
+  };
+}
+function create_each_block_6(ctx) {
+  let tr;
+  let td;
+  let span0;
+  let t0_value = (
+    /*period*/
+    ctx[142].name + ""
+  );
+  let t0;
+  let t1;
+  let span1;
+  let t2_value = (
+    /*period*/
+    ctx[142].start + ""
+  );
+  let t2;
+  let t3;
+  let t4_value = (
+    /*period*/
+    ctx[142].end + ""
+  );
+  let t4;
+  let t5;
+  let t6;
+  let each_value_7 = ensure_array_like(
+    /*DAYS*/
+    ctx[11]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_7.length; i += 1) {
+    each_blocks[i] = create_each_block_7(get_each_context_7(ctx, each_value_7, i));
+  }
+  return {
+    c() {
+      tr = element("tr");
+      td = element("td");
+      span0 = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      span1 = element("span");
+      t2 = text(t2_value);
+      t3 = text("\u2013");
+      t4 = text(t4_value);
+      t5 = space();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t6 = space();
+      attr(span0, "class", "tp-te-period-name svelte-pnrkh9");
+      attr(span1, "class", "tp-te-period-time svelte-pnrkh9");
+      attr(td, "class", "tp-te-period-cell svelte-pnrkh9");
+      set_style(td, "background", hexToRgba2(
+        /*tc*/
+        ctx[143],
+        0.25
+      ));
+      set_style(td, "border-left", "3px solid " + /*tc*/
+      ctx[143]);
+      set_style(tr, "background", hexToRgba2(
+        /*tc*/
+        ctx[143],
+        0.05
+      ));
+    },
+    m(target, anchor) {
+      insert(target, tr, anchor);
+      append(tr, td);
+      append(td, span0);
+      append(span0, t0);
+      append(td, t1);
+      append(td, span1);
+      append(span1, t2);
+      append(span1, t3);
+      append(span1, t4);
+      append(tr, t5);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(tr, null);
+        }
+      }
+      append(tr, t6);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*periods*/
+      1024 && t0_value !== (t0_value = /*period*/
+      ctx2[142].name + "")) set_data(t0, t0_value);
+      if (dirty[0] & /*periods*/
+      1024 && t2_value !== (t2_value = /*period*/
+      ctx2[142].start + "")) set_data(t2, t2_value);
+      if (dirty[0] & /*periods*/
+      1024 && t4_value !== (t4_value = /*period*/
+      ctx2[142].end + "")) set_data(t4, t4_value);
+      if (dirty[0] & /*periods*/
+      1024) {
+        set_style(td, "background", hexToRgba2(
+          /*tc*/
+          ctx2[143],
+          0.25
+        ));
+      }
+      if (dirty[0] & /*periods*/
+      1024) {
+        set_style(td, "border-left", "3px solid " + /*tc*/
+        ctx2[143]);
+      }
+      if (dirty[0] & /*_slotGrid, DAYS, periods, plugin, pickerDay, pickerPeriodId, durationEditValue, durationEditKey, directedTimeEnabled, currentWeek*/
+      1345354753 | dirty[1] & /*commitDurationEdit, getSlotDuration, startDurationEdit, isDirectedSlot, getLabel, openPicker*/
+      196638) {
+        each_value_7 = ensure_array_like(
+          /*DAYS*/
+          ctx2[11]
+        );
+        let i;
+        for (i = 0; i < each_value_7.length; i += 1) {
+          const child_ctx = get_each_context_7(ctx2, each_value_7, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_7(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(tr, t6);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_7.length;
+      }
+      if (dirty[0] & /*periods*/
+      1024) {
+        set_style(tr, "background", hexToRgba2(
+          /*tc*/
+          ctx2[143],
+          0.05
+        ));
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(tr);
+      }
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_if_block_1(ctx) {
+  let div1;
+  let div0;
+  let input;
+  let focusPicker_action;
+  let t0;
+  let show_if_1 = (
+    /*getSlot*/
+    ctx[46](
+      /*pickerDay*/
+      ctx[20],
+      /*pickerPeriodId*/
+      ctx[21],
+      /*currentWeek*/
+      ctx[12]
+    )
+  );
+  let t1;
+  let show_if = (
+    /*sortedSubjects*/
+    ctx[26].some(
+      /*func*/
+      ctx[75]
+    )
+  );
+  let t2;
+  let t3;
+  let t4;
+  let div1_style_value;
+  let mounted;
+  let dispose;
+  let if_block0 = show_if_1 && create_if_block_10(ctx);
+  let if_block1 = show_if && create_if_block_8(ctx);
+  let if_block2 = (
+    /*pickerFilteredDirected*/
+    ctx[24].length && create_if_block_6(ctx)
+  );
+  let if_block3 = (
+    /*pickerFilteredOther*/
+    ctx[23].length && create_if_block_4(ctx)
+  );
+  let if_block4 = (
+    /*archivedCount*/
+    ctx[29] > 0 && create_if_block_2(ctx)
+  );
+  return {
+    c() {
+      div1 = element("div");
+      div0 = element("div");
+      input = element("input");
+      t0 = space();
+      if (if_block0) if_block0.c();
+      t1 = space();
+      if (if_block1) if_block1.c();
+      t2 = space();
+      if (if_block2) if_block2.c();
+      t3 = space();
+      if (if_block3) if_block3.c();
+      t4 = space();
+      if (if_block4) if_block4.c();
+      attr(input, "class", "tp-te-picker-search svelte-pnrkh9");
+      attr(input, "type", "text");
+      attr(input, "placeholder", "Search\u2026");
+      attr(div0, "class", "tp-te-picker-inner svelte-pnrkh9");
+      attr(div1, "class", "tp-te-picker svelte-pnrkh9");
+      attr(div1, "style", div1_style_value = getPickerStyle(
+        /*pickerEl*/
+        ctx[22]
+      ));
+    },
+    m(target, anchor) {
+      insert(target, div1, anchor);
+      append(div1, div0);
+      append(div0, input);
+      set_input_value(
+        input,
+        /*pickerSearch*/
+        ctx[4]
+      );
+      append(div0, t0);
+      if (if_block0) if_block0.m(div0, null);
+      append(div0, t1);
+      if (if_block1) if_block1.m(div0, null);
+      append(div0, t2);
+      if (if_block2) if_block2.m(div0, null);
+      append(div0, t3);
+      if (if_block3) if_block3.m(div0, null);
+      append(div0, t4);
+      if (if_block4) if_block4.m(div0, null);
+      if (!mounted) {
+        dispose = [
+          listen(
+            input,
+            "input",
+            /*input_input_handler_2*/
+            ctx[95]
+          ),
+          action_destroyer(focusPicker_action = focusPicker.call(null, input)),
+          listen(input, "click", stop_propagation(
+            /*click_handler_1*/
+            ctx[76]
+          ))
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*pickerSearch*/
+      16 && input.value !== /*pickerSearch*/
+      ctx2[4]) {
+        set_input_value(
+          input,
+          /*pickerSearch*/
+          ctx2[4]
+        );
+      }
+      if (dirty[0] & /*pickerDay, pickerPeriodId, currentWeek*/
+      3149824) show_if_1 = /*getSlot*/
+      ctx2[46](
+        /*pickerDay*/
+        ctx2[20],
+        /*pickerPeriodId*/
+        ctx2[21],
+        /*currentWeek*/
+        ctx2[12]
+      );
+      if (show_if_1) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_10(ctx2);
+          if_block0.c();
+          if_block0.m(div0, t1);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (dirty[0] & /*sortedSubjects, pickerFilteredClasses*/
+      100663296) show_if = /*sortedSubjects*/
+      ctx2[26].some(
+        /*func*/
+        ctx2[75]
+      );
+      if (show_if) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+        } else {
+          if_block1 = create_if_block_8(ctx2);
+          if_block1.c();
+          if_block1.m(div0, t2);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (
+        /*pickerFilteredDirected*/
+        ctx2[24].length
+      ) {
+        if (if_block2) {
+          if_block2.p(ctx2, dirty);
+        } else {
+          if_block2 = create_if_block_6(ctx2);
+          if_block2.c();
+          if_block2.m(div0, t3);
+        }
+      } else if (if_block2) {
+        if_block2.d(1);
+        if_block2 = null;
+      }
+      if (
+        /*pickerFilteredOther*/
+        ctx2[23].length
+      ) {
+        if (if_block3) {
+          if_block3.p(ctx2, dirty);
+        } else {
+          if_block3 = create_if_block_4(ctx2);
+          if_block3.c();
+          if_block3.m(div0, t4);
+        }
+      } else if (if_block3) {
+        if_block3.d(1);
+        if_block3 = null;
+      }
+      if (
+        /*archivedCount*/
+        ctx2[29] > 0
+      ) {
+        if (if_block4) {
+          if_block4.p(ctx2, dirty);
+        } else {
+          if_block4 = create_if_block_2(ctx2);
+          if_block4.c();
+          if_block4.m(div0, null);
+        }
+      } else if (if_block4) {
+        if_block4.d(1);
+        if_block4 = null;
+      }
+      if (dirty[0] & /*pickerEl*/
+      4194304 && div1_style_value !== (div1_style_value = getPickerStyle(
+        /*pickerEl*/
+        ctx2[22]
+      ))) {
+        attr(div1, "style", div1_style_value);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div1);
+      }
+      if (if_block0) if_block0.d();
+      if (if_block1) if_block1.d();
+      if (if_block2) if_block2.d();
+      if (if_block3) if_block3.d();
+      if (if_block4) if_block4.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_10(ctx) {
+  let button;
+  let span;
+  let icon_action;
+  let t0;
+  let t1;
+  let div;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      button = element("button");
+      span = element("span");
+      t0 = text(" Remove");
+      t1 = space();
+      div = element("div");
+      attr(button, "class", "tp-te-picker-clear svelte-pnrkh9");
+      attr(div, "class", "tp-te-picker-divider svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      append(button, span);
+      append(button, t0);
+      insert(target, t1, anchor);
+      insert(target, div, anchor);
+      if (!mounted) {
+        dispose = [
+          action_destroyer(icon_action = /*icon*/
+          ctx[31].call(null, span, "x")),
+          listen(
+            button,
+            "click",
+            /*click_handler_12*/
+            ctx[96]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+        detach(t1);
+        detach(div);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_8(ctx) {
+  let div;
+  let t1;
+  let each_1_anchor;
+  let each_value_4 = ensure_array_like(
+    /*sortedSubjects*/
+    ctx[26]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_4.length; i += 1) {
+    each_blocks[i] = create_each_block_4(get_each_context_4(ctx, each_value_4, i));
+  }
+  return {
+    c() {
+      div = element("div");
+      div.textContent = "Classes";
+      t1 = space();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      each_1_anchor = empty();
+      attr(div, "class", "tp-te-picker-group-label svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      insert(target, t1, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(target, anchor);
+        }
+      }
+      insert(target, each_1_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*pickerFilteredClasses, sortedSubjects, periods, pickerPeriodId, pickerDay, currentWeek*/
+      103814144 | dirty[1] & /*toggleArchiveClass, assignItem, closePicker*/
+      786944) {
+        each_value_4 = ensure_array_like(
+          /*sortedSubjects*/
+          ctx2[26]
+        );
+        let i;
+        for (i = 0; i < each_value_4.length; i += 1) {
+          const child_ctx = get_each_context_4(ctx2, each_value_4, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_4(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_4.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+        detach(t1);
+        detach(each_1_anchor);
+      }
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_if_block_9(ctx) {
+  let span;
+  let t_value = (
+    /*secondary*/
+    ctx[139] + ""
+  );
+  let t;
+  return {
+    c() {
+      span = element("span");
+      t = text(t_value);
+      attr(span, "class", "tp-te-picker-room svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
+      100663296 && t_value !== (t_value = /*secondary*/
+      ctx2[139] + "")) set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_each_block_5(ctx) {
+  let div;
+  let button0;
+  let span1;
+  let span0;
+  let t0_value = (
+    /*cls*/
+    ctx[128].code + ""
+  );
+  let t0;
+  let t1;
+  let t2;
+  let button1;
+  let icon_action;
+  let t3;
+  let mounted;
+  let dispose;
+  let if_block = (
+    /*secondary*/
+    ctx[139] && create_if_block_9(ctx)
+  );
+  function click_handler_13() {
+    return (
+      /*click_handler_13*/
+      ctx[97](
+        /*cls*/
+        ctx[128]
+      )
+    );
+  }
+  function click_handler_14() {
+    return (
+      /*click_handler_14*/
+      ctx[98](
+        /*cls*/
+        ctx[128]
+      )
+    );
+  }
+  return {
+    c() {
+      div = element("div");
+      button0 = element("button");
+      span1 = element("span");
+      span0 = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      if (if_block) if_block.c();
+      t2 = space();
+      button1 = element("button");
+      t3 = space();
+      attr(span0, "class", "tp-te-picker-code svelte-pnrkh9");
+      attr(span1, "class", "tp-te-picker-item-text svelte-pnrkh9");
+      attr(button0, "class", "tp-te-picker-item svelte-pnrkh9");
+      set_style(button0, "border-left", "3px solid " + /*cls*/
+      ctx[128].colour);
+      attr(button1, "class", "tp-te-archive-btn svelte-pnrkh9");
+      attr(button1, "title", "Archive class");
+      attr(div, "class", "tp-te-picker-row svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, button0);
+      append(button0, span1);
+      append(span1, span0);
+      append(span0, t0);
+      append(span1, t1);
+      if (if_block) if_block.m(span1, null);
+      append(div, t2);
+      append(div, button1);
+      append(div, t3);
+      if (!mounted) {
+        dispose = [
+          listen(button0, "click", click_handler_13),
+          listen(button1, "click", stop_propagation(click_handler_14)),
+          action_destroyer(icon_action = /*icon*/
+          ctx[31].call(null, button1, "archive"))
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
+      100663296 && t0_value !== (t0_value = /*cls*/
+      ctx[128].code + "")) set_data(t0, t0_value);
+      if (
+        /*secondary*/
+        ctx[139]
+      ) {
+        if (if_block) {
+          if_block.p(ctx, dirty);
+        } else {
+          if_block = create_if_block_9(ctx);
+          if_block.c();
+          if_block.m(span1, null);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+      if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
+      100663296) {
+        set_style(button0, "border-left", "3px solid " + /*cls*/
+        ctx[128].colour);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      if (if_block) if_block.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_each_block_4(ctx) {
+  let each_1_anchor;
+  let each_value_5 = ensure_array_like(
+    /*subjClasses*/
+    ctx[136]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_5.length; i += 1) {
+    each_blocks[i] = create_each_block_5(get_each_context_5(ctx, each_value_5, i));
+  }
+  return {
+    c() {
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      each_1_anchor = empty();
+    },
+    m(target, anchor) {
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(target, anchor);
+        }
+      }
+      insert(target, each_1_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*pickerFilteredClasses, sortedSubjects, periods, pickerPeriodId, pickerDay, currentWeek*/
+      103814144 | dirty[1] & /*toggleArchiveClass, assignItem, closePicker*/
+      786944) {
+        each_value_5 = ensure_array_like(
+          /*subjClasses*/
+          ctx2[136]
+        );
+        let i;
+        for (i = 0; i < each_value_5.length; i += 1) {
+          const child_ctx = get_each_context_5(ctx2, each_value_5, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_5(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_5.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(each_1_anchor);
+      }
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_if_block_6(ctx) {
+  let div0;
+  let t0;
+  let div1;
+  let t2;
+  let each_1_anchor;
+  let each_value_3 = ensure_array_like(
+    /*pickerFilteredDirected*/
+    ctx[24]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_3.length; i += 1) {
+    each_blocks[i] = create_each_block_3(get_each_context_3(ctx, each_value_3, i));
+  }
+  return {
+    c() {
+      div0 = element("div");
+      t0 = space();
+      div1 = element("div");
+      div1.textContent = "Directed time";
+      t2 = space();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      each_1_anchor = empty();
+      attr(div0, "class", "tp-te-picker-divider svelte-pnrkh9");
+      attr(div1, "class", "tp-te-picker-group-label svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div0, anchor);
+      insert(target, t0, anchor);
+      insert(target, div1, anchor);
+      insert(target, t2, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(target, anchor);
+        }
+      }
+      insert(target, each_1_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*pickerFilteredDirected, periods, pickerPeriodId, pickerDay, currentWeek*/
+      19928064 | dirty[1] & /*toggleArchiveActivity, assignItem, closePicker*/
+      787456) {
+        each_value_3 = ensure_array_like(
+          /*pickerFilteredDirected*/
+          ctx2[24]
+        );
+        let i;
+        for (i = 0; i < each_value_3.length; i += 1) {
+          const child_ctx = get_each_context_3(ctx2, each_value_3, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_3(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_3.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div0);
+        detach(t0);
+        detach(div1);
+        detach(t2);
+        detach(each_1_anchor);
+      }
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_if_block_7(ctx) {
+  let span;
+  let t_value = (
+    /*act*/
+    ctx[125].classroom + ""
+  );
+  let t;
+  return {
+    c() {
+      span = element("span");
+      t = text(t_value);
+      attr(span, "class", "tp-te-picker-room svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*pickerFilteredDirected*/
+      16777216 && t_value !== (t_value = /*act*/
+      ctx2[125].classroom + "")) set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_each_block_3(ctx) {
+  let div;
+  let button0;
+  let span1;
+  let span0;
+  let t0_value = (
+    /*act*/
+    ctx[125].label + ""
+  );
+  let t0;
+  let t1;
+  let t2;
+  let button1;
+  let icon_action;
+  let t3;
+  let mounted;
+  let dispose;
+  let if_block = (
+    /*act*/
+    ctx[125].classroom && create_if_block_7(ctx)
+  );
+  function click_handler_15() {
+    return (
+      /*click_handler_15*/
+      ctx[100](
+        /*act*/
+        ctx[125]
+      )
+    );
+  }
+  function click_handler_16() {
+    return (
+      /*click_handler_16*/
+      ctx[101](
+        /*act*/
+        ctx[125]
+      )
+    );
+  }
+  return {
+    c() {
+      div = element("div");
+      button0 = element("button");
+      span1 = element("span");
+      span0 = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      if (if_block) if_block.c();
+      t2 = space();
+      button1 = element("button");
+      t3 = space();
+      attr(span0, "class", "tp-te-picker-code svelte-pnrkh9");
+      attr(span1, "class", "tp-te-picker-item-text svelte-pnrkh9");
+      attr(button0, "class", "tp-te-picker-item svelte-pnrkh9");
+      set_style(button0, "border-left", "3px solid " + /*act*/
+      ctx[125].colour);
+      attr(button1, "class", "tp-te-archive-btn svelte-pnrkh9");
+      attr(button1, "title", "Archive activity");
+      attr(div, "class", "tp-te-picker-row svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, button0);
+      append(button0, span1);
+      append(span1, span0);
+      append(span0, t0);
+      append(span1, t1);
+      if (if_block) if_block.m(span1, null);
+      append(div, t2);
+      append(div, button1);
+      append(div, t3);
+      if (!mounted) {
+        dispose = [
+          listen(button0, "click", click_handler_15),
+          listen(button1, "click", stop_propagation(click_handler_16)),
+          action_destroyer(icon_action = /*icon*/
+          ctx[31].call(null, button1, "archive"))
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*pickerFilteredDirected*/
+      16777216 && t0_value !== (t0_value = /*act*/
+      ctx[125].label + "")) set_data(t0, t0_value);
+      if (
+        /*act*/
+        ctx[125].classroom
+      ) {
+        if (if_block) {
+          if_block.p(ctx, dirty);
+        } else {
+          if_block = create_if_block_7(ctx);
+          if_block.c();
+          if_block.m(span1, null);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+      if (dirty[0] & /*pickerFilteredDirected*/
+      16777216) {
+        set_style(button0, "border-left", "3px solid " + /*act*/
+        ctx[125].colour);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      if (if_block) if_block.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_4(ctx) {
+  let div0;
+  let t0;
+  let div1;
+  let t2;
+  let each_1_anchor;
+  let each_value_2 = ensure_array_like(
+    /*pickerFilteredOther*/
+    ctx[23]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_2.length; i += 1) {
+    each_blocks[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
+  }
+  return {
+    c() {
+      div0 = element("div");
+      t0 = space();
+      div1 = element("div");
+      div1.textContent = "Other events";
+      t2 = space();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      each_1_anchor = empty();
+      attr(div0, "class", "tp-te-picker-divider svelte-pnrkh9");
+      attr(div1, "class", "tp-te-picker-group-label svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div0, anchor);
+      insert(target, t0, anchor);
+      insert(target, div1, anchor);
+      insert(target, t2, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(target, anchor);
+        }
+      }
+      insert(target, each_1_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*pickerFilteredOther, periods, pickerPeriodId, pickerDay, currentWeek*/
+      11539456 | dirty[1] & /*toggleArchiveActivity, assignItem, closePicker*/
+      787456) {
+        each_value_2 = ensure_array_like(
+          /*pickerFilteredOther*/
+          ctx2[23]
+        );
+        let i;
+        for (i = 0; i < each_value_2.length; i += 1) {
+          const child_ctx = get_each_context_2(ctx2, each_value_2, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_2(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_2.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div0);
+        detach(t0);
+        detach(div1);
+        detach(t2);
+        detach(each_1_anchor);
+      }
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_if_block_5(ctx) {
+  let span;
+  let t_value = (
+    /*act*/
+    ctx[125].classroom + ""
+  );
+  let t;
+  return {
+    c() {
+      span = element("span");
+      t = text(t_value);
+      attr(span, "class", "tp-te-picker-room svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*pickerFilteredOther*/
+      8388608 && t_value !== (t_value = /*act*/
+      ctx2[125].classroom + "")) set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_each_block_2(ctx) {
+  let div;
+  let button0;
+  let span1;
+  let span0;
+  let t0_value = (
+    /*act*/
+    ctx[125].label + ""
+  );
+  let t0;
+  let t1;
+  let t2;
+  let button1;
+  let icon_action;
+  let t3;
+  let mounted;
+  let dispose;
+  let if_block = (
+    /*act*/
+    ctx[125].classroom && create_if_block_5(ctx)
+  );
+  function click_handler_17() {
+    return (
+      /*click_handler_17*/
+      ctx[102](
+        /*act*/
+        ctx[125]
+      )
+    );
+  }
+  function click_handler_18() {
+    return (
+      /*click_handler_18*/
+      ctx[103](
+        /*act*/
+        ctx[125]
+      )
+    );
+  }
+  return {
+    c() {
+      div = element("div");
+      button0 = element("button");
+      span1 = element("span");
+      span0 = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      if (if_block) if_block.c();
+      t2 = space();
+      button1 = element("button");
+      t3 = space();
+      attr(span0, "class", "tp-te-picker-code svelte-pnrkh9");
+      attr(span1, "class", "tp-te-picker-item-text svelte-pnrkh9");
+      attr(button0, "class", "tp-te-picker-item svelte-pnrkh9");
+      set_style(button0, "border-left", "3px solid " + /*act*/
+      ctx[125].colour);
+      attr(button1, "class", "tp-te-archive-btn svelte-pnrkh9");
+      attr(button1, "title", "Archive activity");
+      attr(div, "class", "tp-te-picker-row svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, button0);
+      append(button0, span1);
+      append(span1, span0);
+      append(span0, t0);
+      append(span1, t1);
+      if (if_block) if_block.m(span1, null);
+      append(div, t2);
+      append(div, button1);
+      append(div, t3);
+      if (!mounted) {
+        dispose = [
+          listen(button0, "click", click_handler_17),
+          listen(button1, "click", stop_propagation(click_handler_18)),
+          action_destroyer(icon_action = /*icon*/
+          ctx[31].call(null, button1, "archive"))
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*pickerFilteredOther*/
+      8388608 && t0_value !== (t0_value = /*act*/
+      ctx[125].label + "")) set_data(t0, t0_value);
+      if (
+        /*act*/
+        ctx[125].classroom
+      ) {
+        if (if_block) {
+          if_block.p(ctx, dirty);
+        } else {
+          if_block = create_if_block_5(ctx);
+          if_block.c();
+          if_block.m(span1, null);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+      if (dirty[0] & /*pickerFilteredOther*/
+      8388608) {
+        set_style(button0, "border-left", "3px solid " + /*act*/
+        ctx[125].colour);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      if (if_block) if_block.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_2(ctx) {
+  let div;
+  let t0;
+  let button;
+  let t1_value = (
+    /*showArchived*/
+    ctx[2] ? "Hide archived" : `Show archived (${/*archivedCount*/
+    ctx[29]})`
+  );
+  let t1;
+  let t2;
+  let if_block_anchor;
+  let mounted;
+  let dispose;
+  let if_block = (
+    /*showArchived*/
+    ctx[2] && create_if_block_3(ctx)
+  );
+  return {
+    c() {
+      div = element("div");
+      t0 = space();
+      button = element("button");
+      t1 = text(t1_value);
+      t2 = space();
+      if (if_block) if_block.c();
+      if_block_anchor = empty();
+      attr(div, "class", "tp-te-picker-divider svelte-pnrkh9");
+      attr(button, "class", "tp-te-show-archived-btn svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      insert(target, t0, anchor);
+      insert(target, button, anchor);
+      append(button, t1);
+      insert(target, t2, anchor);
+      if (if_block) if_block.m(target, anchor);
+      insert(target, if_block_anchor, anchor);
+      if (!mounted) {
+        dispose = listen(
+          button,
+          "click",
+          /*click_handler_19*/
+          ctx[104]
+        );
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*showArchived, archivedCount*/
+      536870916 && t1_value !== (t1_value = /*showArchived*/
+      ctx2[2] ? "Hide archived" : `Show archived (${/*archivedCount*/
+      ctx2[29]})`)) set_data(t1, t1_value);
+      if (
+        /*showArchived*/
+        ctx2[2]
+      ) {
+        if (if_block) {
+          if_block.p(ctx2, dirty);
+        } else {
+          if_block = create_if_block_3(ctx2);
+          if_block.c();
+          if_block.m(if_block_anchor.parentNode, if_block_anchor);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+        detach(t0);
+        detach(button);
+        detach(t2);
+        detach(if_block_anchor);
+      }
+      if (if_block) if_block.d(detaching);
+      mounted = false;
+      dispose();
+    }
+  };
+}
+function create_if_block_3(ctx) {
+  let t;
+  let each1_anchor;
+  let each_value_1 = ensure_array_like(
+    /*classes*/
+    ctx[9].filter(func_3)
+  );
+  let each_blocks_1 = [];
+  for (let i = 0; i < each_value_1.length; i += 1) {
+    each_blocks_1[i] = create_each_block_12(get_each_context_12(ctx, each_value_1, i));
+  }
+  let each_value = ensure_array_like(
+    /*activities*/
+    ctx[8].filter(func_4)
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value.length; i += 1) {
+    each_blocks[i] = create_each_block2(get_each_context2(ctx, each_value, i));
+  }
+  return {
+    c() {
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        each_blocks_1[i].c();
+      }
+      t = space();
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      each1_anchor = empty();
+    },
+    m(target, anchor) {
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        if (each_blocks_1[i]) {
+          each_blocks_1[i].m(target, anchor);
+        }
+      }
+      insert(target, t, anchor);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(target, anchor);
+        }
+      }
+      insert(target, each1_anchor, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*classes*/
+      512 | dirty[1] & /*toggleArchiveClass*/
+      512) {
+        each_value_1 = ensure_array_like(
+          /*classes*/
+          ctx2[9].filter(func_3)
+        );
+        let i;
+        for (i = 0; i < each_value_1.length; i += 1) {
+          const child_ctx = get_each_context_12(ctx2, each_value_1, i);
+          if (each_blocks_1[i]) {
+            each_blocks_1[i].p(child_ctx, dirty);
+          } else {
+            each_blocks_1[i] = create_each_block_12(child_ctx);
+            each_blocks_1[i].c();
+            each_blocks_1[i].m(t.parentNode, t);
+          }
+        }
+        for (; i < each_blocks_1.length; i += 1) {
+          each_blocks_1[i].d(1);
+        }
+        each_blocks_1.length = each_value_1.length;
+      }
+      if (dirty[0] & /*activities*/
+      256 | dirty[1] & /*toggleArchiveActivity*/
+      1024) {
+        each_value = ensure_array_like(
+          /*activities*/
+          ctx2[8].filter(func_4)
+        );
+        let i;
+        for (i = 0; i < each_value.length; i += 1) {
+          const child_ctx = get_each_context2(ctx2, each_value, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block2(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(each1_anchor.parentNode, each1_anchor);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value.length;
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+        detach(each1_anchor);
+      }
+      destroy_each(each_blocks_1, detaching);
+      destroy_each(each_blocks, detaching);
+    }
+  };
+}
+function create_each_block_12(ctx) {
+  let div;
+  let span2;
+  let span1;
+  let span0;
+  let t0_value = (
+    /*cls*/
+    ctx[128].code + ""
+  );
+  let t0;
+  let t1;
+  let button;
+  let icon_action;
+  let mounted;
+  let dispose;
+  function click_handler_20() {
+    return (
+      /*click_handler_20*/
+      ctx[105](
+        /*cls*/
+        ctx[128]
+      )
+    );
+  }
+  return {
+    c() {
+      div = element("div");
+      span2 = element("span");
+      span1 = element("span");
+      span0 = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      button = element("button");
+      attr(span0, "class", "tp-te-picker-code svelte-pnrkh9");
+      attr(span1, "class", "tp-te-picker-item-text svelte-pnrkh9");
+      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-pnrkh9");
+      set_style(span2, "border-left", "3px solid " + /*cls*/
+      ctx[128].colour);
+      set_style(span2, "opacity", "0.5");
+      attr(button, "class", "tp-te-archive-btn svelte-pnrkh9");
+      attr(button, "title", "Restore");
+      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, span2);
+      append(span2, span1);
+      append(span1, span0);
+      append(span0, t0);
+      append(div, t1);
+      append(div, button);
+      if (!mounted) {
+        dispose = [
+          listen(button, "click", click_handler_20),
+          action_destroyer(icon_action = /*icon*/
+          ctx[31].call(null, button, "rotate-ccw"))
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*classes*/
+      512 && t0_value !== (t0_value = /*cls*/
+      ctx[128].code + "")) set_data(t0, t0_value);
+      if (dirty[0] & /*classes*/
+      512) {
+        set_style(span2, "border-left", "3px solid " + /*cls*/
+        ctx[128].colour);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_each_block2(ctx) {
+  let div;
+  let span2;
+  let span1;
+  let span0;
+  let t0_value = (
+    /*act*/
+    ctx[125].label + ""
+  );
+  let t0;
+  let t1;
+  let button;
+  let icon_action;
+  let t2;
+  let mounted;
+  let dispose;
+  function click_handler_21() {
+    return (
+      /*click_handler_21*/
+      ctx[106](
+        /*act*/
+        ctx[125]
+      )
+    );
+  }
+  return {
+    c() {
+      div = element("div");
+      span2 = element("span");
+      span1 = element("span");
+      span0 = element("span");
+      t0 = text(t0_value);
+      t1 = space();
+      button = element("button");
+      t2 = space();
+      attr(span0, "class", "tp-te-picker-code svelte-pnrkh9");
+      attr(span1, "class", "tp-te-picker-item-text svelte-pnrkh9");
+      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-pnrkh9");
+      set_style(span2, "border-left", "3px solid " + /*act*/
+      ctx[125].colour);
+      set_style(span2, "opacity", "0.5");
+      attr(button, "class", "tp-te-archive-btn svelte-pnrkh9");
+      attr(button, "title", "Restore");
+      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+      append(div, span2);
+      append(span2, span1);
+      append(span1, span0);
+      append(span0, t0);
+      append(div, t1);
+      append(div, button);
+      append(div, t2);
+      if (!mounted) {
+        dispose = [
+          listen(button, "click", click_handler_21),
+          action_destroyer(icon_action = /*icon*/
+          ctx[31].call(null, button, "rotate-ccw"))
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+      if (dirty[0] & /*activities*/
+      256 && t0_value !== (t0_value = /*act*/
+      ctx[125].label + "")) set_data(t0, t0_value);
+      if (dirty[0] & /*activities*/
+      256) {
+        set_style(span2, "border-left", "3px solid " + /*act*/
+        ctx[125].colour);
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block2(ctx) {
+  let div2;
+  let div1;
+  let p;
+  let t1;
+  let div0;
+  let button0;
+  let t3;
+  let button1;
+  let t5;
+  let button2;
+  let mounted;
+  let dispose;
+  return {
+    c() {
+      div2 = element("div");
+      div1 = element("div");
+      p = element("p");
+      p.textContent = "You have unsaved changes. What would you like to do?";
+      t1 = space();
+      div0 = element("div");
+      button0 = element("button");
+      button0.textContent = "Save";
+      t3 = space();
+      button1 = element("button");
+      button1.textContent = "Discard";
+      t5 = space();
+      button2 = element("button");
+      button2.textContent = "Keep editing";
+      attr(p, "class", "tp-te-unsaved-msg svelte-pnrkh9");
+      attr(button0, "class", "tp-te-btn tp-te-btn-primary svelte-pnrkh9");
+      attr(button1, "class", "tp-te-btn tp-te-btn-danger svelte-pnrkh9");
+      attr(button2, "class", "tp-te-btn svelte-pnrkh9");
+      attr(div0, "class", "tp-te-unsaved-actions svelte-pnrkh9");
+      attr(div1, "class", "tp-te-unsaved-dialog svelte-pnrkh9");
+      attr(div2, "class", "tp-te-unsaved-overlay svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div2, anchor);
+      append(div2, div1);
+      append(div1, p);
+      append(div1, t1);
+      append(div1, div0);
+      append(div0, button0);
+      append(div0, t3);
+      append(div0, button1);
+      append(div0, t5);
+      append(div0, button2);
+      if (!mounted) {
+        dispose = [
+          listen(
+            button0,
+            "click",
+            /*confirmUnsaved_save*/
+            ctx[42]
+          ),
+          listen(
+            button1,
+            "click",
+            /*confirmUnsaved_discard*/
+            ctx[43]
+          ),
+          listen(
+            button2,
+            "click",
+            /*confirmUnsaved_cancel*/
+            ctx[44]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div2);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_fragment2(ctx) {
+  let div5;
+  let div2;
+  let div0;
+  let each_blocks_2 = [];
+  let each0_lookup = /* @__PURE__ */ new Map();
+  let t0;
+  let div1;
+  let button0;
+  let t2;
+  let t3;
+  let t4;
+  let t5;
+  let div3;
+  let table;
+  let thead;
+  let tr;
+  let th;
+  let t7;
+  let t8;
+  let tbody;
+  let t9;
+  let t10;
+  let t11;
+  let div4;
+  let button1;
+  let t13;
+  let button2;
+  let mounted;
+  let dispose;
+  let each_value_9 = ensure_array_like(
+    /*allTemplates*/
+    ctx[5]
+  );
+  const get_key = (ctx2) => (
+    /*tmpl*/
+    ctx2[156].id
+  );
+  for (let i = 0; i < each_value_9.length; i += 1) {
+    let child_ctx = get_each_context_9(ctx, each_value_9, i);
+    let key = get_key(child_ctx);
+    each0_lookup.set(key, each_blocks_2[i] = create_each_block_9(key, child_ctx));
+  }
+  let if_block0 = (
+    /*allTemplates*/
+    ctx[5].length > 1 && create_if_block_21(ctx)
+  );
+  let if_block1 = (
+    /*activeTemplate*/
+    ctx[6] && create_if_block_17(ctx)
+  );
+  let if_block2 = (
+    /*abEnabled*/
+    ctx[7] && create_if_block_16(ctx)
+  );
+  let each_value_8 = ensure_array_like(
+    /*DAYS*/
+    ctx[11]
+  );
+  let each_blocks_1 = [];
+  for (let i = 0; i < each_value_8.length; i += 1) {
+    each_blocks_1[i] = create_each_block_8(get_each_context_8(ctx, each_value_8, i));
+  }
+  let each_value_6 = ensure_array_like(
+    /*periods*/
+    ctx[10]
+  );
+  let each_blocks = [];
+  for (let i = 0; i < each_value_6.length; i += 1) {
+    each_blocks[i] = create_each_block_6(get_each_context_6(ctx, each_value_6, i));
+  }
+  let if_block3 = (
+    /*pickerDay*/
+    ctx[20] && /*pickerPeriodId*/
+    ctx[21] && /*pickerEl*/
+    ctx[22] && create_if_block_1(ctx)
+  );
+  let if_block4 = (
+    /*showUnsavedConfirm*/
+    ctx[19] && create_if_block2(ctx)
+  );
+  return {
+    c() {
+      div5 = element("div");
+      div2 = element("div");
+      div0 = element("div");
+      for (let i = 0; i < each_blocks_2.length; i += 1) {
+        each_blocks_2[i].c();
+      }
+      t0 = space();
+      div1 = element("div");
+      button0 = element("button");
+      button0.textContent = "+ New Template";
+      t2 = space();
+      if (if_block0) if_block0.c();
+      t3 = space();
+      if (if_block1) if_block1.c();
+      t4 = space();
+      if (if_block2) if_block2.c();
+      t5 = space();
+      div3 = element("div");
+      table = element("table");
+      thead = element("thead");
+      tr = element("tr");
+      th = element("th");
+      th.textContent = "Period";
+      t7 = space();
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        each_blocks_1[i].c();
+      }
+      t8 = space();
+      tbody = element("tbody");
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        each_blocks[i].c();
+      }
+      t9 = space();
+      if (if_block3) if_block3.c();
+      t10 = space();
+      if (if_block4) if_block4.c();
+      t11 = space();
+      div4 = element("div");
+      button1 = element("button");
+      button1.textContent = "Cancel";
+      t13 = space();
+      button2 = element("button");
+      button2.textContent = "Save Timetable";
+      attr(div0, "class", "tp-te-tmpl-tabs svelte-pnrkh9");
+      attr(button0, "class", "tp-te-tmpl-add-btn svelte-pnrkh9");
+      attr(div1, "class", "tp-te-tmpl-actions svelte-pnrkh9");
+      attr(div2, "class", "tp-te-tmpl-bar svelte-pnrkh9");
+      attr(th, "class", "tp-te-th tp-te-th--period svelte-pnrkh9");
+      attr(table, "class", "tp-te-grid svelte-pnrkh9");
+      attr(div3, "class", "tp-te-grid-wrap svelte-pnrkh9");
+      attr(button1, "class", "tp-te-btn svelte-pnrkh9");
+      attr(button2, "class", "tp-te-btn tp-te-btn-primary svelte-pnrkh9");
+      attr(div4, "class", "tp-te-footer svelte-pnrkh9");
+      attr(div5, "class", "tp-te-wrap svelte-pnrkh9");
+    },
+    m(target, anchor) {
+      insert(target, div5, anchor);
+      append(div5, div2);
+      append(div2, div0);
+      for (let i = 0; i < each_blocks_2.length; i += 1) {
+        if (each_blocks_2[i]) {
+          each_blocks_2[i].m(div0, null);
+        }
+      }
+      append(div2, t0);
+      append(div2, div1);
+      append(div1, button0);
+      append(div1, t2);
+      if (if_block0) if_block0.m(div1, null);
+      append(div5, t3);
+      if (if_block1) if_block1.m(div5, null);
+      append(div5, t4);
+      if (if_block2) if_block2.m(div5, null);
+      append(div5, t5);
+      append(div5, div3);
+      append(div3, table);
+      append(table, thead);
+      append(thead, tr);
+      append(tr, th);
+      append(tr, t7);
+      for (let i = 0; i < each_blocks_1.length; i += 1) {
+        if (each_blocks_1[i]) {
+          each_blocks_1[i].m(tr, null);
+        }
+      }
+      append(table, t8);
+      append(table, tbody);
+      for (let i = 0; i < each_blocks.length; i += 1) {
+        if (each_blocks[i]) {
+          each_blocks[i].m(tbody, null);
+        }
+      }
+      append(div5, t9);
+      if (if_block3) if_block3.m(div5, null);
+      append(div5, t10);
+      if (if_block4) if_block4.m(div5, null);
+      append(div5, t11);
+      append(div5, div4);
+      append(div4, button1);
+      append(div4, t13);
+      append(div4, button2);
+      if (!mounted) {
+        dispose = [
+          listen(
+            window_1,
+            "keydown",
+            /*keydown_handler*/
+            ctx[78]
+          ),
+          listen(
+            window_1,
+            "mousedown",
+            /*mousedown_handler*/
+            ctx[79]
+          ),
+          listen(
+            button0,
+            "click",
+            /*openAddTemplate*/
+            ctx[54]
+          ),
+          listen(
+            button1,
+            "click",
+            /*onCancel*/
+            ctx[45]
+          ),
+          listen(
+            button2,
+            "click",
+            /*click_handler_22*/
+            ctx[107]
+          )
+        ];
+        mounted = true;
+      }
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*renameValue, renamingId, allTemplates, activeTemplateId*/
+      393250 | dirty[1] & /*commitRename, startRename, today, switchTemplate*/
+      480) {
+        each_value_9 = ensure_array_like(
+          /*allTemplates*/
+          ctx2[5]
+        );
+        each_blocks_2 = update_keyed_each(each_blocks_2, dirty, get_key, 1, ctx2, each_value_9, each0_lookup, div0, destroy_block, create_each_block_9, null, get_each_context_9);
+      }
+      if (
+        /*allTemplates*/
+        ctx2[5].length > 1
+      ) {
+        if (if_block0) {
+          if_block0.p(ctx2, dirty);
+        } else {
+          if_block0 = create_if_block_21(ctx2);
+          if_block0.c();
+          if_block0.m(div1, null);
+        }
+      } else if (if_block0) {
+        if_block0.d(1);
+        if_block0 = null;
+      }
+      if (
+        /*activeTemplate*/
+        ctx2[6]
+      ) {
+        if (if_block1) {
+          if_block1.p(ctx2, dirty);
+        } else {
+          if_block1 = create_if_block_17(ctx2);
+          if_block1.c();
+          if_block1.m(div5, t4);
+        }
+      } else if (if_block1) {
+        if_block1.d(1);
+        if_block1 = null;
+      }
+      if (
+        /*abEnabled*/
+        ctx2[7]
+      ) {
+        if (if_block2) {
+          if_block2.p(ctx2, dirty);
+        } else {
+          if_block2 = create_if_block_16(ctx2);
+          if_block2.c();
+          if_block2.m(div5, t5);
+        }
+      } else if (if_block2) {
+        if_block2.d(1);
+        if_block2 = null;
+      }
+      if (dirty[0] & /*DAYS*/
+      2048) {
+        each_value_8 = ensure_array_like(
+          /*DAYS*/
+          ctx2[11]
+        );
+        let i;
+        for (i = 0; i < each_value_8.length; i += 1) {
+          const child_ctx = get_each_context_8(ctx2, each_value_8, i);
+          if (each_blocks_1[i]) {
+            each_blocks_1[i].p(child_ctx, dirty);
+          } else {
+            each_blocks_1[i] = create_each_block_8(child_ctx);
+            each_blocks_1[i].c();
+            each_blocks_1[i].m(tr, null);
+          }
+        }
+        for (; i < each_blocks_1.length; i += 1) {
+          each_blocks_1[i].d(1);
+        }
+        each_blocks_1.length = each_value_8.length;
+      }
+      if (dirty[0] & /*periods, DAYS, _slotGrid, plugin, pickerDay, pickerPeriodId, durationEditValue, durationEditKey, directedTimeEnabled, currentWeek*/
+      1345354753 | dirty[1] & /*getPeriodTypeColour, commitDurationEdit, getSlotDuration, startDurationEdit, isDirectedSlot, getLabel, openPicker*/
+      33751070) {
+        each_value_6 = ensure_array_like(
+          /*periods*/
+          ctx2[10]
+        );
+        let i;
+        for (i = 0; i < each_value_6.length; i += 1) {
+          const child_ctx = get_each_context_6(ctx2, each_value_6, i);
+          if (each_blocks[i]) {
+            each_blocks[i].p(child_ctx, dirty);
+          } else {
+            each_blocks[i] = create_each_block_6(child_ctx);
+            each_blocks[i].c();
+            each_blocks[i].m(tbody, null);
+          }
+        }
+        for (; i < each_blocks.length; i += 1) {
+          each_blocks[i].d(1);
+        }
+        each_blocks.length = each_value_6.length;
+      }
+      if (
+        /*pickerDay*/
+        ctx2[20] && /*pickerPeriodId*/
+        ctx2[21] && /*pickerEl*/
+        ctx2[22]
+      ) {
+        if (if_block3) {
+          if_block3.p(ctx2, dirty);
+        } else {
+          if_block3 = create_if_block_1(ctx2);
+          if_block3.c();
+          if_block3.m(div5, t10);
+        }
+      } else if (if_block3) {
+        if_block3.d(1);
+        if_block3 = null;
+      }
+      if (
+        /*showUnsavedConfirm*/
+        ctx2[19]
+      ) {
+        if (if_block4) {
+          if_block4.p(ctx2, dirty);
+        } else {
+          if_block4 = create_if_block2(ctx2);
+          if_block4.c();
+          if_block4.m(div5, t11);
+        }
+      } else if (if_block4) {
+        if_block4.d(1);
+        if_block4 = null;
+      }
+    },
+    i: noop,
+    o: noop,
+    d(detaching) {
+      if (detaching) {
+        detach(div5);
+      }
+      for (let i = 0; i < each_blocks_2.length; i += 1) {
+        each_blocks_2[i].d();
+      }
+      if (if_block0) if_block0.d();
+      if (if_block1) if_block1.d();
+      if (if_block2) if_block2.d();
+      destroy_each(each_blocks_1, detaching);
+      destroy_each(each_blocks, detaching);
+      if (if_block3) if_block3.d();
+      if (if_block4) if_block4.d();
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function _dep(_t, value) {
+  return value;
+}
+function focusPicker(node) {
+  setTimeout(() => node.focus(), 30);
+}
+function getPickerStyle(el) {
+  if (!el) return "display:none";
+  const rect = el.getBoundingClientRect();
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const pickerH = 320;
+  if (spaceBelow >= pickerH || spaceBelow > rect.top) {
+    return "top:" + (rect.bottom + 4) + "px; left:" + rect.left + "px;";
+  }
+  return "bottom:" + (window.innerHeight - rect.top + 4) + "px; left:" + rect.left + "px;";
+}
+function fmtDate2(dateStr) {
+  const d = /* @__PURE__ */ new Date(dateStr + "T12:00:00");
+  return d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+}
+function hexToRgba2(hex, alpha) {
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(128,128,128,${alpha})`;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+function instance2($$self, $$props, $$invalidate) {
+  let DAYS2;
+  let allTemplates;
+  let classes;
+  let subjects;
+  let activities;
+  let abEnabled;
+  let periods;
+  let directedTimeEnabled;
+  let defaultDuration;
+  let activeTemplate;
+  let isPast;
+  let visibleClasses;
+  let visibleActivities;
+  let visibleDirected;
+  let visibleOther;
+  let archivedCount;
+  let currentWeek;
+  let _slotGrid;
+  let sortedSubjects;
+  let pickerFilteredClasses;
+  let pickerFilteredDirected;
+  let pickerFilteredOther;
+  let periodTypes;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+  function icon(node, name) {
+    (0, import_obsidian10.setIcon)(node, name);
+    return {
+      update(n) {
+        node.empty();
+        (0, import_obsidian10.setIcon)(node, n);
+      }
+    };
+  }
+  let { plugin } = $$props;
+  let { modal } = $$props;
+  const ALL_DAYS = [
+    { key: "monday", label: "Mon" },
+    { key: "tuesday", label: "Tue" },
+    { key: "wednesday", label: "Wed" },
+    { key: "thursday", label: "Thu" },
+    { key: "friday", label: "Fri" },
+    { key: "saturday", label: "Sat" },
+    { key: "sunday", label: "Sun" }
+  ];
+  let _tick = 0;
+  function invalidate() {
+    $$invalidate(68, _tick++, _tick);
+  }
+  let durationEditKey = null;
+  let durationEditValue = 60;
+  function getSlotDuration(slot) {
+    if (slot.durationMinutes) return slot.durationMinutes;
+    const act = activities.find((a) => a.id === slot.classId);
+    if (act === null || act === void 0 ? void 0 : act.durationMinutes) return act.durationMinutes;
+    return defaultDuration;
+  }
+  function isDirectedSlot(slot) {
+    const cls = classes.find((c) => c.id === slot.classId);
+    if (cls) return true;
+    const act = activities.find((a) => a.id === slot.classId);
+    return (act === null || act === void 0 ? void 0 : act.activityType) !== "other";
+  }
+  function startDurationEdit(slot, key, e) {
+    e.stopPropagation();
+    $$invalidate(13, durationEditKey = key);
+    $$invalidate(14, durationEditValue = getSlotDuration(slot));
+  }
+  function commitDurationEdit(slot) {
+    if (durationEditValue >= 1 && durationEditValue <= 480) {
+      slot.durationMinutes = durationEditValue;
+      $$invalidate(69, slots = [...slots]);
+      markDirty();
+    }
+    $$invalidate(13, durationEditKey = null);
+  }
+  const _initTmpls = (_j = plugin.settings.timetableTemplates) !== null && _j !== void 0 ? _j : [];
+  const _initTmpl = (_k = _initTmpls[_initTmpls.length - 1]) !== null && _k !== void 0 ? _k : _initTmpls[0];
+  let activeTemplateId = (_l = _initTmpl === null || _initTmpl === void 0 ? void 0 : _initTmpl.id) !== null && _l !== void 0 ? _l : "";
+  let slots = JSON.parse(JSON.stringify((_o = _initTmpl === null || _initTmpl === void 0 ? void 0 : _initTmpl.slots) !== null && _o !== void 0 ? _o : []));
+  function doSwitchTemplate(id) {
+    var _a2, _b2;
+    $$invalidate(1, activeTemplateId = id);
+    const tmpl = ((_a2 = plugin.settings.timetableTemplates) !== null && _a2 !== void 0 ? _a2 : []).find((t) => t.id === id);
+    $$invalidate(69, slots = JSON.parse(JSON.stringify((_b2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b2 !== void 0 ? _b2 : [])));
+    $$invalidate(3, activeWeek = plugin.settings.academicYear.abWeekEnabled ? "A" : null);
+    closePicker();
+    $$invalidate(15, showPastConfirm = false);
+    isDirty = false;
+  }
+  function switchTemplate(id) {
+    if (id === activeTemplateId) return;
+    if (isDirty) {
+      pendingSwitchId = id;
+      unsavedAction = "switch";
+      $$invalidate(19, showUnsavedConfirm = true);
+      return;
+    }
+    doSwitchTemplate(id);
+  }
+  const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  let showPastConfirm = false;
+  let warnCollapsed = false;
+  let renamingId = null;
+  let renameValue = "";
+  function startRename(tmpl) {
+    $$invalidate(17, renamingId = tmpl.id);
+    $$invalidate(18, renameValue = tmpl.name);
+  }
+  async function commitRename() {
+    const tmpl = allTemplates.find((t) => t.id === renamingId);
+    if (tmpl && renameValue.trim()) {
+      tmpl.name = renameValue.trim();
+      await plugin.saveSettings();
+    }
+    $$invalidate(17, renamingId = null);
+  }
+  let showArchived = false;
+  async function toggleArchiveClass(id) {
+    const cls = classes.find((c) => c.id === id);
+    if (cls) {
+      cls.archived = !cls.archived;
+      await plugin.saveSettings();
+    }
+  }
+  async function toggleArchiveActivity(id) {
+    const act = activities.find((a) => a.id === id);
+    if (act) {
+      act.archived = !act.archived;
+      await plugin.saveSettings();
+    }
+  }
+  let activeWeek = plugin.settings.academicYear.abWeekEnabled ? "A" : null;
+  let isDirty = false;
+  let showUnsavedConfirm = false;
+  let pendingSwitchId = null;
+  let unsavedAction = "close";
+  function markDirty() {
+    isDirty = true;
+  }
+  async function saveWithoutClose() {
+    var _a2;
+    const tmpl = (_a2 = plugin.settings.timetableTemplates) === null || _a2 === void 0 ? void 0 : _a2.find((t) => t.id === activeTemplateId);
+    if (tmpl) {
+      tmpl.slots = slots;
+      await plugin.saveSettings();
+    }
+    isDirty = false;
+  }
+  async function confirmUnsaved_save() {
+    $$invalidate(19, showUnsavedConfirm = false);
+    if (unsavedAction === "switch" && pendingSwitchId) {
+      await saveWithoutClose();
+      doSwitchTemplate(pendingSwitchId);
+      pendingSwitchId = null;
+    } else {
+      await save(true);
+    }
+  }
+  function confirmUnsaved_discard() {
+    $$invalidate(19, showUnsavedConfirm = false);
+    isDirty = false;
+    if (unsavedAction === "switch" && pendingSwitchId) {
+      doSwitchTemplate(pendingSwitchId);
+      pendingSwitchId = null;
+    } else {
+      modal.close();
+    }
+  }
+  function confirmUnsaved_cancel() {
+    $$invalidate(19, showUnsavedConfirm = false);
+    pendingSwitchId = null;
+  }
+  function onCancel() {
+    if (isDirty) {
+      unsavedAction = "close";
+      $$invalidate(19, showUnsavedConfirm = true);
+      return;
+    }
+    modal.close();
+  }
+  let pickerDay = null;
+  let pickerPeriodId = null;
+  let pickerWeek = null;
+  let pickerEl = null;
+  let pickerSearch = "";
+  function getSlot(day, periodId, week) {
+    if (!abEnabled || !week) return slots.find((s) => s.day === day && s.periodId === periodId);
+    return slots.find((s) => s.day === day && s.periodId === periodId && (s.weekType === week || s.weekType === "both" || s.weekType == null));
+  }
+  function getLabel(slot) {
+    var _a2, _b2, _c2, _d2;
+    const cls = classes.find((c) => c.id === slot.classId);
+    if (cls) {
+      const subj = subjects.find((s) => s.id === cls.subjectId);
+      return {
+        code: cls.code,
+        sub: (_a2 = subj === null || subj === void 0 ? void 0 : subj.name) !== null && _a2 !== void 0 ? _a2 : "",
+        colour: cls.colour,
+        classroom: (_b2 = cls.classroom) !== null && _b2 !== void 0 ? _b2 : ""
+      };
+    }
+    const act = activities.find((a) => a.id === slot.classId);
+    if (act) return {
+      code: act.label,
+      sub: (_c2 = act.info) !== null && _c2 !== void 0 ? _c2 : "",
+      colour: act.colour,
+      classroom: (_d2 = act.classroom) !== null && _d2 !== void 0 ? _d2 : ""
+    };
+    return {
+      code: "?",
+      sub: "",
+      colour: "#888",
+      classroom: ""
+    };
+  }
+  function openPicker(day, periodId, week, el) {
+    if (pickerDay === day && pickerPeriodId === periodId && pickerWeek === week) {
+      closePicker();
+      return;
+    }
+    $$invalidate(20, pickerDay = day);
+    $$invalidate(21, pickerPeriodId = periodId);
+    pickerWeek = week;
+    $$invalidate(22, pickerEl = el);
+  }
+  function closePicker() {
+    $$invalidate(20, pickerDay = null);
+    $$invalidate(21, pickerPeriodId = null);
+    pickerWeek = null;
+    $$invalidate(22, pickerEl = null);
+    $$invalidate(4, pickerSearch = "");
+  }
+  function assignItem(day, period, itemId, week) {
+    if (abEnabled && week) {
+      const exact = slots.find((s) => s.day === day && s.periodId === period.id && s.weekType === week);
+      if (exact) {
+        exact.classId = itemId;
+        $$invalidate(69, slots = [...slots]);
+      } else {
+        $$invalidate(69, slots = [
+          ...slots,
+          {
+            id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+            day,
+            periodId: period.id,
+            classId: itemId,
+            start: period.start,
+            end: period.end,
+            weekType: week
+          }
+        ]);
+      }
+    } else {
+      const exact = slots.find((s) => s.day === day && s.periodId === period.id);
+      if (exact) {
+        exact.classId = itemId;
+        $$invalidate(69, slots = [...slots]);
+      } else {
+        $$invalidate(69, slots = [
+          ...slots,
+          {
+            id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+            day,
+            periodId: period.id,
+            classId: itemId,
+            start: period.start,
+            end: period.end
+          }
+        ]);
+      }
+    }
+    markDirty();
+    closePicker();
+  }
+  function clearSlot(day, periodId, week) {
+    if (abEnabled && week) {
+      $$invalidate(69, slots = slots.filter((s) => !(s.day === day && s.periodId === periodId && (s.weekType === week || s.weekType == null))));
+    } else {
+      $$invalidate(69, slots = slots.filter((s) => !(s.day === day && s.periodId === periodId)));
+    }
+    markDirty();
+  }
+  async function save(force = false) {
+    var _a2;
+    if (isPast && !force) {
+      $$invalidate(15, showPastConfirm = true);
+      return;
+    }
+    const tmpl = (_a2 = plugin.settings.timetableTemplates) === null || _a2 === void 0 ? void 0 : _a2.find((t) => t.id === activeTemplateId);
+    if (tmpl) {
+      tmpl.slots = slots;
+      await plugin.saveSettings();
+    }
+    isDirty = false;
+    modal.close();
+  }
+  async function confirmPastSave() {
+    $$invalidate(15, showPastConfirm = false);
+    await save(true);
+  }
+  function openAddTemplate() {
+    new AddTimetableTemplateModal(
+      plugin.app,
+      plugin,
+      (newId) => {
+        var _a2, _b2;
+        invalidate();
+        $$invalidate(1, activeTemplateId = newId);
+        const tmpl = (_a2 = plugin.settings.timetableTemplates) === null || _a2 === void 0 ? void 0 : _a2.find((t) => t.id === newId);
+        $$invalidate(69, slots = JSON.parse(JSON.stringify((_b2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b2 !== void 0 ? _b2 : [])));
+        $$invalidate(3, activeWeek = plugin.settings.academicYear.abWeekEnabled ? "A" : null);
+        isDirty = false;
+      }
+    ).open();
+  }
+  function deleteTemplate() {
+    if (allTemplates.length <= 1) return;
+    new ConfirmModal(
+      plugin.app,
+      `Delete "${activeTemplate === null || activeTemplate === void 0 ? void 0 : activeTemplate.name}"? This cannot be undone.`,
+      async () => {
+        var _a2, _b2, _c2;
+        $$invalidate(0, plugin.settings.timetableTemplates = allTemplates.filter((t) => t.id !== activeTemplateId), plugin);
+        await plugin.saveSettings();
+        const remaining = plugin.settings.timetableTemplates;
+        $$invalidate(1, activeTemplateId = (_b2 = (_a2 = remaining[remaining.length - 1]) === null || _a2 === void 0 ? void 0 : _a2.id) !== null && _b2 !== void 0 ? _b2 : "");
+        const tmpl = remaining.find((t) => t.id === activeTemplateId);
+        $$invalidate(69, slots = JSON.parse(JSON.stringify((_c2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _c2 !== void 0 ? _c2 : [])));
+      },
+      "Delete"
+    ).open();
+  }
+  function getPeriodTypeColour(typeId) {
+    var _a2, _b2;
+    return resolveColour((_b2 = (_a2 = periodTypes.find((t) => t.id === typeId)) === null || _a2 === void 0 ? void 0 : _a2.colour) !== null && _b2 !== void 0 ? _b2 : "#888888");
+  }
+  const func = (s) => pickerFilteredClasses.some((c) => c.subjectId === s.id);
+  function click_handler_1(event) {
+    bubble.call(this, $$self, event);
+  }
+  function click_handler(event) {
+    bubble.call(this, $$self, event);
+  }
+  const keydown_handler = (e) => e.key === "Escape" && (renamingId ? $$invalidate(17, renamingId = null) : durationEditKey ? $$invalidate(13, durationEditKey = null) : closePicker());
+  const mousedown_handler = (e) => {
+    const t = e.target instanceof Element ? e.target : null;
+    if (pickerEl && !(t == null ? void 0 : t.closest(".tp-te-picker")) && !(t == null ? void 0 : t.closest(".tp-te-cell"))) closePicker();
+    if (renamingId && !(t == null ? void 0 : t.closest(".tp-te-rename-input"))) commitRename();
+  };
+  function input_input_handler() {
+    renameValue = this.value;
+    $$invalidate(18, renameValue);
+  }
+  const keydown_handler_1 = (e) => {
+    if (e.key === "Enter") commitRename();
+    if (e.key === "Escape") $$invalidate(17, renamingId = null);
+  };
+  const click_handler_2 = (tmpl) => switchTemplate(tmpl.id);
+  const click_handler_3 = (tmpl) => startRename(tmpl);
+  const click_handler_4 = () => $$invalidate(16, warnCollapsed = false);
+  const click_handler_5 = () => $$invalidate(15, showPastConfirm = false);
+  const click_handler_6 = () => $$invalidate(16, warnCollapsed = true);
+  const click_handler_7 = () => {
+    $$invalidate(3, activeWeek = "A");
+    closePicker();
+  };
+  const click_handler_8 = () => {
+    $$invalidate(3, activeWeek = "B");
+    closePicker();
+  };
+  const click_handler_9 = (day, period, e) => openPicker(day.key, period.id, currentWeek, e.currentTarget);
+  function input_input_handler_1() {
+    durationEditValue = to_number(this.value);
+    $$invalidate(14, durationEditValue);
+  }
+  const keydown_handler_2 = (slot, e) => {
+    if (e.key === "Enter") commitDurationEdit(slot);
+    if (e.key === "Escape") $$invalidate(13, durationEditKey = null);
+  };
+  const blur_handler = (slot) => commitDurationEdit(slot);
+  const click_handler_10 = (slot, cellKey2, e) => startDurationEdit(slot, cellKey2, e);
+  const click_handler_11 = (day, period, e) => openPicker(day.key, period.id, currentWeek, e.currentTarget);
+  function input_input_handler_2() {
+    pickerSearch = this.value;
+    $$invalidate(4, pickerSearch);
+  }
+  const click_handler_12 = () => {
+    if (pickerDay && pickerPeriodId) clearSlot(pickerDay, pickerPeriodId, currentWeek);
+    closePicker();
+  };
+  const click_handler_13 = (cls) => {
+    const p = periods.find((p2) => p2.id === pickerPeriodId);
+    if (p && pickerDay) {
+      assignItem(pickerDay, p, cls.id, currentWeek);
+      closePicker();
+    }
+  };
+  const click_handler_14 = (cls) => toggleArchiveClass(cls.id);
+  const func_1 = (subj, c) => c.subjectId === subj.id;
+  const click_handler_15 = (act) => {
+    const p = periods.find((p2) => p2.id === pickerPeriodId);
+    if (p && pickerDay) {
+      assignItem(pickerDay, p, act.id, currentWeek);
+      closePicker();
+    }
+  };
+  const click_handler_16 = (act) => toggleArchiveActivity(act.id);
+  const click_handler_17 = (act) => {
+    const p = periods.find((p2) => p2.id === pickerPeriodId);
+    if (p && pickerDay) {
+      assignItem(pickerDay, p, act.id, currentWeek);
+      closePicker();
+    }
+  };
+  const click_handler_18 = (act) => toggleArchiveActivity(act.id);
+  const click_handler_19 = () => $$invalidate(2, showArchived = !showArchived);
+  const click_handler_20 = (cls) => toggleArchiveClass(cls.id);
+  const click_handler_21 = (act) => toggleArchiveActivity(act.id);
+  const click_handler_22 = () => void save();
+  $$self.$$set = ($$props2) => {
+    if ("plugin" in $$props2) $$invalidate(0, plugin = $$props2.plugin);
+    if ("modal" in $$props2) $$invalidate(57, modal = $$props2.modal);
+  };
+  $$self.$$.update = () => {
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[2] & /*_tick*/
+    64) {
+      $: $$invalidate(11, DAYS2 = _dep(_tick, ALL_DAYS.filter((d) => {
+        var _a2;
+        return ((_a2 = plugin.settings.schoolDays) !== null && _a2 !== void 0 ? _a2 : ["monday", "tuesday", "wednesday", "thursday", "friday"]).includes(d.key);
+      })));
+    }
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[1] & /*_a*/
+    134217728 | $$self.$$.dirty[2] & /*_tick*/
+    64) {
+      $: $$invalidate(5, allTemplates = _dep(_tick, $$invalidate(58, _a = plugin.settings.timetableTemplates) !== null && _a !== void 0 ? _a : []));
+    }
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[1] & /*_b*/
+    268435456) {
+      $: $$invalidate(9, classes = $$invalidate(59, _b = plugin.settings.classes) !== null && _b !== void 0 ? _b : []);
+    }
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[1] & /*_c*/
+    536870912) {
+      $: $$invalidate(72, subjects = $$invalidate(60, _c = plugin.settings.subjects) !== null && _c !== void 0 ? _c : []);
+    }
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[1] & /*_d*/
+    1073741824) {
+      $: $$invalidate(8, activities = $$invalidate(61, _d = plugin.settings.activities) !== null && _d !== void 0 ? _d : []);
+    }
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1) {
+      $: $$invalidate(7, abEnabled = plugin.settings.academicYear.abWeekEnabled);
+    }
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1) {
+      $: $$invalidate(10, periods = plugin.settings.academicYear.periods);
+    }
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[2] & /*_e, _f*/
+    3) {
+      $: $$invalidate(30, directedTimeEnabled = $$invalidate(63, _f = $$invalidate(62, _e = plugin.settings.directedTime) === null || _e === void 0 ? void 0 : _e.enabled) !== null && _f !== void 0 ? _f : false);
+    }
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[2] & /*_g, _h*/
+    12) {
+      $: defaultDuration = $$invalidate(65, _h = $$invalidate(64, _g = plugin.settings.directedTime) === null || _g === void 0 ? void 0 : _g.defaultLessonDurationMinutes) !== null && _h !== void 0 ? _h : 60;
+    }
+    if ($$self.$$.dirty[0] & /*allTemplates, activeTemplateId*/
+    34 | $$self.$$.dirty[2] & /*_m*/
+    16) {
+      $: $$invalidate(6, activeTemplate = $$invalidate(66, _m = allTemplates.find((t) => t.id === activeTemplateId)) !== null && _m !== void 0 ? _m : allTemplates[0]);
+    }
+    if ($$self.$$.dirty[0] & /*activeTemplate*/
+    64) {
+      $: $$invalidate(27, isPast = activeTemplate ? activeTemplate.endDate < today : false);
+    }
+    if ($$self.$$.dirty[0] & /*activeTemplateId*/
+    2) {
+      $: if (activeTemplateId) {
+        $$invalidate(15, showPastConfirm = false);
+        $$invalidate(16, warnCollapsed = false);
+      }
+    }
+    if ($$self.$$.dirty[0] & /*showArchived, classes*/
+    516) {
+      $: $$invalidate(73, visibleClasses = showArchived ? classes : classes.filter((c) => !c.archived));
+    }
+    if ($$self.$$.dirty[0] & /*showArchived, activities*/
+    260) {
+      $: $$invalidate(74, visibleActivities = showArchived ? activities : activities.filter((a) => !a.archived));
+    }
+    if ($$self.$$.dirty[2] & /*visibleActivities*/
+    4096) {
+      $: $$invalidate(71, visibleDirected = visibleActivities.filter((a) => a.activityType !== "other"));
+    }
+    if ($$self.$$.dirty[2] & /*visibleActivities*/
+    4096) {
+      $: $$invalidate(70, visibleOther = visibleActivities.filter((a) => a.activityType === "other"));
+    }
+    if ($$self.$$.dirty[0] & /*classes, activities*/
+    768) {
+      $: $$invalidate(29, archivedCount = classes.filter((c) => !!c.archived).length + activities.filter((a) => !!a.archived).length);
+    }
+    if ($$self.$$.dirty[0] & /*abEnabled, activeWeek*/
+    136) {
+      $: $$invalidate(12, currentWeek = abEnabled ? activeWeek : null);
+    }
+    if ($$self.$$.dirty[0] & /*currentWeek, abEnabled, DAYS, periods*/
+    7296 | $$self.$$.dirty[2] & /*slots*/
+    128) {
+      $: $$invalidate(28, _slotGrid = (() => {
+        const _s = slots;
+        const _w = currentWeek;
+        const _ab = abEnabled;
+        const m = {};
+        for (const d of DAYS2) {
+          for (const p of periods) {
+            if (!_ab || !_w) {
+              m[d.key + ":" + p.id] = _s.find((s) => s.day === d.key && s.periodId === p.id);
+            } else {
+              m[d.key + ":" + p.id] = _s.find((s) => s.day === d.key && s.periodId === p.id && (s.weekType === _w || s.weekType === "both" || s.weekType == null));
+            }
+          }
+        }
+        return m;
+      })());
+    }
+    if ($$self.$$.dirty[2] & /*subjects*/
+    1024) {
+      $: $$invalidate(26, sortedSubjects = [...subjects].sort((a, b) => a.name.localeCompare(b.name)));
+    }
+    if ($$self.$$.dirty[0] & /*pickerSearch*/
+    16 | $$self.$$.dirty[2] & /*visibleClasses, subjects*/
+    3072) {
+      $: $$invalidate(25, pickerFilteredClasses = (() => {
+        const q = pickerSearch.toLowerCase();
+        if (!q) return visibleClasses;
+        return visibleClasses.filter((c) => {
+          var _a2, _b2, _c2;
+          const subj = subjects.find((s) => s.id === c.subjectId);
+          return c.code.toLowerCase().includes(q) || ((_a2 = subj === null || subj === void 0 ? void 0 : subj.name) !== null && _a2 !== void 0 ? _a2 : "").toLowerCase().includes(q) || ((_b2 = c.year) !== null && _b2 !== void 0 ? _b2 : "").toLowerCase().includes(q) || ((_c2 = c.classroom) !== null && _c2 !== void 0 ? _c2 : "").toLowerCase().includes(q);
+        });
+      })());
+    }
+    if ($$self.$$.dirty[0] & /*pickerSearch*/
+    16 | $$self.$$.dirty[2] & /*visibleDirected*/
+    512) {
+      $: $$invalidate(24, pickerFilteredDirected = pickerSearch ? visibleDirected.filter((a) => a.label.toLowerCase().includes(pickerSearch.toLowerCase())) : visibleDirected);
+    }
+    if ($$self.$$.dirty[0] & /*pickerSearch*/
+    16 | $$self.$$.dirty[2] & /*visibleOther*/
+    256) {
+      $: $$invalidate(23, pickerFilteredOther = pickerSearch ? visibleOther.filter((a) => a.label.toLowerCase().includes(pickerSearch.toLowerCase())) : visibleOther);
+    }
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[2] & /*_p*/
+    32) {
+      $: periodTypes = $$invalidate(67, _p = plugin.settings.periodTypes) !== null && _p !== void 0 ? _p : [];
+    }
+  };
+  return [
+    plugin,
+    activeTemplateId,
+    showArchived,
+    activeWeek,
+    pickerSearch,
+    allTemplates,
+    activeTemplate,
+    abEnabled,
+    activities,
+    classes,
+    periods,
+    DAYS2,
+    currentWeek,
+    durationEditKey,
+    durationEditValue,
+    showPastConfirm,
+    warnCollapsed,
+    renamingId,
+    renameValue,
+    showUnsavedConfirm,
+    pickerDay,
+    pickerPeriodId,
+    pickerEl,
+    pickerFilteredOther,
+    pickerFilteredDirected,
+    pickerFilteredClasses,
+    sortedSubjects,
+    isPast,
+    _slotGrid,
+    archivedCount,
+    directedTimeEnabled,
+    icon,
+    getSlotDuration,
+    isDirectedSlot,
+    startDurationEdit,
+    commitDurationEdit,
+    switchTemplate,
+    today,
+    startRename,
+    commitRename,
+    toggleArchiveClass,
+    toggleArchiveActivity,
+    confirmUnsaved_save,
+    confirmUnsaved_discard,
+    confirmUnsaved_cancel,
+    onCancel,
+    getSlot,
+    getLabel,
+    openPicker,
+    closePicker,
+    assignItem,
+    clearSlot,
+    save,
+    confirmPastSave,
+    openAddTemplate,
+    deleteTemplate,
+    getPeriodTypeColour,
+    modal,
+    _a,
+    _b,
+    _c,
+    _d,
+    _e,
+    _f,
+    _g,
+    _h,
+    _m,
+    _p,
+    _tick,
+    slots,
+    visibleOther,
+    visibleDirected,
+    subjects,
+    visibleClasses,
+    visibleActivities,
+    func,
+    click_handler_1,
+    click_handler,
+    keydown_handler,
+    mousedown_handler,
+    input_input_handler,
+    keydown_handler_1,
+    click_handler_2,
+    click_handler_3,
+    click_handler_4,
+    click_handler_5,
+    click_handler_6,
+    click_handler_7,
+    click_handler_8,
+    click_handler_9,
+    input_input_handler_1,
+    keydown_handler_2,
+    blur_handler,
+    click_handler_10,
+    click_handler_11,
+    input_input_handler_2,
+    click_handler_12,
+    click_handler_13,
+    click_handler_14,
+    func_1,
+    click_handler_15,
+    click_handler_16,
+    click_handler_17,
+    click_handler_18,
+    click_handler_19,
+    click_handler_20,
+    click_handler_21,
+    click_handler_22
+  ];
+}
+var import_obsidian10, window_1, func_3, func_4, TimetableEditorComponent, TimetableEditorComponent_default;
+var init_TimetableEditorComponent = __esm({
+  "src/modals/TimetableEditorComponent.svelte"() {
+    init_internal();
+    init_disclose_version();
+    init_AddTimetableTemplateModal();
+    import_obsidian10 = require("obsidian");
+    init_SettingsTab();
+    init_themeColours();
+    init_scheduleUtils();
+    ({ window: window_1 } = globals);
+    func_3 = (c) => c.archived;
+    func_4 = (a) => a.archived;
+    TimetableEditorComponent = class extends SvelteComponent {
+      constructor(options) {
+        super();
+        init(this, options, instance2, create_fragment2, safe_not_equal, { plugin: 0, modal: 57 }, add_css2, [-1, -1, -1, -1, -1, -1]);
+      }
+    };
+    TimetableEditorComponent_default = TimetableEditorComponent;
+  }
+});
+
+// src/modals/TimetableEditorModal.ts
+var import_obsidian11, TimetableEditorModal;
+var init_TimetableEditorModal = __esm({
+  "src/modals/TimetableEditorModal.ts"() {
+    import_obsidian11 = require("obsidian");
+    init_TimetableEditorComponent();
+    TimetableEditorModal = class extends import_obsidian11.Modal {
+      constructor(app, plugin) {
+        super(app);
+        this.component = null;
+        this.plugin = plugin;
+      }
+      onOpen() {
+        this.modalEl.setCssStyles({ width: "min(95vw, 1100px)" });
+        this.modalEl.setCssStyles({ maxWidth: "95vw" });
+        this.modalEl.setCssStyles({ maxHeight: "min(90vh, 900px)" });
+        this.modalEl.setCssStyles({ minWidth: "600px" });
+        this.modalEl.setCssStyles({ boxSizing: "border-box" });
+        const { contentEl } = this;
+        contentEl.empty();
+        contentEl.addClass("tp-timetable-modal");
+        this.component = new TimetableEditorComponent_default({
+          target: contentEl,
+          props: { plugin: this.plugin, modal: this }
+        });
+      }
+      onClose() {
+        var _a;
+        (_a = this.component) == null ? void 0 : _a.$destroy();
         this.contentEl.empty();
       }
     };
@@ -30528,8 +30537,8 @@ init_weekUtils();
 init_TimetableEditorModal();
 
 // src/modals/SlotNotesModal.ts
-var import_obsidian4 = require("obsidian");
-var SlotNotesModal = class extends import_obsidian4.Modal {
+var import_obsidian12 = require("obsidian");
+var SlotNotesModal = class extends import_obsidian12.Modal {
   constructor(app, plugin, slotId, date, notes, classroom, slotName, formattedDate, periodName, timeRange, onSaved) {
     super(app);
     this.plugin = plugin;
@@ -30877,6 +30886,10 @@ function getSlotPlan(s, slotId, date) {
   var _a;
   return ((_a = s.lessonPlanLinks) != null ? _a : []).find((l) => l.slotId === slotId && l.date === date);
 }
+function getEventPlan(s, eventId) {
+  var _a;
+  return ((_a = s.lessonPlanLinks) != null ? _a : []).find((l) => l.eventId === eventId);
+}
 function clearSlotPlan(s, slotId, date) {
   var _a;
   s.lessonPlanLinks = ((_a = s.lessonPlanLinks) != null ? _a : []).filter((l) => !(l.slotId === slotId && l.date === date));
@@ -31080,7 +31093,7 @@ var LessonPlanSuggestModal = class extends import_obsidian14.FuzzySuggestModal {
 // src/views/WeekView.svelte
 init_runtime();
 function add_css3(target) {
-  append_styles(target, "svelte-aw4o9p", ".tp-week-view.svelte-aw4o9p.svelte-aw4o9p{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-aw4o9p.svelte-aw4o9p{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-aw4o9p.svelte-aw4o9p{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-aw4o9p.svelte-aw4o9p{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-aw4o9p.svelte-aw4o9p{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-aw4o9p.svelte-aw4o9p{display:flex;gap:4px}.tp-nav-arrow.svelte-aw4o9p.svelte-aw4o9p{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-aw4o9p.svelte-aw4o9p{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-aw4o9p.svelte-aw4o9p{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-aw4o9p.svelte-aw4o9p{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-aw4o9p.svelte-aw4o9p{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-aw4o9p.svelte-aw4o9p{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-aw4o9p.svelte-aw4o9p:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-aw4o9p.svelte-aw4o9p:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-aw4o9p.svelte-aw4o9p{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-aw4o9p.svelte-aw4o9p:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-aw4o9p svg,.tp-btn-icon.svelte-aw4o9p svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-aw4o9p.svelte-aw4o9p{padding:5px 8px}.tp-action-btn--icon-only.svelte-aw4o9p svg{width:15px;height:15px}.tp-overflow-btn.svelte-aw4o9p.svelte-aw4o9p{display:none}.tp-table-scroll.svelte-aw4o9p.svelte-aw4o9p{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-aw4o9p.svelte-aw4o9p{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-aw4o9p.svelte-aw4o9p{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-aw4o9p.svelte-aw4o9p{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-aw4o9p.svelte-aw4o9p{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-aw4o9p.svelte-aw4o9p{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-aw4o9p.svelte-aw4o9p{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-aw4o9p.svelte-aw4o9p{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-aw4o9p.svelte-aw4o9p{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-aw4o9p.svelte-aw4o9p{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-aw4o9p.svelte-aw4o9p{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-aw4o9p.svelte-aw4o9p{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-aw4o9p.svelte-aw4o9p{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-aw4o9p.svelte-aw4o9p{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-aw4o9p.svelte-aw4o9p{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-aw4o9p.svelte-aw4o9p{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0}.tp-axis-gutter.svelte-aw4o9p.svelte-aw4o9p{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-aw4o9p.svelte-aw4o9p{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-aw4o9p.svelte-aw4o9p{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-aw4o9p.svelte-aw4o9p{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-aw4o9p.svelte-aw4o9p{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-aw4o9p.svelte-aw4o9p{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-aw4o9p.svelte-aw4o9p{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-block.svelte-aw4o9p.svelte-aw4o9p{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block--dragover.svelte-aw4o9p.svelte-aw4o9p{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-aw4o9p.svelte-aw4o9p{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-aw4o9p.svelte-aw4o9p{display:flex;flex-direction:column;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-aw4o9p.svelte-aw4o9p{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-aw4o9p.svelte-aw4o9p{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-aw4o9p:hover .tp-block-time.svelte-aw4o9p{display:block}.tp-block.svelte-aw4o9p.svelte-aw4o9p:hover{height:auto !important;min-height:max(var(--bh, 20px), 48px);z-index:30;padding-bottom:6px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-aw4o9p:hover .tp-event-stack.svelte-aw4o9p{position:relative;inset:auto;height:auto;min-height:calc(var(--bh, 20px) - 6px);margin:3px}.tp-block.svelte-aw4o9p:hover .tp-block-label.svelte-aw4o9p{padding:4px 8px}.tp-block.svelte-aw4o9p:hover .tp-chip.svelte-aw4o9p{container-type:normal;background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important}.tp-block.svelte-aw4o9p:hover .tp-chip-notes.svelte-aw4o9p{display:block;-webkit-line-clamp:unset;overflow:visible}.tp-chip-period-time.svelte-aw4o9p.svelte-aw4o9p{display:none;font-size:10px;color:var(--text-muted);opacity:0.85}.tp-block.svelte-aw4o9p:hover .tp-chip-period-time.svelte-aw4o9p{display:block}.tp-chip.svelte-aw4o9p.svelte-aw4o9p{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-aw4o9p.svelte-aw4o9p:hover{filter:brightness(1.08)}.tp-chip-code.svelte-aw4o9p.svelte-aw4o9p{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-aw4o9p.svelte-aw4o9p{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-aw4o9p.svelte-aw4o9p{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-aw4o9p.svelte-aw4o9p{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-aw4o9p.svelte-aw4o9p,.tp-chip-notes.svelte-aw4o9p.svelte-aw4o9p{display:none}.tp-chip-code.svelte-aw4o9p.svelte-aw4o9p{font-size:13px}.tp-chip-room.svelte-aw4o9p.svelte-aw4o9p{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-aw4o9p.svelte-aw4o9p{font-size:12px}.tp-chip-room.svelte-aw4o9p.svelte-aw4o9p{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-aw4o9p.svelte-aw4o9p{display:none}.tp-chip-code.svelte-aw4o9p.svelte-aw4o9p{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-aw4o9p.svelte-aw4o9p{font-size:13px}.tp-chip-room.svelte-aw4o9p.svelte-aw4o9p{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-aw4o9p.svelte-aw4o9p{font-size:11px}.tp-chip-room.svelte-aw4o9p.svelte-aw4o9p{font-size:9px}}.tp-plan-dot.svelte-aw4o9p.svelte-aw4o9p{position:absolute;top:1px;right:3px;font-size:9px;line-height:1;background:none;border:none;padding:2px 3px;color:var(--text-muted);opacity:0.6;cursor:default}button.tp-plan-dot--linked.svelte-aw4o9p.svelte-aw4o9p{color:var(--interactive-accent);opacity:1;cursor:pointer}button.tp-plan-dot--linked.svelte-aw4o9p.svelte-aw4o9p:hover{opacity:0.8}.tp-now-line.svelte-aw4o9p.svelte-aw4o9p{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-badge.svelte-aw4o9p.svelte-aw4o9p{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-aw4o9p.svelte-aw4o9p{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-aw4o9p .tp-chip.svelte-aw4o9p{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-aw4o9p.svelte-aw4o9p{display:none}@container (max-width: 680px){.tp-action-btn.svelte-aw4o9p.svelte-aw4o9p{display:none}.tp-overflow-btn.svelte-aw4o9p.svelte-aw4o9p{display:inline-flex !important}.tp-header.svelte-aw4o9p.svelte-aw4o9p{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-aw4o9p.svelte-aw4o9p{justify-content:center}.tp-header-identity.svelte-aw4o9p.svelte-aw4o9p{min-width:0;overflow:hidden}.tp-week-label.svelte-aw4o9p.svelte-aw4o9p{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-aw4o9p.svelte-aw4o9p{display:none}.tp-axis-head-day.svelte-aw4o9p.svelte-aw4o9p{padding:5px 2px}.tp-day-name.svelte-aw4o9p.svelte-aw4o9p{font-size:12px}.tp-day-date.svelte-aw4o9p.svelte-aw4o9p{font-size:10px}.tp-day-override-badge.svelte-aw4o9p.svelte-aw4o9p{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-aw4o9p.svelte-aw4o9p{min-width:440px}.tp-axis-head-gutter.svelte-aw4o9p.svelte-aw4o9p,.tp-axis-gutter.svelte-aw4o9p.svelte-aw4o9p{width:30px}.tp-axis-hour.svelte-aw4o9p.svelte-aw4o9p{right:3px;font-size:9px}.tp-day-name.svelte-aw4o9p.svelte-aw4o9p{font-size:11px}.tp-day-date.svelte-aw4o9p.svelte-aw4o9p{font-size:10px}}");
+  append_styles(target, "svelte-1w6z1lr", ".tp-week-view.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-1w6z1lr.svelte-1w6z1lr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-1w6z1lr.svelte-1w6z1lr{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;gap:4px}.tp-nav-arrow.svelte-1w6z1lr.svelte-1w6z1lr{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-1w6z1lr.svelte-1w6z1lr{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-1w6z1lr.svelte-1w6z1lr{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-1w6z1lr.svelte-1w6z1lr{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-1w6z1lr.svelte-1w6z1lr{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-1w6z1lr.svelte-1w6z1lr:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-1w6z1lr.svelte-1w6z1lr:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-1w6z1lr.svelte-1w6z1lr{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-1w6z1lr.svelte-1w6z1lr:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-1w6z1lr svg,.tp-btn-icon.svelte-1w6z1lr svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-1w6z1lr.svelte-1w6z1lr{padding:5px 8px}.tp-action-btn--icon-only.svelte-1w6z1lr svg{width:15px;height:15px}.tp-overflow-btn.svelte-1w6z1lr.svelte-1w6z1lr{display:none}.tp-table-scroll.svelte-1w6z1lr.svelte-1w6z1lr{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-1w6z1lr.svelte-1w6z1lr{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-1w6z1lr.svelte-1w6z1lr{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-1w6z1lr.svelte-1w6z1lr{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-1w6z1lr.svelte-1w6z1lr{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-1w6z1lr.svelte-1w6z1lr{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-1w6z1lr.svelte-1w6z1lr{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-1w6z1lr.svelte-1w6z1lr{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-1w6z1lr.svelte-1w6z1lr{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0}.tp-axis-gutter.svelte-1w6z1lr.svelte-1w6z1lr{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-1w6z1lr.svelte-1w6z1lr{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-block.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block--dragover.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-1w6z1lr.svelte-1w6z1lr{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-1w6z1lr.svelte-1w6z1lr{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-1w6z1lr:hover .tp-block-time.svelte-1w6z1lr{display:block}.tp-block.svelte-1w6z1lr.svelte-1w6z1lr:hover{height:auto !important;min-height:max(var(--bh, 20px), 48px);z-index:30;padding-bottom:6px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-1w6z1lr.svelte-1w6z1lr:hover:has(.tp-event-stack){min-height:var(--bh, 20px);padding-bottom:0;overflow:visible;background:transparent !important;border-color:transparent !important;box-shadow:none;outline:none}.tp-block.svelte-1w6z1lr:hover .tp-event-stack.svelte-1w6z1lr{position:relative;inset:auto;height:auto;margin:3px;border-radius:4px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary);box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-1w6z1lr:hover .tp-block-label.svelte-1w6z1lr{padding:4px 8px}.tp-block.svelte-1w6z1lr:hover .tp-chip.svelte-1w6z1lr{container-type:normal;background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important}.tp-block.svelte-1w6z1lr:hover .tp-chip-notes.svelte-1w6z1lr{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}.tp-chip-period-time.svelte-1w6z1lr.svelte-1w6z1lr{display:none;font-size:10px;color:var(--text-muted);opacity:0.85}.tp-block.svelte-1w6z1lr:hover .tp-chip-period-time.svelte-1w6z1lr{display:block}.tp-chip.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-1w6z1lr.svelte-1w6z1lr:hover{filter:brightness(1.08)}.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-1w6z1lr.svelte-1w6z1lr{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-1w6z1lr.svelte-1w6z1lr,.tp-chip-notes.svelte-1w6z1lr.svelte-1w6z1lr{display:none}.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px}.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:12px}.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{display:none}.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px}.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:11px}.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{font-size:9px}}.tp-plan-dot.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;top:1px;right:3px;font-size:9px;line-height:1;background:none;border:none;padding:2px 3px;color:var(--text-muted);opacity:0.6;cursor:default}button.tp-plan-dot--linked.svelte-1w6z1lr.svelte-1w6z1lr{color:var(--interactive-accent);opacity:1;cursor:pointer}button.tp-plan-dot--linked.svelte-1w6z1lr.svelte-1w6z1lr:hover{opacity:0.8}.tp-now-line.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-badge.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-1w6z1lr .tp-chip.svelte-1w6z1lr{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-1w6z1lr.svelte-1w6z1lr{display:none}@container (max-width: 680px){.tp-action-btn.svelte-1w6z1lr.svelte-1w6z1lr{display:none}.tp-overflow-btn.svelte-1w6z1lr.svelte-1w6z1lr{display:inline-flex !important}.tp-header.svelte-1w6z1lr.svelte-1w6z1lr{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-1w6z1lr.svelte-1w6z1lr{justify-content:center}.tp-header-identity.svelte-1w6z1lr.svelte-1w6z1lr{min-width:0;overflow:hidden}.tp-week-label.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-1w6z1lr.svelte-1w6z1lr{display:none}.tp-axis-head-day.svelte-1w6z1lr.svelte-1w6z1lr{padding:5px 2px}.tp-day-name.svelte-1w6z1lr.svelte-1w6z1lr{font-size:12px}.tp-day-date.svelte-1w6z1lr.svelte-1w6z1lr{font-size:10px}.tp-day-override-badge.svelte-1w6z1lr.svelte-1w6z1lr{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-1w6z1lr.svelte-1w6z1lr{min-width:440px}.tp-axis-head-gutter.svelte-1w6z1lr.svelte-1w6z1lr,.tp-axis-gutter.svelte-1w6z1lr.svelte-1w6z1lr{width:30px}.tp-axis-hour.svelte-1w6z1lr.svelte-1w6z1lr{right:3px;font-size:9px}.tp-day-name.svelte-1w6z1lr.svelte-1w6z1lr{font-size:11px}.tp-day-date.svelte-1w6z1lr.svelte-1w6z1lr{font-size:10px}}");
 }
 function get_each_context3(ctx, list, i) {
   const child_ctx = ctx.slice();
@@ -31261,7 +31274,7 @@ function create_if_block_182(ctx) {
         ctx[4]
       );
       attr(span, "class", span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx[4].toLowerCase() + " svelte-aw4o9p");
+      ctx[4].toLowerCase() + " svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -31277,7 +31290,7 @@ function create_if_block_182(ctx) {
       );
       if (dirty[0] & /*abWeekType*/
       16 && span_class_value !== (span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx2[4].toLowerCase() + " svelte-aw4o9p")) {
+      ctx2[4].toLowerCase() + " svelte-1w6z1lr")) {
         attr(span, "class", span_class_value);
       }
     },
@@ -31294,7 +31307,7 @@ function create_if_block_172(ctx) {
     c() {
       span = element("span");
       span.textContent = "Inset";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-aw4o9p");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -31312,7 +31325,7 @@ function create_if_block_162(ctx) {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-aw4o9p");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -31370,11 +31383,11 @@ function create_each_block_52(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-name svelte-aw4o9p");
-      attr(span1, "class", "tp-day-date svelte-aw4o9p");
-      attr(span2, "class", "tp-day-label svelte-aw4o9p");
-      attr(div0, "class", "tp-th-day-inner svelte-aw4o9p");
-      attr(div1, "class", "tp-axis-head-day svelte-aw4o9p");
+      attr(span0, "class", "tp-day-name svelte-1w6z1lr");
+      attr(span1, "class", "tp-day-date svelte-1w6z1lr");
+      attr(span2, "class", "tp-day-label svelte-1w6z1lr");
+      attr(div0, "class", "tp-th-day-inner svelte-1w6z1lr");
+      attr(div1, "class", "tp-axis-head-day svelte-1w6z1lr");
       toggle_class(div1, "tp-th-day--today", isToday(
         /*day*/
         ctx[116].offset,
@@ -31475,7 +31488,7 @@ function create_each_block_42(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-hour svelte-aw4o9p");
+      attr(div, "class", "tp-axis-hour svelte-1w6z1lr");
       set_style(
         div,
         "top",
@@ -31522,7 +31535,7 @@ function create_if_block_152(ctx) {
         /*currentTimeStr*/
         ctx[10]
       );
-      attr(div, "class", "tp-now-badge svelte-aw4o9p");
+      attr(div, "class", "tp-now-badge svelte-1w6z1lr");
       set_style(
         div,
         "top",
@@ -31563,7 +31576,7 @@ function create_each_block_32(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-axis-line svelte-aw4o9p");
+      attr(div, "class", "tp-axis-line svelte-1w6z1lr");
       set_style(
         div,
         "top",
@@ -31699,7 +31712,7 @@ function create_if_block3(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-override-label svelte-aw4o9p");
+      attr(div, "class", "tp-axis-override-label svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -31748,9 +31761,9 @@ function create_if_block_142(ctx) {
       t2 = text(t2_value);
       t3 = text("\u2013");
       t4 = text(t4_value);
-      attr(span0, "class", "tp-block-name svelte-aw4o9p");
-      attr(span1, "class", "tp-block-time svelte-aw4o9p");
-      attr(div, "class", "tp-block-label svelte-aw4o9p");
+      attr(span0, "class", "tp-block-name svelte-1w6z1lr");
+      attr(span1, "class", "tp-block-time svelte-1w6z1lr");
+      attr(div, "class", "tp-block-label svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -31852,7 +31865,7 @@ function create_if_block_24(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-event-stack svelte-aw4o9p");
+      attr(div, "class", "tp-event-stack svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -32010,9 +32023,9 @@ function create_if_block_82(ctx) {
       if (if_block2) if_block2.c();
       t10 = space();
       if (if_block3) if_block3.c();
-      attr(span0, "class", "tp-chip-code svelte-aw4o9p");
-      attr(span1, "class", "tp-chip-period-time svelte-aw4o9p");
-      attr(div, "class", "tp-chip svelte-aw4o9p");
+      attr(span0, "class", "tp-chip-code svelte-1w6z1lr");
+      attr(span1, "class", "tp-chip-period-time svelte-1w6z1lr");
+      attr(div, "class", "tp-chip svelte-1w6z1lr");
       attr(div, "draggable", "true");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
@@ -32199,7 +32212,7 @@ function create_if_block_132(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-aw4o9p");
+      attr(span, "class", "tp-chip-meta svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -32232,7 +32245,7 @@ function create_if_block_122(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-aw4o9p");
+      attr(span, "class", "tp-chip-room svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -32261,7 +32274,7 @@ function create_if_block_112(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-aw4o9p");
+      attr(span, "class", "tp-chip-notes svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -32285,7 +32298,7 @@ function create_if_block_102(ctx) {
     c() {
       span = element("span");
       span.textContent = "\u25CB";
-      attr(span, "class", "tp-plan-dot svelte-aw4o9p");
+      attr(span, "class", "tp-plan-dot svelte-1w6z1lr");
       attr(span, "title", "No lesson plan linked");
     },
     m(target, anchor) {
@@ -32316,7 +32329,7 @@ function create_if_block_92(ctx) {
     c() {
       button = element("button");
       button.textContent = "\u25CF";
-      attr(button, "class", "tp-plan-dot tp-plan-dot--linked svelte-aw4o9p");
+      attr(button, "class", "tp-plan-dot tp-plan-dot--linked svelte-1w6z1lr");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -32350,7 +32363,7 @@ function create_if_block_72(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-aw4o9p");
+      attr(span, "class", "tp-chip-meta svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -32379,7 +32392,7 @@ function create_if_block_62(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-aw4o9p");
+      attr(span, "class", "tp-chip-room svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -32408,7 +32421,7 @@ function create_if_block_52(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-aw4o9p");
+      attr(span, "class", "tp-chip-notes svelte-1w6z1lr");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -32432,7 +32445,7 @@ function create_if_block_42(ctx) {
     c() {
       span = element("span");
       span.textContent = "\u25CB";
-      attr(span, "class", "tp-plan-dot svelte-aw4o9p");
+      attr(span, "class", "tp-plan-dot svelte-1w6z1lr");
       attr(span, "title", "No lesson plan linked");
     },
     m(target, anchor) {
@@ -32463,7 +32476,7 @@ function create_if_block_32(ctx) {
     c() {
       button = element("button");
       button.textContent = "\u25CF";
-      attr(button, "class", "tp-plan-dot tp-plan-dot--linked svelte-aw4o9p");
+      attr(button, "class", "tp-plan-dot tp-plan-dot--linked svelte-1w6z1lr");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -32596,9 +32609,9 @@ function create_each_block_22(key_2, ctx) {
       if (if_block2) if_block2.c();
       t10 = space();
       if (if_block3) if_block3.c();
-      attr(span0, "class", "tp-chip-code svelte-aw4o9p");
-      attr(span1, "class", "tp-chip-period-time svelte-aw4o9p");
-      attr(div, "class", "tp-chip tp-chip--event svelte-aw4o9p");
+      attr(span0, "class", "tp-chip-code svelte-1w6z1lr");
+      attr(span1, "class", "tp-chip-period-time svelte-1w6z1lr");
+      attr(div, "class", "tp-chip tp-chip--event svelte-1w6z1lr");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
       attr(div, "draggable", "true");
@@ -32822,7 +32835,7 @@ function create_each_block_13(key_2, ctx) {
       if (if_block0) if_block0.c();
       t = space();
       if_block1.c();
-      attr(div, "class", "tp-block svelte-aw4o9p");
+      attr(div, "class", "tp-block svelte-1w6z1lr");
       set_style(
         div,
         "top",
@@ -33001,7 +33014,7 @@ function create_if_block_110(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-now-line svelte-aw4o9p");
+      attr(div, "class", "tp-now-line svelte-1w6z1lr");
       set_style(
         div,
         "top",
@@ -33060,7 +33073,7 @@ function create_each_block3(ctx) {
       t0 = space();
       if_block.c();
       t1 = space();
-      attr(div, "class", "tp-axis-col svelte-aw4o9p");
+      attr(div, "class", "tp-axis-col svelte-1w6z1lr");
       set_style(
         div,
         "height",
@@ -33310,43 +33323,43 @@ function create_fragment3(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(span0, "class", "tp-week-label svelte-aw4o9p");
-      attr(span1, "class", "tp-date-range svelte-aw4o9p");
-      attr(div0, "class", "tp-header-identity svelte-aw4o9p");
-      attr(button0, "class", "tp-btn tp-nav-arrow svelte-aw4o9p");
+      attr(span0, "class", "tp-week-label svelte-1w6z1lr");
+      attr(span1, "class", "tp-date-range svelte-1w6z1lr");
+      attr(div0, "class", "tp-header-identity svelte-1w6z1lr");
+      attr(button0, "class", "tp-btn tp-nav-arrow svelte-1w6z1lr");
       attr(button0, "aria-label", "Previous week");
       button0.disabled = button0_disabled_value = !/*canGoPrev*/
       ctx[9];
-      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-aw4o9p");
-      attr(button2, "class", "tp-btn tp-nav-arrow svelte-aw4o9p");
+      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-1w6z1lr");
+      attr(button2, "class", "tp-btn tp-nav-arrow svelte-1w6z1lr");
       attr(button2, "aria-label", "Next week");
       button2.disabled = button2_disabled_value = !/*canGoNext*/
       ctx[8];
-      attr(nav, "class", "tp-nav svelte-aw4o9p");
+      attr(nav, "class", "tp-nav svelte-1w6z1lr");
       attr(nav, "aria-label", "Week navigation");
-      attr(span2, "class", "tp-btn-icon svelte-aw4o9p");
-      attr(button3, "class", "tp-btn tp-action-btn svelte-aw4o9p");
+      attr(span2, "class", "tp-btn-icon svelte-1w6z1lr");
+      attr(button3, "class", "tp-btn tp-action-btn svelte-1w6z1lr");
       attr(button3, "aria-label", "Add event");
-      attr(span3, "class", "tp-btn-icon svelte-aw4o9p");
-      attr(button4, "class", "tp-btn tp-action-btn svelte-aw4o9p");
+      attr(span3, "class", "tp-btn-icon svelte-1w6z1lr");
+      attr(button4, "class", "tp-btn tp-action-btn svelte-1w6z1lr");
       attr(button4, "aria-label", "Edit timetable");
-      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-aw4o9p");
+      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-1w6z1lr");
       attr(button5, "aria-label", "Settings");
-      attr(button6, "class", "tp-btn tp-overflow-btn svelte-aw4o9p");
+      attr(button6, "class", "tp-btn tp-overflow-btn svelte-1w6z1lr");
       attr(button6, "aria-label", "More options");
-      attr(div1, "class", "tp-header-actions svelte-aw4o9p");
-      attr(header, "class", "tp-header svelte-aw4o9p");
-      attr(div2, "class", "tp-axis-head-gutter svelte-aw4o9p");
-      attr(div3, "class", "tp-axis-head svelte-aw4o9p");
-      attr(div4, "class", "tp-axis-gutter svelte-aw4o9p");
+      attr(div1, "class", "tp-header-actions svelte-1w6z1lr");
+      attr(header, "class", "tp-header svelte-1w6z1lr");
+      attr(div2, "class", "tp-axis-head-gutter svelte-1w6z1lr");
+      attr(div3, "class", "tp-axis-head svelte-1w6z1lr");
+      attr(div4, "class", "tp-axis-gutter svelte-1w6z1lr");
       set_style(
         div4,
         "height",
         /*axisHeight*/
         ctx[15] + "px"
       );
-      attr(div5, "class", "tp-axis-body svelte-aw4o9p");
-      attr(div6, "class", "tp-axis svelte-aw4o9p");
+      attr(div5, "class", "tp-axis-body svelte-1w6z1lr");
+      attr(div6, "class", "tp-axis svelte-1w6z1lr");
       set_style(div6, "--grid-colour", colourToCss(
         /*plugin*/
         ctx[0].settings.gridLineColour,
@@ -33369,8 +33382,8 @@ function create_fragment3(ctx) {
         /*plugin*/
         ((_b = ctx[0].settings.blockBorderWeight) != null ? _b : 1) + "px"
       );
-      attr(div7, "class", "tp-table-scroll svelte-aw4o9p");
-      attr(div8, "class", "tp-week-view svelte-aw4o9p");
+      attr(div7, "class", "tp-table-scroll svelte-1w6z1lr");
+      attr(div8, "class", "tp-week-view svelte-1w6z1lr");
       attr(div8, "data-tp-theme", div8_data_tp_theme_value = /*plugin*/
       (_c = ctx[0].settings.theme) != null ? _c : "carbon");
       attr(div8, "data-tp-mode", div8_data_tp_mode_value = /*plugin*/
@@ -33685,6 +33698,9 @@ function create_fragment3(ctx) {
   };
 }
 var PX_PER_MIN = 1.8;
+function _dep2(_t, value) {
+  return value;
+}
 function updateSize() {
 }
 function timeToMinutes(t) {
@@ -33990,18 +34006,24 @@ function instance3($$self, $$props, $$invalidate) {
         const itemLabel = getSlotLabel(slot).code;
         if (planPath) {
           menu.addItem((i) => i.setTitle("Open lesson plan").setIcon("file-text").onClick(() => openPlan(planPath)));
-          menu.addItem((i) => i.setTitle("Apply plan to future lessons").setIcon("copy-plus").onClick(async () => {
+          menu.addItem((i) => i.setTitle("Apply plan to future lessons").setIcon("copy-plus").onClick(() => {
             const dry = bulkApplyPlan(plugin.settings, slot.classId, date, planPath, true);
             if (dry.count === 0) {
               new import_obsidian15.Notice("No future lessons of this item found.");
               return;
             }
-            if (!confirm(`Link this plan to ${dry.count} future lesson${dry.count === 1 ? "" : "s"} of ${itemLabel} (until the end of the academic year)?`)) return;
-            const res = bulkApplyPlan(plugin.settings, slot.classId, date, planPath);
-            $$invalidate(0, plugin.settings.lastBulkApply = { path: planPath, entries: res.entries }, plugin);
-            await plugin.saveSettings();
-            invalidate();
-            showBulkUndoNotice(res.count);
+            new ConfirmModal(
+              plugin.app,
+              `Link this plan to ${dry.count} future lesson${dry.count === 1 ? "" : "s"} of ${itemLabel} (until the end of the academic year)?`,
+              async () => {
+                const res = bulkApplyPlan(plugin.settings, slot.classId, date, planPath);
+                $$invalidate(0, plugin.settings.lastBulkApply = { path: planPath, entries: res.entries }, plugin);
+                await plugin.saveSettings();
+                invalidate();
+                showBulkUndoNotice(res.count);
+              },
+              "Apply"
+            ).open();
           }));
           menu.addItem((i) => i.setTitle("Unlink lesson plan").setIcon("unlink").onClick(async () => {
             clearSlotPlan(plugin.settings, slot.id, date);
@@ -34265,17 +34287,23 @@ function instance3($$self, $$props, $$invalidate) {
       console.error("Teacher Planner: note create failed.", err);
     }
   }
-  async function doUndoBulkApply() {
+  function doUndoBulkApply() {
     const journal = plugin.settings.lastBulkApply;
     if (!journal) {
       new import_obsidian15.Notice("Nothing to undo.");
       return;
     }
-    if (!confirm(`Undo the last bulk plan apply (${journal.entries.length} lesson${journal.entries.length === 1 ? "" : "s"})? Previously linked plans will be restored.`)) return;
-    const n = undoBulkApply(plugin.settings);
-    await plugin.saveSettings();
-    invalidate();
-    new import_obsidian15.Notice(`Bulk apply undone \u2014 ${n} lesson${n === 1 ? "" : "s"} reverted.`);
+    new ConfirmModal(
+      plugin.app,
+      `Undo the last bulk plan apply (${journal.entries.length} lesson${journal.entries.length === 1 ? "" : "s"})? Previously linked plans will be restored.`,
+      async () => {
+        const n = undoBulkApply(plugin.settings);
+        await plugin.saveSettings();
+        invalidate();
+        new import_obsidian15.Notice(`Bulk apply undone \u2014 ${n} lesson${n === 1 ? "" : "s"} reverted.`);
+      },
+      "Undo"
+    ).open();
   }
   function showBulkUndoNotice(count) {
     const frag = document.createDocumentFragment();
@@ -34400,7 +34428,7 @@ function instance3($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick*/
     134217728) {
-      $: $$invalidate(2, DAYS2 = (_tick, ALL_DAYS.filter((d) => {
+      $: $$invalidate(2, DAYS2 = _dep2(_tick, ALL_DAYS.filter((d) => {
         var _a2;
         return ((_a2 = plugin.settings.schoolDays) !== null && _a2 !== void 0 ? _a2 : ["monday", "tuesday", "wednesday", "thursday", "friday"]).includes(d.key);
       })));
@@ -34458,52 +34486,52 @@ function instance3($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick*/
     134217728) {
-      $: _periods = (_tick, plugin.settings.academicYear.periods);
+      $: _periods = _dep2(_tick, plugin.settings.academicYear.periods);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick, _a*/
     134479872) {
-      $: _periodTypes = (_tick, $$invalidate(49, _a = plugin.settings.periodTypes) !== null && _a !== void 0 ? _a : []);
+      $: _periodTypes = _dep2(_tick, $$invalidate(49, _a = plugin.settings.periodTypes) !== null && _a !== void 0 ? _a : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick, _b*/
     134742016) {
-      $: $$invalidate(63, _templates = (_tick, $$invalidate(50, _b = plugin.settings.timetableTemplates) !== null && _b !== void 0 ? _b : []));
+      $: $$invalidate(63, _templates = _dep2(_tick, $$invalidate(50, _b = plugin.settings.timetableTemplates) !== null && _b !== void 0 ? _b : []));
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick, _c*/
     135266304) {
-      $: _classes = (_tick, $$invalidate(51, _c = plugin.settings.classes) !== null && _c !== void 0 ? _c : []);
+      $: _classes = _dep2(_tick, $$invalidate(51, _c = plugin.settings.classes) !== null && _c !== void 0 ? _c : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick, _d*/
     136314880) {
-      $: _subjects = (_tick, $$invalidate(52, _d = plugin.settings.subjects) !== null && _d !== void 0 ? _d : []);
+      $: _subjects = _dep2(_tick, $$invalidate(52, _d = plugin.settings.subjects) !== null && _d !== void 0 ? _d : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick, _e*/
     138412032) {
-      $: _activities = (_tick, $$invalidate(53, _e = plugin.settings.activities) !== null && _e !== void 0 ? _e : []);
+      $: _activities = _dep2(_tick, $$invalidate(53, _e = plugin.settings.activities) !== null && _e !== void 0 ? _e : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick, _f*/
     142606336) {
-      $: $$invalidate(64, _dateEvents = (_tick, $$invalidate(54, _f = plugin.settings.dateEvents) !== null && _f !== void 0 ? _f : []));
+      $: $$invalidate(64, _dateEvents = _dep2(_tick, $$invalidate(54, _f = plugin.settings.dateEvents) !== null && _f !== void 0 ? _f : []));
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick, _g*/
     150994944) {
-      $: _slotExclusions = (_tick, $$invalidate(55, _g = plugin.settings.slotExclusions) !== null && _g !== void 0 ? _g : []);
+      $: _slotExclusions = _dep2(_tick, $$invalidate(55, _g = plugin.settings.slotExclusions) !== null && _g !== void 0 ? _g : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick, _h*/
     167772160) {
-      $: $$invalidate(65, _planLinks = (_tick, $$invalidate(56, _h = plugin.settings.lessonPlanLinks) !== null && _h !== void 0 ? _h : []));
+      $: $$invalidate(65, _planLinks = _dep2(_tick, $$invalidate(56, _h = plugin.settings.lessonPlanLinks) !== null && _h !== void 0 ? _h : []));
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick, _j*/
     201326592) {
-      $: $$invalidate(19, _showUnplanned = (_tick, $$invalidate(57, _j = plugin.settings.showUnplannedDot) !== null && _j !== void 0 ? _j : true));
+      $: $$invalidate(19, _showUnplanned = _dep2(_tick, $$invalidate(57, _j = plugin.settings.showUnplannedDot) !== null && _j !== void 0 ? _j : true));
     }
     if ($$self.$$.dirty[2] & /*_planLinks*/
     8) {
@@ -34623,11 +34651,11 @@ function instance3($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[1] & /*_tick, currentDate*/
     402653184) {
-      $: $$invalidate(9, canGoPrev = (_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart()));
+      $: $$invalidate(9, canGoPrev = _dep2(_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart()));
     }
     if ($$self.$$.dirty[1] & /*_tick, currentDate*/
     402653184) {
-      $: $$invalidate(8, canGoNext = (_tick, getMondayOfWeek(addWeeks(currentDate, 1)) <= _ayEnd()));
+      $: $$invalidate(8, canGoNext = _dep2(_tick, getMondayOfWeek(addWeeks(currentDate, 1)) <= _ayEnd()));
     }
     if ($$self.$$.dirty[0] & /*plugin, currentMonday*/
     3) {
@@ -36115,6 +36143,9 @@ function create_fragment4(ctx) {
   };
 }
 var HL_YELLOW = "#fff3a3";
+function _dep3(_t, value) {
+  return value;
+}
 function _firstOfMonth(y, m) {
   const d = new Date(y, m, 1);
   d.setHours(0, 0, 0, 0);
@@ -36150,7 +36181,7 @@ function instance4($$self, $$props, $$invalidate) {
     (0, import_obsidian17.setIcon)(node, name);
     return {
       update(n) {
-        node.innerHTML = "";
+        node.empty();
         (0, import_obsidian17.setIcon)(node, n);
       }
     };
@@ -36350,7 +36381,7 @@ function instance4($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty[0] & /*viewYear, viewMonth*/
     48 | $$self.$$.dirty[1] & /*_tick*/
     64) {
-      $: $$invalidate(11, calendarDays = (_tick, buildCalendar(viewYear, viewMonth)));
+      $: $$invalidate(11, calendarDays = _dep3(_tick, buildCalendar(viewYear, viewMonth)));
     }
     if ($$self.$$.dirty[1] & /*currentWeek*/
     2) {
@@ -36358,7 +36389,7 @@ function instance4($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[1] & /*_tick, plugin, _a, currentWeekKey, _b*/
     333) {
-      $: $$invalidate(3, notesValue = (_tick, $$invalidate(34, _b = ($$invalidate(33, _a = plugin.settings.weekNotes) !== null && _a !== void 0 ? _a : {})[currentWeekKey]) !== null && _b !== void 0 ? _b : ""));
+      $: $$invalidate(3, notesValue = _dep3(_tick, $$invalidate(34, _b = ($$invalidate(33, _a = plugin.settings.weekNotes) !== null && _a !== void 0 ? _a : {})[currentWeekKey]) !== null && _b !== void 0 ? _b : ""));
     }
     if ($$self.$$.dirty[1] & /*currentWeek*/
     2) {
@@ -36383,7 +36414,7 @@ function instance4($$self, $$props, $$invalidate) {
     if ($$self.$$.dirty[0] & /*dtEnabled*/
     4 | $$self.$$.dirty[1] & /*_tick, plugin*/
     65) {
-      $: $$invalidate(9, dtCalc = (_tick, dtEnabled ? calcDirectedTime(plugin.settings) : null));
+      $: $$invalidate(9, dtCalc = _dep3(_tick, dtEnabled ? calcDirectedTime(plugin.settings) : null));
     }
   };
   return [
@@ -36608,13 +36639,11 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian1
         console.error("Teacher Planner: refreshViews() failed.", err);
       }
     });
-    console.log("Teacher Planner loaded.");
   }
   onunload() {
     this.flushPendingSave().catch((err) => {
       console.error("Teacher Planner: flushPendingSave on unload failed.", err);
     });
-    console.log("Teacher Planner unloaded.");
   }
   // ── View helpers ──────────────────────────────────────────────────────────────────────────
   async activateView() {
