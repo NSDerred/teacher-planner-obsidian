@@ -429,7 +429,7 @@
 }
 
 .tp-collapsible-content {
-  display: none;
+  display: block;
 }
 
 .tp-activity-header-label {

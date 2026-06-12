@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.4] — 2026-06-12
 
+### Fixed
+
+- **Settings sections wouldn't expand** — a leftover CSS rule from the 0.2.2 collapsible rework hid section content unconditionally, so clicking a header toggled the state but nothing ever became visible. Sections now open and close as intended.
+
 ### Changed
 
 - **`xlsx` dependency replaced with `write-excel-file`** — clears the dependency security advisory flagged by the community review bot (the advisory concerned parsing untrusted files, which the plugin never did) and shrinks the plugin bundle by ~420 KB. Excel exports are equivalent: same sheets, same data.
