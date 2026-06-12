@@ -15165,7 +15165,7 @@ var LessonPlanSuggestModal = class extends import_obsidian14.FuzzySuggestModal {
 // src/views/WeekView.svelte
 init_runtime();
 function add_css3(target) {
-  append_styles(target, "svelte-1w6z1lr", ".tp-week-view.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-1w6z1lr.svelte-1w6z1lr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-1w6z1lr.svelte-1w6z1lr{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;gap:4px}.tp-nav-arrow.svelte-1w6z1lr.svelte-1w6z1lr{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-1w6z1lr.svelte-1w6z1lr{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-1w6z1lr.svelte-1w6z1lr{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-1w6z1lr.svelte-1w6z1lr{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-1w6z1lr.svelte-1w6z1lr{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-1w6z1lr.svelte-1w6z1lr:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-1w6z1lr.svelte-1w6z1lr:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-1w6z1lr.svelte-1w6z1lr{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-1w6z1lr.svelte-1w6z1lr:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-1w6z1lr svg,.tp-btn-icon.svelte-1w6z1lr svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-1w6z1lr.svelte-1w6z1lr{padding:5px 8px}.tp-action-btn--icon-only.svelte-1w6z1lr svg{width:15px;height:15px}.tp-overflow-btn.svelte-1w6z1lr.svelte-1w6z1lr{display:none}.tp-table-scroll.svelte-1w6z1lr.svelte-1w6z1lr{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-1w6z1lr.svelte-1w6z1lr{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-1w6z1lr.svelte-1w6z1lr{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-1w6z1lr.svelte-1w6z1lr{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-1w6z1lr.svelte-1w6z1lr{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-1w6z1lr.svelte-1w6z1lr{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-1w6z1lr.svelte-1w6z1lr{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-1w6z1lr.svelte-1w6z1lr{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-1w6z1lr.svelte-1w6z1lr{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0}.tp-axis-gutter.svelte-1w6z1lr.svelte-1w6z1lr{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-1w6z1lr.svelte-1w6z1lr{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-block.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block--dragover.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-1w6z1lr.svelte-1w6z1lr{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-1w6z1lr.svelte-1w6z1lr{display:flex;flex-direction:column;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-1w6z1lr.svelte-1w6z1lr{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-1w6z1lr.svelte-1w6z1lr{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-1w6z1lr:hover .tp-block-time.svelte-1w6z1lr{display:block}.tp-block.svelte-1w6z1lr.svelte-1w6z1lr:hover{height:auto !important;min-height:max(var(--bh, 20px), 48px);z-index:30;padding-bottom:6px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-1w6z1lr.svelte-1w6z1lr:hover:has(.tp-event-stack){min-height:var(--bh, 20px);padding-bottom:0;overflow:visible;background:transparent !important;border-color:transparent !important;box-shadow:none;outline:none}.tp-block.svelte-1w6z1lr:hover .tp-event-stack.svelte-1w6z1lr{position:relative;inset:auto;height:auto;margin:3px;border-radius:4px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary);box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-1w6z1lr:hover .tp-block-label.svelte-1w6z1lr{padding:4px 8px}.tp-block.svelte-1w6z1lr:hover .tp-chip.svelte-1w6z1lr{container-type:normal;background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important}.tp-block.svelte-1w6z1lr:hover .tp-chip-notes.svelte-1w6z1lr{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}.tp-chip-period-time.svelte-1w6z1lr.svelte-1w6z1lr{display:none;font-size:10px;color:var(--text-muted);opacity:0.85}.tp-block.svelte-1w6z1lr:hover .tp-chip-period-time.svelte-1w6z1lr{display:block}.tp-chip.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-1w6z1lr.svelte-1w6z1lr:hover{filter:brightness(1.08)}.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-1w6z1lr.svelte-1w6z1lr{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-1w6z1lr.svelte-1w6z1lr,.tp-chip-notes.svelte-1w6z1lr.svelte-1w6z1lr{display:none}.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px}.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:12px}.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{display:none}.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px}.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-1w6z1lr.svelte-1w6z1lr{font-size:11px}.tp-chip-room.svelte-1w6z1lr.svelte-1w6z1lr{font-size:9px}}.tp-plan-dot.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;top:1px;right:3px;font-size:9px;line-height:1;background:none;border:none;padding:2px 3px;color:var(--text-muted);opacity:0.6;cursor:default}button.tp-plan-dot--linked.svelte-1w6z1lr.svelte-1w6z1lr{color:var(--interactive-accent);opacity:1;cursor:pointer}button.tp-plan-dot--linked.svelte-1w6z1lr.svelte-1w6z1lr:hover{opacity:0.8}.tp-now-line.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-badge.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-1w6z1lr.svelte-1w6z1lr{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-1w6z1lr .tp-chip.svelte-1w6z1lr{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-1w6z1lr.svelte-1w6z1lr{display:none}@container (max-width: 680px){.tp-action-btn.svelte-1w6z1lr.svelte-1w6z1lr{display:none}.tp-overflow-btn.svelte-1w6z1lr.svelte-1w6z1lr{display:inline-flex !important}.tp-header.svelte-1w6z1lr.svelte-1w6z1lr{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-1w6z1lr.svelte-1w6z1lr{justify-content:center}.tp-header-identity.svelte-1w6z1lr.svelte-1w6z1lr{min-width:0;overflow:hidden}.tp-week-label.svelte-1w6z1lr.svelte-1w6z1lr{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-1w6z1lr.svelte-1w6z1lr{display:none}.tp-axis-head-day.svelte-1w6z1lr.svelte-1w6z1lr{padding:5px 2px}.tp-day-name.svelte-1w6z1lr.svelte-1w6z1lr{font-size:12px}.tp-day-date.svelte-1w6z1lr.svelte-1w6z1lr{font-size:10px}.tp-day-override-badge.svelte-1w6z1lr.svelte-1w6z1lr{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-1w6z1lr.svelte-1w6z1lr{min-width:440px}.tp-axis-head-gutter.svelte-1w6z1lr.svelte-1w6z1lr,.tp-axis-gutter.svelte-1w6z1lr.svelte-1w6z1lr{width:30px}.tp-axis-hour.svelte-1w6z1lr.svelte-1w6z1lr{right:3px;font-size:9px}.tp-day-name.svelte-1w6z1lr.svelte-1w6z1lr{font-size:11px}.tp-day-date.svelte-1w6z1lr.svelte-1w6z1lr{font-size:10px}}");
+  append_styles(target, "svelte-1xpgp1s", ".tp-week-view.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-1xpgp1s.svelte-1xpgp1s{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-1xpgp1s.svelte-1xpgp1s{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;gap:4px}.tp-nav-arrow.svelte-1xpgp1s.svelte-1xpgp1s{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-1xpgp1s.svelte-1xpgp1s{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-1xpgp1s.svelte-1xpgp1s{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-1xpgp1s.svelte-1xpgp1s{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-1xpgp1s.svelte-1xpgp1s{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-1xpgp1s.svelte-1xpgp1s:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-1xpgp1s.svelte-1xpgp1s:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-1xpgp1s.svelte-1xpgp1s{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-1xpgp1s.svelte-1xpgp1s:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-1xpgp1s svg,.tp-btn-icon.svelte-1xpgp1s svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-1xpgp1s.svelte-1xpgp1s{padding:5px 8px}.tp-action-btn--icon-only.svelte-1xpgp1s svg{width:15px;height:15px}.tp-overflow-btn.svelte-1xpgp1s.svelte-1xpgp1s{display:none}.tp-table-scroll.svelte-1xpgp1s.svelte-1xpgp1s{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-1xpgp1s.svelte-1xpgp1s{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-1xpgp1s.svelte-1xpgp1s{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-1xpgp1s.svelte-1xpgp1s{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-1xpgp1s.svelte-1xpgp1s{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-1xpgp1s.svelte-1xpgp1s{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-1xpgp1s.svelte-1xpgp1s{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-1xpgp1s.svelte-1xpgp1s{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-1xpgp1s.svelte-1xpgp1s{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0;position:relative}.tp-axis-gutter.svelte-1xpgp1s.svelte-1xpgp1s{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-1xpgp1s.svelte-1xpgp1s{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-block.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block--dragover.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-1xpgp1s.svelte-1xpgp1s{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-1xpgp1s.svelte-1xpgp1s{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-1xpgp1s:hover .tp-block-time.svelte-1xpgp1s{display:block}.tp-block.svelte-1xpgp1s.svelte-1xpgp1s:hover{height:auto !important;min-height:max(var(--bh, 20px), 48px);z-index:30;padding-bottom:6px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-1xpgp1s.svelte-1xpgp1s:hover:has(.tp-event-stack){min-height:var(--bh, 20px);padding-bottom:0;overflow:visible;background:transparent !important;border-color:transparent !important;box-shadow:none;outline:none}.tp-block.svelte-1xpgp1s:hover .tp-event-stack.svelte-1xpgp1s{position:relative;inset:auto;height:auto;margin:3px;border-radius:4px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary);box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-1xpgp1s:hover .tp-block-label.svelte-1xpgp1s{padding:4px 8px}.tp-block.svelte-1xpgp1s:hover .tp-chip.svelte-1xpgp1s{container-type:normal;background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important}.tp-block.svelte-1xpgp1s:hover .tp-chip-notes.svelte-1xpgp1s{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}.tp-chip-period-time.svelte-1xpgp1s.svelte-1xpgp1s{display:none;font-size:10px;color:var(--text-muted);opacity:0.85}.tp-block.svelte-1xpgp1s:hover .tp-chip-period-time.svelte-1xpgp1s{display:block}.tp-chip.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-1xpgp1s.svelte-1xpgp1s:hover{filter:brightness(1.08)}.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-1xpgp1s.svelte-1xpgp1s{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-1xpgp1s.svelte-1xpgp1s,.tp-chip-notes.svelte-1xpgp1s.svelte-1xpgp1s{display:none}.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px}.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:12px}.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{display:none}.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px}.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:11px}.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{font-size:9px}}.tp-plan-dot.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;top:1px;right:3px;font-size:9px;line-height:1;background:none;border:none;padding:2px 3px;color:var(--text-muted);opacity:0.6;cursor:default}button.tp-plan-dot--linked.svelte-1xpgp1s.svelte-1xpgp1s{color:var(--interactive-accent);opacity:1;cursor:pointer}button.tp-plan-dot--linked.svelte-1xpgp1s.svelte-1xpgp1s:hover{opacity:0.8}.tp-now-line.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-line--week.svelte-1xpgp1s.svelte-1xpgp1s{left:48px;right:6px}.tp-now-badge.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-1xpgp1s .tp-chip.svelte-1xpgp1s{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-1xpgp1s.svelte-1xpgp1s{display:none}@container (max-width: 680px){.tp-action-btn.svelte-1xpgp1s.svelte-1xpgp1s{display:none}.tp-overflow-btn.svelte-1xpgp1s.svelte-1xpgp1s{display:inline-flex !important}.tp-header.svelte-1xpgp1s.svelte-1xpgp1s{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-1xpgp1s.svelte-1xpgp1s{justify-content:center}.tp-header-identity.svelte-1xpgp1s.svelte-1xpgp1s{min-width:0;overflow:hidden}.tp-week-label.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-1xpgp1s.svelte-1xpgp1s{display:none}.tp-axis-head-day.svelte-1xpgp1s.svelte-1xpgp1s{padding:5px 2px}.tp-day-name.svelte-1xpgp1s.svelte-1xpgp1s{font-size:12px}.tp-day-date.svelte-1xpgp1s.svelte-1xpgp1s{font-size:10px}.tp-day-override-badge.svelte-1xpgp1s.svelte-1xpgp1s{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-1xpgp1s.svelte-1xpgp1s{min-width:440px}.tp-axis-head-gutter.svelte-1xpgp1s.svelte-1xpgp1s,.tp-axis-gutter.svelte-1xpgp1s.svelte-1xpgp1s{width:30px}.tp-now-line--week.svelte-1xpgp1s.svelte-1xpgp1s{left:30px}.tp-axis-hour.svelte-1xpgp1s.svelte-1xpgp1s{right:3px;font-size:9px}.tp-day-name.svelte-1xpgp1s.svelte-1xpgp1s{font-size:11px}.tp-day-date.svelte-1xpgp1s.svelte-1xpgp1s{font-size:10px}}");
 }
 function get_each_context3(ctx, list, i) {
   const child_ctx = ctx.slice();
@@ -15346,7 +15346,7 @@ function create_if_block_182(ctx) {
         ctx[4]
       );
       attr(span, "class", span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx[4].toLowerCase() + " svelte-1w6z1lr");
+      ctx[4].toLowerCase() + " svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -15362,7 +15362,7 @@ function create_if_block_182(ctx) {
       );
       if (dirty[0] & /*abWeekType*/
       16 && span_class_value !== (span_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx2[4].toLowerCase() + " svelte-1w6z1lr")) {
+      ctx2[4].toLowerCase() + " svelte-1xpgp1s")) {
         attr(span, "class", span_class_value);
       }
     },
@@ -15379,7 +15379,7 @@ function create_if_block_172(ctx) {
     c() {
       span = element("span");
       span.textContent = "Inset";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-1w6z1lr");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -15397,7 +15397,7 @@ function create_if_block_162(ctx) {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-1w6z1lr");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -15455,11 +15455,11 @@ function create_each_block_52(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-name svelte-1w6z1lr");
-      attr(span1, "class", "tp-day-date svelte-1w6z1lr");
-      attr(span2, "class", "tp-day-label svelte-1w6z1lr");
-      attr(div0, "class", "tp-th-day-inner svelte-1w6z1lr");
-      attr(div1, "class", "tp-axis-head-day svelte-1w6z1lr");
+      attr(span0, "class", "tp-day-name svelte-1xpgp1s");
+      attr(span1, "class", "tp-day-date svelte-1xpgp1s");
+      attr(span2, "class", "tp-day-label svelte-1xpgp1s");
+      attr(div0, "class", "tp-th-day-inner svelte-1xpgp1s");
+      attr(div1, "class", "tp-axis-head-day svelte-1xpgp1s");
       toggle_class(div1, "tp-th-day--today", isToday(
         /*day*/
         ctx[116].offset,
@@ -15560,7 +15560,7 @@ function create_each_block_42(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-hour svelte-1w6z1lr");
+      attr(div, "class", "tp-axis-hour svelte-1xpgp1s");
       set_style(
         div,
         "top",
@@ -15607,7 +15607,7 @@ function create_if_block_152(ctx) {
         /*currentTimeStr*/
         ctx[10]
       );
-      attr(div, "class", "tp-now-badge svelte-1w6z1lr");
+      attr(div, "class", "tp-now-badge svelte-1xpgp1s");
       set_style(
         div,
         "top",
@@ -15643,12 +15643,46 @@ function create_if_block_152(ctx) {
     }
   };
 }
+function create_if_block_142(ctx) {
+  let div;
+  return {
+    c() {
+      div = element("div");
+      attr(div, "class", "tp-now-line tp-now-line--week svelte-1xpgp1s");
+      set_style(
+        div,
+        "top",
+        /*nowTop*/
+        ctx[13] + 6 + "px"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div, anchor);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*nowTop*/
+      8192) {
+        set_style(
+          div,
+          "top",
+          /*nowTop*/
+          ctx2[13] + 6 + "px"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div);
+      }
+    }
+  };
+}
 function create_each_block_32(ctx) {
   let div;
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-axis-line svelte-1w6z1lr");
+      attr(div, "class", "tp-axis-line svelte-1xpgp1s");
       set_style(
         div,
         "top",
@@ -15682,17 +15716,7 @@ function create_each_block_32(ctx) {
 function create_else_block2(ctx) {
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
-  let t;
-  let show_if = (
-    /*nowTop*/
-    ctx[13] !== null && isToday(
-      /*day*/
-      ctx[116].offset,
-      /*currentMonday*/
-      ctx[1]
-    )
-  );
-  let if_block_anchor;
+  let each_1_anchor;
   let each_value_1 = ensure_array_like(getPeriodsForDay(
     /*plugin*/
     ctx[0].settings.academicYear,
@@ -15708,15 +15732,12 @@ function create_else_block2(ctx) {
     let key = get_key(child_ctx);
     each_1_lookup.set(key, each_blocks[i] = create_each_block_13(key, child_ctx));
   }
-  let if_block = show_if && create_if_block_110(ctx);
   return {
     c() {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      t = space();
-      if (if_block) if_block.c();
-      if_block_anchor = empty();
+      each_1_anchor = empty();
     },
     m(target, anchor) {
       for (let i = 0; i < each_blocks.length; i += 1) {
@@ -15724,9 +15745,7 @@ function create_else_block2(ctx) {
           each_blocks[i].m(target, anchor);
         }
       }
-      insert(target, t, anchor);
-      if (if_block) if_block.m(target, anchor);
-      insert(target, if_block_anchor, anchor);
+      insert(target, each_1_anchor, anchor);
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*plugin, DAYS, _axis, getPeriodTypeColour, dragOverKey, _slotMap, isSlotExcluded, currentMonday, rejectKey, onCellDragOver, onCellDragLeave, _dateEventMap, getDateEventLabel, onEventDragStart, _eventPlanMap, _showUnplanned, getSlotLabel, onChipDragStart, _slotPlanMap*/
@@ -15738,38 +15757,16 @@ function create_else_block2(ctx) {
           /*day*/
           ctx2[116].key
         ));
-        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_1, each_1_lookup, t.parentNode, destroy_block, create_each_block_13, t, get_each_context_13);
-      }
-      if (dirty[0] & /*nowTop, DAYS, currentMonday*/
-      8198) show_if = /*nowTop*/
-      ctx2[13] !== null && isToday(
-        /*day*/
-        ctx2[116].offset,
-        /*currentMonday*/
-        ctx2[1]
-      );
-      if (show_if) {
-        if (if_block) {
-          if_block.p(ctx2, dirty);
-        } else {
-          if_block = create_if_block_110(ctx2);
-          if_block.c();
-          if_block.m(if_block_anchor.parentNode, if_block_anchor);
-        }
-      } else if (if_block) {
-        if_block.d(1);
-        if_block = null;
+        each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_1, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block_13, each_1_anchor, get_each_context_13);
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(t);
-        detach(if_block_anchor);
+        detach(each_1_anchor);
       }
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].d(detaching);
       }
-      if (if_block) if_block.d(detaching);
     }
   };
 }
@@ -15784,7 +15781,7 @@ function create_if_block3(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-override-label svelte-1w6z1lr");
+      attr(div, "class", "tp-axis-override-label svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -15802,7 +15799,7 @@ function create_if_block3(ctx) {
     }
   };
 }
-function create_if_block_142(ctx) {
+function create_if_block_132(ctx) {
   let div;
   let span0;
   let t0_value = (
@@ -15833,9 +15830,9 @@ function create_if_block_142(ctx) {
       t2 = text(t2_value);
       t3 = text("\u2013");
       t4 = text(t4_value);
-      attr(span0, "class", "tp-block-name svelte-1w6z1lr");
-      attr(span1, "class", "tp-block-time svelte-1w6z1lr");
-      attr(div, "class", "tp-block-label svelte-1w6z1lr");
+      attr(span0, "class", "tp-block-name svelte-1xpgp1s");
+      attr(span1, "class", "tp-block-time svelte-1xpgp1s");
+      attr(div, "class", "tp-block-label svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -15907,14 +15904,14 @@ function create_else_block_12(ctx) {
     }
   };
 }
-function create_if_block_24(ctx) {
+function create_if_block_110(ctx) {
   let div;
   let t;
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
   let if_block = (
     /*slot*/
-    ctx[126] && create_if_block_82(get_if_ctx2(ctx))
+    ctx[126] && create_if_block_72(get_if_ctx2(ctx))
   );
   let each_value_2 = ensure_array_like(
     /*devEvents*/
@@ -15937,7 +15934,7 @@ function create_if_block_24(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-event-stack svelte-1w6z1lr");
+      attr(div, "class", "tp-event-stack svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -15957,7 +15954,7 @@ function create_if_block_24(ctx) {
         if (if_block) {
           if_block.p(get_if_ctx2(ctx2), dirty);
         } else {
-          if_block = create_if_block_82(get_if_ctx2(ctx2));
+          if_block = create_if_block_72(get_if_ctx2(ctx2));
           if_block.c();
           if_block.m(div, t);
         }
@@ -15986,7 +15983,7 @@ function create_if_block_24(ctx) {
     }
   };
 }
-function create_if_block_82(ctx) {
+function create_if_block_72(ctx) {
   let div;
   let span0;
   let t0_value = (
@@ -16024,15 +16021,15 @@ function create_if_block_82(ctx) {
   let if_block0 = (
     /*lbl*/
     (ctx[134].year || /*lbl*/
-    ctx[134].subjectName) && create_if_block_132(ctx)
+    ctx[134].subjectName) && create_if_block_122(ctx)
   );
   let if_block1 = (
     /*lbl*/
-    ctx[134].classroom && create_if_block_122(ctx)
+    ctx[134].classroom && create_if_block_112(ctx)
   );
   let if_block2 = (
     /*lbl*/
-    ctx[134].notes && create_if_block_112(ctx)
+    ctx[134].notes && create_if_block_102(ctx)
   );
   function select_block_type_3(ctx2, dirty) {
     if (dirty[0] & /*_showUnplanned, _slotMap, DAYS, plugin, currentMonday*/
@@ -16040,14 +16037,14 @@ function create_if_block_82(ctx) {
     if (
       /*slotPlanPath*/
       ctx2[138]
-    ) return create_if_block_92;
+    ) return create_if_block_82;
     if (show_if == null) show_if = !!/*_showUnplanned*/
     (ctx2[19] && /*isClassId*/
     ctx2[42](
       /*slot*/
       ctx2[126].classId
     ));
-    if (show_if) return create_if_block_102;
+    if (show_if) return create_if_block_92;
   }
   let current_block_type = select_block_type_3(ctx, [-1, -1, -1, -1, -1]);
   let if_block3 = current_block_type && current_block_type(ctx);
@@ -16095,9 +16092,9 @@ function create_if_block_82(ctx) {
       if (if_block2) if_block2.c();
       t10 = space();
       if (if_block3) if_block3.c();
-      attr(span0, "class", "tp-chip-code svelte-1w6z1lr");
-      attr(span1, "class", "tp-chip-period-time svelte-1w6z1lr");
-      attr(div, "class", "tp-chip svelte-1w6z1lr");
+      attr(span0, "class", "tp-chip-code svelte-1xpgp1s");
+      attr(span1, "class", "tp-chip-period-time svelte-1xpgp1s");
+      attr(div, "class", "tp-chip svelte-1xpgp1s");
       attr(div, "draggable", "true");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
@@ -16170,7 +16167,7 @@ function create_if_block_82(ctx) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_132(ctx);
+          if_block0 = create_if_block_122(ctx);
           if_block0.c();
           if_block0.m(div, t2);
         }
@@ -16185,7 +16182,7 @@ function create_if_block_82(ctx) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_122(ctx);
+          if_block1 = create_if_block_112(ctx);
           if_block1.c();
           if_block1.m(div, t3);
         }
@@ -16209,7 +16206,7 @@ function create_if_block_82(ctx) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block_112(ctx);
+          if_block2 = create_if_block_102(ctx);
           if_block2.c();
           if_block2.m(div, t10);
         }
@@ -16271,7 +16268,7 @@ function create_if_block_82(ctx) {
     }
   };
 }
-function create_if_block_132(ctx) {
+function create_if_block_122(ctx) {
   let span;
   let t_value = [
     /*lbl*/
@@ -16284,7 +16281,7 @@ function create_if_block_132(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-1w6z1lr");
+      attr(span, "class", "tp-chip-meta svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -16306,7 +16303,7 @@ function create_if_block_132(ctx) {
     }
   };
 }
-function create_if_block_122(ctx) {
+function create_if_block_112(ctx) {
   let span;
   let t_value = (
     /*lbl*/
@@ -16317,7 +16314,7 @@ function create_if_block_122(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-1w6z1lr");
+      attr(span, "class", "tp-chip-room svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -16335,7 +16332,7 @@ function create_if_block_122(ctx) {
     }
   };
 }
-function create_if_block_112(ctx) {
+function create_if_block_102(ctx) {
   let span;
   let t_value = (
     /*lbl*/
@@ -16346,7 +16343,7 @@ function create_if_block_112(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-1w6z1lr");
+      attr(span, "class", "tp-chip-notes svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -16364,13 +16361,13 @@ function create_if_block_112(ctx) {
     }
   };
 }
-function create_if_block_102(ctx) {
+function create_if_block_92(ctx) {
   let span;
   return {
     c() {
       span = element("span");
       span.textContent = "\u25CB";
-      attr(span, "class", "tp-plan-dot svelte-1w6z1lr");
+      attr(span, "class", "tp-plan-dot svelte-1xpgp1s");
       attr(span, "title", "No lesson plan linked");
     },
     m(target, anchor) {
@@ -16384,7 +16381,7 @@ function create_if_block_102(ctx) {
     }
   };
 }
-function create_if_block_92(ctx) {
+function create_if_block_82(ctx) {
   let button;
   let mounted;
   let dispose;
@@ -16401,7 +16398,7 @@ function create_if_block_92(ctx) {
     c() {
       button = element("button");
       button.textContent = "\u25CF";
-      attr(button, "class", "tp-plan-dot tp-plan-dot--linked svelte-1w6z1lr");
+      attr(button, "class", "tp-plan-dot tp-plan-dot--linked svelte-1xpgp1s");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -16424,7 +16421,7 @@ function create_if_block_92(ctx) {
     }
   };
 }
-function create_if_block_72(ctx) {
+function create_if_block_62(ctx) {
   let span;
   let t_value = (
     /*lbl*/
@@ -16435,7 +16432,7 @@ function create_if_block_72(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-1w6z1lr");
+      attr(span, "class", "tp-chip-meta svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -16453,7 +16450,7 @@ function create_if_block_72(ctx) {
     }
   };
 }
-function create_if_block_62(ctx) {
+function create_if_block_52(ctx) {
   let span;
   let t_value = (
     /*lbl*/
@@ -16464,7 +16461,7 @@ function create_if_block_62(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-1w6z1lr");
+      attr(span, "class", "tp-chip-room svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -16482,7 +16479,7 @@ function create_if_block_62(ctx) {
     }
   };
 }
-function create_if_block_52(ctx) {
+function create_if_block_42(ctx) {
   let span;
   let t_value = (
     /*lbl*/
@@ -16493,7 +16490,7 @@ function create_if_block_52(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-1w6z1lr");
+      attr(span, "class", "tp-chip-notes svelte-1xpgp1s");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -16511,13 +16508,13 @@ function create_if_block_52(ctx) {
     }
   };
 }
-function create_if_block_42(ctx) {
+function create_if_block_32(ctx) {
   let span;
   return {
     c() {
       span = element("span");
       span.textContent = "\u25CB";
-      attr(span, "class", "tp-plan-dot svelte-1w6z1lr");
+      attr(span, "class", "tp-plan-dot svelte-1xpgp1s");
       attr(span, "title", "No lesson plan linked");
     },
     m(target, anchor) {
@@ -16531,7 +16528,7 @@ function create_if_block_42(ctx) {
     }
   };
 }
-function create_if_block_32(ctx) {
+function create_if_block_24(ctx) {
   let button;
   let mounted;
   let dispose;
@@ -16548,7 +16545,7 @@ function create_if_block_32(ctx) {
     c() {
       button = element("button");
       button.textContent = "\u25CF";
-      attr(button, "class", "tp-plan-dot tp-plan-dot--linked svelte-1w6z1lr");
+      attr(button, "class", "tp-plan-dot tp-plan-dot--linked svelte-1xpgp1s");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -16603,20 +16600,21 @@ function create_each_block_22(key_2, ctx) {
   let t9;
   let t10;
   let show_if;
+  let t11;
   let div_title_value;
   let mounted;
   let dispose;
   let if_block0 = (
     /*lbl*/
-    ctx[134].meta && create_if_block_72(ctx)
+    ctx[134].meta && create_if_block_62(ctx)
   );
   let if_block1 = (
     /*lbl*/
-    ctx[134].classroom && create_if_block_62(ctx)
+    ctx[134].classroom && create_if_block_52(ctx)
   );
   let if_block2 = (
     /*lbl*/
-    ctx[134].notes && create_if_block_52(ctx)
+    ctx[134].notes && create_if_block_42(ctx)
   );
   function select_block_type_4(ctx2, dirty) {
     if (dirty[0] & /*_showUnplanned, _dateEventMap, DAYS, plugin*/
@@ -16624,14 +16622,14 @@ function create_each_block_22(key_2, ctx) {
     if (
       /*evPlanPath*/
       ctx2[135]
-    ) return create_if_block_32;
+    ) return create_if_block_24;
     if (show_if == null) show_if = !!/*_showUnplanned*/
     (ctx2[19] && /*isClassId*/
     ctx2[42](
       /*devEv*/
       ctx2[133].classId
     ));
-    if (show_if) return create_if_block_42;
+    if (show_if) return create_if_block_32;
   }
   let current_block_type = select_block_type_4(ctx, [-1, -1, -1, -1, -1]);
   let if_block3 = current_block_type && current_block_type(ctx);
@@ -16681,9 +16679,10 @@ function create_each_block_22(key_2, ctx) {
       if (if_block2) if_block2.c();
       t10 = space();
       if (if_block3) if_block3.c();
-      attr(span0, "class", "tp-chip-code svelte-1w6z1lr");
-      attr(span1, "class", "tp-chip-period-time svelte-1w6z1lr");
-      attr(div, "class", "tp-chip tp-chip--event svelte-1w6z1lr");
+      t11 = space();
+      attr(span0, "class", "tp-chip-code svelte-1xpgp1s");
+      attr(span1, "class", "tp-chip-period-time svelte-1xpgp1s");
+      attr(div, "class", "tp-chip tp-chip--event svelte-1xpgp1s");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
       attr(div, "draggable", "true");
@@ -16724,6 +16723,7 @@ function create_each_block_22(key_2, ctx) {
       if (if_block2) if_block2.m(div, null);
       append(div, t10);
       if (if_block3) if_block3.m(div, null);
+      append(div, t11);
       if (!mounted) {
         dispose = [
           listen(div, "dragstart", dragstart_handler_1),
@@ -16756,7 +16756,7 @@ function create_each_block_22(key_2, ctx) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_72(ctx);
+          if_block0 = create_if_block_62(ctx);
           if_block0.c();
           if_block0.m(div, t2);
         }
@@ -16771,7 +16771,7 @@ function create_each_block_22(key_2, ctx) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_62(ctx);
+          if_block1 = create_if_block_52(ctx);
           if_block1.c();
           if_block1.m(div, t3);
         }
@@ -16795,7 +16795,7 @@ function create_each_block_22(key_2, ctx) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block_52(ctx);
+          if_block2 = create_if_block_42(ctx);
           if_block2.c();
           if_block2.m(div, t10);
         }
@@ -16810,7 +16810,7 @@ function create_each_block_22(key_2, ctx) {
         if_block3 = current_block_type && current_block_type(ctx);
         if (if_block3) {
           if_block3.c();
-          if_block3.m(div, null);
+          if_block3.m(div, t11);
         }
       }
       if (dirty[0] & /*plugin, DAYS*/
@@ -16859,18 +16859,19 @@ function create_each_block_22(key_2, ctx) {
 }
 function create_each_block_13(key_2, ctx) {
   let div;
-  let t;
+  let t0;
+  let t1;
   let mounted;
   let dispose;
   let if_block0 = !/*slot*/
   ctx[126] && /*devEvents*/
-  ctx[127].length === 0 && create_if_block_142(ctx);
+  ctx[127].length === 0 && create_if_block_132(ctx);
   function select_block_type_2(ctx2, dirty) {
     if (
       /*slot*/
       ctx2[126] || /*devEvents*/
       ctx2[127].length > 0
-    ) return create_if_block_24;
+    ) return create_if_block_110;
     return create_else_block_12;
   }
   let current_block_type = select_block_type_2(ctx, [-1, -1, -1, -1, -1]);
@@ -16905,9 +16906,10 @@ function create_each_block_13(key_2, ctx) {
     c() {
       div = element("div");
       if (if_block0) if_block0.c();
-      t = space();
+      t0 = space();
       if_block1.c();
-      attr(div, "class", "tp-block svelte-1w6z1lr");
+      t1 = space();
+      attr(div, "class", "tp-block svelte-1xpgp1s");
       set_style(
         div,
         "top",
@@ -16958,8 +16960,9 @@ function create_each_block_13(key_2, ctx) {
     m(target, anchor) {
       insert(target, div, anchor);
       if (if_block0) if_block0.m(div, null);
-      append(div, t);
+      append(div, t0);
       if_block1.m(div, null);
+      append(div, t1);
       if (!mounted) {
         dispose = [
           listen(div, "dragover", dragover_handler),
@@ -16982,9 +16985,9 @@ function create_each_block_13(key_2, ctx) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_142(ctx);
+          if_block0 = create_if_block_132(ctx);
           if_block0.c();
-          if_block0.m(div, t);
+          if_block0.m(div, t0);
         }
       } else if (if_block0) {
         if_block0.d(1);
@@ -16997,7 +17000,7 @@ function create_each_block_13(key_2, ctx) {
         if_block1 = current_block_type(ctx);
         if (if_block1) {
           if_block1.c();
-          if_block1.m(div, null);
+          if_block1.m(div, t1);
         }
       }
       if (dirty[0] & /*plugin, DAYS, _axis*/
@@ -17081,40 +17084,6 @@ function create_each_block_13(key_2, ctx) {
     }
   };
 }
-function create_if_block_110(ctx) {
-  let div;
-  return {
-    c() {
-      div = element("div");
-      attr(div, "class", "tp-now-line svelte-1w6z1lr");
-      set_style(
-        div,
-        "top",
-        /*nowTop*/
-        ctx[13] + "px"
-      );
-    },
-    m(target, anchor) {
-      insert(target, div, anchor);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*nowTop*/
-      8192) {
-        set_style(
-          div,
-          "top",
-          /*nowTop*/
-          ctx2[13] + "px"
-        );
-      }
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(div);
-      }
-    }
-  };
-}
 function create_each_block3(ctx) {
   let div;
   let t0;
@@ -17145,7 +17114,7 @@ function create_each_block3(ctx) {
       t0 = space();
       if_block.c();
       t1 = space();
-      attr(div, "class", "tp-axis-col svelte-1w6z1lr");
+      attr(div, "class", "tp-axis-col svelte-1xpgp1s");
       set_style(
         div,
         "height",
@@ -17295,6 +17264,7 @@ function create_fragment3(ctx) {
   let div4;
   let t19;
   let t20;
+  let t21;
   let div8_data_tp_theme_value;
   let div8_data_tp_mode_value;
   let mounted;
@@ -17323,6 +17293,10 @@ function create_fragment3(ctx) {
   let if_block1 = (
     /*nowTop*/
     ctx[13] !== null && create_if_block_152(ctx)
+  );
+  let if_block2 = (
+    /*nowTop*/
+    ctx[13] !== null && create_if_block_142(ctx)
   );
   let each_value = ensure_array_like(
     /*DAYS*/
@@ -17392,46 +17366,48 @@ function create_fragment3(ctx) {
       t19 = space();
       if (if_block1) if_block1.c();
       t20 = space();
+      if (if_block2) if_block2.c();
+      t21 = space();
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(span0, "class", "tp-week-label svelte-1w6z1lr");
-      attr(span1, "class", "tp-date-range svelte-1w6z1lr");
-      attr(div0, "class", "tp-header-identity svelte-1w6z1lr");
-      attr(button0, "class", "tp-btn tp-nav-arrow svelte-1w6z1lr");
+      attr(span0, "class", "tp-week-label svelte-1xpgp1s");
+      attr(span1, "class", "tp-date-range svelte-1xpgp1s");
+      attr(div0, "class", "tp-header-identity svelte-1xpgp1s");
+      attr(button0, "class", "tp-btn tp-nav-arrow svelte-1xpgp1s");
       attr(button0, "aria-label", "Previous week");
       button0.disabled = button0_disabled_value = !/*canGoPrev*/
       ctx[9];
-      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-1w6z1lr");
-      attr(button2, "class", "tp-btn tp-nav-arrow svelte-1w6z1lr");
+      attr(button1, "class", "tp-btn tp-btn-accent tp-nav-today svelte-1xpgp1s");
+      attr(button2, "class", "tp-btn tp-nav-arrow svelte-1xpgp1s");
       attr(button2, "aria-label", "Next week");
       button2.disabled = button2_disabled_value = !/*canGoNext*/
       ctx[8];
-      attr(nav, "class", "tp-nav svelte-1w6z1lr");
+      attr(nav, "class", "tp-nav svelte-1xpgp1s");
       attr(nav, "aria-label", "Week navigation");
-      attr(span2, "class", "tp-btn-icon svelte-1w6z1lr");
-      attr(button3, "class", "tp-btn tp-action-btn svelte-1w6z1lr");
+      attr(span2, "class", "tp-btn-icon svelte-1xpgp1s");
+      attr(button3, "class", "tp-btn tp-action-btn svelte-1xpgp1s");
       attr(button3, "aria-label", "Add event");
-      attr(span3, "class", "tp-btn-icon svelte-1w6z1lr");
-      attr(button4, "class", "tp-btn tp-action-btn svelte-1w6z1lr");
+      attr(span3, "class", "tp-btn-icon svelte-1xpgp1s");
+      attr(button4, "class", "tp-btn tp-action-btn svelte-1xpgp1s");
       attr(button4, "aria-label", "Edit timetable");
-      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-1w6z1lr");
+      attr(button5, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-1xpgp1s");
       attr(button5, "aria-label", "Settings");
-      attr(button6, "class", "tp-btn tp-overflow-btn svelte-1w6z1lr");
+      attr(button6, "class", "tp-btn tp-overflow-btn svelte-1xpgp1s");
       attr(button6, "aria-label", "More options");
-      attr(div1, "class", "tp-header-actions svelte-1w6z1lr");
-      attr(header, "class", "tp-header svelte-1w6z1lr");
-      attr(div2, "class", "tp-axis-head-gutter svelte-1w6z1lr");
-      attr(div3, "class", "tp-axis-head svelte-1w6z1lr");
-      attr(div4, "class", "tp-axis-gutter svelte-1w6z1lr");
+      attr(div1, "class", "tp-header-actions svelte-1xpgp1s");
+      attr(header, "class", "tp-header svelte-1xpgp1s");
+      attr(div2, "class", "tp-axis-head-gutter svelte-1xpgp1s");
+      attr(div3, "class", "tp-axis-head svelte-1xpgp1s");
+      attr(div4, "class", "tp-axis-gutter svelte-1xpgp1s");
       set_style(
         div4,
         "height",
         /*axisHeight*/
         ctx[15] + "px"
       );
-      attr(div5, "class", "tp-axis-body svelte-1w6z1lr");
-      attr(div6, "class", "tp-axis svelte-1w6z1lr");
+      attr(div5, "class", "tp-axis-body svelte-1xpgp1s");
+      attr(div6, "class", "tp-axis svelte-1xpgp1s");
       set_style(div6, "--grid-colour", colourToCss(
         /*plugin*/
         ctx[0].settings.gridLineColour,
@@ -17454,8 +17430,8 @@ function create_fragment3(ctx) {
         /*plugin*/
         ((_b2 = ctx[0].settings.blockBorderWeight) != null ? _b2 : 1) + "px"
       );
-      attr(div7, "class", "tp-table-scroll svelte-1w6z1lr");
-      attr(div8, "class", "tp-week-view svelte-1w6z1lr");
+      attr(div7, "class", "tp-table-scroll svelte-1xpgp1s");
+      attr(div8, "class", "tp-week-view svelte-1xpgp1s");
       attr(div8, "data-tp-theme", div8_data_tp_theme_value = /*plugin*/
       (_c = ctx[0].settings.theme) != null ? _c : "carbon");
       attr(div8, "data-tp-mode", div8_data_tp_mode_value = /*plugin*/
@@ -17516,6 +17492,8 @@ function create_fragment3(ctx) {
       append(div4, t19);
       if (if_block1) if_block1.m(div4, null);
       append(div5, t20);
+      if (if_block2) if_block2.m(div5, null);
+      append(div5, t21);
       for (let i = 0; i < each_blocks.length; i += 1) {
         if (each_blocks[i]) {
           each_blocks[i].m(div5, null);
@@ -17685,8 +17663,23 @@ function create_fragment3(ctx) {
           ctx2[15] + "px"
         );
       }
-      if (dirty[0] & /*axisHeight, dayOverrideMap, DAYS, nowTop, currentMonday, plugin, _axis, getPeriodTypeColour, dragOverKey, _slotMap, isSlotExcluded, rejectKey, onCellDragOver, onCellDragLeave, _dateEventMap, getDateEventLabel, onEventDragStart, _eventPlanMap, _showUnplanned, getSlotLabel, onChipDragStart, _slotPlanMap, hourMarks*/
-      2140141775 | dirty[1] & /*onCellDrop, onDragEnd, openChipMenu, openPlan, isClassId, openEventPicker*/
+      if (
+        /*nowTop*/
+        ctx2[13] !== null
+      ) {
+        if (if_block2) {
+          if_block2.p(ctx2, dirty);
+        } else {
+          if_block2 = create_if_block_142(ctx2);
+          if_block2.c();
+          if_block2.m(div5, t21);
+        }
+      } else if (if_block2) {
+        if_block2.d(1);
+        if_block2 = null;
+      }
+      if (dirty[0] & /*axisHeight, dayOverrideMap, DAYS, plugin, _axis, getPeriodTypeColour, dragOverKey, _slotMap, isSlotExcluded, currentMonday, rejectKey, onCellDragOver, onCellDragLeave, _dateEventMap, getDateEventLabel, onEventDragStart, _eventPlanMap, _showUnplanned, getSlotLabel, onChipDragStart, _slotPlanMap, hourMarks*/
+      2140133583 | dirty[1] & /*onCellDrop, onDragEnd, openChipMenu, openPlan, isClassId, openEventPicker*/
       7175) {
         each_value = ensure_array_like(
           /*DAYS*/
@@ -17763,6 +17756,7 @@ function create_fragment3(ctx) {
       destroy_each(each_blocks_2, detaching);
       destroy_each(each_blocks_1, detaching);
       if (if_block1) if_block1.d();
+      if (if_block2) if_block2.d();
       destroy_each(each_blocks, detaching);
       mounted = false;
       run_all(dispose);

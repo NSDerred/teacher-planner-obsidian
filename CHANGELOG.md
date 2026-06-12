@@ -5,11 +5,14 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.4] — 2026-06-12
+## [0.2.5] — 2026-06-12
 
 ### Fixed
 
+- **Current-time line now spans the whole week** — the dashed "now" line previously rendered only inside today's column, so on busy days it read as hidden behind the blocks. It's now a single continuous line from the time gutter across all day columns (and their gaps), always drawn above blocks and chips, shown only when viewing the current week.
 - **Settings sections wouldn't expand** — a leftover CSS rule from the 0.2.2 collapsible rework hid section content unconditionally, so clicking a header toggled the state but nothing ever became visible. Sections now open and close as intended.
+
+## [0.2.4] — 2026-06-12
 
 ### Changed
 

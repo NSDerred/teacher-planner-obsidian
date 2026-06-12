@@ -836,6 +836,10 @@
           {/if}
         </div>
 
+        {#if nowTop !== null}
+          <div class="tp-now-line tp-now-line--week" style="top:{nowTop + 6}px;"></div>
+        {/if}
+
         {#each DAYS as day}
           {@const dayDate     = dayISODate(day.offset, currentMonday)}
           {@const dayOverride = dayOverrideMap[day.key]}
@@ -957,9 +961,6 @@
                   {/if}
                 </div>
               {/each}
-              {#if nowTop !== null && isToday(day.offset, currentMonday)}
-                <div class="tp-now-line" style="top:{nowTop}px;"></div>
-              {/if}
             {/if}
           </div>
         {/each}
@@ -1019,7 +1020,7 @@
   .tp-day-override-badge--holiday { background:var(--color-yellow,#f59e0b); color:#1a1a1a; }
   .tp-day-override-badge--inset   { background:var(--interactive-accent); color:var(--text-on-accent,#fff); }
 
-  .tp-axis-body { display:flex; align-items:flex-start; gap:6px; padding:6px 6px 12px 0; }
+  .tp-axis-body { display:flex; align-items:flex-start; gap:6px; padding:6px 6px 12px 0; position:relative; }
   .tp-axis-gutter { width:48px; flex-shrink:0; position:relative; }
   .tp-axis-hour { position:absolute; right:6px; transform:translateY(-50%); font-size:11px; color:var(--text-muted); white-space:nowrap; }
   .tp-axis-col { flex:1; min-width:0; position:relative; background:var(--background-secondary); border-radius:6px; }
@@ -1117,6 +1118,8 @@
 
   /* Current time indicator */
   .tp-now-line { position:absolute; left:0; right:0; height:0; border-top:2px dashed var(--interactive-accent); opacity:0.9; pointer-events:none; z-index:5; }
+  /* Continuous current-time line across the whole week (anchored to the axis body) */
+  .tp-now-line--week { left:48px; right:6px; }
   .tp-now-badge { position:absolute; right:2px; transform:translateY(-50%); background:var(--interactive-accent); color:var(--text-on-accent,#fff); font-size:9px; font-weight:700; padding:1px 4px; border-radius:3px; pointer-events:none; z-index:6; white-space:nowrap; line-height:1.5; }
 
   /* Chip stack inside a block — below the block label */
@@ -1141,6 +1144,7 @@
   @container (max-width: 480px) {
     .tp-axis { min-width:440px; }
     .tp-axis-head-gutter, .tp-axis-gutter { width:30px; }
+    .tp-now-line--week { left:30px; }
     .tp-axis-hour { right:3px; font-size:9px; }
     .tp-day-name { font-size:11px; }
     .tp-day-date { font-size:10px; }
