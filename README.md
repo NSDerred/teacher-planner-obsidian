@@ -2,7 +2,7 @@
 
 > A customisable academic planner for teachers — not just a calendar. Track your timetable, monitor workload, and keep lesson notes, all inside your Obsidian vault.
 
-![Week view](docs/screenshots/week-view.png)
+![Week view](docs/screenshots/main-planner-view.png)
 
 ---
 
@@ -80,7 +80,7 @@ Define the types of slot that make up your school day — Lesson, Break, Registr
 ![Lesson notes](docs/screenshots/lesson-notes-editing.gif)
 
 **Guided setup** — school days, A/B rotation, and per-day schedules in the wizard:
-![Setup wizard](docs/screenshots/wizard-school-days.png)
+![Setup wizard](docs/screenshots/wizard-week-a-b.png)
 
 ---
 
@@ -89,10 +89,10 @@ Define the types of slot that make up your school day — Lesson, Break, Registr
 The plugin is fully configurable from **Settings → Teacher Planner**. A few of the most-used panels:
 
 **Directed Time Tracker** — enable in the wizard or settings; set contracted hours, timetable fraction (for part-time staff), default lesson duration, and directed-time activities:
-![Directed time tracker setup](docs/screenshots/wizard-directed-time.png)
+![Directed time tracker setup](docs/screenshots/directed-time-tracker.png)
 
 **Subjects & classes** — emoji-identified subjects with nested class groups, per-class colours and default classrooms:
-![Lessons settings](docs/screenshots/settings-lessons.png)
+![Lessons settings](docs/screenshots/lessons-settings.png)
 
 ---
 
