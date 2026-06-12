@@ -5,6 +5,13 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] — 2026-06-12
+
+### Changed
+
+- **`xlsx` dependency replaced with `write-excel-file`** — clears the dependency security advisory flagged by the community review bot (the advisory concerned parsing untrusted files, which the plugin never did) and shrinks the plugin bundle by ~420 KB. Excel exports are equivalent: same sheets, same data.
+- Fixed the review bot's two remaining source warnings: an unnecessary type assertion in the period dialog and an untyped `JSON.parse` in the settings revert button.
+
 ## [0.2.3] — 2026-06-12
 
 ### Fixed

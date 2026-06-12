@@ -1,6 +1,6 @@
 import { App, Modal, Notice, Platform } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
-import * as XLSX from "xlsx";
+import { buildXlsx } from "../utils/xlsxWriter";
 import {
   ExportDestination,
   renderDestinationPicker,
@@ -71,7 +71,6 @@ export class DirectedTimeExportModal extends Modal {
       try { await this.app.vault.createFolder(folder); } catch { /* non-fatal */ }
     }
 
-    const wb = XLSX.utils.book_new();
 
     // ── Summary sheet ──────────────────────────────────────────────────────
     const diff = calc.predictedMins - calc.contractedMins;
@@ -95,7 +94,6 @@ export class DirectedTimeExportModal extends Modal {
       ["Generated", new Date().toLocaleDateString("en-GB")],
       ["Note", "This report is a guide only. Accuracy depends on planner data. Seek union advice for formal disputes."],
     ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryData), "Summary");
 
     // ── Weekly breakdown sheet ─────────────────────────────────────────────
     const header: (string | number)[] = [
@@ -122,10 +120,11 @@ export class DirectedTimeExportModal extends Modal {
         w.totalMins, minsToDecimalHours(w.totalMins),
       ]);
     }
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(breakdownData), "Weekly Breakdown");
-
     // ── Write ──────────────────────────────────────────────────────────────
-    const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+    const buf = await buildXlsx([
+      { name: "Summary", rows: summaryData },
+      { name: "Weekly Breakdown", rows: breakdownData },
+    ]);
     const safeName = ayName.replace(/[^a-z0-9]/gi, "-");
     const filename = `directed-time-${safeName}.xlsx`;
 

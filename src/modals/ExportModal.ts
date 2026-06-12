@@ -1,6 +1,6 @@
 import { App, Modal, Notice, Platform, TFile } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
-import * as XLSX from "xlsx";
+import { buildXlsx, type SheetRows } from "../utils/xlsxWriter";
 import {
   ExportDestination,
   renderDestinationPicker,
@@ -289,14 +289,14 @@ export class ExportModal extends Modal {
   }
 
   private async exportXLSX() {
-    const wb = XLSX.utils.book_new();
+    const sheets: { name: string; rows: SheetRows }[] = [];
     if (this.dataset !== "events") {
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(this.buildTimetableRows()), "Timetable");
+      sheets.push({ name: "Timetable", rows: this.buildTimetableRows() });
     }
     if (this.dataset !== "timetable") {
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(this.buildEventsRows()), "Date Events");
+      sheets.push({ name: "Date Events", rows: this.buildEventsRows() });
     }
-    const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+    const buf = await buildXlsx(sheets);
     const filename = "planner-export.xlsx";
 
     if (this.destination.mode === "system" && this.destination.systemPath) {

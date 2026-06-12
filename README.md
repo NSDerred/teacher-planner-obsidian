@@ -158,12 +158,9 @@ src/
 
 ## Security
 
-Teacher Planner uses the `xlsx` (SheetJS) library to **generate** Excel
-workbooks for the export features. It does not read or parse user-supplied
-Excel files. Known vulnerabilities in `xlsx` (CVE-2023-30533 prototype
-pollution and ReDoS issues) require maliciously crafted input to exploit,
-which is not a vector here. If you need to import data into the plugin,
-use the in-app UI rather than feeding it Excel files.
+Excel exports are generated with [`write-excel-file`](https://www.npmjs.com/package/write-excel-file),
+a write-only library — the plugin never reads or parses user-supplied Excel
+files, and no dependency with a known security advisory is used.
 
 ---
 
