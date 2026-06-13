@@ -775,6 +775,16 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         })(); });
       });
     new Setting(containerEl)
+      .setName("Show lesson-prepared marker")
+      .setDesc("Adds a green tick you can click on each lesson to mark it prepared — independent of linking a plan. Turn off if you only use plan links.")
+      .addToggle(t => t.setValue(this.plugin.settings.showPreparedMark ?? true)
+        .onChange(async v => {
+          this.plugin.settings.showPreparedMark = v;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl).setName("Notes").setHeading();
+    new Setting(containerEl)
       .setName("Organise notes into weekly folders")
       .setDesc("Create lesson and event notes inside \"WC - <Monday date>\" folders under the planner folder. Existing notes stay where they are and keep opening.")
       .addToggle(t => t.setValue(this.plugin.settings.weeklyNoteFolders ?? true)
@@ -811,14 +821,6 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           })(); });
         });
     }
-    new Setting(containerEl)
-      .setName("Show lesson-prepared marker")
-      .setDesc("Adds a green tick you can click on each lesson to mark it prepared — independent of linking a plan. Turn off if you only use plan links.")
-      .addToggle(t => t.setValue(this.plugin.settings.showPreparedMark ?? true)
-        .onChange(async v => {
-          this.plugin.settings.showPreparedMark = v;
-          await this.plugin.saveSettings();
-        }));
 
     new Setting(containerEl).setName("Export").setHeading();
     new Setting(containerEl)
