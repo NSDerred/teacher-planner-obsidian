@@ -626,15 +626,17 @@
   // ── Academic-year bounds ──────────────────────────────────────────────────
   function _ayStart(): Date { return new Date(plugin.settings.academicYear.startDate + "T00:00:00"); }
   function _ayEnd():   Date { return new Date(plugin.settings.academicYear.endDate   + "T23:59:59"); }
-  $: canGoPrev = _dep(_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart());
-  $: canGoNext = _dep(_tick, getMondayOfWeek(addWeeks(currentDate,  1)) <= _ayEnd());
+  $: canGoWeekPrev = _dep(_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart());
+  $: canGoWeekNext = _dep(_tick, getMondayOfWeek(addWeeks(currentDate,  1)) <= _ayEnd());
+  $: canGoPrev = isDayMode ? !!_stepSchoolDay(currentDate, -1) : canGoWeekPrev;
+  $: canGoNext = isDayMode ? !!_stepSchoolDay(currentDate,  1) : canGoWeekNext;
 
   // Sync sidebar notes to the current planner week whenever it changes
   $: (plugin as any).notifySidebar(currentMonday);
 
   // ── Navigation ────────────────────────────────────────────────────────────
-  function onPrev()  { if (canGoPrev) currentDate = addWeeks(currentDate, -1); }
-  function onNext()  { if (canGoNext) currentDate = addWeeks(currentDate, 1); }
+  function onPrev()  { if (isDayMode) { onPrevDay(); return; } if (canGoWeekPrev) currentDate = addWeeks(currentDate, -1); }
+  function onNext()  { if (isDayMode) { onNextDay(); return; } if (canGoWeekNext) currentDate = addWeeks(currentDate, 1); }
   function onToday() {
     const t = new Date();
     const s = _ayStart(); const e = _ayEnd();
@@ -681,6 +683,71 @@
 
   // ── Weekly note folders ("WC - <Monday>") ─────────────────────────────────
   const _isMobileApp = Platform.isMobile;
+
+  // ── Mobile view modes (day | agenda | grid). Desktop always shows the week grid. ──
+  type MobileMode = "day" | "agenda" | "grid";
+  $: viewMode = _dep(_tick, _isMobileApp ? ((plugin.settings.mobileViewMode as MobileMode) ?? "day") : "grid");
+  $: isDayMode    = _isMobileApp && viewMode === "day";
+  $: isAgendaMode = _isMobileApp && viewMode === "agenda";
+
+  function addDaysLocal(base: Date, days: number): Date {
+    const d = new Date(base); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + days); return d;
+  }
+  function _schoolDayKeys(): SchoolDay[] {
+    return (plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]) as SchoolDay[];
+  }
+  function _isSchoolDate(d: Date): boolean {
+    return _schoolDayKeys().includes(ALL_DAYS[(d.getDay() + 6) % 7].key);
+  }
+
+  // Selected day (day mode): offset of currentDate within its Monday-week.
+  $: selectedOffset = (() => {
+    const a = new Date(currentMonday); a.setHours(0, 0, 0, 0);
+    const b = new Date(currentDate);   b.setHours(0, 0, 0, 0);
+    return Math.round((b.getTime() - a.getTime()) / 86400000);
+  })();
+  $: selectedDay = _dep(_tick, DAYS.find(d => d.offset === selectedOffset) ?? DAYS[0]);
+  $: renderDays  = isDayMode && selectedDay ? [selectedDay] : DAYS;
+  $: selectedDateObj    = addDaysLocal(currentMonday, selectedDay ? selectedDay.offset : 0);
+  $: selectedDayLong    = selectedDateObj.toLocaleDateString("en-GB", { weekday: "long" });
+  $: selectedDayDateStr = selectedDateObj.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+
+  async function setMobileMode(m: MobileMode) {
+    plugin.settings.mobileViewMode = m;
+    await plugin.saveSettings();
+    invalidate();
+  }
+  function selectDay(offset: number) { currentDate = addDaysLocal(currentMonday, offset); }
+
+  // Step to the next/previous school day within the academic year (day-mode nav).
+  function _stepSchoolDay(from: Date, dir: number): Date | null {
+    const s = _ayStart(); const e = _ayEnd();
+    let d = new Date(from); d.setHours(0, 0, 0, 0);
+    for (let i = 0; i < 14; i++) {
+      d = addDaysLocal(d, dir);
+      if (d < s || d > e) return null;
+      if (_isSchoolDate(d)) return d;
+    }
+    return null;
+  }
+  function onPrevDay() { const d = _stepSchoolDay(currentDate, -1); if (d) currentDate = d; }
+  function onNextDay() { const d = _stepSchoolDay(currentDate,  1); if (d) currentDate = d; }
+
+  // Does a school day in the current week have any lesson/event? (day-strip dot / agenda empty state)
+  function dayHasItems(day: { key: SchoolDay; offset: number }): boolean {
+    const date = dayISODate(day.offset, currentMonday);
+    for (const p of getPeriodsForDay(plugin.settings.academicYear, day.key)) {
+      const raw = _slotMap[day.key + ":" + p.id];
+      if (raw && !isSlotExcluded(raw.id, date)) return true;
+      if ((_dateEventMap[day.key + ":" + p.id] ?? []).length > 0) return true;
+    }
+    return false;
+  }
+  function subjectEmoji(classId: string): string {
+    const cls = _classes.find(c => c.id === classId);
+    const subj = cls ? _subjects.find(x => x.id === cls.subjectId) : undefined;
+    return subj?.emoji ?? "";
+  }
 
   function wcFolderFor(dateIso: string): string {
     const base = plugin.settings.plannerFolder || "Teacher Planner";
@@ -834,18 +901,18 @@
 
 
 
-<div class="tp-week-view" data-tp-theme={plugin.settings.theme ?? "carbon"} data-tp-mode={plugin.settings.themeMode ?? "dark"}>
+<div class="tp-week-view" data-tp-theme={plugin.settings.theme ?? "carbon"} data-tp-mode={plugin.settings.themeMode ?? "dark"} data-tp-view={isDayMode ? "day" : isAgendaMode ? "agenda" : "grid"}>
 
   <!-- ── Header ─────────────────────────────────────────────────────────── -->
   <header class="tp-header">
     <div class="tp-header-identity">
       <span class="tp-week-label">
-        {weekLabel}
+        {isDayMode ? selectedDayLong : weekLabel}
         {#if abEnabled && abWeekType}
           <span class="tp-week-ab-badge tp-week-ab-badge--{abWeekType.toLowerCase()}">Week {abWeekType}</span>
         {/if}
       </span>
-      <span class="tp-date-range">{dateRange}</span>
+      <span class="tp-date-range">{isDayMode ? selectedDayDateStr : dateRange}</span>
     </div>
     <nav class="tp-nav" aria-label="Week navigation">
       <button class="tp-btn tp-nav-arrow" on:click={onPrev} aria-label="Previous week" disabled={!canGoPrev}>←</button>
@@ -860,13 +927,79 @@
     </div>
   </header>
 
+  {#if _isMobileApp}
+    <div class="tp-mobile-modes" role="tablist" aria-label="View mode">
+      <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "day"}    role="tab" aria-selected={viewMode === "day"}    on:click={() => setMobileMode("day")}>Day</button>
+      <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "agenda"} role="tab" aria-selected={viewMode === "agenda"} on:click={() => setMobileMode("agenda")}>Agenda</button>
+      <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "grid"}   role="tab" aria-selected={viewMode === "grid"}   on:click={() => setMobileMode("grid")}>Grid</button>
+    </div>
+  {/if}
+
+  {#if isDayMode}
+    <div class="tp-day-strip">
+      {#each DAYS as day}
+        <button class="tp-day-pill"
+          class:tp-day-pill--sel={day.offset === selectedOffset}
+          class:tp-day-pill--today={isToday(day.offset, currentMonday)}
+          on:click={() => selectDay(day.offset)} aria-label={day.label}>
+          <span class="tp-day-pill-dow">{day.label}</span>
+          <span class="tp-day-pill-num">{addDaysLocal(currentMonday, day.offset).getDate()}</span>
+          {#if dayHasItems(day)}<span class="tp-day-pill-dot"></span>{/if}
+        </button>
+      {/each}
+    </div>
+  {/if}
+
+  {#if isAgendaMode}
+    <div class="tp-agenda">
+      {#each DAYS as day}
+        {@const aDate = dayISODate(day.offset, currentMonday)}
+        {@const aOverride = dayOverrideMap[day.key]}
+        <div class="tp-agenda-day">
+          <div class="tp-agenda-head" class:tp-agenda-head--today={isToday(day.offset, currentMonday)}>
+            <span class="tp-agenda-dayname">{day.label} {addDaysLocal(currentMonday, day.offset).getDate()}</span>
+            {#if aOverride === "holiday"}<span class="tp-day-override-badge tp-day-override-badge--holiday">Holiday</span>
+            {:else if aOverride === "inset"}<span class="tp-day-override-badge tp-day-override-badge--inset">INSET</span>{/if}
+          </div>
+          {#if aOverride}
+            <div class="tp-agenda-empty">{aOverride === "holiday" ? "Holiday" : "INSET day"}</div>
+          {:else}
+            {#each getPeriodsForDay(plugin.settings.academicYear, day.key) as period (period.id)}
+              {@const aRaw = _slotMap[day.key + ":" + period.id]}
+              {@const aSlot = aRaw && !isSlotExcluded(aRaw.id, aDate) ? aRaw : undefined}
+              {@const aEvents = _dateEventMap[day.key + ":" + period.id] ?? []}
+              {#if aSlot}
+                {@const sl = getSlotLabel(aSlot)}
+                <button class="tp-agenda-row" style="border-left:3px solid {sl.colour}; background:{hexToRgba(sl.colour,0.16)};"
+                  on:click={(e) => openChipMenu(e, "slot", aDate, period.id, aSlot)}>
+                  <span class="tp-agenda-period">{period.name}</span>
+                  <span class="tp-agenda-main">{subjectEmoji(aSlot.classId)} {sl.code}{#if sl.subjectName} · {sl.subjectName}{/if}</span>
+                  {#if sl.classroom}<span class="tp-agenda-room">{sl.classroom}</span>{/if}
+                </button>
+              {/if}
+              {#each aEvents as aEv (aEv.id)}
+                {@const el = getDateEventLabel(aEv)}
+                <button class="tp-agenda-row tp-agenda-row--event" style="border-left:3px solid {el.colour}; background:{hexToRgba(el.colour,0.16)};"
+                  on:click={(e) => openChipMenu(e, "event", aDate, period.id, undefined, aEv)}>
+                  <span class="tp-agenda-period">{period.name}</span>
+                  <span class="tp-agenda-main">{el.code}{#if el.meta} · {el.meta}{/if}</span>
+                  {#if el.classroom}<span class="tp-agenda-room">{el.classroom}</span>{/if}
+                </button>
+              {/each}
+            {/each}
+            {#if !dayHasItems(day)}<div class="tp-agenda-empty">No lessons</div>{/if}
+          {/if}
+        </div>
+      {/each}
+    </div>
+  {:else}
   <!-- ── Time-axis week grid (each day column has its own schedule) ──────── -->
   <div class="tp-table-scroll">
     <div class="tp-axis" style="--grid-colour:{colourToCss(plugin.settings.gridLineColour, '#555')}; --grid-weight:{plugin.settings.gridLineWeight ?? 1}px; --block-colour:{colourToCss(plugin.settings.blockBorderColour, '#444')}; --block-weight:{plugin.settings.blockBorderWeight ?? 1}px;">
 
       <div class="tp-axis-head">
         <div class="tp-axis-head-gutter"></div>
-        {#each DAYS as day}
+        {#each renderDays as day}
           {@const dayOverride = dayOverrideMap[day.key]}
           <div class="tp-axis-head-day"
             class:tp-th-day--today={isToday(day.offset, currentMonday)}
@@ -898,7 +1031,7 @@
           <div class="tp-now-line tp-now-line--week" style="top:{nowTop + 6}px;"></div>
         {/if}
 
-        {#each DAYS as day}
+        {#each renderDays as day}
           {@const dayDate     = dayISODate(day.offset, currentMonday)}
           {@const dayOverride = dayOverrideMap[day.key]}
           <div class="tp-axis-col"
@@ -1057,6 +1190,7 @@
       </div>
     </div>
   </div>
+  {/if}
 
 
 
@@ -1260,4 +1394,35 @@
     .tp-day-name { font-size:11px; }
     .tp-day-date { font-size:10px; }
   }
+
+  /* ── Mobile view modes ──────────────────────────────────────────────────── */
+  .tp-mobile-modes { display:flex; gap:5px; padding:6px 12px; border-bottom:1px solid var(--background-modifier-border); background:var(--background-secondary); flex-shrink:0; }
+  .tp-mode-btn { flex:1; padding:6px 0; font-size:13px; border:1px solid var(--background-modifier-border); border-radius:6px; background:var(--background-primary); color:var(--text-muted); cursor:pointer; font-family:var(--font-interface); }
+  .tp-mode-btn--on { background:var(--interactive-accent); color:var(--text-on-accent); border-color:var(--interactive-accent); font-weight:600; }
+
+  /* Day-selector strip */
+  .tp-day-strip { display:flex; gap:5px; padding:8px 10px; border-bottom:1px solid var(--background-modifier-border); flex-shrink:0; }
+  .tp-day-pill { flex:1; display:flex; flex-direction:column; align-items:center; gap:1px; padding:6px 0 5px; border:1px solid transparent; border-radius:9px; background:var(--background-secondary); color:var(--text-muted); cursor:pointer; min-width:0; }
+  .tp-day-pill-dow { font-size:10px; text-transform:uppercase; letter-spacing:0.03em; }
+  .tp-day-pill-num { font-size:15px; font-weight:600; color:var(--text-normal); }
+  .tp-day-pill--today .tp-day-pill-num { color:var(--interactive-accent); }
+  .tp-day-pill--sel { background:color-mix(in srgb,var(--interactive-accent) 18%,var(--background-secondary)); outline:1.5px solid var(--interactive-accent); }
+  .tp-day-pill-dot { width:4px; height:4px; border-radius:50%; background:var(--interactive-accent); }
+
+  /* Day mode: single full-width day, no sideways scroll, hide the redundant column header */
+  .tp-week-view[data-tp-view="day"] .tp-axis { min-width:0; }
+  .tp-week-view[data-tp-view="day"] .tp-axis-head { display:none; }
+
+  /* ── Agenda (mobile week overview) ──────────────────────────────────────── */
+  .tp-agenda { flex:1 1 0; overflow:auto; min-height:0; padding:8px 10px 16px; }
+  .tp-agenda-day { margin-bottom:12px; }
+  .tp-agenda-head { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-muted); padding:2px 2px 6px; position:sticky; top:0; background:var(--background-primary); z-index:2; }
+  .tp-agenda-head--today { color:var(--interactive-accent); }
+  .tp-agenda-dayname { text-transform:uppercase; letter-spacing:0.03em; }
+  .tp-agenda-row { display:flex; align-items:center; gap:8px; width:100%; text-align:left; border:none; border-radius:0 7px 7px 0; padding:8px 10px; margin-bottom:5px; color:var(--text-normal); cursor:pointer; font-size:13px; font-family:var(--font-interface); }
+  .tp-agenda-period { font-size:11px; color:var(--text-muted); min-width:64px; flex-shrink:0; }
+  .tp-agenda-main { flex:1; min-width:0; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-agenda-room { font-size:11px; font-style:italic; color:var(--text-muted); flex-shrink:0; }
+  .tp-agenda-empty { font-size:12px; color:var(--text-faint); padding:2px 4px 6px; font-style:italic; }
+
 </style>

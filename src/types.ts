@@ -233,6 +233,8 @@ export interface TeacherPlannerSettings {
   preparedMarks?: PreparedMark[];
   /** Show the manual lesson-prepared tick on chips. Default true. */
   showPreparedMark?: boolean;
+  /** Mobile-only view mode: day | agenda | grid. Default "day" on mobile. */
+  mobileViewMode?: "day" | "agenda" | "grid";
   /** External (outside-the-vault) file/folder attachments. Desktop only. */
   externalLinks?: ExternalResourceLink[];
   /** Undo journal for the last bulk plan apply. */
@@ -290,6 +292,8 @@ export interface PlannerRecord {
   showUnplannedDot?: boolean;
   preparedMarks?: PreparedMark[];
   showPreparedMark?: boolean;
+  /** Mobile-only view mode: day | agenda | grid. Default "day" on mobile. */
+  mobileViewMode?: "day" | "agenda" | "grid";
   externalLinks?: ExternalResourceLink[];
   lastBulkApply?: BulkApplyJournal;
   weeklyNoteFolders?: boolean;
