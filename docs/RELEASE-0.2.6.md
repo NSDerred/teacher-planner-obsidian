@@ -38,6 +38,9 @@ Bump `manifest.json` + `package.json` to `0.2.6` when ready to publish.
   with the chip (shared --mark-size, stepped at the same breakpoints as the
   font), and the title/subject area clips first so the icons are never cut off.
   The hover period/time line stays on its own line, separate from the icons.
+  Chip lines now pack to the top (no empty gap): code, year·subject, a single
+  truncated notes line, then room+icons. On hover the order is period·time
+  (notes size) first, then code, year·subject, full notes, room+icons.
 
 - **Generated lesson/event note titles** now follow the templates above instead
   of the old `<ISO date> <class code>` scheme.

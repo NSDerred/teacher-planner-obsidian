@@ -948,12 +948,12 @@
                           title="{period.name} · {period.start}–{period.end}"
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
                         >
+                          <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
                           <div class="tp-chip-body">
                             <span class="tp-chip-code">{lbl.code}</span>
                             {#if lbl.year || lbl.subjectName}
                               <span class="tp-chip-meta">{[lbl.year, lbl.subjectName].filter(Boolean).join(" · ")}</span>
                             {/if}
-                            <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
                             {#if lbl.notes}
                               <span class="tp-chip-notes">{lbl.notes}</span>
                             {/if}
@@ -996,12 +996,12 @@
                           title="{period.name} · {period.start}–{period.end}"
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
                         >
+                          <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
                           <div class="tp-chip-body">
                             <span class="tp-chip-code">{lbl.code}</span>
                             {#if lbl.meta}
                               <span class="tp-chip-meta">{lbl.meta}</span>
                             {/if}
-                            <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
                             {#if lbl.notes}<span class="tp-chip-notes">{lbl.notes}</span>{/if}
                           </div>
                           <div class="tp-chip-footer">
@@ -1150,19 +1150,20 @@
     container-type:normal;
     background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important;
   }
+  .tp-block:hover .tp-chip-body { overflow:visible; }
   .tp-block:hover .tp-chip-notes { display:block; -webkit-line-clamp:unset; line-clamp:unset; overflow:visible; }
-  .tp-chip-period-time { display:none; font-size:10px; color:var(--text-muted); opacity:0.85; }
+  .tp-chip-period-time { display:none; font-size:12px; color:var(--text-muted); opacity:0.85; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-block:hover .tp-chip-period-time { display:block; }
 
   /* Lesson chip */
   .tp-chip { --mark-size:14px; position:absolute; inset:3px; border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; cursor:pointer; overflow:hidden; user-select:none; transition:filter 0.1s; box-sizing:border-box; color:var(--text-normal); container-type:size; container-name:chip; }
-  .tp-chip-body { flex:1 1 auto; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:2px; }
+  .tp-chip-body { flex:0 1 auto; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:2px; }
   .tp-chip-footer { flex-shrink:0; display:flex; align-items:center; gap:4px; }
   .tp-chip:hover { filter:brightness(1.08); }
   .tp-chip-code  { font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
   .tp-chip-meta  { font-size:13px; color:var(--text-normal); opacity:0.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
   .tp-chip-room  { font-size:12px; color:var(--text-normal); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto; min-width:0; font-style:italic; }
-  .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; }
+  .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:1; line-clamp:1; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; }
 
   @container chip (max-height: 58px) {
     .tp-chip-meta,
