@@ -6,6 +6,11 @@ Bump `manifest.json` + `package.json` to `0.2.6` when ready to publish.
 
 ## Added
 
+- **External-resource indicator.** When a lesson or event has an external
+  file/folder linked, a grey paperclip appears in the chip footer (rightmost,
+  alongside the plan/prepared markers); click it to open the resource. Desktop
+  only, since opening needs the OS. Scales and stacks with the other markers.
+
 - **Lesson-prepared marker.** A green badge tick (filled circle + white check) in
   each lesson chip that you click to mark a lesson prepared — independent of linking a plan, for teachers
   who don't use plan links. Saved per lesson-occurrence (slot + date) and per

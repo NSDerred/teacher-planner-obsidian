@@ -123,6 +123,17 @@
     for (const k of _preparedMarks) if (k.eventId) m[k.eventId] = true;
     return m;
   })();
+  $: _externalLinks   = _dep(_tick, plugin.settings.externalLinks ?? []);
+  $: _slotExternalMap = (() => {
+    const m: Record<string, string> = {};
+    for (const l of _externalLinks) if (l.slotId && l.date) m[l.slotId + "|" + l.date] = l.path;
+    return m;
+  })();
+  $: _eventExternalMap = (() => {
+    const m: Record<string, string> = {};
+    for (const l of _externalLinks) if (l.eventId) m[l.eventId] = l.path;
+    return m;
+  })();
 
   // Date events for the current week, keyed by "day:periodId" → array
   $: _dateEventMap = (() => {
@@ -935,6 +946,7 @@
                         {@const lbl = getSlotLabel(slot)}
                         {@const slotPlanPath = _slotPlanMap[slot.id + "|" + dayDate]}
                         {@const slotPrepared = _preparedSlotMap[slot.id + "|" + dayDate]}
+                        {@const slotExternalPath = _slotExternalMap[slot.id + "|" + dayDate]}
                         <!-- svelte-ignore a11y-interactive-supports-focus -->
                         <div
                           class="tp-chip"
@@ -975,6 +987,10 @@
                               {:else if _showUnplanned && isClassId(slot.classId)}
                                 <span class="tp-plan-mark tp-plan-mark--empty" title="No lesson plan linked"></span>
                               {/if}
+                              {#if slotExternalPath && !_isMobileApp}
+                                <button class="tp-ext-mark" title="Open external resource" aria-label="Open external resource"
+                                  on:click|stopPropagation={() => openSystemPath(slotExternalPath)} use:obsIcon={"paperclip"}></button>
+                              {/if}
                             </div>
                           </div>
                         </div>
@@ -983,6 +999,7 @@
                         {@const lbl = getDateEventLabel(devEv)}
                         {@const evPlanPath = _eventPlanMap[devEv.id]}
                         {@const evPrepared = _preparedEventMap[devEv.id]}
+                        {@const evExternalPath = _eventExternalMap[devEv.id]}
                         <!-- svelte-ignore a11y-interactive-supports-focus -->
                         <div
                           class="tp-chip tp-chip--event"
@@ -1020,6 +1037,10 @@
                                   on:click|stopPropagation={() => openPlan(evPlanPath)} use:obsIcon={"file-text"}></button>
                               {:else if _showUnplanned && isClassId(devEv.classId)}
                                 <span class="tp-plan-mark tp-plan-mark--empty" title="No lesson plan linked"></span>
+                              {/if}
+                              {#if evExternalPath && !_isMobileApp}
+                                <button class="tp-ext-mark" title="Open external resource" aria-label="Open external resource"
+                                  on:click|stopPropagation={() => openSystemPath(evExternalPath)} use:obsIcon={"paperclip"}></button>
                               {/if}
                             </div>
                           </div>
@@ -1204,6 +1225,9 @@
   button.tp-plan-mark--linked { color:#43a047; opacity:1; cursor:pointer; }
   button.tp-plan-mark--linked:hover { opacity:0.7; }
   .tp-plan-mark :global(svg) { width:var(--mark-size); height:var(--mark-size); }
+  .tp-ext-mark { width:var(--mark-size); height:var(--mark-size); display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; line-height:0; box-sizing:border-box; flex-shrink:0; color:var(--text-muted); cursor:pointer; opacity:0.85; }
+  .tp-ext-mark:hover { opacity:1; }
+  .tp-ext-mark :global(svg) { width:var(--mark-size); height:var(--mark-size); }
   .tp-prep-tick { width:var(--mark-size); height:var(--mark-size); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1.5px solid var(--text-muted); padding:0; line-height:0; cursor:pointer; color:var(--text-muted); opacity:0; transition:opacity 80ms ease; box-sizing:border-box; flex-shrink:0; }
   .tp-chip:hover .tp-prep-tick { opacity:0.55; }
   button.tp-prep-tick--on { opacity:1 !important; background:#43a047; border-color:#43a047; color:#fff; }
