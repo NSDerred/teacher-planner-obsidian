@@ -182,7 +182,7 @@
   }
 
   // ── Time axis (Option B, Phase 2) ─────────────────────────────────────────
-  const PX_PER_MIN = 1.8;
+  const PX_PER_MIN = 2.0;
   $: _axis = (() => {
     const _t = _tick;
     let min = 24 * 60, max = 0;

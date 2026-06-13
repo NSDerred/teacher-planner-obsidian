@@ -18331,7 +18331,7 @@ function create_fragment3(ctx) {
     }
   };
 }
-var PX_PER_MIN = 1.8;
+var PX_PER_MIN = 2;
 var LESSON_BODY_FALLBACK = "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
 function _dep2(_t, value) {
   return value;

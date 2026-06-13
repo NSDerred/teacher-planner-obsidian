@@ -33,6 +33,9 @@ Bump `manifest.json` + `package.json` to `0.2.6` when ready to publish.
 
 ## Changed
 
+- **Taller week grid.** The time-axis scale increased from 1.8 to 2.0 px/minute
+  (108 → 120 px per hour), so every period renders ~11% larger.
+
 - **Lesson-plan chip indicator redesigned.** The link status is now drawn as
   proper shapes instead of text glyphs: a larger hollow ring when no plan is
   linked, and a clean green document icon (click to open the plan) when one is —
