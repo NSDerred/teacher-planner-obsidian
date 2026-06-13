@@ -14,7 +14,7 @@
   } from "../utils/weekUtils";
   import { TimetableEditorModal } from "../modals/TimetableEditorModal";
   import { SlotNotesModal } from "../modals/SlotNotesModal";
-  import { ColourPickerModal, ConfirmModal } from "../settings/SettingsTab";
+  import { ColourPickerModal, ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
   import { AddDateEventModal } from "../modals/AddDateEventModal";
   import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
   import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
@@ -26,6 +26,8 @@
   } from "../utils/planLinkUtils";
   import { openOSFolderPicker, openOSFilePicker, openSystemPath } from "../utils/exportDestination";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
+  import { buildNoteTitle } from "../utils/noteTitleUtils";
+  import { DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE } from "../settings";
 
   export let plugin: TeacherPlannerPlugin;
   export let initialDate: Date = new Date();
@@ -493,13 +495,13 @@
         }
       }
       if (isClass) menu.addItem(i => i.setTitle("Lesson note").setIcon("book-open").onClick(() => openOrCreateLessonNoteForEvent(event, date)));
-      if (!isClass) menu.addItem(i => i.setTitle("Event note").setIcon("book-open").onClick(async () => {
-        const lbl = getDateEventLabel(event);
-        const safe = lbl.code.replace(/[\\/:*?"<>|]/g, "-");
-        const fileName = `${date} ${safe} note`;
-        const existing = findExistingNote(date, fileName);
-        if (existing) { plugin.app.workspace.openLinkText(existing, "", false); return; }
-        await createNoteIn(date, fileName, "");
+      if (!isClass) menu.addItem(i => i.setTitle("Event note").setIcon("book-open").onClick(() => {
+        const periodName = _periods.find(p => p.id === event.periodId)?.name ?? "";
+        const tpl = plugin.settings.eventNoteTitleTemplate ?? DEFAULT_EVENT_NOTE_TITLE_TEMPLATE;
+        const defaultTitle = buildNoteTitle(tpl, {
+          dateIso: date, periodName, eventName: getDateEventLabel(event).code,
+        }) || `${date} ${getDateEventLabel(event).code}`;
+        promptAndCreateNote({ dayDate: date, defaultTitle, body: "", promptTitle: "New event note" });
       }));
       menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
@@ -729,46 +731,53 @@
     }).open();
   }
 
-  // ── Lesson note linking ────────────────────────────────────────────────────
-  async function openOrCreateLessonNote(slot: TimetableSlot, dayDate: string) {
-    const lbl = getSlotLabel(slot);
-    const safeName = lbl.code.replace(/[\\/:*?"<>|]/g, "-");
-    const fileName = `${dayDate} ${safeName}`;
+  // ── Lesson / event note creation ───────────────────────────────────────────
+  const LESSON_BODY_FALLBACK = "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
 
-    const existing = findExistingNote(dayDate, fileName);
-    if (existing) {
-      plugin.app.workspace.openLinkText(existing, "", false);
-      return;
-    }
+  /** Pre-fill an editable title, then create the note — or open an existing match without prompting. */
+  function promptAndCreateNote(opts: { dayDate: string; defaultTitle: string; body: string; promptTitle: string; classIdForCount?: string }) {
+    const { dayDate, defaultTitle, body, promptTitle, classIdForCount } = opts;
+    const existing = findExistingNote(dayDate, defaultTitle);
+    if (existing) { plugin.app.workspace.openLinkText(existing, "", false); return; }
+    new TextPromptModal(plugin.app, promptTitle, defaultTitle, "Note title", (name) => { void (async () => {
+      const fileName = name.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim() || defaultTitle;
+      const ex = findExistingNote(dayDate, fileName);
+      if (ex) { plugin.app.workspace.openLinkText(ex, "", false); return; }
+      if (classIdForCount) {
+        const cls = _classes.find(c => c.id === classIdForCount);
+        if (cls) { cls.lessonCount = (cls.lessonCount ?? 0) + 1; await plugin.saveSettings(); }
+      }
+      await createNoteIn(dayDate, fileName, body);
+    })(); }).open();
+  }
 
-    // Count existing lesson notes for this class to compute lesson number
+  function openOrCreateLessonNote(slot: TimetableSlot, dayDate: string) {
     const cls = _classes.find(c => c.id === slot.classId);
-    const lessonNum = (cls?.lessonCount ?? 0) + 1;
-    if (cls) { cls.lessonCount = lessonNum; await plugin.saveSettings(); }
-
-    const template = plugin.settings.lessonNoteTemplate ?? "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
-    await createNoteIn(dayDate, fileName, template);
+    const subj = cls ? _subjects.find(s => s.id === cls.subjectId) : undefined;
+    const periodName = _periods.find(p => p.id === slot.periodId)?.name ?? "";
+    const tpl = plugin.settings.lessonNoteTitleTemplate ?? DEFAULT_LESSON_NOTE_TITLE_TEMPLATE;
+    const defaultTitle = buildNoteTitle(tpl, {
+      dateIso: dayDate, periodName,
+      classCode: cls?.code ?? getSlotLabel(slot).code,
+      subjectName: subj?.name, emoji: subj?.emoji,
+    }) || `${dayDate} ${getSlotLabel(slot).code}`;
+    const body = plugin.settings.lessonNoteTemplate ?? LESSON_BODY_FALLBACK;
+    promptAndCreateNote({ dayDate, defaultTitle, body, promptTitle: "New lesson note", classIdForCount: slot.classId });
   }
 
   // ── Lesson note from date event ──────────────────────────────────────────
-  async function openOrCreateLessonNoteForEvent(ev: DateEvent, dayDate: string) {
+  function openOrCreateLessonNoteForEvent(ev: DateEvent, dayDate: string) {
     const cls = _classes.find(c => c.id === ev.classId);
     if (!cls) return; // activities get "Event note" instead
-    const safeName = cls.code.replace(/[\\/:*?"<>|]/g, "-");
-    const fileName = `${dayDate} ${safeName}`;
-
-    const existing = findExistingNote(dayDate, fileName);
-    if (existing) {
-      plugin.app.workspace.openLinkText(existing, "", false);
-      return;
-    }
-
-    const lessonNum = (cls.lessonCount ?? 0) + 1;
-    cls.lessonCount = lessonNum;
-    await plugin.saveSettings();
-
-    const template = plugin.settings.lessonNoteTemplate ?? "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
-    await createNoteIn(dayDate, fileName, template);
+    const subj = _subjects.find(s => s.id === cls.subjectId);
+    const periodName = _periods.find(p => p.id === ev.periodId)?.name ?? "";
+    const tpl = plugin.settings.lessonNoteTitleTemplate ?? DEFAULT_LESSON_NOTE_TITLE_TEMPLATE;
+    const defaultTitle = buildNoteTitle(tpl, {
+      dateIso: dayDate, periodName,
+      classCode: cls.code, subjectName: subj?.name, emoji: subj?.emoji,
+    }) || `${dayDate} ${cls.code}`;
+    const body = plugin.settings.lessonNoteTemplate ?? LESSON_BODY_FALLBACK;
+    promptAndCreateNote({ dayDate, defaultTitle, body, promptTitle: "New lesson note", classIdForCount: ev.classId });
   }
 
 

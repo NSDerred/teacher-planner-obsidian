@@ -181,6 +181,7 @@ export default class TeacherPlannerPlugin extends Plugin {
     "academicYear", "periodTypes", "subjects", "classes", "timetable",
     "timetableTemplates", "weekOverrides", "activities", "dateEvents",
     "slotExclusions", "weekNotes", "notesHeight", "lessonNoteTemplate",
+    "lessonNoteTitleTemplate", "eventNoteTitleTemplate",
     "directedTime", "schoolDays", "plannerFolder",
     "lessonPlanLinks", "lessonPlansFolder", "lessonPlanTemplate", "showUnplannedDot",
     "externalLinks", "lastBulkApply", "weeklyNoteFolders",
@@ -408,6 +409,8 @@ export default class TeacherPlannerPlugin extends Plugin {
   private runPlannerMigrations() {
     // Always reset to current default template — no user-editable UI for this field
     this.settings.lessonNoteTemplate = DEFAULT_SETTINGS.lessonNoteTemplate;
+    if (!this.settings.lessonNoteTitleTemplate) this.settings.lessonNoteTitleTemplate = DEFAULT_SETTINGS.lessonNoteTitleTemplate;
+    if (!this.settings.eventNoteTitleTemplate) this.settings.eventNoteTitleTemplate = DEFAULT_SETTINGS.eventNoteTitleTemplate;
     this.settings.academicYear = Object.assign({}, DEFAULT_SETTINGS.academicYear, this.settings.academicYear);
     // Day schedules (Option B): wrap the legacy flat period list into a
     // "Standard day" schedule on first load. Idempotent.

@@ -3,7 +3,8 @@ import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon
 import type TeacherPlannerPlugin from "../main";
 import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity, DaySchedule, SchoolDay, TeacherPlannerSettings } from "../types";
 import { ensureDaySchedules, getScheduleForDay } from "../utils/scheduleUtils";
-import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR } from "../settings";
+import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE } from "../settings";
+import { buildNoteTitle } from "../utils/noteTitleUtils";
 import { resolveColour, isThemeToken, GRID_THEME_TOKEN } from "../utils/themeColours";
 import { findOverlappingOverrides } from "../utils/weekUtils";
 import ColourPickerComponent from "../modals/ColourPickerComponent.svelte";
@@ -576,6 +577,63 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created")
       .addText(t => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder)
         .onChange(v => { this.plugin.settings.plannerFolder = v; this.plugin.requestSave(); }));
+
+    // -- Note titles ---------------------------------------------------------
+    new Setting(containerEl).setName("Note titles").setHeading();
+    containerEl.createEl("p", {
+      text: "Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default.",
+      cls: "setting-item-description",
+    });
+
+    const _sampleSubj = this.plugin.settings.subjects?.[0];
+    const _sampleCls = this.plugin.settings.classes?.[0];
+    const _sampleDate = new Date().toISOString().slice(0, 10);
+
+    const renderLessonTitle = (tpl: string) => buildNoteTitle(tpl, {
+      dateIso: _sampleDate,
+      periodName: "Period 1",
+      classCode: _sampleCls?.code ?? "10A",
+      subjectName: _sampleSubj?.name ?? "Biology",
+      emoji: _sampleSubj?.emoji ?? "🌱",
+    });
+    const renderEventTitle = (tpl: string) => buildNoteTitle(tpl, {
+      dateIso: _sampleDate,
+      periodName: "Break",
+      eventName: "Bake sale",
+    });
+
+    let lessonTitlePreview: HTMLElement;
+    let eventTitlePreview: HTMLElement;
+
+    const lessonTitleSetting = new Setting(containerEl)
+      .setName("Lesson note title")
+      .addText(t => {
+        t.setPlaceholder(DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
+        t.setValue(this.plugin.settings.lessonNoteTitleTemplate ?? DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
+        t.inputEl.style.minWidth = "260px";
+        t.onChange(v => {
+          this.plugin.settings.lessonNoteTitleTemplate = v.trim() || undefined;
+          lessonTitlePreview.setText("Preview:  " + renderLessonTitle(v.trim() || DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
+          this.plugin.requestSave();
+        });
+      });
+    lessonTitlePreview = lessonTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
+    lessonTitlePreview.setText("Preview:  " + renderLessonTitle(this.plugin.settings.lessonNoteTitleTemplate ?? DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
+
+    const eventTitleSetting = new Setting(containerEl)
+      .setName("Event note title")
+      .addText(t => {
+        t.setPlaceholder(DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
+        t.setValue(this.plugin.settings.eventNoteTitleTemplate ?? DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
+        t.inputEl.style.minWidth = "260px";
+        t.onChange(v => {
+          this.plugin.settings.eventNoteTitleTemplate = v.trim() || undefined;
+          eventTitlePreview.setText("Preview:  " + renderEventTitle(v.trim() || DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
+          this.plugin.requestSave();
+        });
+      });
+    eventTitlePreview = eventTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
+    eventTitlePreview.setText("Preview:  " + renderEventTitle(this.plugin.settings.eventNoteTitleTemplate ?? DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
 
     // ── Grid Visuals ───────────────────────────────────────────────────────
     new Setting(containerEl).setName("Grid Visuals").setHeading();

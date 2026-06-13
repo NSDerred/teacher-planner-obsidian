@@ -11,6 +11,9 @@ const DEFAULT_LESSON_TEMPLATE = `## Notes:
 ---
 `;
 
+export const DEFAULT_LESSON_NOTE_TITLE_TEMPLATE = "{{date}} - {{period}} - {{class}} - {{emoji}} {{subject}}";
+export const DEFAULT_EVENT_NOTE_TITLE_TEMPLATE = "{{date}} - {{period}} - {{event}}";
+
 export const DEFAULT_SETTINGS: TeacherPlannerSettings = {
   academicYear: {
     id: "default",
@@ -72,6 +75,8 @@ export const DEFAULT_SETTINGS: TeacherPlannerSettings = {
   blockBorderWeight: 1,
   plannerFolder: "Teacher Planner",
   lessonNoteTemplate: DEFAULT_LESSON_TEMPLATE,
+  lessonNoteTitleTemplate: DEFAULT_LESSON_NOTE_TITLE_TEMPLATE,
+  eventNoteTitleTemplate: DEFAULT_EVENT_NOTE_TITLE_TEMPLATE,
   directedTime: {
     enabled: false,
     contractedHours: 1265,
@@ -127,6 +132,8 @@ export const DEFAULT_PLANNER: PlannerRecord = {
   weekNotes: {},
   notesHeight: 120,
   lessonNoteTemplate: DEFAULT_SETTINGS.lessonNoteTemplate,
+  lessonNoteTitleTemplate: DEFAULT_SETTINGS.lessonNoteTitleTemplate,
+  eventNoteTitleTemplate: DEFAULT_SETTINGS.eventNoteTitleTemplate,
   directedTime: {
     enabled: false,
     contractedHours: 1265,

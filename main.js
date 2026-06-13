@@ -27,7 +27,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/settings.ts
-var DEFAULT_LESSON_TEMPLATE, DEFAULT_SETTINGS, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, CLASS_COLOUR_PALETTE, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA;
+var DEFAULT_LESSON_TEMPLATE, DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE, DEFAULT_SETTINGS, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, CLASS_COLOUR_PALETTE, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA;
 var init_settings = __esm({
   "src/settings.ts"() {
     DEFAULT_LESSON_TEMPLATE = `## Notes:
@@ -39,6 +39,8 @@ var init_settings = __esm({
 ## Next lesson:
 ---
 `;
+    DEFAULT_LESSON_NOTE_TITLE_TEMPLATE = "{{date}} - {{period}} - {{class}} - {{emoji}} {{subject}}";
+    DEFAULT_EVENT_NOTE_TITLE_TEMPLATE = "{{date}} - {{period}} - {{event}}";
     DEFAULT_SETTINGS = {
       academicYear: {
         id: "default",
@@ -100,6 +102,8 @@ var init_settings = __esm({
       blockBorderWeight: 1,
       plannerFolder: "Teacher Planner",
       lessonNoteTemplate: DEFAULT_LESSON_TEMPLATE,
+      lessonNoteTitleTemplate: DEFAULT_LESSON_NOTE_TITLE_TEMPLATE,
+      eventNoteTitleTemplate: DEFAULT_EVENT_NOTE_TITLE_TEMPLATE,
       directedTime: {
         enabled: false,
         contractedHours: 1265,
@@ -152,6 +156,8 @@ var init_settings = __esm({
       weekNotes: {},
       notesHeight: 120,
       lessonNoteTemplate: DEFAULT_SETTINGS.lessonNoteTemplate,
+      lessonNoteTitleTemplate: DEFAULT_SETTINGS.lessonNoteTitleTemplate,
+      eventNoteTitleTemplate: DEFAULT_SETTINGS.eventNoteTitleTemplate,
       directedTime: {
         enabled: false,
         contractedHours: 1265,
@@ -1415,6 +1421,46 @@ function syncPeriodsUnion(ay) {
 }
 var init_scheduleUtils = __esm({
   "src/utils/scheduleUtils.ts"() {
+  }
+});
+
+// src/utils/noteTitleUtils.ts
+function formatUkDate(iso) {
+  if (!iso) return "";
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : iso;
+}
+function shortPeriodLabel(name) {
+  if (!name) return "";
+  const trimmed = name.trim();
+  const m = trimmed.match(/^([A-Za-z])[A-Za-z]*\s*(\d+)$/);
+  return m ? m[1].toUpperCase() + m[2] : trimmed;
+}
+function sanitiseNoteFileName(s) {
+  return s.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim();
+}
+function buildNoteTitle(template, parts) {
+  var _a2, _b2, _c, _d;
+  const values = {
+    date: formatUkDate(parts.dateIso),
+    period: shortPeriodLabel(parts.periodName),
+    class: ((_a2 = parts.classCode) != null ? _a2 : "").trim(),
+    subject: ((_b2 = parts.subjectName) != null ? _b2 : "").trim(),
+    emoji: ((_c = parts.emoji) != null ? _c : "").trim(),
+    event: ((_d = parts.eventName) != null ? _d : "").trim()
+  };
+  let out = (template != null ? template : "").replace(
+    /\{\{(date|period|class|subject|emoji|event)\}\}/g,
+    (_match, key) => {
+      var _a3;
+      return (_a3 = values[key]) != null ? _a3 : "";
+    }
+  );
+  out = out.split(/ - /).map((seg) => seg.trim()).filter((seg) => seg.length > 0).join(" - ");
+  return sanitiseNoteFileName(out);
+}
+var init_noteTitleUtils = __esm({
+  "src/utils/noteTitleUtils.ts"() {
   }
 });
 
@@ -9067,6 +9113,7 @@ var init_SettingsTab = __esm({
     import_obsidian8 = require("obsidian");
     init_scheduleUtils();
     init_settings();
+    init_noteTitleUtils();
     init_themeColours();
     init_weekUtils();
     init_ColourPickerComponent();
@@ -9198,7 +9245,7 @@ var init_SettingsTab = __esm({
         new SettingsAppliedModal(this.app, this.plugin, snapshot).open();
       }
       display() {
-        var _a2, _b2, _c;
+        var _a2, _b2, _c, _d, _e, _f, _g;
         const { containerEl } = this;
         containerEl.empty();
         this._snapshot = JSON.stringify(this.plugin.settings);
@@ -9531,6 +9578,57 @@ var init_SettingsTab = __esm({
           this.plugin.settings.plannerFolder = v;
           this.plugin.requestSave();
         }));
+        new import_obsidian8.Setting(containerEl).setName("Note titles").setHeading();
+        containerEl.createEl("p", {
+          text: "Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default.",
+          cls: "setting-item-description"
+        });
+        const _sampleSubj = (_b2 = this.plugin.settings.subjects) == null ? void 0 : _b2[0];
+        const _sampleCls = (_c = this.plugin.settings.classes) == null ? void 0 : _c[0];
+        const _sampleDate = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+        const renderLessonTitle = (tpl) => {
+          var _a3, _b3, _c2;
+          return buildNoteTitle(tpl, {
+            dateIso: _sampleDate,
+            periodName: "Period 1",
+            classCode: (_a3 = _sampleCls == null ? void 0 : _sampleCls.code) != null ? _a3 : "10A",
+            subjectName: (_b3 = _sampleSubj == null ? void 0 : _sampleSubj.name) != null ? _b3 : "Biology",
+            emoji: (_c2 = _sampleSubj == null ? void 0 : _sampleSubj.emoji) != null ? _c2 : "\u{1F331}"
+          });
+        };
+        const renderEventTitle = (tpl) => buildNoteTitle(tpl, {
+          dateIso: _sampleDate,
+          periodName: "Break",
+          eventName: "Bake sale"
+        });
+        let lessonTitlePreview;
+        let eventTitlePreview;
+        const lessonTitleSetting = new import_obsidian8.Setting(containerEl).setName("Lesson note title").addText((t) => {
+          var _a3;
+          t.setPlaceholder(DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
+          t.setValue((_a3 = this.plugin.settings.lessonNoteTitleTemplate) != null ? _a3 : DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
+          t.inputEl.style.minWidth = "260px";
+          t.onChange((v) => {
+            this.plugin.settings.lessonNoteTitleTemplate = v.trim() || void 0;
+            lessonTitlePreview.setText("Preview:  " + renderLessonTitle(v.trim() || DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
+            this.plugin.requestSave();
+          });
+        });
+        lessonTitlePreview = lessonTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
+        lessonTitlePreview.setText("Preview:  " + renderLessonTitle((_d = this.plugin.settings.lessonNoteTitleTemplate) != null ? _d : DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
+        const eventTitleSetting = new import_obsidian8.Setting(containerEl).setName("Event note title").addText((t) => {
+          var _a3;
+          t.setPlaceholder(DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
+          t.setValue((_a3 = this.plugin.settings.eventNoteTitleTemplate) != null ? _a3 : DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
+          t.inputEl.style.minWidth = "260px";
+          t.onChange((v) => {
+            this.plugin.settings.eventNoteTitleTemplate = v.trim() || void 0;
+            eventTitlePreview.setText("Preview:  " + renderEventTitle(v.trim() || DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
+            this.plugin.requestSave();
+          });
+        });
+        eventTitlePreview = eventTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
+        eventTitlePreview.setText("Preview:  " + renderEventTitle((_e = this.plugin.settings.eventNoteTitleTemplate) != null ? _e : DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
         new import_obsidian8.Setting(containerEl).setName("Grid Visuals").setHeading();
         const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
         const blockColourSetting = new import_obsidian8.Setting(containerEl).setName("Period block border colour").setDesc("Border on the top and bottom edge of each period band.");
@@ -9538,7 +9636,7 @@ var init_SettingsTab = __esm({
         blockColourSetting.controlEl.setCssStyles({ alignItems: "center" });
         blockColourSetting.controlEl.setCssStyles({ gap: "8px" });
         blockColourSetting.controlEl.setCssStyles({ flexWrap: "wrap" });
-        const currentBlockColour = (_b2 = this.plugin.settings.blockBorderColour) != null ? _b2 : GRID_THEME_TOKEN;
+        const currentBlockColour = (_f = this.plugin.settings.blockBorderColour) != null ? _f : GRID_THEME_TOKEN;
         const blockSwatchBtn = blockColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
         blockSwatchBtn.setCssStyles({ background: resolveColour(currentBlockColour) });
         const blockPresetRow = blockColourSetting.controlEl.createDiv("tp-preset-swatches");
@@ -9594,7 +9692,7 @@ var init_SettingsTab = __esm({
         gridColourSetting.controlEl.setCssStyles({ alignItems: "center" });
         gridColourSetting.controlEl.setCssStyles({ gap: "8px" });
         gridColourSetting.controlEl.setCssStyles({ flexWrap: "wrap" });
-        const currentGridColour = (_c = this.plugin.settings.gridLineColour) != null ? _c : GRID_THEME_TOKEN;
+        const currentGridColour = (_g = this.plugin.settings.gridLineColour) != null ? _g : GRID_THEME_TOKEN;
         const gridSwatchBtn = gridColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
         gridSwatchBtn.setCssStyles({ background: resolveColour(currentGridColour) });
         const gridPresetRow = gridColourSetting.controlEl.createDiv("tp-preset-swatches");
@@ -15163,129 +15261,131 @@ var LessonPlanSuggestModal = class extends import_obsidian14.FuzzySuggestModal {
 };
 
 // src/views/WeekView.svelte
+init_noteTitleUtils();
+init_settings();
 init_runtime();
 function add_css3(target) {
   append_styles(target, "svelte-1xpgp1s", ".tp-week-view.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-1xpgp1s.svelte-1xpgp1s{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-1xpgp1s.svelte-1xpgp1s{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;gap:4px}.tp-nav-arrow.svelte-1xpgp1s.svelte-1xpgp1s{padding:4px 9px;font-size:15px;line-height:1}.tp-nav-today.svelte-1xpgp1s.svelte-1xpgp1s{padding:4px 10px;font-size:12px;font-weight:600;letter-spacing:0.02em}.tp-header-actions.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-1xpgp1s.svelte-1xpgp1s{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}.tp-week-ab-badge--b.svelte-1xpgp1s.svelte-1xpgp1s{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-1xpgp1s.svelte-1xpgp1s{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-1xpgp1s.svelte-1xpgp1s:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-1xpgp1s.svelte-1xpgp1s:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-1xpgp1s.svelte-1xpgp1s{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-1xpgp1s.svelte-1xpgp1s:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-1xpgp1s svg,.tp-btn-icon.svelte-1xpgp1s svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-1xpgp1s.svelte-1xpgp1s{padding:5px 8px}.tp-action-btn--icon-only.svelte-1xpgp1s svg{width:15px;height:15px}.tp-overflow-btn.svelte-1xpgp1s.svelte-1xpgp1s{display:none}.tp-table-scroll.svelte-1xpgp1s.svelte-1xpgp1s{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-1xpgp1s.svelte-1xpgp1s{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-1xpgp1s.svelte-1xpgp1s{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-1xpgp1s.svelte-1xpgp1s{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-1xpgp1s.svelte-1xpgp1s{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-1xpgp1s.svelte-1xpgp1s{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-1xpgp1s.svelte-1xpgp1s{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-1xpgp1s.svelte-1xpgp1s{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-1xpgp1s.svelte-1xpgp1s{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0;position:relative}.tp-axis-gutter.svelte-1xpgp1s.svelte-1xpgp1s{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-1xpgp1s.svelte-1xpgp1s{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-block.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block--dragover.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-1xpgp1s.svelte-1xpgp1s{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-1xpgp1s.svelte-1xpgp1s{display:flex;flex-direction:column;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-1xpgp1s.svelte-1xpgp1s{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-1xpgp1s.svelte-1xpgp1s{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-1xpgp1s:hover .tp-block-time.svelte-1xpgp1s{display:block}.tp-block.svelte-1xpgp1s.svelte-1xpgp1s:hover{height:auto !important;min-height:max(var(--bh, 20px), 48px);z-index:30;padding-bottom:6px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-1xpgp1s.svelte-1xpgp1s:hover:has(.tp-event-stack){min-height:var(--bh, 20px);padding-bottom:0;overflow:visible;background:transparent !important;border-color:transparent !important;box-shadow:none;outline:none}.tp-block.svelte-1xpgp1s:hover .tp-event-stack.svelte-1xpgp1s{position:relative;inset:auto;height:auto;margin:3px;border-radius:4px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary);box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-1xpgp1s:hover .tp-block-label.svelte-1xpgp1s{padding:4px 8px}.tp-block.svelte-1xpgp1s:hover .tp-chip.svelte-1xpgp1s{container-type:normal;background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important}.tp-block.svelte-1xpgp1s:hover .tp-chip-notes.svelte-1xpgp1s{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}.tp-chip-period-time.svelte-1xpgp1s.svelte-1xpgp1s{display:none;font-size:10px;color:var(--text-muted);opacity:0.85}.tp-block.svelte-1xpgp1s:hover .tp-chip-period-time.svelte-1xpgp1s{display:block}.tp-chip.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip.svelte-1xpgp1s.svelte-1xpgp1s:hover{filter:brightness(1.08)}.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-style:italic}.tp-chip-notes.svelte-1xpgp1s.svelte-1xpgp1s{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-1xpgp1s.svelte-1xpgp1s,.tp-chip-notes.svelte-1xpgp1s.svelte-1xpgp1s{display:none}.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px}.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{font-size:11px}}@container chip (max-height: 44px){.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:12px}.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{font-size:10px}}@container chip (max-height: 34px){.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{display:none}.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:11px}}@container chip (max-width: 90px){.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px}.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{font-size:10px}}@container chip (max-width: 60px){.tp-chip-code.svelte-1xpgp1s.svelte-1xpgp1s{font-size:11px}.tp-chip-room.svelte-1xpgp1s.svelte-1xpgp1s{font-size:9px}}.tp-plan-dot.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;top:1px;right:3px;font-size:9px;line-height:1;background:none;border:none;padding:2px 3px;color:var(--text-muted);opacity:0.6;cursor:default}button.tp-plan-dot--linked.svelte-1xpgp1s.svelte-1xpgp1s{color:var(--interactive-accent);opacity:1;cursor:pointer}button.tp-plan-dot--linked.svelte-1xpgp1s.svelte-1xpgp1s:hover{opacity:0.8}.tp-now-line.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-line--week.svelte-1xpgp1s.svelte-1xpgp1s{left:48px;right:6px}.tp-now-badge.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-1xpgp1s.svelte-1xpgp1s{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-1xpgp1s .tp-chip.svelte-1xpgp1s{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-1xpgp1s.svelte-1xpgp1s{display:none}@container (max-width: 680px){.tp-action-btn.svelte-1xpgp1s.svelte-1xpgp1s{display:none}.tp-overflow-btn.svelte-1xpgp1s.svelte-1xpgp1s{display:inline-flex !important}.tp-header.svelte-1xpgp1s.svelte-1xpgp1s{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-1xpgp1s.svelte-1xpgp1s{justify-content:center}.tp-header-identity.svelte-1xpgp1s.svelte-1xpgp1s{min-width:0;overflow:hidden}.tp-week-label.svelte-1xpgp1s.svelte-1xpgp1s{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-1xpgp1s.svelte-1xpgp1s{display:none}.tp-axis-head-day.svelte-1xpgp1s.svelte-1xpgp1s{padding:5px 2px}.tp-day-name.svelte-1xpgp1s.svelte-1xpgp1s{font-size:12px}.tp-day-date.svelte-1xpgp1s.svelte-1xpgp1s{font-size:10px}.tp-day-override-badge.svelte-1xpgp1s.svelte-1xpgp1s{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-1xpgp1s.svelte-1xpgp1s{min-width:440px}.tp-axis-head-gutter.svelte-1xpgp1s.svelte-1xpgp1s,.tp-axis-gutter.svelte-1xpgp1s.svelte-1xpgp1s{width:30px}.tp-now-line--week.svelte-1xpgp1s.svelte-1xpgp1s{left:30px}.tp-axis-hour.svelte-1xpgp1s.svelte-1xpgp1s{right:3px;font-size:9px}.tp-day-name.svelte-1xpgp1s.svelte-1xpgp1s{font-size:11px}.tp-day-date.svelte-1xpgp1s.svelte-1xpgp1s{font-size:10px}}");
 }
 function get_each_context3(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[116] = list[i];
+  child_ctx[117] = list[i];
   const constants_0 = dayISODate(
     /*day*/
-    child_ctx[116].offset,
+    child_ctx[117].offset,
     /*currentMonday*/
     child_ctx[1]
   );
-  child_ctx[117] = constants_0;
+  child_ctx[118] = constants_0;
   const constants_1 = (
     /*dayOverrideMap*/
     child_ctx[11][
       /*day*/
-      child_ctx[116].key
+      child_ctx[117].key
     ]
   );
-  child_ctx[118] = constants_1;
+  child_ctx[119] = constants_1;
   return child_ctx;
 }
 function get_each_context_13(ctx, list, i) {
   var _a2;
   const child_ctx = ctx.slice();
-  child_ctx[121] = list[i];
+  child_ctx[122] = list[i];
   const constants_0 = (
     /*getPeriodTypeColour*/
     child_ctx[23](
       /*period*/
-      child_ctx[121].type
+      child_ctx[122].type
     )
   );
-  child_ctx[122] = constants_0;
+  child_ctx[123] = constants_0;
   const constants_1 = (timeToMinutes(
     /*period*/
-    child_ctx[121].start
+    child_ctx[122].start
   ) - /*_axis*/
   child_ctx[3].start) * PX_PER_MIN;
-  child_ctx[123] = constants_1;
+  child_ctx[124] = constants_1;
   const constants_2 = Math.max(20, (timeToMinutes(
     /*period*/
-    child_ctx[121].end
+    child_ctx[122].end
   ) - timeToMinutes(
     /*period*/
-    child_ctx[121].start
+    child_ctx[122].start
   )) * PX_PER_MIN);
-  child_ctx[124] = constants_2;
+  child_ctx[125] = constants_2;
   const constants_3 = (
     /*_slotMap*/
     child_ctx[12][
       /*day*/
-      child_ctx[116].key + ":" + /*period*/
-      child_ctx[121].id
+      child_ctx[117].key + ":" + /*period*/
+      child_ctx[122].id
     ]
   );
-  child_ctx[125] = constants_3;
+  child_ctx[126] = constants_3;
   const constants_4 = (
     /*_rawSlot*/
-    child_ctx[125] && !/*isSlotExcluded*/
+    child_ctx[126] && !/*isSlotExcluded*/
     child_ctx[24](
       /*_rawSlot*/
-      child_ctx[125].id,
+      child_ctx[126].id,
       /*dayDate*/
-      child_ctx[117]
+      child_ctx[118]
     ) ? (
       /*_rawSlot*/
-      child_ctx[125]
+      child_ctx[126]
     ) : void 0
   );
-  child_ctx[126] = constants_4;
+  child_ctx[127] = constants_4;
   const constants_5 = (
     /*_dateEventMap*/
     (_a2 = child_ctx[16][
       /*day*/
-      child_ctx[116].key + ":" + /*period*/
-      child_ctx[121].id
+      child_ctx[117].key + ":" + /*period*/
+      child_ctx[122].id
     ]) != null ? _a2 : []
   );
-  child_ctx[127] = constants_5;
+  child_ctx[128] = constants_5;
   const constants_6 = cellKey(
     /*day*/
-    child_ctx[116].key,
+    child_ctx[117].key,
     /*period*/
-    child_ctx[121].id
+    child_ctx[122].id
   );
-  child_ctx[128] = constants_6;
+  child_ctx[129] = constants_6;
   const constants_7 = (
     /*dragOverKey*/
     child_ctx[6] === /*key*/
-    child_ctx[128] && !/*slot*/
-    child_ctx[126]
+    child_ctx[129] && !/*slot*/
+    child_ctx[127]
   );
-  child_ctx[129] = constants_7;
+  child_ctx[130] = constants_7;
   const constants_8 = (
     /*rejectKey*/
     child_ctx[7] === /*key*/
-    child_ctx[128]
+    child_ctx[129]
   );
-  child_ctx[130] = constants_8;
+  child_ctx[131] = constants_8;
   return child_ctx;
 }
 function get_each_context_22(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[133] = list[i];
+  child_ctx[134] = list[i];
   const constants_0 = (
     /*getDateEventLabel*/
     child_ctx[26](
       /*devEv*/
-      child_ctx[133]
+      child_ctx[134]
     )
   );
-  child_ctx[134] = constants_0;
+  child_ctx[135] = constants_0;
   const constants_1 = (
     /*_eventPlanMap*/
     child_ctx[17][
       /*devEv*/
-      child_ctx[133].id
+      child_ctx[134].id
     ]
   );
-  child_ctx[135] = constants_1;
+  child_ctx[136] = constants_1;
   return child_ctx;
 }
 function get_if_ctx2(ctx) {
@@ -15294,42 +15394,42 @@ function get_if_ctx2(ctx) {
     /*getSlotLabel*/
     child_ctx[25](
       /*slot*/
-      child_ctx[126]
+      child_ctx[127]
     )
   );
-  child_ctx[134] = constants_0;
+  child_ctx[135] = constants_0;
   const constants_1 = (
     /*_slotPlanMap*/
     child_ctx[18][
       /*slot*/
-      child_ctx[126].id + "|" + /*dayDate*/
-      child_ctx[117]
+      child_ctx[127].id + "|" + /*dayDate*/
+      child_ctx[118]
     ]
   );
-  child_ctx[138] = constants_1;
+  child_ctx[139] = constants_1;
   return child_ctx;
 }
 function get_each_context_32(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[139] = list[i];
+  child_ctx[140] = list[i];
   return child_ctx;
 }
 function get_each_context_42(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[139] = list[i];
+  child_ctx[140] = list[i];
   return child_ctx;
 }
 function get_each_context_52(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[116] = list[i];
+  child_ctx[117] = list[i];
   const constants_0 = (
     /*dayOverrideMap*/
     child_ctx[11][
       /*day*/
-      child_ctx[116].key
+      child_ctx[117].key
     ]
   );
-  child_ctx[118] = constants_0;
+  child_ctx[119] = constants_0;
   return child_ctx;
 }
 function create_if_block_182(ctx) {
@@ -15416,14 +15516,14 @@ function create_each_block_52(ctx) {
   let span0;
   let t0_value = (
     /*day*/
-    ctx[116].label + ""
+    ctx[117].label + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = getDayDate(
     /*day*/
-    ctx[116].offset,
+    ctx[117].offset,
     /*currentMonday*/
     ctx[1]
   ) + "";
@@ -15433,11 +15533,11 @@ function create_each_block_52(ctx) {
   function select_block_type(ctx2, dirty) {
     if (
       /*dayOverride*/
-      ctx2[118] === "holiday"
+      ctx2[119] === "holiday"
     ) return create_if_block_162;
     if (
       /*dayOverride*/
-      ctx2[118] === "inset"
+      ctx2[119] === "inset"
     ) return create_if_block_172;
   }
   let current_block_type = select_block_type(ctx, [-1, -1, -1, -1, -1]);
@@ -15462,7 +15562,7 @@ function create_each_block_52(ctx) {
       attr(div1, "class", "tp-axis-head-day svelte-1xpgp1s");
       toggle_class(div1, "tp-th-day--today", isToday(
         /*day*/
-        ctx[116].offset,
+        ctx[117].offset,
         /*currentMonday*/
         ctx[1]
       ));
@@ -15470,13 +15570,13 @@ function create_each_block_52(ctx) {
         div1,
         "tp-th-day--holiday",
         /*dayOverride*/
-        ctx[118] === "holiday"
+        ctx[119] === "holiday"
       );
       toggle_class(
         div1,
         "tp-th-day--inset",
         /*dayOverride*/
-        ctx[118] === "inset"
+        ctx[119] === "inset"
       );
     },
     m(target, anchor) {
@@ -15495,11 +15595,11 @@ function create_each_block_52(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*DAYS*/
       4 && t0_value !== (t0_value = /*day*/
-      ctx2[116].label + "")) set_data(t0, t0_value);
+      ctx2[117].label + "")) set_data(t0, t0_value);
       if (dirty[0] & /*DAYS, currentMonday*/
       6 && t2_value !== (t2_value = getDayDate(
         /*day*/
-        ctx2[116].offset,
+        ctx2[117].offset,
         /*currentMonday*/
         ctx2[1]
       ) + "")) set_data(t2, t2_value);
@@ -15515,7 +15615,7 @@ function create_each_block_52(ctx) {
       6) {
         toggle_class(div1, "tp-th-day--today", isToday(
           /*day*/
-          ctx2[116].offset,
+          ctx2[117].offset,
           /*currentMonday*/
           ctx2[1]
         ));
@@ -15526,7 +15626,7 @@ function create_each_block_52(ctx) {
           div1,
           "tp-th-day--holiday",
           /*dayOverride*/
-          ctx2[118] === "holiday"
+          ctx2[119] === "holiday"
         );
       }
       if (dirty[0] & /*dayOverrideMap, DAYS*/
@@ -15535,7 +15635,7 @@ function create_each_block_52(ctx) {
           div1,
           "tp-th-day--inset",
           /*dayOverride*/
-          ctx2[118] === "inset"
+          ctx2[119] === "inset"
         );
       }
     },
@@ -15553,7 +15653,7 @@ function create_each_block_42(ctx) {
   let div;
   let t_value = fmtAxisTime(
     /*hm*/
-    ctx[139]
+    ctx[140]
   ) + "";
   let t;
   return {
@@ -15565,7 +15665,7 @@ function create_each_block_42(ctx) {
         div,
         "top",
         /*hm*/
-        (ctx[139] - /*_axis*/
+        (ctx[140] - /*_axis*/
         ctx[3].start) * PX_PER_MIN + "px"
       );
     },
@@ -15577,7 +15677,7 @@ function create_each_block_42(ctx) {
       if (dirty[0] & /*hourMarks*/
       16384 && t_value !== (t_value = fmtAxisTime(
         /*hm*/
-        ctx2[139]
+        ctx2[140]
       ) + "")) set_data(t, t_value);
       if (dirty[0] & /*hourMarks, _axis*/
       16392) {
@@ -15585,7 +15685,7 @@ function create_each_block_42(ctx) {
           div,
           "top",
           /*hm*/
-          (ctx2[139] - /*_axis*/
+          (ctx2[140] - /*_axis*/
           ctx2[3].start) * PX_PER_MIN + "px"
         );
       }
@@ -15687,7 +15787,7 @@ function create_each_block_32(ctx) {
         div,
         "top",
         /*hm*/
-        (ctx[139] - /*_axis*/
+        (ctx[140] - /*_axis*/
         ctx[3].start) * PX_PER_MIN + "px"
       );
     },
@@ -15701,7 +15801,7 @@ function create_each_block_32(ctx) {
           div,
           "top",
           /*hm*/
-          (ctx2[139] - /*_axis*/
+          (ctx2[140] - /*_axis*/
           ctx2[3].start) * PX_PER_MIN + "px"
         );
       }
@@ -15721,11 +15821,11 @@ function create_else_block2(ctx) {
     /*plugin*/
     ctx[0].settings.academicYear,
     /*day*/
-    ctx[116].key
+    ctx[117].key
   ));
   const get_key = (ctx2) => (
     /*period*/
-    ctx2[121].id
+    ctx2[122].id
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
     let child_ctx = get_each_context_13(ctx, each_value_1, i);
@@ -15755,7 +15855,7 @@ function create_else_block2(ctx) {
           /*plugin*/
           ctx2[0].settings.academicYear,
           /*day*/
-          ctx2[116].key
+          ctx2[117].key
         ));
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_1, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block_13, each_1_anchor, get_each_context_13);
       }
@@ -15774,7 +15874,7 @@ function create_if_block3(ctx) {
   let div;
   let t_value = (
     /*dayOverride*/
-    ctx[118] === "holiday" ? "Holiday" : "INSET"
+    ctx[119] === "holiday" ? "Holiday" : "INSET"
   );
   let t;
   return {
@@ -15790,7 +15890,7 @@ function create_if_block3(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*dayOverrideMap, DAYS*/
       2052 && t_value !== (t_value = /*dayOverride*/
-      ctx2[118] === "holiday" ? "Holiday" : "INSET")) set_data(t, t_value);
+      ctx2[119] === "holiday" ? "Holiday" : "INSET")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -15804,20 +15904,20 @@ function create_if_block_132(ctx) {
   let span0;
   let t0_value = (
     /*period*/
-    ctx[121].name + ""
+    ctx[122].name + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = (
     /*period*/
-    ctx[121].start + ""
+    ctx[122].start + ""
   );
   let t2;
   let t3;
   let t4_value = (
     /*period*/
-    ctx[121].end + ""
+    ctx[122].end + ""
   );
   let t4;
   return {
@@ -15847,13 +15947,13 @@ function create_if_block_132(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*plugin, DAYS*/
       5 && t0_value !== (t0_value = /*period*/
-      ctx2[121].name + "")) set_data(t0, t0_value);
+      ctx2[122].name + "")) set_data(t0, t0_value);
       if (dirty[0] & /*plugin, DAYS*/
       5 && t2_value !== (t2_value = /*period*/
-      ctx2[121].start + "")) set_data(t2, t2_value);
+      ctx2[122].start + "")) set_data(t2, t2_value);
       if (dirty[0] & /*plugin, DAYS*/
       5 && t4_value !== (t4_value = /*period*/
-      ctx2[121].end + "")) set_data(t4, t4_value);
+      ctx2[122].end + "")) set_data(t4, t4_value);
     },
     d(detaching) {
       if (detaching) {
@@ -15871,9 +15971,9 @@ function create_else_block_12(ctx) {
       /*click_handler_5*/
       ctx[75](
         /*dayDate*/
-        ctx[117],
+        ctx[118],
         /*period*/
-        ctx[121],
+        ctx[122],
         ...args
       )
     );
@@ -15911,15 +16011,15 @@ function create_if_block_110(ctx) {
   let each_1_lookup = /* @__PURE__ */ new Map();
   let if_block = (
     /*slot*/
-    ctx[126] && create_if_block_72(get_if_ctx2(ctx))
+    ctx[127] && create_if_block_72(get_if_ctx2(ctx))
   );
   let each_value_2 = ensure_array_like(
     /*devEvents*/
-    ctx[127]
+    ctx[128]
   );
   const get_key = (ctx2) => (
     /*devEv*/
-    ctx2[133].id
+    ctx2[134].id
   );
   for (let i = 0; i < each_value_2.length; i += 1) {
     let child_ctx = get_each_context_22(ctx, each_value_2, i);
@@ -15949,7 +16049,7 @@ function create_if_block_110(ctx) {
     p(ctx2, dirty) {
       if (
         /*slot*/
-        ctx2[126]
+        ctx2[127]
       ) {
         if (if_block) {
           if_block.p(get_if_ctx2(ctx2), dirty);
@@ -15967,7 +16067,7 @@ function create_if_block_110(ctx) {
       6150) {
         each_value_2 = ensure_array_like(
           /*devEvents*/
-          ctx2[127]
+          ctx2[128]
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_2, each_1_lookup, div, destroy_block, create_each_block_22, null, get_each_context_22);
       }
@@ -15988,7 +16088,7 @@ function create_if_block_72(ctx) {
   let span0;
   let t0_value = (
     /*lbl*/
-    ctx[134].code + ""
+    ctx[135].code + ""
   );
   let t0;
   let t1;
@@ -15997,19 +16097,19 @@ function create_if_block_72(ctx) {
   let span1;
   let t4_value = (
     /*period*/
-    ctx[121].name + ""
+    ctx[122].name + ""
   );
   let t4;
   let t5;
   let t6_value = (
     /*period*/
-    ctx[121].start + ""
+    ctx[122].start + ""
   );
   let t6;
   let t7;
   let t8_value = (
     /*period*/
-    ctx[121].end + ""
+    ctx[122].end + ""
   );
   let t8;
   let t9;
@@ -16020,29 +16120,29 @@ function create_if_block_72(ctx) {
   let dispose;
   let if_block0 = (
     /*lbl*/
-    (ctx[134].year || /*lbl*/
-    ctx[134].subjectName) && create_if_block_122(ctx)
+    (ctx[135].year || /*lbl*/
+    ctx[135].subjectName) && create_if_block_122(ctx)
   );
   let if_block1 = (
     /*lbl*/
-    ctx[134].classroom && create_if_block_112(ctx)
+    ctx[135].classroom && create_if_block_112(ctx)
   );
   let if_block2 = (
     /*lbl*/
-    ctx[134].notes && create_if_block_102(ctx)
+    ctx[135].notes && create_if_block_102(ctx)
   );
   function select_block_type_3(ctx2, dirty) {
     if (dirty[0] & /*_showUnplanned, _slotMap, DAYS, plugin, currentMonday*/
     528391) show_if = null;
     if (
       /*slotPlanPath*/
-      ctx2[138]
+      ctx2[139]
     ) return create_if_block_82;
     if (show_if == null) show_if = !!/*_showUnplanned*/
     (ctx2[19] && /*isClassId*/
     ctx2[42](
       /*slot*/
-      ctx2[126].classId
+      ctx2[127].classId
     ));
     if (show_if) return create_if_block_92;
   }
@@ -16053,7 +16153,7 @@ function create_if_block_72(ctx) {
       /*dragstart_handler*/
       ctx[68](
         /*slot*/
-        ctx[126],
+        ctx[127],
         ...args
       )
     );
@@ -16063,11 +16163,11 @@ function create_if_block_72(ctx) {
       /*click_handler_2*/
       ctx[69](
         /*dayDate*/
-        ctx[117],
+        ctx[118],
         /*period*/
-        ctx[121],
+        ctx[122],
         /*slot*/
-        ctx[126],
+        ctx[127],
         ...args
       )
     );
@@ -16099,21 +16199,21 @@ function create_if_block_72(ctx) {
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
       attr(div, "title", div_title_value = /*period*/
-      ctx[121].name + " \xB7 " + /*period*/
-      ctx[121].start + "\u2013" + /*period*/
-      ctx[121].end);
+      ctx[122].name + " \xB7 " + /*period*/
+      ctx[122].start + "\u2013" + /*period*/
+      ctx[122].end);
       set_style(div, "--ctint", hexToRgba3(
         /*lbl*/
-        ctx[134].colour,
+        ctx[135].colour,
         0.22
       ));
       set_style(div, "background", hexToRgba3(
         /*lbl*/
-        ctx[134].colour,
+        ctx[135].colour,
         0.22
       ));
       set_style(div, "border-left", "3px solid " + /*lbl*/
-      ctx[134].colour);
+      ctx[135].colour);
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -16158,11 +16258,11 @@ function create_if_block_72(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
       4103 && t0_value !== (t0_value = /*lbl*/
-      ctx[134].code + "")) set_data(t0, t0_value);
+      ctx[135].code + "")) set_data(t0, t0_value);
       if (
         /*lbl*/
-        ctx[134].year || /*lbl*/
-        ctx[134].subjectName
+        ctx[135].year || /*lbl*/
+        ctx[135].subjectName
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -16177,7 +16277,7 @@ function create_if_block_72(ctx) {
       }
       if (
         /*lbl*/
-        ctx[134].classroom
+        ctx[135].classroom
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -16192,16 +16292,16 @@ function create_if_block_72(ctx) {
       }
       if (dirty[0] & /*plugin, DAYS*/
       5 && t4_value !== (t4_value = /*period*/
-      ctx[121].name + "")) set_data(t4, t4_value);
+      ctx[122].name + "")) set_data(t4, t4_value);
       if (dirty[0] & /*plugin, DAYS*/
       5 && t6_value !== (t6_value = /*period*/
-      ctx[121].start + "")) set_data(t6, t6_value);
+      ctx[122].start + "")) set_data(t6, t6_value);
       if (dirty[0] & /*plugin, DAYS*/
       5 && t8_value !== (t8_value = /*period*/
-      ctx[121].end + "")) set_data(t8, t8_value);
+      ctx[122].end + "")) set_data(t8, t8_value);
       if (
         /*lbl*/
-        ctx[134].notes
+        ctx[135].notes
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
@@ -16226,16 +16326,16 @@ function create_if_block_72(ctx) {
       }
       if (dirty[0] & /*plugin, DAYS*/
       5 && div_title_value !== (div_title_value = /*period*/
-      ctx[121].name + " \xB7 " + /*period*/
-      ctx[121].start + "\u2013" + /*period*/
-      ctx[121].end)) {
+      ctx[122].name + " \xB7 " + /*period*/
+      ctx[122].start + "\u2013" + /*period*/
+      ctx[122].end)) {
         attr(div, "title", div_title_value);
       }
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
       4103) {
         set_style(div, "--ctint", hexToRgba3(
           /*lbl*/
-          ctx[134].colour,
+          ctx[135].colour,
           0.22
         ));
       }
@@ -16243,14 +16343,14 @@ function create_if_block_72(ctx) {
       4103) {
         set_style(div, "background", hexToRgba3(
           /*lbl*/
-          ctx[134].colour,
+          ctx[135].colour,
           0.22
         ));
       }
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
       4103) {
         set_style(div, "border-left", "3px solid " + /*lbl*/
-        ctx[134].colour);
+        ctx[135].colour);
       }
     },
     d(detaching) {
@@ -16272,9 +16372,9 @@ function create_if_block_122(ctx) {
   let span;
   let t_value = [
     /*lbl*/
-    ctx[134].year,
+    ctx[135].year,
     /*lbl*/
-    ctx[134].subjectName
+    ctx[135].subjectName
   ].filter(Boolean).join(" \xB7 ") + "";
   let t;
   return {
@@ -16291,9 +16391,9 @@ function create_if_block_122(ctx) {
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
       4103 && t_value !== (t_value = [
         /*lbl*/
-        ctx2[134].year,
+        ctx2[135].year,
         /*lbl*/
-        ctx2[134].subjectName
+        ctx2[135].subjectName
       ].filter(Boolean).join(" \xB7 ") + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -16307,7 +16407,7 @@ function create_if_block_112(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[134].classroom + ""
+    ctx[135].classroom + ""
   );
   let t;
   return {
@@ -16323,7 +16423,7 @@ function create_if_block_112(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
       4103 && t_value !== (t_value = /*lbl*/
-      ctx2[134].classroom + "")) set_data(t, t_value);
+      ctx2[135].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -16336,7 +16436,7 @@ function create_if_block_102(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[134].notes + ""
+    ctx[135].notes + ""
   );
   let t;
   return {
@@ -16352,7 +16452,7 @@ function create_if_block_102(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
       4103 && t_value !== (t_value = /*lbl*/
-      ctx2[134].notes + "")) set_data(t, t_value);
+      ctx2[135].notes + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -16390,7 +16490,7 @@ function create_if_block_82(ctx) {
       /*click_handler_1*/
       ctx[67](
         /*slotPlanPath*/
-        ctx[138]
+        ctx[139]
       )
     );
   }
@@ -16425,7 +16525,7 @@ function create_if_block_62(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[134].meta + ""
+    ctx[135].meta + ""
   );
   let t;
   return {
@@ -16441,7 +16541,7 @@ function create_if_block_62(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
       65541 && t_value !== (t_value = /*lbl*/
-      ctx2[134].meta + "")) set_data(t, t_value);
+      ctx2[135].meta + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -16454,7 +16554,7 @@ function create_if_block_52(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[134].classroom + ""
+    ctx[135].classroom + ""
   );
   let t;
   return {
@@ -16470,7 +16570,7 @@ function create_if_block_52(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
       65541 && t_value !== (t_value = /*lbl*/
-      ctx2[134].classroom + "")) set_data(t, t_value);
+      ctx2[135].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -16483,7 +16583,7 @@ function create_if_block_42(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[134].notes + ""
+    ctx[135].notes + ""
   );
   let t;
   return {
@@ -16499,7 +16599,7 @@ function create_if_block_42(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
       65541 && t_value !== (t_value = /*lbl*/
-      ctx2[134].notes + "")) set_data(t, t_value);
+      ctx2[135].notes + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -16537,7 +16637,7 @@ function create_if_block_24(ctx) {
       /*click_handler_3*/
       ctx[71](
         /*evPlanPath*/
-        ctx[135]
+        ctx[136]
       )
     );
   }
@@ -16573,7 +16673,7 @@ function create_each_block_22(key_2, ctx) {
   let span0;
   let t0_value = (
     /*lbl*/
-    ctx[134].code + ""
+    ctx[135].code + ""
   );
   let t0;
   let t1;
@@ -16582,19 +16682,19 @@ function create_each_block_22(key_2, ctx) {
   let span1;
   let t4_value = (
     /*period*/
-    ctx[121].name + ""
+    ctx[122].name + ""
   );
   let t4;
   let t5;
   let t6_value = (
     /*period*/
-    ctx[121].start + ""
+    ctx[122].start + ""
   );
   let t6;
   let t7;
   let t8_value = (
     /*period*/
-    ctx[121].end + ""
+    ctx[122].end + ""
   );
   let t8;
   let t9;
@@ -16606,28 +16706,28 @@ function create_each_block_22(key_2, ctx) {
   let dispose;
   let if_block0 = (
     /*lbl*/
-    ctx[134].meta && create_if_block_62(ctx)
+    ctx[135].meta && create_if_block_62(ctx)
   );
   let if_block1 = (
     /*lbl*/
-    ctx[134].classroom && create_if_block_52(ctx)
+    ctx[135].classroom && create_if_block_52(ctx)
   );
   let if_block2 = (
     /*lbl*/
-    ctx[134].notes && create_if_block_42(ctx)
+    ctx[135].notes && create_if_block_42(ctx)
   );
   function select_block_type_4(ctx2, dirty) {
     if (dirty[0] & /*_showUnplanned, _dateEventMap, DAYS, plugin*/
     589829) show_if = null;
     if (
       /*evPlanPath*/
-      ctx2[135]
+      ctx2[136]
     ) return create_if_block_24;
     if (show_if == null) show_if = !!/*_showUnplanned*/
     (ctx2[19] && /*isClassId*/
     ctx2[42](
       /*devEv*/
-      ctx2[133].classId
+      ctx2[134].classId
     ));
     if (show_if) return create_if_block_32;
   }
@@ -16638,7 +16738,7 @@ function create_each_block_22(key_2, ctx) {
       /*dragstart_handler_1*/
       ctx[72](
         /*devEv*/
-        ctx[133],
+        ctx[134],
         ...args
       )
     );
@@ -16648,11 +16748,11 @@ function create_each_block_22(key_2, ctx) {
       /*click_handler_4*/
       ctx[73](
         /*dayDate*/
-        ctx[117],
+        ctx[118],
         /*period*/
-        ctx[121],
+        ctx[122],
         /*devEv*/
-        ctx[133],
+        ctx[134],
         ...args
       )
     );
@@ -16687,19 +16787,19 @@ function create_each_block_22(key_2, ctx) {
       attr(div, "tabindex", "0");
       attr(div, "draggable", "true");
       attr(div, "title", div_title_value = /*period*/
-      ctx[121].name + " \xB7 " + /*period*/
-      ctx[121].start + "\u2013" + /*period*/
-      ctx[121].end);
+      ctx[122].name + " \xB7 " + /*period*/
+      ctx[122].start + "\u2013" + /*period*/
+      ctx[122].end);
       set_style(div, "--ctint", hexToRgba3(
         /*lbl*/
-        ctx[134].colour,
+        ctx[135].colour,
         0.22
       ));
       set_style(div, "border-left", "3px solid " + /*lbl*/
-      ctx[134].colour);
+      ctx[135].colour);
       set_style(div, "background", hexToRgba3(
         /*lbl*/
-        ctx[134].colour,
+        ctx[135].colour,
         0.22
       ));
       this.first = div;
@@ -16748,10 +16848,10 @@ function create_each_block_22(key_2, ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
       65541 && t0_value !== (t0_value = /*lbl*/
-      ctx[134].code + "")) set_data(t0, t0_value);
+      ctx[135].code + "")) set_data(t0, t0_value);
       if (
         /*lbl*/
-        ctx[134].meta
+        ctx[135].meta
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -16766,7 +16866,7 @@ function create_each_block_22(key_2, ctx) {
       }
       if (
         /*lbl*/
-        ctx[134].classroom
+        ctx[135].classroom
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -16781,16 +16881,16 @@ function create_each_block_22(key_2, ctx) {
       }
       if (dirty[0] & /*plugin, DAYS*/
       5 && t4_value !== (t4_value = /*period*/
-      ctx[121].name + "")) set_data(t4, t4_value);
+      ctx[122].name + "")) set_data(t4, t4_value);
       if (dirty[0] & /*plugin, DAYS*/
       5 && t6_value !== (t6_value = /*period*/
-      ctx[121].start + "")) set_data(t6, t6_value);
+      ctx[122].start + "")) set_data(t6, t6_value);
       if (dirty[0] & /*plugin, DAYS*/
       5 && t8_value !== (t8_value = /*period*/
-      ctx[121].end + "")) set_data(t8, t8_value);
+      ctx[122].end + "")) set_data(t8, t8_value);
       if (
         /*lbl*/
-        ctx[134].notes
+        ctx[135].notes
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
@@ -16815,29 +16915,29 @@ function create_each_block_22(key_2, ctx) {
       }
       if (dirty[0] & /*plugin, DAYS*/
       5 && div_title_value !== (div_title_value = /*period*/
-      ctx[121].name + " \xB7 " + /*period*/
-      ctx[121].start + "\u2013" + /*period*/
-      ctx[121].end)) {
+      ctx[122].name + " \xB7 " + /*period*/
+      ctx[122].start + "\u2013" + /*period*/
+      ctx[122].end)) {
         attr(div, "title", div_title_value);
       }
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
       65541) {
         set_style(div, "--ctint", hexToRgba3(
           /*lbl*/
-          ctx[134].colour,
+          ctx[135].colour,
           0.22
         ));
       }
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
       65541) {
         set_style(div, "border-left", "3px solid " + /*lbl*/
-        ctx[134].colour);
+        ctx[135].colour);
       }
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
       65541) {
         set_style(div, "background", hexToRgba3(
           /*lbl*/
-          ctx[134].colour,
+          ctx[135].colour,
           0.22
         ));
       }
@@ -16864,13 +16964,13 @@ function create_each_block_13(key_2, ctx) {
   let mounted;
   let dispose;
   let if_block0 = !/*slot*/
-  ctx[126] && /*devEvents*/
-  ctx[127].length === 0 && create_if_block_132(ctx);
+  ctx[127] && /*devEvents*/
+  ctx[128].length === 0 && create_if_block_132(ctx);
   function select_block_type_2(ctx2, dirty) {
     if (
       /*slot*/
-      ctx2[126] || /*devEvents*/
-      ctx2[127].length > 0
+      ctx2[127] || /*devEvents*/
+      ctx2[128].length > 0
     ) return create_if_block_110;
     return create_else_block_12;
   }
@@ -16881,9 +16981,9 @@ function create_each_block_13(key_2, ctx) {
       /*dragover_handler*/
       ctx[76](
         /*day*/
-        ctx[116],
+        ctx[117],
         /*period*/
-        ctx[121],
+        ctx[122],
         ...args
       )
     );
@@ -16893,9 +16993,9 @@ function create_each_block_13(key_2, ctx) {
       /*drop_handler*/
       ctx[77](
         /*day*/
-        ctx[116],
+        ctx[117],
         /*period*/
-        ctx[121],
+        ctx[122],
         ...args
       )
     );
@@ -16914,46 +17014,46 @@ function create_each_block_13(key_2, ctx) {
         div,
         "top",
         /*bTop*/
-        ctx[123] + "px"
+        ctx[124] + "px"
       );
       set_style(
         div,
         "height",
         /*bHeight*/
-        ctx[124] + "px"
+        ctx[125] + "px"
       );
       set_style(
         div,
         "--bh",
         /*bHeight*/
-        ctx[124] + "px"
+        ctx[125] + "px"
       );
       set_style(div, "--tint", hexToRgba3(
         /*tc*/
-        ctx[122],
+        ctx[123],
         0.08
       ));
       set_style(div, "background", hexToRgba3(
         /*tc*/
-        ctx[122],
+        ctx[123],
         0.08
       ));
       set_style(div, "border-left", "3px solid " + hexToRgba3(
         /*tc*/
-        ctx[122],
+        ctx[123],
         0.55
       ));
       toggle_class(
         div,
         "tp-block--dragover",
         /*isOver*/
-        ctx[129]
+        ctx[130]
       );
       toggle_class(
         div,
         "tp-block--reject",
         /*isReject*/
-        ctx[130]
+        ctx[131]
       );
       this.first = div;
     },
@@ -16980,8 +17080,8 @@ function create_each_block_13(key_2, ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (!/*slot*/
-      ctx[126] && /*devEvents*/
-      ctx[127].length === 0) {
+      ctx[127] && /*devEvents*/
+      ctx[128].length === 0) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
@@ -17009,7 +17109,7 @@ function create_each_block_13(key_2, ctx) {
           div,
           "top",
           /*bTop*/
-          ctx[123] + "px"
+          ctx[124] + "px"
         );
       }
       if (dirty[0] & /*plugin, DAYS*/
@@ -17018,7 +17118,7 @@ function create_each_block_13(key_2, ctx) {
           div,
           "height",
           /*bHeight*/
-          ctx[124] + "px"
+          ctx[125] + "px"
         );
       }
       if (dirty[0] & /*plugin, DAYS*/
@@ -17027,14 +17127,14 @@ function create_each_block_13(key_2, ctx) {
           div,
           "--bh",
           /*bHeight*/
-          ctx[124] + "px"
+          ctx[125] + "px"
         );
       }
       if (dirty[0] & /*plugin, DAYS*/
       5) {
         set_style(div, "--tint", hexToRgba3(
           /*tc*/
-          ctx[122],
+          ctx[123],
           0.08
         ));
       }
@@ -17042,7 +17142,7 @@ function create_each_block_13(key_2, ctx) {
       5) {
         set_style(div, "background", hexToRgba3(
           /*tc*/
-          ctx[122],
+          ctx[123],
           0.08
         ));
       }
@@ -17050,7 +17150,7 @@ function create_each_block_13(key_2, ctx) {
       5) {
         set_style(div, "border-left", "3px solid " + hexToRgba3(
           /*tc*/
-          ctx[122],
+          ctx[123],
           0.55
         ));
       }
@@ -17060,7 +17160,7 @@ function create_each_block_13(key_2, ctx) {
           div,
           "tp-block--dragover",
           /*isOver*/
-          ctx[129]
+          ctx[130]
         );
       }
       if (dirty[0] & /*rejectKey, DAYS, plugin*/
@@ -17069,7 +17169,7 @@ function create_each_block_13(key_2, ctx) {
           div,
           "tp-block--reject",
           /*isReject*/
-          ctx[130]
+          ctx[131]
         );
       }
     },
@@ -17099,7 +17199,7 @@ function create_each_block3(ctx) {
   function select_block_type_1(ctx2, dirty) {
     if (
       /*dayOverride*/
-      ctx2[118]
+      ctx2[119]
     ) return create_if_block3;
     return create_else_block2;
   }
@@ -17125,13 +17225,13 @@ function create_each_block3(ctx) {
         div,
         "tp-axis-col--holiday",
         /*dayOverride*/
-        ctx[118] === "holiday"
+        ctx[119] === "holiday"
       );
       toggle_class(
         div,
         "tp-axis-col--inset",
         /*dayOverride*/
-        ctx[118] === "inset"
+        ctx[119] === "inset"
       );
     },
     m(target, anchor) {
@@ -17193,7 +17293,7 @@ function create_each_block3(ctx) {
           div,
           "tp-axis-col--holiday",
           /*dayOverride*/
-          ctx2[118] === "holiday"
+          ctx2[119] === "holiday"
         );
       }
       if (dirty[0] & /*dayOverrideMap, DAYS*/
@@ -17202,7 +17302,7 @@ function create_each_block3(ctx) {
           div,
           "tp-axis-col--inset",
           /*dayOverride*/
-          ctx2[118] === "inset"
+          ctx2[119] === "inset"
         );
       }
     },
@@ -17764,6 +17864,7 @@ function create_fragment3(ctx) {
   };
 }
 var PX_PER_MIN = 1.8;
+var LESSON_BODY_FALLBACK = "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
 function _dep2(_t, value) {
   return value;
 }
@@ -18179,16 +18280,21 @@ function instance3($$self, $$props, $$invalidate) {
         }
       }
       if (isClass) menu.addItem((i) => i.setTitle("Lesson note").setIcon("book-open").onClick(() => openOrCreateLessonNoteForEvent(event, date)));
-      if (!isClass) menu.addItem((i) => i.setTitle("Event note").setIcon("book-open").onClick(async () => {
-        const lbl = getDateEventLabel(event);
-        const safe = lbl.code.replace(/[\\/:*?"<>|]/g, "-");
-        const fileName = `${date} ${safe} note`;
-        const existing = findExistingNote(date, fileName);
-        if (existing) {
-          plugin.app.workspace.openLinkText(existing, "", false);
-          return;
-        }
-        await createNoteIn(date, fileName, "");
+      if (!isClass) menu.addItem((i) => i.setTitle("Event note").setIcon("book-open").onClick(() => {
+        var _a4, _b4, _c3;
+        const periodName = (_b4 = (_a4 = _periods.find((p) => p.id === event.periodId)) === null || _a4 === void 0 ? void 0 : _a4.name) !== null && _b4 !== void 0 ? _b4 : "";
+        const tpl = (_c3 = plugin.settings.eventNoteTitleTemplate) !== null && _c3 !== void 0 ? _c3 : DEFAULT_EVENT_NOTE_TITLE_TEMPLATE;
+        const defaultTitle = buildNoteTitle(tpl, {
+          dateIso: date,
+          periodName,
+          eventName: getDateEventLabel(event).code
+        }) || `${date} ${getDateEventLabel(event).code}`;
+        promptAndCreateNote({
+          dayDate: date,
+          defaultTitle,
+          body: "",
+          promptTitle: "New event note"
+        });
       }));
       menu.addItem((i) => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
@@ -18432,41 +18538,83 @@ function instance3($$self, $$props, $$invalidate) {
       }
     ).open();
   }
-  async function openOrCreateLessonNote(slot, dayDate) {
-    var _a3, _b3;
-    const lbl = getSlotLabel(slot);
-    const safeName = lbl.code.replace(/[\\/:*?"<>|]/g, "-");
-    const fileName = `${dayDate} ${safeName}`;
-    const existing = findExistingNote(dayDate, fileName);
+  function promptAndCreateNote(opts) {
+    const { dayDate, defaultTitle, body, promptTitle, classIdForCount } = opts;
+    const existing = findExistingNote(dayDate, defaultTitle);
     if (existing) {
       plugin.app.workspace.openLinkText(existing, "", false);
       return;
     }
-    const cls = _classes.find((c) => c.id === slot.classId);
-    const lessonNum = ((_a3 = cls === null || cls === void 0 ? void 0 : cls.lessonCount) !== null && _a3 !== void 0 ? _a3 : 0) + 1;
-    if (cls) {
-      cls.lessonCount = lessonNum;
-      await plugin.saveSettings();
-    }
-    const template = (_b3 = plugin.settings.lessonNoteTemplate) !== null && _b3 !== void 0 ? _b3 : "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
-    await createNoteIn(dayDate, fileName, template);
+    new TextPromptModal(
+      plugin.app,
+      promptTitle,
+      defaultTitle,
+      "Note title",
+      (name) => {
+        void (async () => {
+          var _a3;
+          const fileName = name.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim() || defaultTitle;
+          const ex = findExistingNote(dayDate, fileName);
+          if (ex) {
+            plugin.app.workspace.openLinkText(ex, "", false);
+            return;
+          }
+          if (classIdForCount) {
+            const cls = _classes.find((c) => c.id === classIdForCount);
+            if (cls) {
+              cls.lessonCount = ((_a3 = cls.lessonCount) !== null && _a3 !== void 0 ? _a3 : 0) + 1;
+              await plugin.saveSettings();
+            }
+          }
+          await createNoteIn(dayDate, fileName, body);
+        })();
+      }
+    ).open();
   }
-  async function openOrCreateLessonNoteForEvent(ev, dayDate) {
-    var _a3, _b3;
+  function openOrCreateLessonNote(slot, dayDate) {
+    var _a3, _b3, _c2, _d2, _e2;
+    const cls = _classes.find((c) => c.id === slot.classId);
+    const subj = cls ? _subjects.find((s) => s.id === cls.subjectId) : void 0;
+    const periodName = (_b3 = (_a3 = _periods.find((p) => p.id === slot.periodId)) === null || _a3 === void 0 ? void 0 : _a3.name) !== null && _b3 !== void 0 ? _b3 : "";
+    const tpl = (_c2 = plugin.settings.lessonNoteTitleTemplate) !== null && _c2 !== void 0 ? _c2 : DEFAULT_LESSON_NOTE_TITLE_TEMPLATE;
+    const defaultTitle = buildNoteTitle(tpl, {
+      dateIso: dayDate,
+      periodName,
+      classCode: (_d2 = cls === null || cls === void 0 ? void 0 : cls.code) !== null && _d2 !== void 0 ? _d2 : getSlotLabel(slot).code,
+      subjectName: subj === null || subj === void 0 ? void 0 : subj.name,
+      emoji: subj === null || subj === void 0 ? void 0 : subj.emoji
+    }) || `${dayDate} ${getSlotLabel(slot).code}`;
+    const body = (_e2 = plugin.settings.lessonNoteTemplate) !== null && _e2 !== void 0 ? _e2 : LESSON_BODY_FALLBACK;
+    promptAndCreateNote({
+      dayDate,
+      defaultTitle,
+      body,
+      promptTitle: "New lesson note",
+      classIdForCount: slot.classId
+    });
+  }
+  function openOrCreateLessonNoteForEvent(ev, dayDate) {
+    var _a3, _b3, _c2, _d2;
     const cls = _classes.find((c) => c.id === ev.classId);
     if (!cls) return;
-    const safeName = cls.code.replace(/[\\/:*?"<>|]/g, "-");
-    const fileName = `${dayDate} ${safeName}`;
-    const existing = findExistingNote(dayDate, fileName);
-    if (existing) {
-      plugin.app.workspace.openLinkText(existing, "", false);
-      return;
-    }
-    const lessonNum = ((_a3 = cls.lessonCount) !== null && _a3 !== void 0 ? _a3 : 0) + 1;
-    cls.lessonCount = lessonNum;
-    await plugin.saveSettings();
-    const template = (_b3 = plugin.settings.lessonNoteTemplate) !== null && _b3 !== void 0 ? _b3 : "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
-    await createNoteIn(dayDate, fileName, template);
+    const subj = _subjects.find((s) => s.id === cls.subjectId);
+    const periodName = (_b3 = (_a3 = _periods.find((p) => p.id === ev.periodId)) === null || _a3 === void 0 ? void 0 : _a3.name) !== null && _b3 !== void 0 ? _b3 : "";
+    const tpl = (_c2 = plugin.settings.lessonNoteTitleTemplate) !== null && _c2 !== void 0 ? _c2 : DEFAULT_LESSON_NOTE_TITLE_TEMPLATE;
+    const defaultTitle = buildNoteTitle(tpl, {
+      dateIso: dayDate,
+      periodName,
+      classCode: cls.code,
+      subjectName: subj === null || subj === void 0 ? void 0 : subj.name,
+      emoji: subj === null || subj === void 0 ? void 0 : subj.emoji
+    }) || `${dayDate} ${cls.code}`;
+    const body = (_d2 = plugin.settings.lessonNoteTemplate) !== null && _d2 !== void 0 ? _d2 : LESSON_BODY_FALLBACK;
+    promptAndCreateNote({
+      dayDate,
+      defaultTitle,
+      body,
+      promptTitle: "New lesson note",
+      classIdForCount: ev.classId
+    });
   }
   const click_handler = () => onAddEvent();
   const click_handler_1 = (slotPlanPath) => openPlan(slotPlanPath);
@@ -20933,6 +21081,8 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian1
   runPlannerMigrations() {
     var _a2, _b2, _c, _d, _e, _f, _g, _h, _i, _j;
     this.settings.lessonNoteTemplate = DEFAULT_SETTINGS.lessonNoteTemplate;
+    if (!this.settings.lessonNoteTitleTemplate) this.settings.lessonNoteTitleTemplate = DEFAULT_SETTINGS.lessonNoteTitleTemplate;
+    if (!this.settings.eventNoteTitleTemplate) this.settings.eventNoteTitleTemplate = DEFAULT_SETTINGS.eventNoteTitleTemplate;
     this.settings.academicYear = Object.assign({}, DEFAULT_SETTINGS.academicYear, this.settings.academicYear);
     try {
       ensureDaySchedules(this.settings.academicYear);
@@ -21075,6 +21225,8 @@ _TeacherPlannerPlugin.PLANNER_FIELDS = [
   "weekNotes",
   "notesHeight",
   "lessonNoteTemplate",
+  "lessonNoteTitleTemplate",
+  "eventNoteTitleTemplate",
   "directedTime",
   "schoolDays",
   "plannerFolder",

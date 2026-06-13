@@ -202,6 +202,10 @@ export interface TeacherPlannerSettings {
   blockBorderWeight?: number;
   plannerFolder: string;
   lessonNoteTemplate: string;
+  /** Template for generated lesson-note titles. Tokens: {{date}} {{period}} {{class}} {{subject}} {{emoji}}. */
+  lessonNoteTitleTemplate?: string;
+  /** Template for generated event-note titles. Tokens: {{date}} {{period}} {{event}}. */
+  eventNoteTitleTemplate?: string;
   theme?: PlannerTheme;
   themeMode?: PlannerThemeMode;
   /** Lesson plan links (issue #— linkable reusable plans). */
@@ -255,6 +259,10 @@ export interface PlannerRecord {
   weekNotes: Record<string, string>;
   notesHeight: number;
   lessonNoteTemplate: string;
+  /** Template for generated lesson-note titles. Tokens: {{date}} {{period}} {{class}} {{subject}} {{emoji}}. */
+  lessonNoteTitleTemplate?: string;
+  /** Template for generated event-note titles. Tokens: {{date}} {{period}} {{event}}. */
+  eventNoteTitleTemplate?: string;
   lessonPlanLinks?: LessonPlanLink[];
   lessonPlansFolder?: string;
   lessonPlanTemplate?: string;
