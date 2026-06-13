@@ -5,6 +5,7 @@ import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride,
 import { ensureDaySchedules, getScheduleForDay } from "../utils/scheduleUtils";
 import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE } from "../settings";
 import { buildNoteTitle } from "../utils/noteTitleUtils";
+import { migrateWeekNotesToFiles } from "../utils/weekNoteFiles";
 import { resolveColour, isThemeToken, GRID_THEME_TOKEN } from "../utils/themeColours";
 import { findOverlappingOverrides } from "../utils/weekUtils";
 import ColourPickerComponent from "../modals/ColourPickerComponent.svelte";
@@ -781,6 +782,32 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           this.plugin.settings.weeklyNoteFolders = v;
           await this.plugin.saveSettings();
         }));
+    new Setting(containerEl)
+      .setName("Store week notes as vault files")
+      .setDesc("Save each week's sidebar note as a markdown file (\"Week note - <Monday date>\") so it's searchable and linkable. Enabling moves existing week notes out of the plugin data file.")
+      .addToggle(t => t.setValue(this.plugin.settings.weekNoteFiles ?? false)
+        .onChange(async v => {
+          this.plugin.settings.weekNoteFiles = v;
+          await this.plugin.saveSettings();
+          if (v) {
+            const n = await migrateWeekNotesToFiles(this.plugin);
+            new Notice(n > 0 ? `Moved ${n} week note${n === 1 ? "" : "s"} to files.` : "Week notes will now be saved as files.");
+          }
+          this.display();
+        }));
+    if (this.plugin.settings.weekNoteFiles) {
+      new Setting(containerEl)
+        .setName("Week notes folder")
+        .setDesc("Folder for week-note files. Leave empty for \"<planner folder>/Week notes\".")
+        .addText(t => {
+          t.setPlaceholder((this.plugin.settings.plannerFolder || "Teacher Planner") + "/Week notes");
+          t.setValue(this.plugin.settings.weekNotesFolder ?? "");
+          t.inputEl.addEventListener("blur", () => { void (async () => {
+            this.plugin.settings.weekNotesFolder = t.inputEl.value.trim() || undefined;
+            await this.plugin.saveSettings();
+          })(); });
+        });
+    }
     new Setting(containerEl)
       .setName("Show unplanned indicator")
       .setDesc("Faint hollow dot on lessons that have no lesson plan linked yet.")

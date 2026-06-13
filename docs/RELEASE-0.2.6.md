@@ -6,6 +6,15 @@ Bump `manifest.json` + `package.json` to `0.2.6` when ready to publish.
 
 ## Added
 
+- **Week notes as vault files (opt-in).** New Settings toggle "Store week notes
+  as vault files" saves each week's sidebar note as a markdown file named
+  "Week note - <UK Monday date>" (with `type: week-note` / `week:` frontmatter)
+  in a configurable "Week notes" folder — searchable, linkable, and keeping
+  data.json small. The sidebar editor is unchanged but reads/writes the file
+  and re-reads when you switch weeks or start editing. Enabling it migrates
+  existing week notes out of data.json (skipping any filename that already
+  exists). Default off; per-planner.
+
 - **External-resource indicator.** When a lesson or event has an external
   file/folder linked, a grey paperclip appears in the chip footer (rightmost,
   alongside the plan/prepared markers); click it to open the resource. Desktop

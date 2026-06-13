@@ -1,6 +1,7 @@
 <script lang="ts">
   import type TeacherPlannerPlugin from "../main";
   import { getMondayOfWeek, weekKey } from "../utils/weekUtils";
+  import { readWeekNote, writeWeekNote } from "../utils/weekNoteFiles";
   import { calcDirectedTime, fmtMins } from "../utils/directedTimeUtils";
   import { setIcon, MarkdownRenderer } from "obsidian";
   import { tick } from "svelte";
@@ -92,7 +93,15 @@
 
   // ── Week notes ────────────────────────────────────────────────────────────
   $: currentWeekKey = weekKey(getMondayOfWeek(currentWeek));
-  $: notesValue = _dep(_tick, (plugin.settings.weekNotes ?? {})[currentWeekKey] ?? "");
+  let notesValue = "";
+  $: fileMode = _dep(_tick, plugin.settings.weekNoteFiles ?? false);
+  $: void loadNotes(currentWeekKey, fileMode, _tick);
+  async function loadNotes(key: string, mode: boolean, _t: unknown) {
+    if (editing) return;
+    notesValue = mode
+      ? await readWeekNote(plugin, key)
+      : ((plugin.settings.weekNotes ?? {})[key] ?? "");
+  }
 
   // Dynamic placeholder shows the Monday date of the currently selected week
   $: notesPlaceholder = (() => {
@@ -117,15 +126,23 @@
   }
 
   async function enterEdit() {
+    if (plugin.settings.weekNoteFiles && !editing) {
+      notesValue = await readWeekNote(plugin, currentWeekKey);
+    }
     editing = true;
     await tick();
     textareaEl?.focus();
   }
 
   async function persistFrom(v: string, refresh = false) {
-    if (!plugin.settings.weekNotes) plugin.settings.weekNotes = {};
-    plugin.settings.weekNotes[currentWeekKey] = v;
-    await plugin.saveSettings();
+    if (plugin.settings.weekNoteFiles) {
+      await writeWeekNote(plugin, currentWeekKey, v);
+    } else {
+      if (!plugin.settings.weekNotes) plugin.settings.weekNotes = {};
+      plugin.settings.weekNotes[currentWeekKey] = v;
+      await plugin.saveSettings();
+    }
+    notesValue = v;
     if (refresh) invalidate();
   }
 

@@ -202,6 +202,10 @@ export interface TeacherPlannerSettings {
   dateEvents: DateEvent[];
   slotExclusions?: SlotExclusion[];
   weekNotes: Record<string, string>;
+  /** Opt-in: store each week's sidebar note as a vault markdown file instead of in data.json. */
+  weekNoteFiles?: boolean;
+  /** Folder for week-note files. Empty → "<plannerFolder>/Week notes". */
+  weekNotesFolder?: string;
   notesHeight?: number;
   gridLineColour?: string;
   gridLineWeight?: number;
@@ -268,6 +272,10 @@ export interface PlannerRecord {
   dateEvents: DateEvent[];
   slotExclusions: SlotExclusion[];
   weekNotes: Record<string, string>;
+  /** Opt-in: store each week's sidebar note as a vault markdown file instead of in data.json. */
+  weekNoteFiles?: boolean;
+  /** Folder for week-note files. Empty → "<plannerFolder>/Week notes". */
+  weekNotesFolder?: string;
   notesHeight: number;
   lessonNoteTemplate: string;
   /** Template for generated lesson-note titles. Tokens: {{date}} {{period}} {{class}} {{subject}} {{emoji}}. */
