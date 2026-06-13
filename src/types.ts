@@ -151,6 +151,13 @@ export interface ExternalResourceLink {
   path: string;      // absolute OS path
 }
 
+/** Manual "lesson prepared" mark — teacher-toggled, independent of plan links. */
+export interface PreparedMark {
+  slotId?: string;
+  date?: string;     // ISO "YYYY-MM-DD" — required with slotId
+  eventId?: string;
+}
+
 /** Undo journal for the last "Apply plan to future lessons" action. */
 export interface BulkApplyJournal {
   path: string;
@@ -216,6 +223,10 @@ export interface TeacherPlannerSettings {
   lessonPlanTemplate?: string;
   /** Show a faint hollow dot on lessons without a linked plan. Default true. */
   showUnplannedDot?: boolean;
+  /** Manual "lesson prepared" marks (Option B tick). */
+  preparedMarks?: PreparedMark[];
+  /** Show the manual lesson-prepared tick on chips. Default true. */
+  showPreparedMark?: boolean;
   /** External (outside-the-vault) file/folder attachments. Desktop only. */
   externalLinks?: ExternalResourceLink[];
   /** Undo journal for the last bulk plan apply. */
@@ -267,6 +278,8 @@ export interface PlannerRecord {
   lessonPlansFolder?: string;
   lessonPlanTemplate?: string;
   showUnplannedDot?: boolean;
+  preparedMarks?: PreparedMark[];
+  showPreparedMark?: boolean;
   externalLinks?: ExternalResourceLink[];
   lastBulkApply?: BulkApplyJournal;
   weeklyNoteFolders?: boolean;

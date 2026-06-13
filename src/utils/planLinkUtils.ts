@@ -1,4 +1,4 @@
-import type { TeacherPlannerSettings, LessonPlanLink, ExternalResourceLink, SchoolDay } from "../types";
+import type { TeacherPlannerSettings, LessonPlanLink, ExternalResourceLink, PreparedMark, SchoolDay } from "../types";
 import { getMondayOfWeek, getAbWeekType } from "./weekUtils";
 import { periodAppliesTo } from "./scheduleUtils";
 
@@ -60,6 +60,53 @@ export function migrateSlotPlanToEvent(s: TeacherPlannerSettings, slotId: string
   if (!link) return;
   clearSlotPlan(s, slotId, date);
   setEventPlan(s, eventId, link.path);
+}
+
+/**
+ * Manual "lesson prepared" marks — a teacher-toggled flag, independent of plan
+ * links. Stored per slot-occurrence (slotId+date) or per date event.
+ */
+function preparedList(s: TeacherPlannerSettings): PreparedMark[] {
+  if (!s.preparedMarks) s.preparedMarks = [];
+  return s.preparedMarks;
+}
+
+export function isSlotPrepared(s: TeacherPlannerSettings, slotId: string, date: string): boolean {
+  return (s.preparedMarks ?? []).some(m => m.slotId === slotId && m.date === date);
+}
+
+export function isEventPrepared(s: TeacherPlannerSettings, eventId: string): boolean {
+  return (s.preparedMarks ?? []).some(m => m.eventId === eventId);
+}
+
+export function setSlotPrepared(s: TeacherPlannerSettings, slotId: string, date: string, on: boolean): void {
+  s.preparedMarks = (s.preparedMarks ?? []).filter(m => !(m.slotId === slotId && m.date === date));
+  if (on) preparedList(s).push({ slotId, date });
+}
+
+export function setEventPrepared(s: TeacherPlannerSettings, eventId: string, on: boolean): void {
+  s.preparedMarks = (s.preparedMarks ?? []).filter(m => m.eventId !== eventId);
+  if (on) preparedList(s).push({ eventId });
+}
+
+/** Toggle and return the new state. */
+export function toggleSlotPrepared(s: TeacherPlannerSettings, slotId: string, date: string): boolean {
+  const now = !isSlotPrepared(s, slotId, date);
+  setSlotPrepared(s, slotId, date, now);
+  return now;
+}
+
+export function toggleEventPrepared(s: TeacherPlannerSettings, eventId: string): boolean {
+  const now = !isEventPrepared(s, eventId);
+  setEventPrepared(s, eventId, now);
+  return now;
+}
+
+/** When a slot occurrence is dragged into a date event, its prepared mark follows. */
+export function migrateSlotPreparedToEvent(s: TeacherPlannerSettings, slotId: string, date: string, eventId: string): void {
+  if (!isSlotPrepared(s, slotId, date)) return;
+  setSlotPrepared(s, slotId, date, false);
+  setEventPrepared(s, eventId, true);
 }
 
 export interface BulkApplyResult {

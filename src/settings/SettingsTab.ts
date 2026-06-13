@@ -789,6 +789,14 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           this.plugin.settings.showUnplannedDot = v;
           await this.plugin.saveSettings();
         }));
+    new Setting(containerEl)
+      .setName("Show lesson-prepared marker")
+      .setDesc("Adds a green tick you can click on each lesson to mark it prepared — independent of linking a plan. Turn off if you only use plan links.")
+      .addToggle(t => t.setValue(this.plugin.settings.showPreparedMark ?? true)
+        .onChange(async v => {
+          this.plugin.settings.showPreparedMark = v;
+          await this.plugin.saveSettings();
+        }));
 
     new Setting(containerEl).setName("Export").setHeading();
     new Setting(containerEl)

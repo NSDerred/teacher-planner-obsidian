@@ -23,6 +23,7 @@
     migrateSlotPlanToEvent, bulkApplyPlan, undoBulkApply,
     getSlotExternal, setSlotExternal, clearSlotExternal,
     getEventExternal, setEventExternal, clearEventExternal, migrateSlotExternalToEvent,
+    isSlotPrepared, isEventPrepared, toggleSlotPrepared, toggleEventPrepared, migrateSlotPreparedToEvent,
   } from "../utils/planLinkUtils";
   import { openOSFolderPicker, openOSFilePicker, openSystemPath } from "../utils/exportDestination";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
@@ -108,6 +109,18 @@
   $: _eventPlanMap = (() => {
     const m: Record<string, string> = {};
     for (const l of _planLinks) if (l.eventId) m[l.eventId] = l.path;
+    return m;
+  })();
+  $: _preparedMarks   = _dep(_tick, plugin.settings.preparedMarks ?? []);
+  $: _showPrepared    = _dep(_tick, plugin.settings.showPreparedMark ?? true);
+  $: _preparedSlotMap = (() => {
+    const m: Record<string, boolean> = {};
+    for (const k of _preparedMarks) if (k.slotId && k.date) m[k.slotId + "|" + k.date] = true;
+    return m;
+  })();
+  $: _preparedEventMap = (() => {
+    const m: Record<string, boolean> = {};
+    for (const k of _preparedMarks) if (k.eventId) m[k.eventId] = true;
     return m;
   })();
 
@@ -375,6 +388,7 @@
     // 3. The lesson plan and external resource follow the moved lesson
     migrateSlotPlanToEvent(plugin.settings, slot.id, sourceDate, newEvId);
     migrateSlotExternalToEvent(plugin.settings, slot.id, sourceDate, newEvId);
+    migrateSlotPreparedToEvent(plugin.settings, slot.id, sourceDate, newEvId);
 
     await plugin.saveSettings();
     invalidate();
@@ -433,6 +447,13 @@
         } else {
           menu.addItem(i => i.setTitle("Link lesson plan…").setIcon("file-plus").onClick(() => linkPlanForSlot(slot, date)));
         }
+        if (isClass) {
+          const prepared = isSlotPrepared(plugin.settings, slot.id, date);
+          menu.addItem(i => i.setTitle(prepared ? "Clear prepared mark" : "Mark prepared").setIcon(prepared ? "x" : "check").onClick(async () => {
+            toggleSlotPrepared(plugin.settings, slot.id, date);
+            await plugin.saveSettings(); invalidate();
+          }));
+        }
         if (plugin.settings.lastBulkApply) {
           menu.addItem(i => i.setTitle("Undo last bulk plan apply").setIcon("undo-2").onClick(() => doUndoBulkApply()));
         }
@@ -473,6 +494,13 @@
           }));
         } else {
           menu.addItem(i => i.setTitle("Link lesson plan…").setIcon("file-plus").onClick(() => linkPlanForEvent(event)));
+        }
+        if (isClass) {
+          const prepared = isEventPrepared(plugin.settings, event.id);
+          menu.addItem(i => i.setTitle(prepared ? "Clear prepared mark" : "Mark prepared").setIcon(prepared ? "x" : "check").onClick(async () => {
+            toggleEventPrepared(plugin.settings, event.id);
+            await plugin.saveSettings(); invalidate();
+          }));
         }
         if (!_isMobileApp) {
           const ext = getEventExternal(plugin.settings, event.id)?.path;
@@ -699,6 +727,17 @@
   // ── Lesson plan linking ───────────────────────────────────────────────────
   function isClassId(id: string): boolean { return !!_classes.find(c => c.id === id); }
 
+  async function toggleSlotPrep(slot: TimetableSlot, date: string) {
+    toggleSlotPrepared(plugin.settings, slot.id, date);
+    await plugin.saveSettings();
+    invalidate();
+  }
+  async function toggleEventPrep(ev: DateEvent) {
+    toggleEventPrepared(plugin.settings, ev.id);
+    await plugin.saveSettings();
+    invalidate();
+  }
+
   function openPlan(path: string) {
     if (!plugin.app.vault.getAbstractFileByPath(path)) {
       new Notice("Lesson plan note not found — it may have been deleted. Re-link from the lesson menu.");
@@ -895,6 +934,7 @@
                       {#if slot}
                         {@const lbl = getSlotLabel(slot)}
                         {@const slotPlanPath = _slotPlanMap[slot.id + "|" + dayDate]}
+                        {@const slotPrepared = _preparedSlotMap[slot.id + "|" + dayDate]}
                         <!-- svelte-ignore a11y-interactive-supports-focus -->
                         <div
                           class="tp-chip"
@@ -919,17 +959,26 @@
                           {#if lbl.notes}
                             <span class="tp-chip-notes">{lbl.notes}</span>
                           {/if}
-                          {#if slotPlanPath}
-                            <button class="tp-plan-dot tp-plan-dot--linked" title="Open lesson plan" aria-label="Open lesson plan"
-                              on:click|stopPropagation={() => openPlan(slotPlanPath)}>●</button>
-                          {:else if _showUnplanned && isClassId(slot.classId)}
-                            <span class="tp-plan-dot" title="No lesson plan linked">○</span>
-                          {/if}
+                          <div class="tp-chip-marks">
+                            {#if _showPrepared && isClassId(slot.classId)}
+                              <button class="tp-prep-tick" class:tp-prep-tick--on={slotPrepared}
+                                title={slotPrepared ? "Marked prepared — click to clear" : "Mark lesson prepared"}
+                                aria-label="Toggle lesson prepared" aria-pressed={slotPrepared}
+                                on:click|stopPropagation={() => toggleSlotPrep(slot, dayDate)} use:obsIcon={"check"}></button>
+                            {/if}
+                            {#if slotPlanPath}
+                              <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                                on:click|stopPropagation={() => openPlan(slotPlanPath)} use:obsIcon={"file-text"}></button>
+                            {:else if _showUnplanned && isClassId(slot.classId)}
+                              <span class="tp-plan-mark tp-plan-mark--empty" title="No lesson plan linked"></span>
+                            {/if}
+                          </div>
                         </div>
                       {/if}
                       {#each devEvents as devEv (devEv.id)}
                         {@const lbl = getDateEventLabel(devEv)}
                         {@const evPlanPath = _eventPlanMap[devEv.id]}
+                        {@const evPrepared = _preparedEventMap[devEv.id]}
                         <!-- svelte-ignore a11y-interactive-supports-focus -->
                         <div
                           class="tp-chip tp-chip--event"
@@ -952,12 +1001,20 @@
                           {/if}
                           <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
                           {#if lbl.notes}<span class="tp-chip-notes">{lbl.notes}</span>{/if}
-                          {#if evPlanPath}
-                            <button class="tp-plan-dot tp-plan-dot--linked" title="Open lesson plan" aria-label="Open lesson plan"
-                              on:click|stopPropagation={() => openPlan(evPlanPath)}>●</button>
-                          {:else if _showUnplanned && isClassId(devEv.classId)}
-                            <span class="tp-plan-dot" title="No lesson plan linked">○</span>
-                          {/if}
+                          <div class="tp-chip-marks">
+                            {#if _showPrepared && isClassId(devEv.classId)}
+                              <button class="tp-prep-tick" class:tp-prep-tick--on={evPrepared}
+                                title={evPrepared ? "Marked prepared — click to clear" : "Mark lesson prepared"}
+                                aria-label="Toggle lesson prepared" aria-pressed={evPrepared}
+                                on:click|stopPropagation={() => toggleEventPrep(devEv)} use:obsIcon={"check"}></button>
+                            {/if}
+                            {#if evPlanPath}
+                              <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                                on:click|stopPropagation={() => openPlan(evPlanPath)} use:obsIcon={"file-text"}></button>
+                            {:else if _showUnplanned && isClassId(devEv.classId)}
+                              <span class="tp-plan-mark tp-plan-mark--empty" title="No lesson plan linked"></span>
+                            {/if}
+                          </div>
                         </div>
                       {/each}
                     </div>
@@ -1086,7 +1143,7 @@
     background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important;
   }
   .tp-block:hover .tp-chip-notes { display:block; -webkit-line-clamp:unset; line-clamp:unset; overflow:visible; }
-  .tp-chip-period-time { display:none; font-size:10px; color:var(--text-muted); opacity:0.85; }
+  .tp-chip-period-time { display:none; font-size:10px; color:var(--text-muted); opacity:0.85; padding-right:32px; }
   .tp-block:hover .tp-chip-period-time { display:block; }
 
   /* Lesson chip */
@@ -1094,8 +1151,8 @@
   .tp-chip:hover { filter:brightness(1.08); }
   .tp-chip-code  { font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
   .tp-chip-meta  { font-size:13px; color:var(--text-normal); opacity:0.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
-  .tp-chip-room  { font-size:12px; color:var(--text-normal); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; font-style:italic; }
-  .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; }
+  .tp-chip-room  { font-size:12px; color:var(--text-normal); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; font-style:italic; padding-right:32px; }
+  .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; padding-right:32px; }
 
   @container chip (max-height: 58px) {
     .tp-chip-meta,
@@ -1120,10 +1177,17 @@
     .tp-chip-room { font-size: 9px; }
   }
 
-  /* Lesson plan indicator (top-right of chips) */
-  .tp-plan-dot { position:absolute; top:1px; right:3px; font-size:9px; line-height:1; background:none; border:none; padding:2px 3px; color:var(--text-muted); opacity:0.6; cursor:default; }
-  button.tp-plan-dot--linked { color:var(--interactive-accent); opacity:1; cursor:pointer; }
-  button.tp-plan-dot--linked:hover { opacity:0.8; }
+  /* Lesson plan + prepared indicators (top-right of chips) */
+  .tp-chip-marks { position:absolute; bottom:3px; right:4px; display:flex; gap:4px; align-items:center; }
+  .tp-plan-mark { width:14px; height:14px; display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; line-height:0; box-sizing:border-box; }
+  .tp-plan-mark--empty { border:1.5px solid var(--text-muted); border-radius:50%; opacity:0.5; }
+  button.tp-plan-mark--linked { color:#43a047; opacity:1; cursor:pointer; }
+  button.tp-plan-mark--linked:hover { opacity:0.7; }
+  .tp-plan-mark :global(svg) { width:14px; height:14px; }
+  .tp-prep-tick { width:15px; height:15px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1.5px solid var(--text-muted); padding:0; line-height:0; cursor:pointer; color:var(--text-muted); opacity:0; transition:opacity 80ms ease; box-sizing:border-box; }
+  .tp-chip:hover .tp-prep-tick { opacity:0.55; }
+  button.tp-prep-tick--on { opacity:1 !important; background:#43a047; border-color:#43a047; color:#fff; }
+  .tp-prep-tick :global(svg) { width:10px; height:10px; }
 
   /* Current time indicator */
   .tp-now-line { position:absolute; left:0; right:0; height:0; border-top:2px dashed var(--interactive-accent); opacity:0.9; pointer-events:none; z-index:5; }
