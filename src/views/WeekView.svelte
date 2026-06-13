@@ -22,7 +22,7 @@
     getSlotPlan, setSlotPlan, clearSlotPlan, getEventPlan, setEventPlan, clearEventPlan,
     migrateSlotPlanToEvent, bulkApplyPlan, undoBulkApply,
     getSlotExternal, setSlotExternal, clearSlotExternal,
-    getEventExternal, setEventExternal, clearEventExternal, migrateSlotExternalToEvent,
+    getEventExternal, setEventExternal, clearEventExternal, migrateSlotExternalToEvent, externalKindOf,
     isSlotPrepared, isEventPrepared, toggleSlotPrepared, toggleEventPrepared, migrateSlotPreparedToEvent,
   } from "../utils/planLinkUtils";
   import { openOSFolderPicker, openOSFilePicker, openSystemPath } from "../utils/exportDestination";
@@ -100,7 +100,6 @@
   $: _dateEvents      = _dep(_tick, plugin.settings.dateEvents ?? []);
   $: _slotExclusions  = _dep(_tick, plugin.settings.slotExclusions ?? []);
   $: _planLinks       = _dep(_tick, plugin.settings.lessonPlanLinks ?? []);
-  $: _showUnplanned   = _dep(_tick, plugin.settings.showUnplannedDot ?? true);
   $: _slotPlanMap = (() => {
     const m: Record<string, string> = {};
     for (const l of _planLinks) if (l.slotId && l.date) m[l.slotId + "|" + l.date] = l.path;
@@ -125,13 +124,13 @@
   })();
   $: _externalLinks   = _dep(_tick, plugin.settings.externalLinks ?? []);
   $: _slotExternalMap = (() => {
-    const m: Record<string, string> = {};
-    for (const l of _externalLinks) if (l.slotId && l.date) m[l.slotId + "|" + l.date] = l.path;
+    const m: Record<string, { path: string; kind: "file" | "folder" }> = {};
+    for (const l of _externalLinks) if (l.slotId && l.date) m[l.slotId + "|" + l.date] = { path: l.path, kind: externalKindOf(l) };
     return m;
   })();
   $: _eventExternalMap = (() => {
-    const m: Record<string, string> = {};
-    for (const l of _externalLinks) if (l.eventId) m[l.eventId] = l.path;
+    const m: Record<string, { path: string; kind: "file" | "folder" }> = {};
+    for (const l of _externalLinks) if (l.eventId) m[l.eventId] = { path: l.path, kind: externalKindOf(l) };
     return m;
   })();
 
@@ -479,11 +478,11 @@
           } else {
             menu.addItem(i => i.setTitle("Link external file…").setIcon("paperclip").onClick(async () => {
               const p = await openOSFilePicker("Link a file to this lesson");
-              if (p) { setSlotExternal(plugin.settings, slot.id, date, p); await plugin.saveSettings(); invalidate(); }
+              if (p) { setSlotExternal(plugin.settings, slot.id, date, p, "file"); await plugin.saveSettings(); invalidate(); }
             }));
             menu.addItem(i => i.setTitle("Link external folder…").setIcon("folder-open").onClick(async () => {
               const p = await openOSFolderPicker();
-              if (p) { setSlotExternal(plugin.settings, slot.id, date, p); await plugin.saveSettings(); invalidate(); }
+              if (p) { setSlotExternal(plugin.settings, slot.id, date, p, "folder"); await plugin.saveSettings(); invalidate(); }
             }));
           }
         }
@@ -524,11 +523,11 @@
           } else {
             menu.addItem(i => i.setTitle("Link external file…").setIcon("paperclip").onClick(async () => {
               const p = await openOSFilePicker("Link a file to this event");
-              if (p) { setEventExternal(plugin.settings, event.id, p); await plugin.saveSettings(); invalidate(); }
+              if (p) { setEventExternal(plugin.settings, event.id, p, "file"); await plugin.saveSettings(); invalidate(); }
             }));
             menu.addItem(i => i.setTitle("Link external folder…").setIcon("folder-open").onClick(async () => {
               const p = await openOSFolderPicker();
-              if (p) { setEventExternal(plugin.settings, event.id, p); await plugin.saveSettings(); invalidate(); }
+              if (p) { setEventExternal(plugin.settings, event.id, p, "folder"); await plugin.saveSettings(); invalidate(); }
             }));
           }
         }
@@ -946,7 +945,7 @@
                         {@const lbl = getSlotLabel(slot)}
                         {@const slotPlanPath = _slotPlanMap[slot.id + "|" + dayDate]}
                         {@const slotPrepared = _preparedSlotMap[slot.id + "|" + dayDate]}
-                        {@const slotExternalPath = _slotExternalMap[slot.id + "|" + dayDate]}
+                        {@const slotExternal = _slotExternalMap[slot.id + "|" + dayDate]}
                         <!-- svelte-ignore a11y-interactive-supports-focus -->
                         <div
                           class="tp-chip"
@@ -984,12 +983,10 @@
                               {#if slotPlanPath}
                                 <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
                                   on:click|stopPropagation={() => openPlan(slotPlanPath)} use:obsIcon={"file-text"}></button>
-                              {:else if _showUnplanned && isClassId(slot.classId)}
-                                <span class="tp-plan-mark tp-plan-mark--empty" title="No lesson plan linked"></span>
                               {/if}
-                              {#if slotExternalPath && !_isMobileApp}
-                                <button class="tp-ext-mark" title="Open external resource" aria-label="Open external resource"
-                                  on:click|stopPropagation={() => openSystemPath(slotExternalPath)} use:obsIcon={"paperclip"}></button>
+                              {#if slotExternal && !_isMobileApp}
+                                <button class="tp-ext-mark" title={slotExternal.kind === "folder" ? "Open external folder" : "Open external file"} aria-label="Open external resource"
+                                  on:click|stopPropagation={() => openSystemPath(slotExternal.path)} use:obsIcon={slotExternal.kind === "folder" ? "folder" : "paperclip"}></button>
                               {/if}
                             </div>
                           </div>
@@ -999,7 +996,7 @@
                         {@const lbl = getDateEventLabel(devEv)}
                         {@const evPlanPath = _eventPlanMap[devEv.id]}
                         {@const evPrepared = _preparedEventMap[devEv.id]}
-                        {@const evExternalPath = _eventExternalMap[devEv.id]}
+                        {@const evExternal = _eventExternalMap[devEv.id]}
                         <!-- svelte-ignore a11y-interactive-supports-focus -->
                         <div
                           class="tp-chip tp-chip--event"
@@ -1035,12 +1032,10 @@
                               {#if evPlanPath}
                                 <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
                                   on:click|stopPropagation={() => openPlan(evPlanPath)} use:obsIcon={"file-text"}></button>
-                              {:else if _showUnplanned && isClassId(devEv.classId)}
-                                <span class="tp-plan-mark tp-plan-mark--empty" title="No lesson plan linked"></span>
                               {/if}
-                              {#if evExternalPath && !_isMobileApp}
-                                <button class="tp-ext-mark" title="Open external resource" aria-label="Open external resource"
-                                  on:click|stopPropagation={() => openSystemPath(evExternalPath)} use:obsIcon={"paperclip"}></button>
+                              {#if evExternal && !_isMobileApp}
+                                <button class="tp-ext-mark" title={evExternal.kind === "folder" ? "Open external folder" : "Open external file"} aria-label="Open external resource"
+                                  on:click|stopPropagation={() => openSystemPath(evExternal.path)} use:obsIcon={evExternal.kind === "folder" ? "folder" : "paperclip"}></button>
                               {/if}
                             </div>
                           </div>
@@ -1221,7 +1216,6 @@
   /* Lesson plan + prepared indicators — own line, pinned to chip bottom, size scales with --mark-size */
   .tp-chip-marks { margin-left:auto; display:flex; gap:calc(var(--mark-size) * 0.3); align-items:center; justify-content:flex-end; flex-shrink:0; }
   .tp-plan-mark { width:var(--mark-size); height:var(--mark-size); display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; line-height:0; box-sizing:border-box; flex-shrink:0; }
-  .tp-plan-mark--empty { border:1.5px solid var(--text-muted); border-radius:50%; opacity:0.5; }
   button.tp-plan-mark--linked { color:#43a047; opacity:1; cursor:pointer; }
   button.tp-plan-mark--linked:hover { opacity:0.7; }
   .tp-plan-mark :global(svg) { width:var(--mark-size); height:var(--mark-size); }

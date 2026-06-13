@@ -71,14 +71,31 @@ export async function writeWeekNote(plugin: TeacherPlannerPlugin, mondayIso: str
  */
 export async function migrateWeekNotesToFiles(plugin: TeacherPlannerPlugin): Promise<number> {
   const notes = plugin.settings.weekNotes ?? {};
+  const remaining: Record<string, string> = {};
   let migrated = 0;
-  for (const [mondayIso, body] of Object.entries(notes)) {
-    if (!body || !String(body).trim()) continue;
-    if (plugin.app.vault.getAbstractFileByPath(weekNoteFilePath(plugin, mondayIso))) continue;
-    await writeWeekNote(plugin, mondayIso, String(body));
-    migrated++;
+  for (const [mondayIso, raw] of Object.entries(notes)) {
+    const body = String(raw ?? "");
+    if (!body.trim()) continue; // empty source — nothing to preserve
+    const path = weekNoteFilePath(plugin, mondayIso);
+    const existing = plugin.app.vault.getAbstractFileByPath(path);
+    if (existing instanceof TFile) {
+      // Never clobber a file that already holds real content; but DO overwrite
+      // an accidentally-empty file (the cause of the 0.2.6 migration data loss).
+      let existingBody = "";
+      try { existingBody = stripFrontmatter(await plugin.app.vault.read(existing)); } catch { /* treat as empty */ }
+      if (existingBody.trim()) continue; // content already safe in the file — drop from data.json
+    }
+    await writeWeekNote(plugin, mondayIso, body);
+    // Verify the content actually landed before dropping it from data.json.
+    let ok = false;
+    const after = plugin.app.vault.getAbstractFileByPath(path);
+    if (after instanceof TFile) {
+      try { ok = stripFrontmatter(await plugin.app.vault.read(after)).trim().length > 0; } catch { ok = false; }
+    }
+    if (ok) migrated++;
+    else remaining[mondayIso] = body; // write failed — keep it in data.json
   }
-  plugin.settings.weekNotes = {};
+  plugin.settings.weekNotes = remaining;
   await plugin.saveSettings();
   return migrated;
 }

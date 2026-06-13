@@ -149,6 +149,8 @@ export interface ExternalResourceLink {
   date?: string;
   eventId?: string;
   path: string;      // absolute OS path
+  /** Whether the path points at a file or a folder. Optional on legacy links. */
+  kind?: "file" | "folder";
 }
 
 /** Manual "lesson prepared" mark — teacher-toggled, independent of plan links. */

@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA } from "./settin
 import { WeekView, WEEK_VIEW_TYPE } from "./views/WeekView";
 import { CalendarSidebarView, CALENDAR_SIDEBAR_VIEW_TYPE } from "./views/CalendarSidebarView";
 import { TeacherPlannerSettingTab } from "./settings/SettingsTab";
-import { isValidIsoDate } from "./utils/weekUtils";
+import { isValidIsoDate, normalizeLegacyWeekKey } from "./utils/weekUtils";
 import { ensureDaySchedules, syncPeriodsUnion } from "./utils/scheduleUtils";
 import { renamePlanPaths } from "./utils/planLinkUtils";
 
@@ -420,6 +420,15 @@ export default class TeacherPlannerPlugin extends Plugin {
     try { ensureDaySchedules(this.settings.academicYear); }
     catch (err) { console.error("Teacher Planner: ensureDaySchedules failed.", err); }
     if (!this.settings.weekNotes) this.settings.weekNotes = {};
+    // Re-key any week notes saved under the old UTC-shifted (Sunday) scheme to local Monday keys.
+    {
+      const fixed: Record<string, string> = {};
+      for (const [k, v] of Object.entries(this.settings.weekNotes)) {
+        const nk = normalizeLegacyWeekKey(k);
+        if (!fixed[nk] || (!fixed[nk].trim() && String(v).trim())) fixed[nk] = v;
+      }
+      this.settings.weekNotes = fixed;
+    }
     if (!this.settings.activities) this.settings.activities = [
       { id: "activity-ppt",     label: "PPT",     colour: "#b4befe" },
       { id: "activity-cover",   label: "Cover",   colour: "#fab387" },

@@ -136,6 +136,11 @@
 
   async function persistFrom(v: string, refresh = false) {
     if (plugin.settings.weekNoteFiles) {
+      // Safety: never overwrite a saved note with an accidental empty save.
+      if (!v.trim()) {
+        const existing = await readWeekNote(plugin, currentWeekKey);
+        if (existing.trim()) { notesValue = existing; if (refresh) invalidate(); return; }
+      }
       await writeWeekNote(plugin, currentWeekKey, v);
     } else {
       if (!plugin.settings.weekNotes) plugin.settings.weekNotes = {};

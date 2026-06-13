@@ -788,10 +788,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addToggle(t => t.setValue(this.plugin.settings.weekNoteFiles ?? false)
         .onChange(async v => {
           this.plugin.settings.weekNoteFiles = v;
-          await this.plugin.saveSettings();
           if (v) {
+            // Migrate first (writes files from data.json, then saves once) so the
+            // sidebar never switches to file-mode against not-yet-written files.
             const n = await migrateWeekNotesToFiles(this.plugin);
             new Notice(n > 0 ? `Moved ${n} week note${n === 1 ? "" : "s"} to files.` : "Week notes will now be saved as files.");
+          } else {
+            await this.plugin.saveSettings();
           }
           this.display();
         }));
@@ -808,14 +811,6 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           })(); });
         });
     }
-    new Setting(containerEl)
-      .setName("Show unplanned indicator")
-      .setDesc("Faint hollow dot on lessons that have no lesson plan linked yet.")
-      .addToggle(t => t.setValue(this.plugin.settings.showUnplannedDot ?? true)
-        .onChange(async v => {
-          this.plugin.settings.showUnplannedDot = v;
-          await this.plugin.saveSettings();
-        }));
     new Setting(containerEl)
       .setName("Show lesson-prepared marker")
       .setDesc("Adds a green tick you can click on each lesson to mark it prepared — independent of linking a plan. Turn off if you only use plan links.")

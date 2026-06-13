@@ -15,10 +15,12 @@ Bump `manifest.json` + `package.json` to `0.2.6` when ready to publish.
   existing week notes out of data.json (skipping any filename that already
   exists). Default off; per-planner.
 
-- **External-resource indicator.** When a lesson or event has an external
-  file/folder linked, a grey paperclip appears in the chip footer (rightmost,
-  alongside the plan/prepared markers); click it to open the resource. Desktop
-  only, since opening needs the OS. Scales and stacks with the other markers.
+- **External-resource indicator.** When a lesson or event has an external file
+  or folder linked, a grey marker appears in the chip footer (rightmost,
+  alongside the plan/prepared markers) — a paperclip for a file, a folder icon
+  for a folder; click it to open the resource. Desktop only. Scales and stacks
+  with the other markers. (External links now record whether they're a file or
+  folder; legacy links infer it from the path.)
 
 - **Lesson-prepared marker.** A green badge tick (filled circle + white check) in
   each lesson chip that you click to mark a lesson prepared — independent of linking a plan, for teachers
@@ -40,7 +42,24 @@ Bump `manifest.json` + `package.json` to `0.2.6` when ready to publish.
     `-` separator. Illegal filename characters are stripped automatically.
   - Clear a field to restore its default.
 
+## Fixed
+
+- **Week-note dates were off by a day (Sunday instead of Monday)** and could
+  cause data loss when enabling file mode. `weekKey()` used UTC (`toISOString`),
+  so in British Summer Time a local-midnight Monday resolved to the Sunday date —
+  files were named/keyed for the Sunday. Now uses the local Monday date. A load
+  migration re-keys any existing week notes from the old scheme. The file
+  migration no longer skips an accidentally-empty file (which previously let an
+  empty save block the real content and then cleared data.json), verifies each
+  write before dropping the source, and runs before the sidebar switches to
+  file-mode; the sidebar also refuses to overwrite a saved note with an empty
+  save.
+
 ## Changed
+
+- **Removed the "no lesson plan linked" indicator.** The faint hollow ring no
+  longer shows; the plan marker (green document) only appears when a plan is
+  linked. The now-redundant "Show unplanned indicator" setting was removed.
 
 - **Taller week grid.** The time-axis scale increased from 1.8 to 2.0 px/minute
   (108 → 120 px per hour), so every period renders ~11% larger.

@@ -199,21 +199,27 @@ export function clearEventExternal(s: TeacherPlannerSettings, eventId: string): 
   s.externalLinks = (s.externalLinks ?? []).filter(l => l.eventId !== eventId);
 }
 
-export function setSlotExternal(s: TeacherPlannerSettings, slotId: string, date: string, path: string): void {
+export function setSlotExternal(s: TeacherPlannerSettings, slotId: string, date: string, path: string, kind?: "file" | "folder"): void {
   clearSlotExternal(s, slotId, date);
-  extLinks(s).push({ slotId, date, path });
+  extLinks(s).push({ slotId, date, path, kind });
 }
 
-export function setEventExternal(s: TeacherPlannerSettings, eventId: string, path: string): void {
+export function setEventExternal(s: TeacherPlannerSettings, eventId: string, path: string, kind?: "file" | "folder"): void {
   clearEventExternal(s, eventId);
-  extLinks(s).push({ eventId, path });
+  extLinks(s).push({ eventId, path, kind });
 }
 
 export function migrateSlotExternalToEvent(s: TeacherPlannerSettings, slotId: string, date: string, eventId: string): void {
   const link = getSlotExternal(s, slotId, date);
   if (!link) return;
   clearSlotExternal(s, slotId, date);
-  setEventExternal(s, eventId, link.path);
+  setEventExternal(s, eventId, link.path, link.kind);
+}
+
+/** Resolve whether an external link is a file or folder, inferring from the path on legacy links. */
+export function externalKindOf(link: ExternalResourceLink): "file" | "folder" {
+  if (link.kind) return link.kind;
+  return /\.[^\\/]+$/.test(link.path) ? "file" : "folder";
 }
 
 /** Keep stored paths current when notes are renamed/moved. Returns true if anything changed. */

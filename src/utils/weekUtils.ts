@@ -38,7 +38,26 @@ export function formatDateRange(date: Date): string {
 }
 
 export function weekKey(monday: Date): string {
-  return monday.toISOString().split("T")[0];
+  // Local date components — NOT toISOString(), which is UTC and yields the
+  // Sunday date for a local-midnight Monday in timezones ahead of UTC (e.g. BST).
+  const y = monday.getFullYear();
+  const m = String(monday.getMonth() + 1).padStart(2, "0");
+  const d = String(monday.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * Convert a legacy week-note key (which, under the old toISOString scheme, was
+ * sometimes the Sunday-before instead of the Monday) to the correct local
+ * Monday key. Idempotent for keys that are already Mondays.
+ */
+export function normalizeLegacyWeekKey(key: string): string {
+  const d = new Date(key + "T12:00:00");
+  if (isNaN(d.getTime())) return key;
+  const dow = d.getDay();
+  if (dow === 0) d.setDate(d.getDate() + 1);        // Sunday → the Monday it represented
+  else if (dow !== 1) d.setDate(d.getDate() + (1 - dow)); // safety: snap to that week's Monday
+  return weekKey(d);
 }
 
 export function addWeeks(date: Date, weeks: number): Date {
