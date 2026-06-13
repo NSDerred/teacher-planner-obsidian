@@ -1143,51 +1143,56 @@
     background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important;
   }
   .tp-block:hover .tp-chip-notes { display:block; -webkit-line-clamp:unset; line-clamp:unset; overflow:visible; }
-  .tp-chip-period-time { display:none; font-size:10px; color:var(--text-muted); opacity:0.85; padding-right:32px; }
+  .tp-chip-period-time { display:none; font-size:10px; color:var(--text-muted); opacity:0.85; }
   .tp-block:hover .tp-chip-period-time { display:block; }
 
   /* Lesson chip */
-  .tp-chip { position:absolute; inset:3px; border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; cursor:pointer; overflow:hidden; user-select:none; transition:filter 0.1s; box-sizing:border-box; color:var(--text-normal); container-type:size; container-name:chip; }
+  .tp-chip { --mark-size:14px; position:absolute; inset:3px; border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; cursor:pointer; overflow:hidden; user-select:none; transition:filter 0.1s; box-sizing:border-box; color:var(--text-normal); container-type:size; container-name:chip; }
   .tp-chip:hover { filter:brightness(1.08); }
   .tp-chip-code  { font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
   .tp-chip-meta  { font-size:13px; color:var(--text-normal); opacity:0.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
-  .tp-chip-room  { font-size:12px; color:var(--text-normal); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; font-style:italic; padding-right:32px; }
-  .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; padding-right:32px; }
+  .tp-chip-room  { font-size:12px; color:var(--text-normal); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; font-style:italic; }
+  .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; }
 
   @container chip (max-height: 58px) {
     .tp-chip-meta,
     .tp-chip-notes { display: none; }
     .tp-chip-code  { font-size: 13px; }
     .tp-chip-room  { font-size: 11px; }
+    .tp-chip-marks { --mark-size: 12px; }
   }
   @container chip (max-height: 44px) {
     .tp-chip-code { font-size: 12px; }
     .tp-chip-room { font-size: 10px; }
+    .tp-chip-marks { --mark-size: 11px; }
   }
   @container chip (max-height: 34px) {
     .tp-chip-room { display: none; }
     .tp-chip-code { font-size: 11px; }
+    .tp-chip-marks { --mark-size: 10px; }
   }
   @container chip (max-width: 90px) {
     .tp-chip-code { font-size: 13px; }
     .tp-chip-room { font-size: 10px; }
+    .tp-chip-marks { --mark-size: 12px; }
   }
   @container chip (max-width: 60px) {
     .tp-chip-code { font-size: 11px; }
     .tp-chip-room { font-size: 9px; }
+    .tp-chip-marks { --mark-size: 10px; }
   }
 
-  /* Lesson plan + prepared indicators (top-right of chips) */
-  .tp-chip-marks { position:absolute; bottom:3px; right:4px; display:flex; gap:4px; align-items:center; }
-  .tp-plan-mark { width:14px; height:14px; display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; line-height:0; box-sizing:border-box; }
+  /* Lesson plan + prepared indicators — own line, pinned to chip bottom, size scales with --mark-size */
+  .tp-chip-marks { margin-top:auto; display:flex; gap:calc(var(--mark-size) * 0.3); align-items:center; justify-content:flex-end; flex-shrink:0; }
+  .tp-plan-mark { width:var(--mark-size); height:var(--mark-size); display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; line-height:0; box-sizing:border-box; flex-shrink:0; }
   .tp-plan-mark--empty { border:1.5px solid var(--text-muted); border-radius:50%; opacity:0.5; }
   button.tp-plan-mark--linked { color:#43a047; opacity:1; cursor:pointer; }
   button.tp-plan-mark--linked:hover { opacity:0.7; }
-  .tp-plan-mark :global(svg) { width:14px; height:14px; }
-  .tp-prep-tick { width:15px; height:15px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1.5px solid var(--text-muted); padding:0; line-height:0; cursor:pointer; color:var(--text-muted); opacity:0; transition:opacity 80ms ease; box-sizing:border-box; }
+  .tp-plan-mark :global(svg) { width:var(--mark-size); height:var(--mark-size); }
+  .tp-prep-tick { width:var(--mark-size); height:var(--mark-size); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1.5px solid var(--text-muted); padding:0; line-height:0; cursor:pointer; color:var(--text-muted); opacity:0; transition:opacity 80ms ease; box-sizing:border-box; flex-shrink:0; }
   .tp-chip:hover .tp-prep-tick { opacity:0.55; }
   button.tp-prep-tick--on { opacity:1 !important; background:#43a047; border-color:#43a047; color:#fff; }
-  .tp-prep-tick :global(svg) { width:10px; height:10px; }
+  .tp-prep-tick :global(svg) { width:calc(var(--mark-size) * 0.7); height:calc(var(--mark-size) * 0.7); }
 
   /* Current time indicator */
   .tp-now-line { position:absolute; left:0; right:0; height:0; border-top:2px dashed var(--interactive-accent); opacity:0.9; pointer-events:none; z-index:5; }
