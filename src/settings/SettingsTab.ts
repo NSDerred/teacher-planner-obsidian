@@ -611,7 +611,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addText(t => {
         t.setPlaceholder(DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
         t.setValue(this.plugin.settings.lessonNoteTitleTemplate ?? DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
-        t.inputEl.style.minWidth = "260px";
+        t.inputEl.addClass("tp-title-template-input");
         t.onChange(v => {
           this.plugin.settings.lessonNoteTitleTemplate = v.trim() || undefined;
           lessonTitlePreview.setText("Preview:  " + renderLessonTitle(v.trim() || DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
@@ -626,7 +626,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addText(t => {
         t.setPlaceholder(DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
         t.setValue(this.plugin.settings.eventNoteTitleTemplate ?? DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
-        t.inputEl.style.minWidth = "260px";
+        t.inputEl.addClass("tp-title-template-input");
         t.onChange(v => {
           this.plugin.settings.eventNoteTitleTemplate = v.trim() || undefined;
           eventTitlePreview.setText("Preview:  " + renderEventTitle(v.trim() || DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));

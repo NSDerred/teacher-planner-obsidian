@@ -1,6 +1,6 @@
 {
   "name": "obsidian-teacher-planner",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Academic year planner for teachers in Obsidian",
   "main": "main.js",
   "scripts": {

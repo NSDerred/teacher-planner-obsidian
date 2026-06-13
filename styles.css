@@ -1375,3 +1375,6 @@
   min-width: 3ch;
   margin-left: 8px;
 }
+
+/* Note-title template inputs (Settings) */
+.tp-title-template-input { min-width: 260px; }

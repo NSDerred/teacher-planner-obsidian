@@ -35,7 +35,20 @@ Configure subjects with an emoji identifier and nest class groups beneath them. 
 Overlay one-off events onto any period on any date — cover lessons, duties, trips, meetings, parents' evenings, or any other one-off. Date events sit on top of your timetable without disrupting it and can be added directly by clicking an empty cell in the week view.
 
 ### 📝 Lesson Notes
-Each lesson in the week view has a dedicated note in your vault, built from a fully customisable template. Open, create, or edit a lesson note with a single click. Notes are stored in your planner folder and work with all standard Obsidian features — backlinks, search, graph view.
+Each lesson in the week view has a dedicated note in your vault, built from a fully customisable template. Open, create, or edit a lesson note with a single click. Note **filenames** follow a configurable template too (date, period, class, subject, and even the subject emoji), set in **Settings → Note titles** with a live preview. Notes are stored in your planner folder and work with all standard Obsidian features — backlinks, search, graph view.
+
+### 🔗 Lesson Plans & Attachments
+Link a reusable lesson-plan note to any lesson and open it in a single click, or attach an external file or folder from anywhere on your computer. Each lesson chip shows small status icons — a green document when a plan is linked, a paperclip for an attached file, a folder icon for an attached folder — so you can see at a glance what's ready.
+
+![Linking a lesson plan](docs/screenshots/linking-lesson-plan.gif)
+
+### ✅ Lesson Prepared Marker
+Don't use plan notes? Click the tick on any lesson to mark it **prepared** — a simple, manual, at-a-glance indicator of what's ready for the week. It's saved per lesson and follows the lesson if you move it. Turn it off in settings if you only use plan links.
+
+![Attaching a folder and marking a lesson prepared](docs/screenshots/linking-folder-marking-prepared.gif)
+
+### 🗒️ Weekly Notes
+A notes panel in the sidebar for each week's plans and reminders, with quick formatting and a live markdown preview. Optionally store each week's note as a real markdown file in your vault (`Week note - <Monday date>`) so it's searchable, linkable, and backlink-friendly — kept tidy in its own folder.
 
 ### ⏱️ Directed Time Tracker
 Track your statutory directed time across the academic year against the STPCD 1,265-hour limit. The tracker counts timetabled lessons, directed-time activities, and date events, projects a year-end total, and excludes holidays and INSET days automatically. Supports part-time timetable fractions. Exports a detailed Excel report for union or management use. A plain-language guide note is created in your planner folder when the tracker is enabled.

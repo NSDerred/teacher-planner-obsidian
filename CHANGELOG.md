@@ -5,6 +5,27 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] — 2026-06-13
+
+### Added
+
+- **Configurable note-title templates** — a new **Settings → Note titles** section lets you set the filename pattern for generated lesson and event notes from editable templates with a live preview. Tokens: `{{date}}` (UK), `{{period}}` (e.g. `P1`, or `Break`/`Lunch`), `{{class}}`, `{{subject}}`, `{{emoji}}` (the subject emoji), and `{{event}}`. Empty tokens collapse cleanly and illegal filename characters are stripped. Defaults: lessons `13-06-2026 - P1 - 10A - 🌱 Biology`, events `13-06-2026 - Break - Bake sale`.
+- **Lesson-prepared marker** — a green tick on each lesson chip you can click to mark a lesson "prepared", independent of linking a plan (for teachers who don't use plan links). Saved per lesson occurrence, follows a lesson when dragged, and available from the right-click menu. Toggle it off in settings if you don't want it.
+- **External-resource indicators** — when a lesson has an external file or folder linked, a marker now appears on the chip: a paperclip for a file, a folder icon for a folder. Click to open (desktop only).
+- **Week notes as vault files (opt-in)** — a new setting saves each week's sidebar note as a real markdown file (`Week note - <Monday date>`) in a configurable folder, so week notes are searchable, linkable, and no longer grow the plugin data file. Enabling migrates your existing week notes to files.
+
+### Changed
+
+- **Redesigned the lesson-plan chip indicator** — the linked state is now a clean green document icon (click to open the plan) instead of a boxed dot; the faint "no plan linked" ring has been removed so the marker only shows when a plan is linked.
+- **Chip footer layout** — the classroom and the plan/prepared/external markers now share a single responsive bottom line (classroom left, icons right), dropping the icons to their own line on very narrow cells. Lines pack to the top with no gap, the notes line is shown truncated (full on hover), and the period/time appears on hover.
+- **Taller week grid** — the time-axis scale increased from 1.8 to 2.0 px per minute (120 px per hour), so every period renders slightly larger.
+- Note-storage options ("Organise notes into weekly folders", "Store week notes as vault files", "Week notes folder") moved into a dedicated **Notes** settings section.
+- Removed the now-redundant "Show unplanned indicator" setting.
+
+### Fixed
+
+- **Week-note dates were off by a day and file mode could lose a note's content.** Week keys were computed in UTC (`toISOString`), so in British Summer Time a Monday resolved to the Sunday date. Keys now use the local Monday date, with a migration that re-keys existing notes. The data-file-to-markdown migration is now safe: it overwrites an accidentally-empty file rather than skipping it, verifies each write before clearing the source, runs before the sidebar switches to file mode, and the sidebar won't overwrite a saved note with an empty save.
+
 ## [0.2.5] — 2026-06-12
 
 ### Fixed

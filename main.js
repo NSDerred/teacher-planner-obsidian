@@ -9715,7 +9715,7 @@ var init_SettingsTab = __esm({
           var _a3;
           t.setPlaceholder(DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
           t.setValue((_a3 = this.plugin.settings.lessonNoteTitleTemplate) != null ? _a3 : DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
-          t.inputEl.style.minWidth = "260px";
+          t.inputEl.addClass("tp-title-template-input");
           t.onChange((v) => {
             this.plugin.settings.lessonNoteTitleTemplate = v.trim() || void 0;
             lessonTitlePreview.setText("Preview:  " + renderLessonTitle(v.trim() || DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
@@ -9728,7 +9728,7 @@ var init_SettingsTab = __esm({
           var _a3;
           t.setPlaceholder(DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
           t.setValue((_a3 = this.plugin.settings.eventNoteTitleTemplate) != null ? _a3 : DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
-          t.inputEl.style.minWidth = "260px";
+          t.inputEl.addClass("tp-title-template-input");
           t.onChange((v) => {
             this.plugin.settings.eventNoteTitleTemplate = v.trim() || void 0;
             eventTitlePreview.setText("Preview:  " + renderEventTitle(v.trim() || DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
