@@ -948,30 +948,34 @@
                           title="{period.name} · {period.start}–{period.end}"
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
                         >
-                          <span class="tp-chip-code">{lbl.code}</span>
-                          {#if lbl.year || lbl.subjectName}
-                            <span class="tp-chip-meta">{[lbl.year, lbl.subjectName].filter(Boolean).join(" · ")}</span>
-                          {/if}
-                          {#if lbl.classroom}
-                            <span class="tp-chip-room">{lbl.classroom}</span>
-                          {/if}
-                          <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
-                          {#if lbl.notes}
-                            <span class="tp-chip-notes">{lbl.notes}</span>
-                          {/if}
-                          <div class="tp-chip-marks">
-                            {#if _showPrepared && isClassId(slot.classId)}
-                              <button class="tp-prep-tick" class:tp-prep-tick--on={slotPrepared}
-                                title={slotPrepared ? "Marked prepared — click to clear" : "Mark lesson prepared"}
-                                aria-label="Toggle lesson prepared" aria-pressed={slotPrepared}
-                                on:click|stopPropagation={() => toggleSlotPrep(slot, dayDate)} use:obsIcon={"check"}></button>
+                          <div class="tp-chip-body">
+                            <span class="tp-chip-code">{lbl.code}</span>
+                            {#if lbl.year || lbl.subjectName}
+                              <span class="tp-chip-meta">{[lbl.year, lbl.subjectName].filter(Boolean).join(" · ")}</span>
                             {/if}
-                            {#if slotPlanPath}
-                              <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
-                                on:click|stopPropagation={() => openPlan(slotPlanPath)} use:obsIcon={"file-text"}></button>
-                            {:else if _showUnplanned && isClassId(slot.classId)}
-                              <span class="tp-plan-mark tp-plan-mark--empty" title="No lesson plan linked"></span>
+                            <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
+                            {#if lbl.notes}
+                              <span class="tp-chip-notes">{lbl.notes}</span>
                             {/if}
+                          </div>
+                          <div class="tp-chip-footer">
+                            {#if lbl.classroom}
+                              <span class="tp-chip-room">{lbl.classroom}</span>
+                            {/if}
+                            <div class="tp-chip-marks">
+                              {#if _showPrepared && isClassId(slot.classId)}
+                                <button class="tp-prep-tick" class:tp-prep-tick--on={slotPrepared}
+                                  title={slotPrepared ? "Marked prepared — click to clear" : "Mark lesson prepared"}
+                                  aria-label="Toggle lesson prepared" aria-pressed={slotPrepared}
+                                  on:click|stopPropagation={() => toggleSlotPrep(slot, dayDate)} use:obsIcon={"check"}></button>
+                              {/if}
+                              {#if slotPlanPath}
+                                <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                                  on:click|stopPropagation={() => openPlan(slotPlanPath)} use:obsIcon={"file-text"}></button>
+                              {:else if _showUnplanned && isClassId(slot.classId)}
+                                <span class="tp-plan-mark tp-plan-mark--empty" title="No lesson plan linked"></span>
+                              {/if}
+                            </div>
                           </div>
                         </div>
                       {/if}
@@ -992,28 +996,32 @@
                           title="{period.name} · {period.start}–{period.end}"
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
                         >
-                          <span class="tp-chip-code">{lbl.code}</span>
-                          {#if lbl.meta}
-                            <span class="tp-chip-meta">{lbl.meta}</span>
-                          {/if}
-                          {#if lbl.classroom}
-                            <span class="tp-chip-room">{lbl.classroom}</span>
-                          {/if}
-                          <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
-                          {#if lbl.notes}<span class="tp-chip-notes">{lbl.notes}</span>{/if}
-                          <div class="tp-chip-marks">
-                            {#if _showPrepared && isClassId(devEv.classId)}
-                              <button class="tp-prep-tick" class:tp-prep-tick--on={evPrepared}
-                                title={evPrepared ? "Marked prepared — click to clear" : "Mark lesson prepared"}
-                                aria-label="Toggle lesson prepared" aria-pressed={evPrepared}
-                                on:click|stopPropagation={() => toggleEventPrep(devEv)} use:obsIcon={"check"}></button>
+                          <div class="tp-chip-body">
+                            <span class="tp-chip-code">{lbl.code}</span>
+                            {#if lbl.meta}
+                              <span class="tp-chip-meta">{lbl.meta}</span>
                             {/if}
-                            {#if evPlanPath}
-                              <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
-                                on:click|stopPropagation={() => openPlan(evPlanPath)} use:obsIcon={"file-text"}></button>
-                            {:else if _showUnplanned && isClassId(devEv.classId)}
-                              <span class="tp-plan-mark tp-plan-mark--empty" title="No lesson plan linked"></span>
+                            <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
+                            {#if lbl.notes}<span class="tp-chip-notes">{lbl.notes}</span>{/if}
+                          </div>
+                          <div class="tp-chip-footer">
+                            {#if lbl.classroom}
+                              <span class="tp-chip-room">{lbl.classroom}</span>
                             {/if}
+                            <div class="tp-chip-marks">
+                              {#if _showPrepared && isClassId(devEv.classId)}
+                                <button class="tp-prep-tick" class:tp-prep-tick--on={evPrepared}
+                                  title={evPrepared ? "Marked prepared — click to clear" : "Mark lesson prepared"}
+                                  aria-label="Toggle lesson prepared" aria-pressed={evPrepared}
+                                  on:click|stopPropagation={() => toggleEventPrep(devEv)} use:obsIcon={"check"}></button>
+                              {/if}
+                              {#if evPlanPath}
+                                <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                                  on:click|stopPropagation={() => openPlan(evPlanPath)} use:obsIcon={"file-text"}></button>
+                              {:else if _showUnplanned && isClassId(devEv.classId)}
+                                <span class="tp-plan-mark tp-plan-mark--empty" title="No lesson plan linked"></span>
+                              {/if}
+                            </div>
                           </div>
                         </div>
                       {/each}
@@ -1148,10 +1156,12 @@
 
   /* Lesson chip */
   .tp-chip { --mark-size:14px; position:absolute; inset:3px; border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; cursor:pointer; overflow:hidden; user-select:none; transition:filter 0.1s; box-sizing:border-box; color:var(--text-normal); container-type:size; container-name:chip; }
+  .tp-chip-body { flex:1 1 auto; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:2px; }
+  .tp-chip-footer { flex-shrink:0; display:flex; align-items:center; gap:4px; }
   .tp-chip:hover { filter:brightness(1.08); }
   .tp-chip-code  { font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
   .tp-chip-meta  { font-size:13px; color:var(--text-normal); opacity:0.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
-  .tp-chip-room  { font-size:12px; color:var(--text-normal); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; font-style:italic; }
+  .tp-chip-room  { font-size:12px; color:var(--text-normal); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto; min-width:0; font-style:italic; }
   .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; }
 
   @container chip (max-height: 58px) {
@@ -1181,9 +1191,13 @@
     .tp-chip-room { font-size: 9px; }
     .tp-chip-marks { --mark-size: 10px; }
   }
+  @container chip (max-width: 84px) {
+    .tp-chip-footer { flex-direction: column; align-items: stretch; gap: 1px; }
+    .tp-chip-marks { margin-left: 0; align-self: flex-end; }
+  }
 
   /* Lesson plan + prepared indicators — own line, pinned to chip bottom, size scales with --mark-size */
-  .tp-chip-marks { margin-top:auto; display:flex; gap:calc(var(--mark-size) * 0.3); align-items:center; justify-content:flex-end; flex-shrink:0; }
+  .tp-chip-marks { margin-left:auto; display:flex; gap:calc(var(--mark-size) * 0.3); align-items:center; justify-content:flex-end; flex-shrink:0; }
   .tp-plan-mark { width:var(--mark-size); height:var(--mark-size); display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; line-height:0; box-sizing:border-box; flex-shrink:0; }
   .tp-plan-mark--empty { border:1.5px solid var(--text-muted); border-radius:50%; opacity:0.5; }
   button.tp-plan-mark--linked { color:#43a047; opacity:1; cursor:pointer; }

@@ -32,9 +32,12 @@ Bump `manifest.json` + `package.json` to `0.2.6` when ready to publish.
   proper shapes instead of text glyphs: a larger hollow ring when no plan is
   linked, and a clean green document icon (click to open the plan) when one is —
   no more boxed look.
-  Both the plan icon and the prepared tick sit on the chip's bottom row (next to
-  the classroom) so they never overlap or truncate the lesson title — the title
-  row stays full-width and ellipsises if needed.
+  The plan icon and prepared tick live on the chip's bottom row: on wide cells
+  they share the classroom line (room left, icons right); when the cell gets too
+  narrow they drop to their own right-aligned line below it. The markers scale
+  with the chip (shared --mark-size, stepped at the same breakpoints as the
+  font), and the title/subject area clips first so the icons are never cut off.
+  The hover period/time line stays on its own line, separate from the icons.
 
 - **Generated lesson/event note titles** now follow the templates above instead
   of the old `<ISO date> <class code>` scheme.
