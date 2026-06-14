@@ -1,18 +1,18 @@
 
-import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon, FuzzySuggestModal, TFile } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity, DaySchedule, SchoolDay, TeacherPlannerSettings } from "../types";
 import { ensureDaySchedules, getScheduleForDay } from "../utils/scheduleUtils";
 import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE } from "../settings";
 import { buildNoteTitle } from "../utils/noteTitleUtils";
 import { migrateWeekNotesToFiles } from "../utils/weekNoteFiles";
+import { backupPlanner, backupAll, parseBackup, importPlanners, listBackupFiles, backupsFolder } from "../utils/plannerBackup";
 import { resolveColour, isThemeToken, GRID_THEME_TOKEN } from "../utils/themeColours";
 import { findOverlappingOverrides } from "../utils/weekUtils";
 import ColourPickerComponent from "../modals/ColourPickerComponent.svelte";
 import { AddPeriodModal } from "../modals/AddPeriodModal";
 import { ExportModal } from "../modals/ExportModal";
 import { DirectedTimeExportModal } from "../modals/DirectedTimeExportModal";
-import { TFile } from "obsidian";
 import { SetupWizardModal } from "../modals/SetupWizardModal";
 import { EditPlannerModal } from "../modals/EditPlannerModal";
 
@@ -879,6 +879,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       // Right: action buttons — always on the same line
       const actions = card.createDiv("tp-planner-card-actions");
 
+      const exportBtn = actions.createEl("button", { text: "Export", cls: "tp-btn" });
+      exportBtn.addEventListener("click", () => { void (async () => {
+        try { const path = await backupPlanner(this.plugin, p); new Notice(`Backed up to ${path}`); }
+        catch (e) { console.error("Teacher Planner: export failed.", e); new Notice("Backup failed — see console."); }
+      })(); });
+
       if (!isActive) {
         const switchBtn = actions.createEl("button", { text: "Switch", cls: "tp-btn tp-btn--primary" });
         switchBtn.addEventListener("click", () => { void (async () => {
@@ -905,6 +911,19 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         disabledDel.setCssStyles({ cursor: "not-allowed" });
       }
     }
+
+    // Backups: import / export all
+    new Setting(container)
+      .setName("Backups")
+      .setDesc(`Saved as .json files in "${backupsFolder(this.plugin)}" — re-importable. Deleting a planner backs it up automatically.`)
+      .addButton(btn => btn.setButtonText("Import planner…").onClick(() => {
+        if (listBackupFiles(this.plugin).length === 0) { new Notice(`No backups found in "${backupsFolder(this.plugin)}".`); return; }
+        new ImportPlannerModal(this.app, this.plugin, () => this.display()).open();
+      }))
+      .addButton(btn => btn.setButtonText("Export all").onClick(() => { void (async () => {
+        try { const path = await backupAll(this.plugin); new Notice(`All planners backed up to ${path}`); }
+        catch (e) { console.error("Teacher Planner: export-all failed.", e); new Notice("Backup failed — see console."); }
+      })(); }));
 
     // "+ New planner" button
     new Setting(container).addButton(btn => btn.setButtonText("+ New planner").setCta()
@@ -1631,8 +1650,8 @@ class DeletePlannerModal extends Modal {
 
     contentEl.createEl("p", {
       text: this.isLast
-        ? `"${this.plannerName}" is your only planner. Deleting it will remove all planner data and relaunch the setup wizard. Lesson notes already created in your vault will not be affected.`
-        : `Delete "${this.plannerName}"? All planner data (timetable, classes, events) will be removed. Lesson notes already created in your vault will not be affected.`,
+        ? `"${this.plannerName}" is your only planner. Deleting it will remove all planner data and relaunch the setup wizard. A re-importable backup is saved to "${backupsFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.`
+        : `Delete "${this.plannerName}"? All planner data (timetable, classes, events) will be removed — but a re-importable backup is saved to "${backupsFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.`,
       cls: "setting-item-description",
     });
 
@@ -1655,5 +1674,32 @@ class DeletePlannerModal extends Modal {
 
   onClose() {
     this.contentEl.empty();
+  }
+}
+
+class ImportPlannerModal extends FuzzySuggestModal<TFile> {
+  private plugin: TeacherPlannerPlugin;
+  private onDone: () => void;
+  constructor(app: App, plugin: TeacherPlannerPlugin, onDone: () => void) {
+    super(app);
+    this.plugin = plugin;
+    this.onDone = onDone;
+    this.setPlaceholder("Pick a backup to import…");
+  }
+  getItems(): TFile[] { return listBackupFiles(this.plugin); }
+  getItemText(f: TFile): string { return f.basename; }
+  onChooseItem(f: TFile): void {
+    void (async () => {
+      try {
+        const { planners } = parseBackup(await this.app.vault.read(f));
+        const ids = await importPlanners(this.plugin, planners);
+        new Notice(`Imported ${planners.length} planner${planners.length === 1 ? "" : "s"}.`);
+        if (ids[0]) await this.plugin.switchPlanner(ids[0]);
+        this.onDone();
+      } catch (e) {
+        console.error("Teacher Planner: import failed.", e);
+        new Notice(`Import failed: ${(e as Error).message ?? "see console"}`);
+      }
+    })();
   }
 }

@@ -5,6 +5,7 @@ import { WeekView, WEEK_VIEW_TYPE } from "./views/WeekView";
 import { CalendarSidebarView, CALENDAR_SIDEBAR_VIEW_TYPE } from "./views/CalendarSidebarView";
 import { TeacherPlannerSettingTab } from "./settings/SettingsTab";
 import { isValidIsoDate, normalizeLegacyWeekKey } from "./utils/weekUtils";
+import { backupPlanner } from "./utils/plannerBackup";
 import { ensureDaySchedules, syncPeriodsUnion } from "./utils/scheduleUtils";
 import { renamePlanPaths } from "./utils/planLinkUtils";
 
@@ -267,6 +268,12 @@ export default class TeacherPlannerPlugin extends Plugin {
     // Flush any pending debounced save first — otherwise a queued
     // saveSettings() could fire after the delete and resurrect stale state.
     await this.flushPendingSave();
+    // Safety net: write a re-importable backup of the planner before removing it.
+    const doomed = this.plannerData.planners.find(p => p.id === id);
+    if (doomed) {
+      try { await backupPlanner(this, doomed, "Deleted"); }
+      catch (e) { console.error("Teacher Planner: backup before delete failed.", e); }
+    }
     this.plannerData.planners = this.plannerData.planners.filter(p => p.id !== id);
     // Repair the active pointer if the deleted planner was active.
     if (this.plannerData.activePlannerId === id) {

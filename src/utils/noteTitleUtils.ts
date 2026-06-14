@@ -24,7 +24,7 @@ export interface NoteTitleParts {
   eventName?: string;
 }
 
-const TITLE_TOKEN_KEYS = ["date", "period", "class", "subject", "emoji", "event"] as const;
+type TitleTokenKey = "date" | "period" | "class" | "subject" | "emoji" | "event";
 
 /** Convert an ISO date (YYYY-MM-DD) to UK format (DD-MM-YYYY). */
 export function formatUkDate(iso?: string): string {
@@ -56,7 +56,7 @@ export function sanitiseNoteFileName(s: string): string {
  * Returns a sanitised, filename-safe string with empty segments collapsed.
  */
 export function buildNoteTitle(template: string, parts: NoteTitleParts): string {
-  const values: Record<(typeof TITLE_TOKEN_KEYS)[number], string> = {
+  const values: Record<TitleTokenKey, string> = {
     date:    formatUkDate(parts.dateIso),
     period:  shortPeriodLabel(parts.periodName),
     class:   (parts.classCode ?? "").trim(),
