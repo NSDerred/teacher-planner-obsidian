@@ -328,6 +328,99 @@
 }
 .tp-modal-textarea:focus { outline: none; border-color: var(--interactive-accent); }
 
+/* ── Add/Edit event modal — custom event UI ──────────────────────────────────  */
+.tp-modal-label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* Event-name search combobox + generic dropdown panel */
+.tp-combo-wrap { position: relative; }
+.tp-combo-panel {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30;
+  background: var(--background-primary); border: 1px solid var(--background-modifier-border);
+  border-radius: 6px; box-shadow: 0 4px 18px rgba(0,0,0,0.32);
+  max-height: 250px; overflow: auto;
+}
+.tp-combo-group { font-size: 11px; color: var(--text-muted); padding: 6px 10px 2px; }
+.tp-combo-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; cursor: pointer; }
+.tp-combo-item:hover { background: var(--background-modifier-hover); }
+.tp-combo-swatch { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+.tp-combo-item-primary { font-size: 13px; font-weight: 600; color: var(--text-normal); }
+.tp-combo-item-secondary { font-size: 11px; color: var(--text-muted); }
+.tp-combo-new { border-top: 1px solid var(--background-modifier-border); color: var(--text-muted); }
+.tp-combo-plus { font-weight: 700; width: 11px; text-align: center; }
+
+/* Colour swatch + popover */
+.tp-colour-field { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+.tp-colour-cap { font-size: 12px; color: var(--text-muted); }
+.tp-colour-swatch { width: 22px; height: 22px; border-radius: 6px; padding: 0; border: 1px solid var(--background-modifier-border); cursor: pointer; }
+.tp-colour-pop {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 31;
+  display: flex; flex-wrap: wrap; gap: 6px; width: 232px; box-sizing: border-box;
+  padding: 9px 10px; background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border); border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.32);
+}
+.tp-swatch { width: 22px; height: 22px; border-radius: 5px; padding: 0; border: 2px solid transparent; cursor: pointer; transition: transform 0.08s; }
+.tp-swatch:hover { transform: scale(1.12); }
+.tp-swatch--on { border-color: var(--text-normal); box-shadow: 0 0 0 1px var(--background-primary) inset; }
+.tp-colour-custom {
+  width: 22px; height: 22px; border-radius: 5px; cursor: pointer;
+  border: 1px dashed var(--text-muted); background: transparent; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center; font-size: 15px; line-height: 1;
+}
+.tp-colour-custom:hover { color: var(--text-normal); border-color: var(--text-normal); }
+
+/* Date + Duration shared row */
+.tp-modal-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.tp-modal-field--dur { flex: 0 0 auto; }
+.tp-modal-input--short { width: 64px; }
+.tp-dur-reset {
+  font-size: 11px; padding: 2px 7px; border-radius: 5px; cursor: pointer;
+  border: 1px solid var(--background-modifier-border); background: var(--background-primary); color: var(--text-muted);
+}
+.tp-dur-reset:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+
+/* Period multi-select dropdown */
+.tp-period-field {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 36px;
+  padding: 6px 8px; border: 1px solid var(--background-modifier-border); border-radius: 6px;
+  background: var(--background-modifier-form-field); cursor: pointer;
+}
+.tp-period-placeholder { font-size: 13px; color: var(--text-muted); }
+.tp-period-tag { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; padding: 3px 7px 3px 9px; border-radius: 6px; color: var(--text-normal); }
+.tp-period-tag-x { cursor: pointer; color: var(--text-muted); font-size: 11px; display: inline-flex; }
+.tp-period-tag-x:hover { color: var(--text-normal); }
+.tp-period-add { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); }
+.tp-period-caret { font-size: 10px; }
+.tp-period-panel { padding: 0; }
+.tp-period-filter {
+  width: 100%; box-sizing: border-box; padding: 7px 10px; border: none;
+  border-bottom: 1px solid var(--background-modifier-border); border-radius: 6px 6px 0 0;
+  background: transparent; color: var(--text-normal); font-size: 13px; font-family: var(--font-interface); outline: none;
+}
+.tp-period-options { max-height: 210px; overflow: auto; }
+.tp-period-option { display: flex; align-items: center; gap: 9px; padding: 6px 10px; cursor: pointer; }
+.tp-period-option:hover { background: var(--background-modifier-hover); }
+.tp-period-option--on { background: color-mix(in srgb, var(--interactive-accent) 10%, transparent); }
+.tp-period-option--nonlesson { opacity: 0.6; }
+.tp-period-check {
+  width: 15px; height: 15px; flex-shrink: 0; border: 1.5px solid var(--background-modifier-border);
+  border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; line-height: 1;
+}
+.tp-period-check--on { background: var(--interactive-accent); border-color: var(--interactive-accent); color: var(--text-on-accent); }
+.tp-period-opt-name { flex: 1; font-size: 13px; }
+.tp-period-opt-time { font-size: 11px; color: var(--text-muted); }
+
+/* Directed-time toggle row */
+.tp-modal-row--toggle { justify-content: flex-start; gap: 8px; }
+.tp-modal-row--toggle .tp-modal-label { min-width: 0; }
+.tp-modal-checkbox { width: 15px; height: 15px; accent-color: var(--interactive-accent); cursor: pointer; }
+
+/* More (location + notes) expander */
+.tp-more-toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); cursor: pointer; padding: 9px 0; border-top: 1px solid var(--background-modifier-border); }
+.tp-more-toggle:hover { color: var(--text-normal); }
+.tp-more-caret { font-size: 10px; }
+.tp-more-section { display: flex; flex-direction: column; gap: 10px; }
+
 /* ── Shared modal footer ─────────────────────────────────────────────────────  */
 
 .tp-modal-footer {

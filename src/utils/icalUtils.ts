@@ -3,6 +3,7 @@ import type {
 } from "../types";
 import { getMondayOfWeek, getAbWeekType } from "./weekUtils";
 import { getPeriodsForDay } from "./scheduleUtils";
+import { eventPeriodIds } from "./eventUtils";
 
 /** Options for the iCal export, gathered in the Export modal. */
 export interface IcalOptions {
@@ -193,20 +194,35 @@ function collectEvents(s: TeacherPlannerSettings, opts: IcalOptions): VEvent[] {
     if (opts.includeDateEvents) {
       for (const ev of s.dateEvents ?? []) {
         if (ev.date !== iso) continue;
-        const period = periodById.get(ev.periodId) ?? unionById.get(ev.periodId);
-        if (!period) continue;
-        const lbl = labelFor(ev.classId, ev.classroom, ev.notes);
-        const end = ev.durationMinutes ? addMinutes(period.start, ev.durationMinutes) : period.end;
+        // Resolve every block this event occupies (multi-period aware), ordered by start.
+        const evPeriods = eventPeriodIds(ev)
+          .map(id => periodById.get(id) ?? unionById.get(id))
+          .filter((p): p is NonNullable<typeof p> => !!p)
+          .sort((a, b) => a.start.localeCompare(b.start));
+        const first = evPeriods[0];
+        if (!first) continue;
+        const last = evPeriods[evPeriods.length - 1];
+        const isCustom = !!(ev.title && ev.title.trim());
+        const lbl = isCustom
+          ? {
+              summary: ev.classroom ? `${ev.title!.trim()} · ${ev.classroom}` : ev.title!.trim(),
+              location: ev.classroom ?? "",
+              description: ev.notes ?? "",
+            }
+          : labelFor(ev.classId, ev.classroom, ev.notes);
+        const end = evPeriods.length > 1
+          ? last.end
+          : (ev.durationMinutes ? addMinutes(first.start, ev.durationMinutes) : first.end);
         events.push({
           uid: `tp-ev-${ev.id}`,
           summary: lbl.summary,
           description: lbl.description || undefined,
           location: lbl.location || undefined,
           dateIso: iso,
-          startHHMM: period.start,
+          startHHMM: first.start,
           endHHMM: end,
         });
-        occupiedPeriods.add(ev.periodId);
+        for (const p of evPeriods) occupiedPeriods.add(p.id);
       }
     }
 

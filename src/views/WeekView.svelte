@@ -18,6 +18,7 @@
   import { AddDateEventModal } from "../modals/AddDateEventModal";
   import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
   import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
+  import { eventPeriodIds, contiguousRuns } from "../utils/eventUtils";
   import {
     getSlotPlan, setSlotPlan, clearSlotPlan, getEventPlan, setEventPlan, clearEventPlan,
     migrateSlotPlanToEvent, bulkApplyPlan, undoBulkApply,
@@ -136,23 +137,38 @@
   })();
 
   // Date events for the current week, keyed by "day:periodId" → array
-  $: _dateEventMap = (() => {
-    const m: Record<string, DateEvent[]> = {};
+  // Single-period events keyed "day:periodId" (rendered inside their block).
+  // Multi-period events keyed by day (rendered as spanning blocks / agenda rows).
+  $: _eventMaps = (() => {
+    const single: Record<string, DateEvent[]> = {};
+    const multi: Record<string, DateEvent[]> = {};
     const monday = currentMonday;
+    const dayMap: Record<number, SchoolDay> = { 0:"sunday", 1:"monday", 2:"tuesday", 3:"wednesday", 4:"thursday", 5:"friday", 6:"saturday" };
     for (const ev of _dateEvents) {
       const d = new Date(ev.date + "T12:00:00");
-      const evMonday = getMondayOfWeek(d);
-      if (evMonday.getTime() !== monday.getTime()) continue;
-      const dayNum = d.getDay();
-      const dayMap: Record<number, SchoolDay> = { 0:"sunday", 1:"monday", 2:"tuesday", 3:"wednesday", 4:"thursday", 5:"friday", 6:"saturday" };
-      const day = dayMap[dayNum];
+      if (getMondayOfWeek(d).getTime() !== monday.getTime()) continue;
+      const day = dayMap[d.getDay()];
       if (!day) continue;
-      const key = day + ":" + ev.periodId;
-      if (!m[key]) m[key] = [];
-      m[key].push(ev);
+      const pids = eventPeriodIds(ev);
+      if (pids.length <= 1) {
+        const key = day + ":" + (pids[0] ?? ev.periodId);
+        (single[key] ??= []).push(ev);
+      } else {
+        (multi[day] ??= []).push(ev);
+      }
     }
-    return m;
+    return { single, multi };
   })();
+  $: _dateEventMap = _eventMaps.single;
+  $: _multiEventMap = _eventMaps.multi;
+
+  function multiEventsForDay(dayKey: SchoolDay): DateEvent[] {
+    return _multiEventMap[dayKey] ?? [];
+  }
+  // Multi-period events anchored to their first period (agenda list rendering).
+  function agendaMultiAt(dayKey: SchoolDay, periodId: string): DateEvent[] {
+    return (_multiEventMap[dayKey] ?? []).filter(ev => eventPeriodIds(ev)[0] === periodId);
+  }
 
   // Per-day template resolution — different days in the same week can belong to
   // different templates (supports mid-week template changes).
@@ -270,6 +286,15 @@
   }
 
   function getDateEventLabel(ev: DateEvent) {
+    if (ev.title && ev.title.trim()) {
+      return {
+        code: ev.title.trim(),
+        meta: "",
+        colour: ev.colour ?? "#9aa0a6",
+        notes: ev.notes ?? "",
+        classroom: ev.classroom ?? "",
+      };
+    }
     const cls = _classes.find(c => c.id === ev.classId);
     if (cls) {
       const subj = _subjects.find(s => s.id === cls.subjectId);
@@ -544,7 +569,10 @@
       }));
       menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
-      menu.addItem(i => i.setTitle("Change colour").setIcon("palette").onClick(() => changeColour(event.classId)));
+      menu.addItem(i => i.setTitle("Change colour").setIcon("palette").onClick(() => {
+        if (event.title && event.title.trim()) changeEventColour(event);
+        else changeColour(event.classId);
+      }));
       menu.addItem(i => i.setTitle("Remove event").setIcon("trash-2").onClick(() => removeDateEvent(event.id)));
     }
     menu.showAtMouseEvent(e);
@@ -558,6 +586,14 @@
     new ColourPickerModal(plugin.app, current, lbl, async (colour: string) => {
       if (cls) { cls.colour = colour; cls.colourOverridden = true; }
       else if (act) { act.colour = colour; }
+      await plugin.saveSettings(); invalidate();
+    }).open();
+  }
+
+  function changeEventColour(event: DateEvent) {
+    new ColourPickerModal(plugin.app, event.colour ?? "#888", event.title ?? "Event", async (colour: string) => {
+      const ev = (plugin.settings.dateEvents ?? []).find(e => e.id === event.id);
+      if (ev) ev.colour = colour;
       await plugin.saveSettings(); invalidate();
     }).open();
   }
@@ -776,6 +812,7 @@
   // Does a school day in the current week have any lesson/event? (day-strip dot / agenda empty state)
   function dayHasItems(day: { key: SchoolDay; offset: number }): boolean {
     const date = dayISODate(day.offset, currentMonday);
+    if ((_multiEventMap[day.key] ?? []).length > 0) return true;
     for (const p of getPeriodsForDay(plugin.settings.academicYear, day.key)) {
       const raw = _slotMap[day.key + ":" + p.id];
       if (raw && !isSlotExcluded(raw.id, date)) return true;
@@ -1028,6 +1065,17 @@
                   {#if el.classroom}<span class="tp-agenda-room">{el.classroom}</span>{/if}
                 </button>
               {/each}
+              {#each agendaMultiAt(day.key, period.id) as mEv (mEv.id)}
+                {@const mel  = getDateEventLabel(mEv)}
+                {@const mOrd = getPeriodsForDay(plugin.settings.academicYear, day.key)}
+                {@const mSel = mOrd.filter(pp => eventPeriodIds(mEv).includes(pp.id))}
+                <button class="tp-agenda-row tp-agenda-row--event" style="border-left:3px solid {mel.colour}; background:{hexToRgba(mel.colour,0.16)};"
+                  on:click={(e) => openChipMenu(e, "event", aDate, eventPeriodIds(mEv)[0], undefined, mEv)}>
+                  <span class="tp-agenda-period">{mSel.length ? mSel[0].name + (mSel.length > 1 ? "–" + mSel[mSel.length - 1].name : "") : period.name}</span>
+                  <span class="tp-agenda-main">{mel.code}</span>
+                  {#if mel.classroom}<span class="tp-agenda-room">{mel.classroom}</span>{/if}
+                </button>
+              {/each}
             {/each}
             {#if !dayHasItems(day)}<div class="tp-agenda-empty">No lessons</div>{/if}
           {/if}
@@ -1226,6 +1274,37 @@
                   {/if}
                 </div>
               {/each}
+
+              <!-- Multi-period custom events: one spanning block per contiguous run -->
+              {#each multiEventsForDay(day.key) as devEv (devEv.id)}
+                {@const mlbl   = getDateEventLabel(devEv)}
+                {@const mOrder = getPeriodsForDay(plugin.settings.academicYear, day.key)}
+                {#each contiguousRuns(mOrder, eventPeriodIds(devEv)) as run}
+                  {@const rStart  = timeToMinutes(run[0].start)}
+                  {@const rEnd    = timeToMinutes(run[run.length - 1].end)}
+                  {@const rTop    = (rStart - _axis.start) * PX_PER_MIN}
+                  {@const rHeight = Math.max(24, (rEnd - rStart) * PX_PER_MIN)}
+                  <!-- svelte-ignore a11y-no-static-element-interactions a11y-interactive-supports-focus -->
+                  <div
+                    class="tp-event-span"
+                    role="button"
+                    tabindex="0"
+                    style="top:{rTop}px; height:{rHeight}px; background:linear-gradient({hexToRgba(mlbl.colour,0.22)},{hexToRgba(mlbl.colour,0.22)}), var(--background-primary); border-left:3px solid {mlbl.colour};"
+                    on:click={(e) => openChipMenu(e, "event", dayDate, run[0].id, undefined, devEv)}
+                    on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
+                    title="{mlbl.code} · {run[0].start}–{run[run.length - 1].end}"
+                  >
+                    <span class="tp-chip-period-time">{run[0].name}{run.length > 1 ? " – " + run[run.length - 1].name : ""} · {run[0].start}–{run[run.length - 1].end}</span>
+                    <div class="tp-chip-body">
+                      <span class="tp-chip-code">{mlbl.code}</span>
+                      {#if mlbl.notes}<span class="tp-chip-notes">{mlbl.notes}</span>{/if}
+                    </div>
+                    {#if mlbl.classroom}
+                      <div class="tp-chip-footer"><span class="tp-chip-room">{mlbl.classroom}</span></div>
+                    {/if}
+                  </div>
+                {/each}
+              {/each}
             {/if}
           </div>
         {/each}
@@ -1300,6 +1379,12 @@
 
   /* Period blocks — positioned by time within the day column */
   .tp-block { position:absolute; left:4px; right:4px; border:1px solid var(--background-modifier-border); border-radius:4px; box-sizing:border-box; overflow:hidden; transition:background 0.1s; z-index:2; container-type:inline-size; container-name:block; }
+
+  /* Multi-period custom event — floats over period blocks, spanning a contiguous run */
+  .tp-event-span { position:absolute; left:4px; right:4px; z-index:4; border-radius:4px; padding:4px 7px; box-sizing:border-box; display:flex; flex-direction:column; gap:2px; overflow:hidden; cursor:pointer; user-select:none; color:var(--text-normal); border:1px solid var(--background-modifier-border); box-shadow:0 1px 5px rgba(0,0,0,0.2); transition:filter 0.1s; }
+  .tp-event-span:hover { filter:brightness(1.06); }
+  .tp-event-span .tp-chip-period-time { display:block; font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-event-span .tp-chip-code { font-weight:700; font-size:13px; line-height:1.2; }
   .tp-block--dragover { background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important; outline:2px dashed var(--interactive-accent); outline-offset:-2px; }
   .tp-block--reject   { background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important; transition:background 0s; }
   /* Stacked label: period name with its time range underneath. Short blocks

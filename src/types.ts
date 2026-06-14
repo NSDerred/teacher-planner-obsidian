@@ -127,8 +127,28 @@ export interface SlotExclusion {
 export interface DateEvent {
   id: string;
   date: string;      // ISO date "YYYY-MM-DD"
+  /** Primary / first period block (kept for back-compat and single-period events). */
   periodId: string;
-  classId: string;   // class or activity id
+  /**
+   * One or more period blocks the event occupies. When absent or empty,
+   * the event occupies the single block named by `periodId`. Custom
+   * multi-period events (e.g. a meeting over P1+P2) list every block here.
+   */
+  periodIds?: string[];
+  /**
+   * Class or activity id this event mirrors. Empty string ("") for custom
+   * free-form events created with a typed title (see `title`).
+   */
+  classId: string;
+  /**
+   * Free-form event name. When set, the event is a custom one-off (not tied
+   * to a class/activity) and is rendered/labelled from these fields directly.
+   */
+  title?: string;
+  /** Custom event colour (hex). Used when `title` is set. */
+  colour?: string;
+  /** Whether a custom (title) event counts towards directed time. */
+  isDirected?: boolean;
   notes?: string;
   classroom?: string;
   /** Per-event duration override in minutes. Falls back to the activity's durationMinutes. */

@@ -183,7 +183,12 @@ export function calcDirectedTime(s: TeacherPlannerSettings): DirectedTimeCalc {
     let eventCount = 0, eventMins = 0;
     for (const ev of s.dateEvents ?? []) {
       const evMon = getMondayOfWeek(new Date(ev.date + "T12:00:00")).toISOString().slice(0, 10);
-      if (evMon !== wKey || !isDirectedId(ev.classId, s)) continue;
+      // Custom (title) events use their explicit isDirected flag; legacy events
+      // are directed if their class/activity is.
+      const directed = (ev.title && ev.title.trim())
+        ? !!ev.isDirected
+        : isDirectedId(ev.classId, s);
+      if (evMon !== wKey || !directed) continue;
       if (holidayDates.has(ev.date)) continue;
       eventCount++;
       eventMins += resolveEventMins(ev, s, def);
