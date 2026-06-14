@@ -39,6 +39,8 @@ export interface AcademicYear {
   dayScheduleMap?: Partial<Record<SchoolDay, string>>;
   abWeekEnabled: boolean;
   abWeekStartsOn: "A" | "B";
+  /** Continue A/B rotation across holidays (skip fully-holiday weeks). Default true. */
+  abWeekHolidayAware?: boolean;
 }
 export interface Subject {
   id: string;
@@ -88,6 +90,8 @@ export interface WeekOverride {
   insetHours?: number;
   slotOverrides?: Record<string, Partial<TimetableSlot>>;
   abWeekOverride?: "A" | "B";
+  /** With abWeekOverride: false/absent = relabel this week only; true = re-anchor the rotation from here. */
+  abWeekAnchor?: boolean;
 }
 export interface LessonNoteFrontmatter {
   classId: string;

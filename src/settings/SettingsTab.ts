@@ -507,6 +507,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addDropdown(d => d.addOption("A", "Week A").addOption("B", "Week B")
         .setValue(this.plugin.settings.academicYear.abWeekStartsOn)
         .onChange(async (v: string) => { this.plugin.settings.academicYear.abWeekStartsOn = v as "A" | "B"; await this.plugin.saveSettings(); }));
+    new Setting(abPanel).setName("Continue rotation across holidays")
+      .setDesc("Skip fully-holiday weeks so the A/B pattern carries on seamlessly after a break. Recomputes automatically when holidays change.")
+      .addToggle(t => t.setValue(this.plugin.settings.academicYear.abWeekHolidayAware !== false)
+        .onChange(async v => { this.plugin.settings.academicYear.abWeekHolidayAware = v; await this.plugin.saveSettings(); }));
 
     // ── Lessons ────────────────────────────────────────────────────────────
     new Setting(containerEl).setName("Lessons").setHeading();

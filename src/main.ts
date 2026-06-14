@@ -466,6 +466,9 @@ export default class TeacherPlannerPlugin extends Plugin {
     if (!this.settings.academicYear.abWeekStartsOn) {
       this.settings.academicYear.abWeekStartsOn = "A";
     }
+    if (this.settings.academicYear.abWeekHolidayAware === undefined) {
+      this.settings.academicYear.abWeekHolidayAware = true;
+    }
     for (const o of this.settings.weekOverrides ?? []) {
       const legacyOverride = o as WeekOverride & { weekStart?: string };
       if (legacyOverride.weekStart && !o.startDate) {

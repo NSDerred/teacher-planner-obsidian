@@ -22,6 +22,7 @@ export const DEFAULT_SETTINGS: TeacherPlannerSettings = {
     endDate: "2026-07-15",
     abWeekEnabled: false,
     abWeekStartsOn: "A",
+    abWeekHolidayAware: true,
     periods: [
       { id: "before-school",  name: "Before School", start: "07:30", end: "08:30", type: "administration" },
       { id: "registration",   name: "Registration",  start: "08:30", end: "09:00", type: "registration" },

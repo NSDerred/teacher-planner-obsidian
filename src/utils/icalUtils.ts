@@ -161,7 +161,7 @@ function collectEvents(s: TeacherPlannerSettings, opts: IcalOptions): VEvent[] {
     const mondayKey = monday.toISOString().slice(0, 10);
     const template = s.timetableTemplates?.find(t => t.startDate <= mondayKey && t.endDate >= mondayKey);
     const abType = s.academicYear?.abWeekEnabled
-      ? getAbWeekType(d, s.academicYear.startDate, s.academicYear.abWeekStartsOn)
+      ? getAbWeekType(d, s.academicYear, s.weekOverrides ?? [], s.schoolDays)
       : null;
 
     const occupiedPeriods = new Set<string>();

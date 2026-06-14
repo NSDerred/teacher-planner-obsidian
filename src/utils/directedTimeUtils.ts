@@ -159,7 +159,7 @@ export function calcDirectedTime(s: TeacherPlannerSettings): DirectedTimeCalc {
 
     if (template) {
       const abType = s.academicYear.abWeekEnabled
-        ? getAbWeekType(weekMon, s.academicYear.startDate, s.academicYear.abWeekStartsOn)
+        ? getAbWeekType(weekMon, s.academicYear, s.weekOverrides ?? [], s.schoolDays)
         : null;
 
       for (const slot of template.slots) {

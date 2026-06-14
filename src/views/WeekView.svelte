@@ -73,8 +73,9 @@
   $: dateRange      = formatDateRange(currentDate);
   $: abEnabled      = !!plugin.settings.academicYear.abWeekEnabled;
   $: abWeekType     = abEnabled
-    ? getAbWeekType(currentDate, plugin.settings.academicYear.startDate, plugin.settings.academicYear.abWeekStartsOn)
+    ? getAbWeekType(currentDate, plugin.settings.academicYear, plugin.settings.weekOverrides ?? [], plugin.settings.schoolDays)
     : null;
+  $: abOverridden   = _dep(_tick, (plugin.settings.weekOverrides ?? []).some(o => o.abWeekOverride && getMondayOfWeek(new Date(o.startDate + "T12:00:00")).getTime() === currentMonday.getTime()));
   // Per-day override status — keyed by day.key ("monday" etc.) → "holiday" | "inset" | null
   $: dayOverrideMap = (() => {
     const map: Record<string, "holiday" | "inset" | null> = {};
@@ -643,6 +644,28 @@
     currentDate = t < s ? s : t > e ? e : t;
   }
 
+  // ── A/B week override (per-week) ──────────────────────────────────────────
+  async function setAbOverride(value: "A" | "B" | null, anchor: boolean) {
+    const monIso = dayISODate(0, currentMonday);
+    let overrides = (plugin.settings.weekOverrides ?? []).filter(o =>
+      !(o.abWeekOverride && getMondayOfWeek(new Date(o.startDate + "T12:00:00")).getTime() === currentMonday.getTime()));
+    if (value) overrides = [...overrides, { startDate: monIso, type: "custom", abWeekOverride: value, abWeekAnchor: anchor }];
+    plugin.settings.weekOverrides = overrides;
+    await plugin.saveSettings();
+    invalidate();
+  }
+  function openAbMenu(e: MouseEvent) {
+    e.stopPropagation();
+    const menu = new Menu();
+    menu.addItem(i => i.setTitle("Auto (rotation)").setIcon("rotate-ccw").onClick(() => setAbOverride(null, false)));
+    menu.addSeparator();
+    menu.addItem(i => i.setTitle("Just this week: A").onClick(() => setAbOverride("A", false)));
+    menu.addItem(i => i.setTitle("Just this week: B").onClick(() => setAbOverride("B", false)));
+    menu.addItem(i => i.setTitle("From this week on: A").onClick(() => setAbOverride("A", true)));
+    menu.addItem(i => i.setTitle("From this week on: B").onClick(() => setAbOverride("B", true)));
+    menu.showAtMouseEvent(e);
+  }
+
   function onOpenTimetable() { new TimetableEditorModal(plugin.app, plugin).open(); }
   function onOpenSettings()  {
     const s = (plugin.app as any).setting;
@@ -909,7 +932,9 @@
       <span class="tp-week-label">
         {isDayMode ? selectedDayLong : weekLabel}
         {#if abEnabled && abWeekType}
-          <span class="tp-week-ab-badge tp-week-ab-badge--{abWeekType.toLowerCase()}">Week {abWeekType}</span>
+          <button class="tp-week-ab-badge tp-week-ab-badge--{abWeekType.toLowerCase()}" class:tp-week-ab-badge--forced={abOverridden}
+            title={abOverridden ? "A/B forced for this week — click to change" : "Click to override this week's A/B"}
+            on:click={openAbMenu}>Week {abWeekType}</button>
         {/if}
       </span>
       <span class="tp-date-range">{isDayMode ? selectedDayDateStr : dateRange}</span>
@@ -1211,6 +1236,9 @@
   .tp-header-actions { display:flex; gap:6px; justify-content:flex-end; }
 
   .tp-week-ab-badge { display:inline-block; margin-left:6px; padding:1px 7px; border-radius:10px; font-size:12px; font-weight:700; vertical-align:middle; background:var(--interactive-accent); color:var(--text-on-accent); }
+  button.tp-week-ab-badge { border:none; cursor:pointer; font-family:var(--font-interface); line-height:1.5; }
+  button.tp-week-ab-badge:hover { opacity:0.85; }
+  .tp-week-ab-badge--forced { outline:1.5px dashed currentColor; outline-offset:1px; }
   .tp-week-ab-badge--b { background:var(--color-yellow,#f59e0b); color:#1e1e2e; }
 
   /* Buttons */

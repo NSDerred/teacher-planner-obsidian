@@ -143,7 +143,7 @@ export function bulkApplyPlan(s: TeacherPlannerSettings, classId: string, fromIs
     const mondayKey = getMondayOfWeek(d).toISOString().slice(0, 10);
     const template = s.timetableTemplates?.find(t => t.startDate <= mondayKey && t.endDate >= mondayKey);
     if (!template) continue;
-    const abType = ay.abWeekEnabled ? getAbWeekType(d, ay.startDate, ay.abWeekStartsOn) : null;
+    const abType = ay.abWeekEnabled ? getAbWeekType(d, ay, s.weekOverrides ?? [], schoolDays) : null;
 
     for (const slot of template.slots) {
       if (slot.classId !== classId || slot.day !== dayName) continue;

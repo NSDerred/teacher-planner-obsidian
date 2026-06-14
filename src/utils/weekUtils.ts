@@ -1,4 +1,4 @@
-import type { WeekOverride } from "../types";
+import type { WeekOverride, AcademicYear, SchoolDay } from "../types";
 
 /**
  * Returns the Monday of the week containing the given date.
@@ -75,20 +75,91 @@ export function isWithinAcademicYear(date: Date, startDate: string, endDate: str
   return d >= new Date(startDate).getTime() && d <= new Date(endDate).getTime();
 }
 
+const _AB_DAY_KEYS: SchoolDay[] = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+const _DEFAULT_SCHOOL_DAYS: SchoolDay[] = ["monday","tuesday","wednesday","thursday","friday"];
+
+function _isoLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+/** A week is "fully holiday" if every school day in it falls inside a holiday override. */
+export function isFullyHolidayWeek(monday: Date, schoolDays: SchoolDay[], overrides: WeekOverride[]): boolean {
+  const holidays = overrides.filter(o => o.type === "holiday");
+  if (holidays.length === 0) return false;
+  let sawSchoolDay = false;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday); d.setDate(d.getDate() + i);
+    const key = _AB_DAY_KEYS[(d.getDay() + 6) % 7];
+    if (!schoolDays.includes(key)) continue;
+    sawSchoolDay = true;
+    const iso = _isoLocal(d);
+    const covered = holidays.some(h => iso >= h.startDate && iso <= (h.endDate ?? h.startDate));
+    if (!covered) return false;
+  }
+  return sawSchoolDay;
+}
+
+/** The A/B override pinned to a given week's Monday, if any. */
+function _abOverrideForMonday(monday: Date, overrides: WeekOverride[]): { value: "A" | "B"; anchor: boolean } | null {
+  for (const o of overrides) {
+    if (!o.abWeekOverride) continue;
+    if (getMondayOfWeek(new Date(o.startDate + "T12:00:00")).getTime() === monday.getTime()) {
+      return { value: o.abWeekOverride, anchor: !!o.abWeekAnchor };
+    }
+  }
+  return null;
+}
+
 /**
- * Returns "A" or "B" for the given date based on A/B week rotation config.
+ * Returns "A", "B", or null for a date's week.
+ *
+ * The rotation counts TEACHING weeks from the academic-year start, alternating
+ * from `abWeekStartsOn`. When holiday-aware (default), fully-holiday weeks are
+ * skipped (they don't advance the count), so teaching continues seamlessly
+ * across breaks. Per-week overrides (WeekOverride.abWeekOverride) pin a week:
+ * a non-anchor override just relabels that week, while an anchor override
+ * re-bases the rotation from there. Returns null for a skipped holiday week or
+ * a week before the academic year starts.
  */
 export function getAbWeekType(
   date: Date,
-  academicStartDate: string,
-  startsOn: "A" | "B"
-): "A" | "B" {
-  const startMonday = getMondayOfWeek(new Date(academicStartDate + "T12:00:00"));
-  const currentMonday = getMondayOfWeek(date);
-  const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-  const weeksDiff = Math.round((currentMonday.getTime() - startMonday.getTime()) / msPerWeek);
-  const isEven = ((weeksDiff % 2) + 2) % 2 === 0;
-  return isEven ? startsOn : (startsOn === "A" ? "B" : "A");
+  ay: AcademicYear,
+  overrides: WeekOverride[] = [],
+  schoolDays: SchoolDay[] = _DEFAULT_SCHOOL_DAYS,
+): "A" | "B" | null {
+  const opp = (x: "A" | "B"): "A" | "B" => (x === "A" ? "B" : "A");
+  const startMonday = getMondayOfWeek(new Date(ay.startDate + "T12:00:00"));
+  const target = getMondayOfWeek(date);
+
+  if (target.getTime() < startMonday.getTime()) {
+    const wk = Math.round((target.getTime() - startMonday.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    return (((wk % 2) + 2) % 2) === 0 ? ay.abWeekStartsOn : opp(ay.abWeekStartsOn);
+  }
+
+  const holidayAware = ay.abWeekHolidayAware !== false; // default on
+  let next: "A" | "B" = ay.abWeekStartsOn;
+  const m = new Date(startMonday);
+  for (let guard = 0; guard < 400; guard++) {
+    const ov = _abOverrideForMonday(m, overrides);
+    const skipped = holidayAware && !ov && isFullyHolidayWeek(m, schoolDays, overrides);
+    let weekType: "A" | "B" | null;
+    if (skipped) {
+      weekType = null; // holiday week — does not advance the rotation
+    } else if (ov) {
+      weekType = ov.value;
+      next = ov.anchor ? opp(ov.value) : opp(next);
+    } else {
+      weekType = next;
+      next = opp(next);
+    }
+    if (m.getTime() === target.getTime()) return weekType;
+    m.setDate(m.getDate() + 7);
+    if (m.getTime() > target.getTime()) return null;
+  }
+  return null;
 }
 
 /**
@@ -110,7 +181,7 @@ export function isValidIsoDate(s: string): boolean {
 export function findOverlappingOverrides(
   overrides: WeekOverride[]
 ): [WeekOverride, WeekOverride] | null {
-  const sorted = [...overrides].sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const sorted = [...overrides].filter(o => o.type === "holiday" || o.type === "inset").sort((a, b) => a.startDate.localeCompare(b.startDate));
   for (let i = 1; i < sorted.length; i++) {
     const prevEnd = sorted[i - 1].endDate ?? sorted[i - 1].startDate;
     if (sorted[i].startDate <= prevEnd) return [sorted[i - 1], sorted[i]];
