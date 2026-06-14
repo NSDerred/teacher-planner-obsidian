@@ -654,15 +654,32 @@
     await plugin.saveSettings();
     invalidate();
   }
+  function currentAbOverride(): { value: "A" | "B"; anchor: boolean } | null {
+    for (const o of plugin.settings.weekOverrides ?? []) {
+      if (o.abWeekOverride && getMondayOfWeek(new Date(o.startDate + "T12:00:00")).getTime() === currentMonday.getTime()) {
+        return { value: o.abWeekOverride, anchor: !!o.abWeekAnchor };
+      }
+    }
+    return null;
+  }
   function openAbMenu(e: MouseEvent) {
     e.stopPropagation();
+    const cur = currentAbOverride();
+    const state = cur
+      ? `This week: Week ${abWeekType} (forced${cur.anchor ? ", shifts rest" : ""})`
+      : `This week: Week ${abWeekType} (automatic)`;
     const menu = new Menu();
-    menu.addItem(i => i.setTitle("Auto (rotation)").setIcon("rotate-ccw").onClick(() => setAbOverride(null, false)));
+    menu.addItem(i => i.setTitle(state).setIcon("calendar").setDisabled(true));
     menu.addSeparator();
-    menu.addItem(i => i.setTitle("Just this week: A").onClick(() => setAbOverride("A", false)));
-    menu.addItem(i => i.setTitle("Just this week: B").onClick(() => setAbOverride("B", false)));
-    menu.addItem(i => i.setTitle("From this week on: A").onClick(() => setAbOverride("A", true)));
-    menu.addItem(i => i.setTitle("From this week on: B").onClick(() => setAbOverride("B", true)));
+    menu.addItem(i => i.setTitle("Use automatic rotation").setIcon("rotate-ccw").setChecked(!cur).onClick(() => setAbOverride(null, false)));
+    menu.addSeparator();
+    menu.addItem(i => i.setTitle("Relabel this week only").setDisabled(true));
+    menu.addItem(i => i.setTitle("Show this week as A").setChecked(!!cur && !cur.anchor && cur.value === "A").onClick(() => setAbOverride("A", false)));
+    menu.addItem(i => i.setTitle("Show this week as B").setChecked(!!cur && !cur.anchor && cur.value === "B").onClick(() => setAbOverride("B", false)));
+    menu.addSeparator();
+    menu.addItem(i => i.setTitle("Change pattern from here on").setDisabled(true));
+    menu.addItem(i => i.setTitle("Make this an A week (shift the rest)").setChecked(!!cur && cur.anchor && cur.value === "A").onClick(() => setAbOverride("A", true)));
+    menu.addItem(i => i.setTitle("Make this a B week (shift the rest)").setChecked(!!cur && cur.anchor && cur.value === "B").onClick(() => setAbOverride("B", true)));
     menu.showAtMouseEvent(e);
   }
 
