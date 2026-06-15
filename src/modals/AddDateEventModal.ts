@@ -426,10 +426,10 @@ export class AddDateEventModal extends Modal {
         return b;
       };
 
-      makeAction("layers-intersect", "Add anyway", "Keep both in this period", false)
+      makeAction("copy", "Add anyway", "Keep both in this period", false)
         .addEventListener("click", () => { void performSave(); });
       if (directedTimeEnabled && directed) {
-        makeAction("clock-off", "Add, don't count as directed", "Adds it without inflating your hours", false)
+        makeAction("ban", "Add, don't count as directed", "Adds it without inflating your hours", false)
           .addEventListener("click", () => { void performSave({ directed: false }); });
       }
       makeAction("trash", "Remove existing & add", `Removes ${occSummary} first`, true)

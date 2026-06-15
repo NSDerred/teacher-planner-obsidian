@@ -15856,11 +15856,11 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
         txt.createEl("span", { text: desc, cls: "tp-clash-action-desc" });
         return b;
       };
-      makeAction("layers-intersect", "Add anyway", "Keep both in this period", false).addEventListener("click", () => {
+      makeAction("copy", "Add anyway", "Keep both in this period", false).addEventListener("click", () => {
         void performSave();
       });
       if (directedTimeEnabled && directed) {
-        makeAction("clock-off", "Add, don't count as directed", "Adds it without inflating your hours", false).addEventListener("click", () => {
+        makeAction("ban", "Add, don't count as directed", "Adds it without inflating your hours", false).addEventListener("click", () => {
           void performSave({ directed: false });
         });
       }
