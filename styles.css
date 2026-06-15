@@ -329,6 +329,40 @@
 .tp-modal-textarea:focus { outline: none; border-color: var(--interactive-accent); }
 
 /* ── Add/Edit event modal — custom event UI ──────────────────────────────────  */
+.tp-date-event-modal { position: relative; }
+.tp-clash-overlay {
+  position: absolute; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: color-mix(in srgb, var(--background-primary) 68%, transparent);
+}
+.tp-clash-card {
+  width: 100%; max-width: 380px; box-sizing: border-box;
+  background: var(--background-primary); border: 1px solid var(--background-modifier-border);
+  border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); padding: 16px 18px;
+  display: flex; flex-direction: column;
+}
+.tp-clash-head { display: flex; align-items: center; gap: 7px; font-size: 16px; font-weight: 600; color: var(--color-red, #f38ba8); margin-bottom: 10px; }
+.tp-clash-head-icon { display: inline-flex; }
+.tp-clash-head-icon svg { width: 18px; height: 18px; }
+.tp-clash-list { display: flex; flex-direction: column; gap: 4px; }
+.tp-clash-row { display: flex; gap: 10px; font-size: 13px; align-items: baseline; }
+.tp-clash-period { font-weight: 600; min-width: 64px; color: var(--text-normal); }
+.tp-clash-items { color: var(--text-muted); }
+.tp-clash-warn { font-size: 12px; color: var(--color-red, #f38ba8); background: color-mix(in srgb, var(--color-red,#f38ba8) 12%, transparent); border-radius: 6px; padding: 8px 10px; margin: 10px 0 0; }
+.tp-clash-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.tp-clash-action { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 11px; height: auto; border: 1px solid var(--background-modifier-border); border-radius: 7px; background: var(--background-primary); color: var(--text-normal); cursor: pointer; font-family: var(--font-interface); transition: background 0.1s; }
+.tp-clash-action:hover { background: var(--background-modifier-hover); }
+.tp-clash-action-icon { display: inline-flex; flex-shrink: 0; color: var(--text-muted); }
+.tp-clash-action-icon svg { width: 18px; height: 18px; }
+.tp-clash-action-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.tp-clash-action-title { font-size: 13px; }
+.tp-clash-action-desc { font-size: 11px; color: var(--text-muted); }
+.tp-clash-action--danger { border-color: color-mix(in srgb, var(--color-red,#f38ba8) 55%, transparent); }
+.tp-clash-action--danger .tp-clash-action-title, .tp-clash-action--danger .tp-clash-action-icon { color: var(--color-red, #f38ba8); }
+.tp-clash-back { align-self: flex-start; margin-top: 12px; display: inline-flex; align-items: center; gap: 5px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 4px 0; font-family: var(--font-interface); }
+.tp-clash-back:hover { color: var(--text-normal); }
+.tp-clash-back-icon { display: inline-flex; }
+.tp-clash-back-icon svg { width: 14px; height: 14px; }
+
 .tp-modal-label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
 /* Event-name search combobox + generic dropdown panel */

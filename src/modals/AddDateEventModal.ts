@@ -1,10 +1,11 @@
-import { App, Modal, Notice } from "obsidian";
+import { App, Modal, Notice, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { DateEvent, SchoolDay, SchoolPeriod } from "../types";
 import { getPeriodsForDay } from "../utils/scheduleUtils";
 import { eventPeriodIds, sumPeriodMinutes } from "../utils/eventUtils";
 import { CLASS_COLOUR_PALETTE } from "../settings";
-import { ColourPickerModal } from "../settings/SettingsTab";
+import { ColourPickerModal, ConfirmModal } from "../settings/SettingsTab";
+import { blockOccupants } from "../utils/clashUtils";
 
 const DAY_OF_WEEK: Record<number, SchoolDay> = {
   0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday",
@@ -340,20 +341,15 @@ export class AddDateEventModal extends Modal {
     }
     footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
 
-    const saveBtn = footer.createEl("button", { text: isEdit ? "Save changes" : "Add event", cls: "tp-btn tp-btn--primary" });
-    saveBtn.addEventListener("click", () => { void (async () => {
-      if (!title.trim()) { new Notice("Please give the event a name."); return; }
-      if (!date) { new Notice("Please choose a date."); return; }
-      if (selected.size === 0) { new Notice("Please select at least one period block."); return; }
+    const orderedSelected = () => periodsForDate(date).filter(p => selected.has(p.id)).map(p => p.id);
 
-      const ordered = periodsForDate(date).filter(p => selected.has(p.id)).map(p => p.id);
-
+    const performSave = async (opts?: { directed?: boolean }) => {
+      const ordered = orderedSelected();
       const ay = this.plugin.settings.academicYear;
       if (ay?.startDate && ay?.endDate && (date < ay.startDate || date > ay.endDate)) {
         new Notice(`Note: ${date} is outside the academic year (${ay.startDate} – ${ay.endDate}). The event was saved but won't count towards directed time.`, 6000);
       }
       if (!this.plugin.settings.dateEvents) this.plugin.settings.dateEvents = [];
-
       const fields = {
         date,
         periodId: ordered[0],
@@ -361,12 +357,11 @@ export class AddDateEventModal extends Modal {
         classId: "",
         title: title.trim(),
         colour,
-        isDirected: directedTimeEnabled ? directed : false,
+        isDirected: directedTimeEnabled ? (opts?.directed ?? directed) : false,
         notes,
         classroom: classroom.trim() || undefined,
         durationMinutes: durationMinutes > 0 ? durationMinutes : undefined,
       };
-
       if (isEdit && this.existingEvent) {
         const ev = this.plugin.settings.dateEvents.find(e => e.id === this.existingEvent!.id);
         if (ev) Object.assign(ev, fields);
@@ -375,6 +370,100 @@ export class AddDateEventModal extends Modal {
       }
       await this.plugin.saveSettings();
       this.onSaved(); this.close();
+    };
+
+    // Remove the clashing occupants: delete conflicting events; exclude
+    // conflicting lessons for this date only (template untouched).
+    const removeOccupants = (clashes: Array<{ name: string; occ: ReturnType<typeof blockOccupants> }>) => {
+      const evIds = new Set<string>();
+      const slotIds = new Set<string>();
+      for (const c of clashes) for (const o of c.occ) {
+        if (o.kind === "event") evIds.add(o.id); else slotIds.add(o.id);
+      }
+      if (evIds.size) {
+        this.plugin.settings.dateEvents = (this.plugin.settings.dateEvents ?? []).filter(e => !evIds.has(e.id));
+      }
+      if (slotIds.size) {
+        if (!this.plugin.settings.slotExclusions) this.plugin.settings.slotExclusions = [];
+        for (const slotId of slotIds) {
+          if (!this.plugin.settings.slotExclusions.some(ex => ex.slotId === slotId && ex.date === date)) {
+            this.plugin.settings.slotExclusions.push({ slotId, date });
+          }
+        }
+      }
+    };
+
+    const showClashWarning = (clashes: Array<{ name: string; occ: ReturnType<typeof blockOccupants> }>) => {
+      const overlay = contentEl.createDiv("tp-clash-overlay");
+      const card = overlay.createDiv("tp-clash-card");
+
+      const head = card.createDiv("tp-clash-head");
+      const hIcon = head.createSpan("tp-clash-head-icon"); setIcon(hIcon, "alert-triangle");
+      head.createSpan({ text: "Block already in use" });
+
+      const list = card.createDiv("tp-clash-list");
+      for (const c of clashes) {
+        const row = list.createDiv("tp-clash-row");
+        row.createEl("span", { text: c.name, cls: "tp-clash-period" });
+        row.createEl("span", { text: c.occ.map(o => `${o.label} (${o.kind})`).join(", "), cls: "tp-clash-items" });
+      }
+
+      if (directedTimeEnabled && directed && clashes.some(c => c.occ.some(o => o.directed))) {
+        card.createEl("p", { cls: "tp-clash-warn",
+          text: "Directed-time tracker is on — keeping both counts this period's time twice." });
+      }
+
+      const occAll = clashes.flatMap(c => c.occ);
+      const occSummary = occAll.map(o => `${o.label} (${o.kind})`).join(", ");
+
+      const acts = card.createDiv("tp-clash-actions");
+      const makeAction = (iconName: string, title2: string, desc: string, danger: boolean): HTMLButtonElement => {
+        const b = acts.createEl("button", { cls: "tp-clash-action" + (danger ? " tp-clash-action--danger" : "") });
+        const ic = b.createSpan("tp-clash-action-icon"); setIcon(ic, iconName);
+        const txt = b.createDiv("tp-clash-action-text");
+        txt.createEl("span", { text: title2, cls: "tp-clash-action-title" });
+        txt.createEl("span", { text: desc, cls: "tp-clash-action-desc" });
+        return b;
+      };
+
+      makeAction("layers-intersect", "Add anyway", "Keep both in this period", false)
+        .addEventListener("click", () => { void performSave(); });
+      if (directedTimeEnabled && directed) {
+        makeAction("clock-off", "Add, don't count as directed", "Adds it without inflating your hours", false)
+          .addEventListener("click", () => { void performSave({ directed: false }); });
+      }
+      makeAction("trash", "Remove existing & add", `Removes ${occSummary} first`, true)
+        .addEventListener("click", () => {
+          new ConfirmModal(
+            this.plugin.app,
+            `Remove ${occSummary} from this block, then add "${title.trim()}"? Lessons are only removed for ${date}; the timetable is unchanged.`,
+            async () => { removeOccupants(clashes); await performSave(); },
+            "Remove & add",
+          ).open();
+        });
+
+      const back = card.createEl("button", { cls: "tp-clash-back" });
+      const bIcon = back.createSpan("tp-clash-back-icon"); setIcon(bIcon, "arrow-left");
+      back.createSpan({ text: "Back" });
+      back.addEventListener("click", () => overlay.remove());
+    };
+
+    const saveBtn = footer.createEl("button", { text: isEdit ? "Save changes" : "Add event", cls: "tp-btn tp-btn--primary" });
+    saveBtn.addEventListener("click", () => { void (async () => {
+      if (!title.trim()) { new Notice("Please give the event a name."); return; }
+      if (!date) { new Notice("Please choose a date."); return; }
+      if (selected.size === 0) { new Notice("Please select at least one period block."); return; }
+
+      const periodsList = periodsForDate(date);
+      const clashes = orderedSelected()
+        .map(pid => ({
+          name: periodsList.find(p => p.id === pid)?.name ?? pid,
+          occ: blockOccupants(this.plugin.settings, date, pid, { excludeEventId: isEdit ? this.existingEvent!.id : undefined }),
+        }))
+        .filter(c => c.occ.length > 0);
+
+      if (clashes.length === 0) { await performSave(); return; }
+      showClashWarning(clashes);
     })(); });
 
     window.setTimeout(() => titleInput.focus(), 50);

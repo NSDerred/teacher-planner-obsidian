@@ -18,7 +18,7 @@
   import { AddDateEventModal } from "../modals/AddDateEventModal";
   import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
   import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
-  import { eventPeriodIds } from "../utils/eventUtils";
+  import { eventPeriodIds, eventIsDirected } from "../utils/eventUtils";
   import {
     getSlotPlan, setSlotPlan, clearSlotPlan, getEventPlan, setEventPlan, clearEventPlan,
     migrateSlotPlanToEvent, bulkApplyPlan, undoBulkApply,
@@ -114,6 +114,7 @@
   })();
   $: _preparedMarks   = _dep(_tick, plugin.settings.preparedMarks ?? []);
   $: _showPrepared    = _dep(_tick, plugin.settings.showPreparedMark ?? true);
+  $: _showDirected    = _dep(_tick, plugin.settings.directedTime?.enabled ?? false);
   $: _preparedSlotMap = (() => {
     const m: Record<string, boolean> = {};
     for (const k of _preparedMarks) if (k.slotId && k.date) m[k.slotId + "|" + k.date] = true;
@@ -200,6 +201,14 @@
       flush();
     }
     return { starts, consumed };
+  }
+
+  // A timetabled slot counts toward directed time if it's a class lesson, or an
+  // activity whose type isn't "other".
+  function slotIsDirected(slot: TimetableSlot): boolean {
+    if (isClassId(slot.classId)) return true;
+    const act = _activities.find(a => a.id === slot.classId);
+    return act ? act.activityType !== "other" : false;
   }
 
   // Per-day template resolution — different days in the same week can belong to
@@ -1286,6 +1295,11 @@
                   on:dragleave={onCellDragLeave}
                   on:drop={(e) => onCellDrop(e, day.key, period.id)}
                 >
+                  {#if ((slot ? 1 : 0) + devEvents.length) >= 2}
+                    {@const _dirOcc = (slot && slotIsDirected(slot) ? 1 : 0) + devEvents.filter(ev => eventIsDirected(ev, plugin.settings)).length}
+                    <div class="tp-block-clash" class:tp-block-clash--directed={_showDirected && _dirOcc >= 2}
+                      title={(_showDirected && _dirOcc >= 2) ? "Double-booked — directed time is counted twice here" : "Double-booked block"}>⚠</div>
+                  {/if}
                   {#if !slot && devEvents.length === 0}
                     <div class="tp-block-label">
                       <span class="tp-block-name">{period.name}</span>
@@ -1488,6 +1502,8 @@
 
   /* Period blocks — positioned by time within the day column */
   .tp-block { position:absolute; left:4px; right:4px; border:1px solid var(--background-modifier-border); border-radius:4px; box-sizing:border-box; overflow:hidden; transition:background 0.1s; z-index:2; container-type:inline-size; container-name:block; }
+  .tp-block-clash { position:absolute; top:1px; right:3px; z-index:6; font-size:11px; line-height:1; color:var(--color-yellow,#e0af68); cursor:help; }
+  .tp-block-clash--directed { color:var(--color-red,#f38ba8); font-size:13px; font-weight:700; }
 
   .tp-block--dragover { background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important; outline:2px dashed var(--interactive-accent); outline-offset:-2px; }
   .tp-block--reject   { background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important; transition:background 0s; }
