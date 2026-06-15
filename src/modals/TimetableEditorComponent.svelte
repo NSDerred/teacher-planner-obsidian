@@ -250,6 +250,11 @@
     );
   }
 
+  // Currently-assigned item id for the open picker cell (for the selected-row highlight)
+  $: pickerCurId = (pickerDay && pickerPeriodId)
+    ? getSlot(pickerDay, pickerPeriodId, currentWeek)?.classId
+    : undefined;
+
   function getLabel(slot: TimetableSlot) {
     const cls = classes.find(c => c.id === slot.classId);
     if (cls) {
@@ -622,9 +627,11 @@
               <div class="tp-te-picker-row">
                 <button
                   class="tp-te-picker-item"
+                  class:tp-te-picker-item--active={cls.id === pickerCurId}
                   style="border-left: 3px solid {cls.colour};"
                   on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, cls.id, currentWeek); closePicker(); } }}
                 >
+                  {#if subj.emoji}<span class="tp-te-picker-emoji">{subj.emoji}</span>{/if}
                   <span class="tp-te-picker-item-text">
                     <span class="tp-te-picker-code">{cls.code}</span>
                     {#if secondary}<span class="tp-te-picker-room">{secondary}</span>{/if}
@@ -643,6 +650,7 @@
             <div class="tp-te-picker-row">
               <button
                 class="tp-te-picker-item"
+                class:tp-te-picker-item--active={act.id === pickerCurId}
                 style="border-left: 3px solid {act.colour};"
                 on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, act.id, currentWeek); closePicker(); } }}
               >
@@ -663,6 +671,7 @@
             <div class="tp-te-picker-row">
               <button
                 class="tp-te-picker-item"
+                class:tp-te-picker-item--active={act.id === pickerCurId}
                 style="border-left: 3px solid {act.colour};"
                 on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, act.id, currentWeek); closePicker(); } }}
               >
@@ -805,6 +814,9 @@
   .tp-te-picker-row { display: flex; align-items: center; gap: 2px; }
   .tp-te-picker-item { flex: 1; display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; border: none; background: transparent; cursor: pointer; text-align: left; width: 100%; transition: background 0.1s; min-width: 0; }
   .tp-te-picker-item:hover { background: var(--background-modifier-hover); }
+  .tp-te-picker-item--active { background: color-mix(in srgb, var(--interactive-accent) 16%, transparent); }
+  .tp-te-picker-item--active:hover { background: color-mix(in srgb, var(--interactive-accent) 24%, transparent); }
+  .tp-te-picker-emoji { font-size: 14px; line-height: 1; flex-shrink: 0; }
   .tp-te-picker-item--archived { cursor: default; pointer-events: none; }
   .tp-te-picker-item-text { display: flex; flex-direction: column; gap: 1px; overflow: hidden; flex: 1; min-width: 0; }
   .tp-te-picker-code { font-size: 13px; font-weight: 600; color: var(--text-normal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
