@@ -712,6 +712,24 @@
     currentDate = t < s ? s : t > e ? e : t;
   }
 
+  // ── Jump-to-date (week-nav centre) ────────────────────────────────────────
+  let jumpOpen = false;
+  function isoOf(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+  $: navCentreLabel = (isDayMode ? currentDate : currentMonday)
+    .toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+  function jumpToDate(iso: string) {
+    if (!iso) return;
+    const d = new Date(iso + "T12:00:00");
+    const s = _ayStart(); const e = _ayEnd();
+    currentDate = d < s ? s : d > e ? e : d;
+    jumpOpen = false;
+  }
+  function onJumpChange(e: Event) {
+    jumpToDate((e.currentTarget as HTMLInputElement).value);
+  }
+
   // ── A/B week override (per-week) ──────────────────────────────────────────
   async function setAbOverride(value: "A" | "B" | null, anchor: boolean) {
     const monIso = dayISODate(0, currentMonday);
@@ -1025,9 +1043,26 @@
       <span class="tp-date-range">{isDayMode ? selectedDayDateStr : dateRange}</span>
     </div>
     <nav class="tp-nav" aria-label="Week navigation">
-      <button class="tp-btn tp-nav-arrow" on:click={onPrev} aria-label="Previous week" disabled={!canGoPrev}>←</button>
-      <button class="tp-btn tp-btn-accent tp-nav-today" on:click={onToday}>Go to today</button>
-      <button class="tp-btn tp-nav-arrow" on:click={onNext} aria-label="Next week" disabled={!canGoNext}>→</button>
+      <button class="tp-btn tp-nav-arrow" on:click={onPrev} aria-label="Previous week" title="Previous week" disabled={!canGoPrev}>‹</button>
+      <div class="tp-nav-jump">
+        <button class="tp-btn tp-nav-centre" on:click={() => jumpOpen = !jumpOpen}
+          aria-haspopup="true" aria-expanded={jumpOpen} title="Jump to a date">
+          <span class="tp-nav-centre-icon" use:obsIcon={"calendar"}></span>
+          <span class="tp-nav-centre-label">{navCentreLabel}</span>
+          <span class="tp-nav-caret">▾</span>
+        </button>
+        {#if jumpOpen}
+          <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+          <div class="tp-nav-backdrop" on:click={() => jumpOpen = false}></div>
+          <div class="tp-nav-pop">
+            <input class="tp-nav-date" type="date" value={isoOf(currentDate)}
+              min={plugin.settings.academicYear.startDate} max={plugin.settings.academicYear.endDate}
+              on:change={onJumpChange} />
+            <button class="tp-btn" on:click={() => { onToday(); jumpOpen = false; }}>Today</button>
+          </div>
+        {/if}
+      </div>
+      <button class="tp-btn tp-nav-arrow" on:click={onNext} aria-label="Next week" title="Next week" disabled={!canGoNext}>›</button>
     </nav>
     <div class="tp-header-actions">
       <button class="tp-btn tp-action-btn" on:click={() => onAddEvent()} aria-label="Add event"><span use:obsIcon={"calendar-plus"} class="tp-btn-icon"></span>Event</button>
@@ -1370,9 +1405,16 @@
   .tp-header-identity { display:flex; flex-direction:column; gap:1px; min-width:0; }
   .tp-week-label { font-size:15px; font-weight:700; color:var(--text-normal); line-height:1.2; }
   .tp-date-range { font-size:13px; color:var(--text-muted); }
-  .tp-nav { display:flex; gap:4px; }
-  .tp-nav-arrow { padding:4px 9px; font-size:15px; line-height:1; }
-  .tp-nav-today { padding:4px 10px; font-size:12px; font-weight:600; letter-spacing:0.02em; }
+  .tp-nav { display:flex; align-items:center; gap:4px; }
+  .tp-nav-arrow { padding:4px 11px; font-size:18px; line-height:1; }
+  .tp-nav-jump { position:relative; display:inline-flex; }
+  .tp-nav-centre { display:inline-flex; align-items:center; gap:6px; padding:5px 11px; font-size:13px; font-weight:600; }
+  .tp-nav-centre-icon :global(svg) { width:14px; height:14px; }
+  .tp-nav-centre-label { white-space:nowrap; }
+  .tp-nav-caret { font-size:10px; color:var(--text-muted); }
+  .tp-nav-backdrop { position:fixed; inset:0; z-index:40; }
+  .tp-nav-pop { position:absolute; top:calc(100% + 6px); left:50%; transform:translateX(-50%); z-index:50; display:flex; align-items:center; gap:6px; background:var(--background-primary); border:1px solid var(--background-modifier-border); border-radius:8px; padding:8px; box-shadow:0 4px 18px rgba(0,0,0,0.32); }
+  .tp-nav-date { font-size:13px; padding:4px 6px; border:1px solid var(--background-modifier-border); border-radius:5px; background:var(--background-modifier-form-field); color:var(--text-normal); font-family:var(--font-interface); }
   .tp-header-actions { display:flex; gap:6px; justify-content:flex-end; }
 
   .tp-week-ab-badge { display:inline-block; margin-left:6px; padding:1px 7px; border-radius:10px; font-size:12px; font-weight:700; vertical-align:middle; background:var(--interactive-accent); color:var(--text-on-accent); }
