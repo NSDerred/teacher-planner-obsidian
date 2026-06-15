@@ -365,13 +365,13 @@
   function onChipDragStart(e: DragEvent, slot: TimetableSlot) {
     dragSlotId = slot.id;
     e.dataTransfer?.setData("text/plain", slot.id);
-    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = "copyMove";
   }
 
   function onEventDragStart(e: DragEvent, ev: DateEvent) {
     dragEventId = ev.id;
     e.dataTransfer?.setData("text/plain", "event:" + ev.id);
-    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = "copyMove";
   }
 
   function onCellDragOver(e: DragEvent, day: SchoolDay, periodId: string) {
@@ -382,7 +382,7 @@
       dragOverKey = null;
       return;
     }
-    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    if (e.dataTransfer) e.dataTransfer.dropEffect = (e.ctrlKey || e.metaKey) ? "copy" : "move";
     dragOverKey = cellKey(day, periodId);
   }
 
@@ -394,6 +394,7 @@
   async function onCellDrop(e: DragEvent, day: SchoolDay, periodId: string) {
     e.preventDefault();
     dragOverKey = null;
+    const copy = e.ctrlKey || e.metaKey;
 
     // Reject drops onto holiday/INSET cells — anything dropped there would be hidden.
     if (isDropRejected(day, periodId)) {
@@ -412,8 +413,23 @@
       const dayDate = dayISODate(dayInfo.offset, currentMonday);
       const ev = plugin.settings.dateEvents.find(ev => ev.id === evId);
       if (!ev) return;
-      ev.date     = dayDate;
-      ev.periodId = periodId;
+      const single = eventPeriodIds(ev).length <= 1;
+      if (copy) {
+        // Duplicate: single-period lands on the drop period; multi keeps its span.
+        const clone: DateEvent = {
+          ...ev,
+          id: "devevent-" + Date.now(),
+          date: dayDate,
+          periodId: single ? periodId : ev.periodId,
+          periodIds: single ? [periodId] : (ev.periodIds ? ev.periodIds.slice() : undefined),
+        };
+        plugin.settings.dateEvents.push(clone);
+      } else {
+        ev.date = dayDate;
+        // Single-period: actually move period (keep periodIds in sync — the grid
+        // renders from periodIds). Multi-period: day-only move, span preserved.
+        if (single) { ev.periodId = periodId; ev.periodIds = [periodId]; }
+      }
       await plugin.saveSettings();
       invalidate();
       return;
@@ -433,13 +449,16 @@
     const sourceDate = dayISODate(sourceDayInfo.offset, currentMonday);
     const targetDate = dayISODate(targetDayInfo.offset, currentMonday);
 
-    // 1. Exclude the slot from its original cell on this specific date
-    if (!plugin.settings.slotExclusions) plugin.settings.slotExclusions = [];
-    const alreadyExcluded = plugin.settings.slotExclusions.some(
-      ex => ex.slotId === slot.id && ex.date === sourceDate
-    );
-    if (!alreadyExcluded) {
-      plugin.settings.slotExclusions.push({ slotId: slot.id, date: sourceDate });
+    // 1. Move only: exclude the slot from its original cell on this date.
+    //    Copy (Ctrl/Cmd) leaves the original lesson in place.
+    if (!copy) {
+      if (!plugin.settings.slotExclusions) plugin.settings.slotExclusions = [];
+      const alreadyExcluded = plugin.settings.slotExclusions.some(
+        ex => ex.slotId === slot.id && ex.date === sourceDate
+      );
+      if (!alreadyExcluded) {
+        plugin.settings.slotExclusions.push({ slotId: slot.id, date: sourceDate });
+      }
     }
 
     // 2. Create a date event in the target cell carrying the same class/activity
@@ -454,10 +473,13 @@
       ...(slot.classroom ? { classroom: slot.classroom } : {}),
     });
 
-    // 3. The lesson plan and external resource follow the moved lesson
-    migrateSlotPlanToEvent(plugin.settings, slot.id, sourceDate, newEvId);
-    migrateSlotExternalToEvent(plugin.settings, slot.id, sourceDate, newEvId);
-    migrateSlotPreparedToEvent(plugin.settings, slot.id, sourceDate, newEvId);
+    // 3. Move only: the lesson plan / external / prepared follow the moved lesson.
+    //    Copy leaves them with the original.
+    if (!copy) {
+      migrateSlotPlanToEvent(plugin.settings, slot.id, sourceDate, newEvId);
+      migrateSlotExternalToEvent(plugin.settings, slot.id, sourceDate, newEvId);
+      migrateSlotPreparedToEvent(plugin.settings, slot.id, sourceDate, newEvId);
+    }
 
     await plugin.saveSettings();
     invalidate();

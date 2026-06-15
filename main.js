@@ -21801,13 +21801,13 @@ function instance3($$self, $$props, $$invalidate) {
     var _a3;
     dragSlotId = slot.id;
     (_a3 = e.dataTransfer) === null || _a3 === void 0 ? void 0 : _a3.setData("text/plain", slot.id);
-    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = "copyMove";
   }
   function onEventDragStart(e, ev) {
     var _a3;
     dragEventId = ev.id;
     (_a3 = e.dataTransfer) === null || _a3 === void 0 ? void 0 : _a3.setData("text/plain", "event:" + ev.id);
-    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = "copyMove";
   }
   function onCellDragOver(e, day2, periodId) {
     if (!dragSlotId && !dragEventId) return;
@@ -21817,7 +21817,7 @@ function instance3($$self, $$props, $$invalidate) {
       $$invalidate(11, dragOverKey = null);
       return;
     }
-    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    if (e.dataTransfer) e.dataTransfer.dropEffect = e.ctrlKey || e.metaKey ? "copy" : "move";
     $$invalidate(11, dragOverKey = cellKey(day2, periodId));
   }
   function onCellDragLeave(e) {
@@ -21828,6 +21828,7 @@ function instance3($$self, $$props, $$invalidate) {
     var _a3;
     e.preventDefault();
     $$invalidate(11, dragOverKey = null);
+    const copy = e.ctrlKey || e.metaKey;
     if (isDropRejected(day2, periodId)) {
       flashReject(cellKey(day2, periodId));
       dragSlotId = null;
@@ -21842,8 +21843,23 @@ function instance3($$self, $$props, $$invalidate) {
       const dayDate = dayISODate(dayInfo.offset, currentMonday);
       const ev = plugin.settings.dateEvents.find((ev2) => ev2.id === evId);
       if (!ev) return;
-      ev.date = dayDate;
-      ev.periodId = periodId;
+      const single = eventPeriodIds(ev).length <= 1;
+      if (copy) {
+        const clone = {
+          ...ev,
+          id: "devevent-" + Date.now(),
+          date: dayDate,
+          periodId: single ? periodId : ev.periodId,
+          periodIds: single ? [periodId] : ev.periodIds ? ev.periodIds.slice() : void 0
+        };
+        plugin.settings.dateEvents.push(clone);
+      } else {
+        ev.date = dayDate;
+        if (single) {
+          ev.periodId = periodId;
+          ev.periodIds = [periodId];
+        }
+      }
       await plugin.saveSettings();
       invalidate();
       return;
@@ -21857,10 +21873,12 @@ function instance3($$self, $$props, $$invalidate) {
     if (!sourceDayInfo || !targetDayInfo) return;
     const sourceDate = dayISODate(sourceDayInfo.offset, currentMonday);
     const targetDate = dayISODate(targetDayInfo.offset, currentMonday);
-    if (!plugin.settings.slotExclusions) $$invalidate(0, plugin.settings.slotExclusions = [], plugin);
-    const alreadyExcluded = plugin.settings.slotExclusions.some((ex) => ex.slotId === slot.id && ex.date === sourceDate);
-    if (!alreadyExcluded) {
-      plugin.settings.slotExclusions.push({ slotId: slot.id, date: sourceDate });
+    if (!copy) {
+      if (!plugin.settings.slotExclusions) $$invalidate(0, plugin.settings.slotExclusions = [], plugin);
+      const alreadyExcluded = plugin.settings.slotExclusions.some((ex) => ex.slotId === slot.id && ex.date === sourceDate);
+      if (!alreadyExcluded) {
+        plugin.settings.slotExclusions.push({ slotId: slot.id, date: sourceDate });
+      }
     }
     if (!plugin.settings.dateEvents) $$invalidate(0, plugin.settings.dateEvents = [], plugin);
     const newEvId = "ev-" + Date.now();
@@ -21872,9 +21890,11 @@ function instance3($$self, $$props, $$invalidate) {
       ...slot.notes ? { notes: slot.notes } : {},
       ...slot.classroom ? { classroom: slot.classroom } : {}
     });
-    migrateSlotPlanToEvent(plugin.settings, slot.id, sourceDate, newEvId);
-    migrateSlotExternalToEvent(plugin.settings, slot.id, sourceDate, newEvId);
-    migrateSlotPreparedToEvent(plugin.settings, slot.id, sourceDate, newEvId);
+    if (!copy) {
+      migrateSlotPlanToEvent(plugin.settings, slot.id, sourceDate, newEvId);
+      migrateSlotExternalToEvent(plugin.settings, slot.id, sourceDate, newEvId);
+      migrateSlotPreparedToEvent(plugin.settings, slot.id, sourceDate, newEvId);
+    }
     await plugin.saveSettings();
     invalidate();
   }
