@@ -752,6 +752,15 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         s.sliderEl.after(valueLabel);
       });
 
+    new Setting(containerEl).setName("Grid zoom (this device)")
+      .setDesc("Height of the week grid, in pixels per hour. Stored per device — not synced, so each device keeps its own zoom.")
+      .addSlider(s => {
+        const valueLabel = createSpan({ cls: "tp-slider-value", text: `${this.plugin.getGridScale()} px/hr` });
+        s.setLimits(60, 240, 10).setValue(this.plugin.getGridScale())
+          .onChange(v => { this.plugin.setGridScale(v); valueLabel.setText(`${v} px/hr`); });
+        s.sliderEl.after(valueLabel);
+      });
+
     new Setting(containerEl).setName("Reset grid visuals")
       .setDesc("Restore both colours to your Obsidian theme and weights to 1px.")
       .addButton(btn => btn.setButtonText("Reset to theme defaults").setClass("mod-warning")

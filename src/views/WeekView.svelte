@@ -230,7 +230,8 @@
   }
 
   // ── Time axis (Option B, Phase 2) ─────────────────────────────────────────
-  const PX_PER_MIN = 2.0;
+  // Time-axis scale (px per minute), driven by the per-device grid-scale setting.
+  $: PX_PER_MIN = _dep(_tick, plugin.getGridScale()) / 60;
   $: _axis = (() => {
     const _t = _tick;
     let min = 24 * 60, max = 0;

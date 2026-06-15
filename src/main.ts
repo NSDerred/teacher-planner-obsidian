@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Plugin, Platform } from "obsidian";
 import type { TeacherPlannerSettings, TimetableSlot, GlobalPluginData, PlannerRecord, WeekOverride } from "./types";
 import { DEFAULT_SETTINGS, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA } from "./settings";
 import { WeekView, WEEK_VIEW_TYPE } from "./views/WeekView";
@@ -165,6 +165,23 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE).forEach(leaf => {
       if (leaf.view instanceof CalendarSidebarView) leaf.view.onSettingsChange();
     });
+  }
+
+  // ── Grid scale (device-local, never synced) ─────────────────────────────────
+  // Stored in Obsidian's per-device local storage rather than data.json, so each
+  // device keeps its own time-axis zoom even when the vault is synced.
+  private static readonly GRID_SCALE_KEY = "teacher-planner:gridScale";
+  /** Time-axis scale in pixels per hour. Per-device; defaults 150 (mobile) / 120 (desktop). */
+  getGridScale(): number {
+    const raw = (this.app as any).loadLocalStorage?.(TeacherPlannerPlugin.GRID_SCALE_KEY);
+    const n = typeof raw === "number" ? raw : parseInt(raw);
+    if (!isNaN(n) && n >= 60 && n <= 240) return n;
+    return Platform.isMobile ? 150 : 120;
+  }
+  setGridScale(pxPerHour: number): void {
+    const clamped = Math.max(60, Math.min(240, Math.round(pxPerHour)));
+    (this.app as any).saveLocalStorage?.(TeacherPlannerPlugin.GRID_SCALE_KEY, clamped);
+    this.refreshViews();
   }
 
   // ── Planner management ──────────────────────────────────────────────────────────────────────────
