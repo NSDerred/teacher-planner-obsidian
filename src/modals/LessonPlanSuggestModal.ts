@@ -30,6 +30,9 @@ export class LessonPlanSuggestModal extends FuzzySuggestModal<PlanChoice> {
 
   getItems(): PlanChoice[] {
     const plansFolder = defaultPlansFolder(this.plugin.settings);
+    // Lesson-plan picker: list the plans folder first, then the rest of the
+    // vault so any note can be linked as a plan. Full markdown list is needed
+    // because plans may live anywhere the user keeps them.
     const files = this.app.vault.getMarkdownFiles();
     const inPlans  = files.filter(f => f.path.startsWith(plansFolder + "/"));
     const therest  = files.filter(f => !f.path.startsWith(plansFolder + "/"));

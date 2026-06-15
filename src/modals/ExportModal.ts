@@ -307,7 +307,9 @@ export class ExportModal extends Modal {
       const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
       await this.ensureFolder(folder);
       const path = `${folder}/${filename}`;
-      await this.app.vault.adapter.writeBinary(path, buf);
+      const existing = this.app.vault.getAbstractFileByPath(path);
+      if (existing instanceof TFile) await this.app.vault.modifyBinary(existing, buf);
+      else await this.app.vault.createBinary(path, buf);
       new Notice(`Exported to ${path}`);
     }
   }

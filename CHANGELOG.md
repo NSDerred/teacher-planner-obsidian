@@ -5,6 +5,30 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.7] — 2026-06-15
+
+### Added
+
+- **Custom one-off events.** The Add Event tool is now a full event creator. Give an event any name, or start typing to search your existing classes and activities and snapshot one. Pick one block or several from a searchable list, set a colour from a palette or a custom picker, choose whether it counts as directed time, and set a duration that auto-fills from the blocks you picked. New events open with a random colour so they stay easy to tell apart.
+- **Spanning blocks for multi-period events.** When an event covers two or more adjacent blocks that are otherwise empty, those blocks merge into one continuous block holding the event. If a lesson or another event is in the way, the event falls back to a normal chip in each block instead, so nothing is ever hidden.
+- **Double-booking warnings.** Any block holding two or more items shows a warning marker, shown in red when the directed-time tracker is on and the overlap would count that time twice. Adding an event onto a block that is already in use now warns you first and offers to add it anyway, add it without counting it as directed time, or remove what is already there.
+- **Mobile views.** On a phone the week view now offers a Day, Agenda, or Grid layout. Day shows one readable day at a time with a day picker, Agenda lists the whole week, and Grid keeps the familiar timetable. Your choice is remembered per planner. The desktop view is unchanged.
+- **Smarter A/B week rotation.** The rotation now counts teaching weeks and skips full holiday weeks, so it stays in step across half terms. The week badge is now a button for setting a one-off A or B override for a single week or from a week onward.
+- **Planner backup and restore.** Export any planner, or all of them, to a JSON file in your vault, and import a backup as a new planner. Deleting a planner now saves a backup first, so a delete is always recoverable.
+- **Jump to any week.** The week navigation now has clear previous and next arrows and a centre button that opens a date picker, so you can jump straight to any week or back to today.
+- **Per-device grid zoom.** A new setting controls the height of the week grid in pixels per hour. It is stored per device, so your desktop and phone each keep their own zoom and it never syncs between them.
+- **Drag to copy.** Hold Ctrl or Cmd while dragging a lesson or event in the week view to drop a copy instead of moving it.
+- **Prepared marker on events.** The prepared tick now appears on one-off events as well as timetabled lessons.
+
+### Changed
+
+- **Timetable slot picker.** Class rows now show the subject emoji, and opening the picker on a filled cell highlights the item already assigned there.
+- **Plugin description.** Reworded for clarity.
+
+### Fixed
+
+- **Dragging a one-off event now changes its period.** A single-period event moved to a different period now lands in that period, not just the new day. Multi-period events still move by day and keep their span.
+
 ## [0.2.6] — 2026-06-13
 
 ### Added

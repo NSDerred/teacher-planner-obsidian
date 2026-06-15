@@ -7883,7 +7883,9 @@ var init_ExportModal = __esm({
           const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
           await this.ensureFolder(folder);
           const path = `${folder}/${filename}`;
-          await this.app.vault.adapter.writeBinary(path, buf);
+          const existing = this.app.vault.getAbstractFileByPath(path);
+          if (existing instanceof import_obsidian6.TFile) await this.app.vault.modifyBinary(existing, buf);
+          else await this.app.vault.createBinary(path, buf);
           new import_obsidian6.Notice(`Exported to ${path}`);
         }
       }
@@ -8264,7 +8266,9 @@ var init_DirectedTimeExportModal = __esm({
             }
           }
           const path = `${vaultFolder}/${filename}`;
-          await this.app.vault.adapter.writeBinary(path, buf);
+          const existing = this.app.vault.getAbstractFileByPath(path);
+          if (existing instanceof import_obsidian7.TFile) await this.app.vault.modifyBinary(existing, buf);
+          else await this.app.vault.createBinary(path, buf);
           new import_obsidian7.Notice(`Directed time exported to ${path}`);
         }
       }
@@ -9558,7 +9562,7 @@ var init_SettingsTab = __esm({
         containerEl.empty();
         this._snapshot = JSON.stringify(this.plugin.settings);
         this.renderPlannersSection(containerEl);
-        new import_obsidian10.Setting(containerEl).setName("Academic Year").setHeading();
+        new import_obsidian10.Setting(containerEl).setName("Academic year").setHeading();
         new import_obsidian10.Setting(containerEl).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => t.setPlaceholder("2025-26").setValue(this.plugin.settings.academicYear.name).onChange((v) => {
           this.plugin.settings.academicYear.name = v;
           this.plugin.requestSave();
@@ -9602,7 +9606,7 @@ var init_SettingsTab = __esm({
             })();
           });
         }
-        new import_obsidian10.Setting(containerEl).setName("Directed Time Tracker").setHeading();
+        new import_obsidian10.Setting(containerEl).setName("Directed time tracker").setHeading();
         if (!this.plugin.settings.directedTime) {
           this.plugin.settings.directedTime = { enabled: false, contractedHours: 1265, timetablePercentage: 100, defaultLessonDurationMinutes: 60 };
         }
@@ -9674,7 +9678,7 @@ var init_SettingsTab = __esm({
           (_a3 = overridesContainer.querySelector("p")) == null ? void 0 : _a3.remove();
           this.renderWeekOverrideRow(overridesContainer, newOverride);
         }));
-        new import_obsidian10.Setting(containerEl).setName("School Day Blocks").setHeading();
+        new import_obsidian10.Setting(containerEl).setName("School day blocks").setHeading();
         containerEl.createEl("p", {
           text: "Define the types of block that make up your school day \u2014 lessons, breaks, registration, admin time, and so on. Each block type has a colour that appears as a shaded band in the week view, making it easy to see your day structure at a glance. Assign block types to individual periods in School Timetable.",
           cls: "setting-item-description"
@@ -9699,7 +9703,7 @@ var init_SettingsTab = __esm({
             new import_obsidian10.Notice("Block colours reset to theme defaults.");
           }).open();
         }));
-        new import_obsidian10.Setting(containerEl).setName("School Timetable").setHeading();
+        new import_obsidian10.Setting(containerEl).setName("School timetable").setHeading();
         containerEl.createEl("p", {
           text: "Periods are grouped into day schedules. Most schools only need the Standard day. Add another schedule for days shaped differently \u2014 a sports afternoon, a half-day Saturday \u2014 and assign it to those days. Colours and types are configured in School Day Blocks above.",
           cls: "setting-item-description"
@@ -9941,7 +9945,7 @@ var init_SettingsTab = __esm({
         });
         eventTitlePreview = eventTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
         eventTitlePreview.setText("Preview:  " + renderEventTitle((_e = this.plugin.settings.eventNoteTitleTemplate) != null ? _e : DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
-        new import_obsidian10.Setting(containerEl).setName("Grid Visuals").setHeading();
+        new import_obsidian10.Setting(containerEl).setName("Grid visuals").setHeading();
         const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
         const blockColourSetting = new import_obsidian10.Setting(containerEl).setName("Period block border colour").setDesc("Border on the top and bottom edge of each period band.");
         blockColourSetting.controlEl.setCssStyles({ display: "flex" });

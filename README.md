@@ -1,123 +1,104 @@
 # Teacher Planner for Obsidian
 
-> A customisable academic planner for teachers — not just a calendar. Track your timetable, monitor workload, and keep lesson notes, all inside your Obsidian vault.
+> The planner built for how teachers actually work. Your timetable, your lessons, your directed time, and your notes, together in one place and never leaving your vault.
 
-![Week view](docs/screenshots/main-planner-view.png)
+![The week view](docs/screenshots/main-planner-view.png)
 
----
+Teacher Planner turns Obsidian into a proper academic planner. It understands the things an ordinary calendar never does: periods and breaks, A and B weeks, cover and duties, directed time, and the difference between a lesson and a meeting. Everything sits alongside your notes, with no extra app to open, no subscription, and no data leaving your machine.
 
-## Why Teacher Planner?
+If you have ever kept your timetable in one place, your lesson notes in another, and your hours in a spreadsheet, this brings all three together.
 
-Teacher Planner is built for teachers.
+## Why teachers like it
 
-It understands your world: periods, classes, A/B week rotations, cover lessons, directed time, and the difference between a duty and a meeting. Everything lives inside Obsidian alongside your notes — no extra apps, no subscriptions, no data leaving your vault.
+**It speaks your language.** You set up your real school day once, with your own period names, block types, and class codes, and the planner works the way your week actually runs for the rest of the year.
 
----
+**It stays out of your way.** Your timetable repeats automatically, one-off changes do not disturb it, and your notes are ordinary markdown files you can search, link, and back up like anything else in your vault.
 
-## Features
+**It is yours.** The plugin is free and open source, it runs on desktop and mobile, and your planner never leaves your device.
 
-### 🧙 Guided Setup Wizard
-A 10-step wizard walks you through full planner configuration on first launch — name, academic year, school days, periods, block types, holidays, subjects, and classes. Pre-filled with sensible UK defaults (standard periods, England 2025–26 term dates) so you can be up and running in minutes. Each step is skippable and everything can be changed later in settings.
+## Build your timetable once
 
-### 🗂️ Multiple Planners
-Run more than one planner inside the same vault — useful if you teach across two schools, have a very different timetable each year, or want to keep a clean record of previous academic years. Switch between planners instantly; each has its own timetable, classes, and lesson notes in a separate subfolder.
+Lay out your week visually in the timetable editor. Define your periods and the blocks that make up a school day, whether that is a lesson, a break, registration, or anything you name yourself, then drop classes and activities into place. Each class carries its own colour, year group, code, and default room.
 
-### 📅 Week View
-A colour-coded weekly grid showing your full timetable at a glance. Navigate forward and back by week, see classes, duties, and events laid out by period, and jump straight into a lesson note with a single click.
+If your school runs a two-week timetable, turn on A and B week rotation and the planner tracks which week you are on automatically. It counts teaching weeks and skips full holiday weeks, so it never drifts out of step across a half term, and a single click on the week badge sets a one-off swap when a term starts on the opposite week.
 
-### 🗓️ Timetable Management
-Build your timetable visually using the timetable editor. Define your periods, assign classes to slots, and set classrooms per slot. Full support for **A/B week rotation** — the plugin tracks which week you're on automatically based on your academic year start date.
+![Building a timetable](docs/screenshots/timetable-template.gif)
 
-### 📚 Subjects & Classes
-Configure subjects with an emoji identifier and nest class groups beneath them. Each class group has its own colour, year group, class code, and default classroom. Colours can be overridden at the class level independently of the subject.
+## See your week the way you think about it
 
-### 📌 Date Events
-Overlay one-off events onto any period on any date — cover lessons, duties, trips, meetings, parents' evenings, or any other one-off. Date events sit on top of your timetable without disrupting it and can be added directly by clicking an empty cell in the week view.
+The week view is a colour-coded grid of your real teaching day. Lessons, duties, and events sit in their periods, and a single click takes you straight into a lesson note. Clear previous and next arrows move you a week at a time, and the centre button opens a date picker so you can jump to any week, or back to today, in a moment. A grid-zoom setting lets you make periods taller or more compact, and because it is kept per device your laptop and your phone can each look right.
 
-### 📝 Lesson Notes
-Each lesson in the week view has a dedicated note in your vault, built from a fully customisable template. Open, create, or edit a lesson note with a single click. Note **filenames** follow a configurable template too (date, period, class, subject, and even the subject emoji), set in **Settings → Note titles** with a live preview. Notes are stored in your planner folder and work with all standard Obsidian features — backlinks, search, graph view.
+On a phone the same planner offers a Day view for one readable day at a time, an Agenda list for the whole week, or the full grid, and it remembers which you prefer.
 
-### 🔗 Lesson Plans & Attachments
-Link a reusable lesson-plan note to any lesson and open it in a single click, or attach an external file or folder from anywhere on your computer. Each lesson chip shows small status icons — a green document when a plan is linked, a paperclip for an attached file, a folder icon for an attached folder — so you can see at a glance what's ready.
+## Add one-off events without breaking your timetable
+
+Real weeks are full of things that are not on the timetable: a meeting, a cover lesson, a trip, a parents' evening, a duty. Drop one onto any day and period, give it a name, a colour, a room, and a note, and you are done. An event can span several periods at once, and when it sits over free time those blocks join into one clean block so it reads as a single thing.
+
+If you ever put two items in the same slot, the planner notices. The clash is marked on the grid, shown in red when it would affect your directed-time total, and when you add an event onto a slot that is already in use you get a clear prompt: keep both, add it without counting the overlap, or remove what was already there.
+
+## Keep your lesson notes in your vault
+
+Every lesson in the week view has its own note, built from a template you control and named with a filename pattern you set, using the date, period, class, subject, and even the subject emoji. Open, create, or edit a note in one click. Because the notes are plain markdown in your planner folder, they work with everything Obsidian already does, including search, backlinks, and graph view.
+
+![Editing a lesson note](docs/screenshots/lesson-notes-editing.gif)
+
+Link a reusable lesson-plan note to any lesson and open it straight from the chip, or attach a file or folder from anywhere on your computer. A small icon on each lesson shows what is ready at a glance, and a green tick lets you mark a lesson as prepared by hand if you would rather not link a plan note.
 
 ![Linking a lesson plan](docs/screenshots/linking-lesson-plan.gif)
 
-### ✅ Lesson Prepared Marker
-Don't use plan notes? Click the tick on any lesson to mark it **prepared** — a simple, manual, at-a-glance indicator of what's ready for the week. It's saved per lesson and follows the lesson if you move it. Turn it off in settings if you only use plan links.
+## Track your directed time properly
 
-![Attaching a folder and marking a lesson prepared](docs/screenshots/linking-folder-marking-prepared.gif)
+Turn on the directed-time tracker to keep a running total of your hours against the STPCD 1,265 hour limit. It counts your timetabled lessons, your directed activities, and your one-off events, projects a year-end figure, and leaves out holidays and INSET days for you. Part-time fractions are supported, and a detailed Excel report is one click away for union or management use.
 
-### 🗒️ Weekly Notes
-A notes panel in the sidebar for each week's plans and reminders, with quick formatting and a live markdown preview. Optionally store each week's note as a real markdown file in your vault (`Week note - <Monday date>`) so it's searchable, linkable, and backlink-friendly — kept tidy in its own folder.
+![The directed-time tracker](docs/screenshots/directed-time-tracker.png)
 
-### ⏱️ Directed Time Tracker
-Track your statutory directed time across the academic year against the STPCD 1,265-hour limit. The tracker counts timetabled lessons, directed-time activities, and date events, projects a year-end total, and excludes holidays and INSET days automatically. Supports part-time timetable fractions. Exports a detailed Excel report for union or management use. A plain-language guide note is created in your planner folder when the tracker is enabled.
+## Run more than one planner, and keep it safe
 
-### 📤 Export
-Export your timetable and planning data to Excel (`.xlsx`) or CSV for sharing, reporting, or archiving — saved to your planner folder or anywhere on your computer.
+Teaching across two schools, or want a clean record of last year? Run several planners in one vault, each with its own timetable, classes, and notes, and switch between them instantly. You can export any planner, or all of them, to a backup file in your vault, and import one back as a new planner. Deleting a planner saves a backup first, so it is always recoverable.
 
-### 🗓️ Calendar (iCal) Export
-Export your planner as an iCal (`.ics`) file and import it into Google Calendar, Apple Calendar, or Outlook — your timetable on your phone, with rooms and class codes. Choose what to include (lessons & activities, date events, holidays & INSET as all-day events, breaks & registration), which days of the week, and the date range (defaults to today through to the end of the academic year). A/B week rotation, timetable changes, holidays, and moved lessons are all resolved exactly as they appear in the week view.
+## Get your planner out
 
-### 🏫 School Day Blocks
-Define the types of slot that make up your school day — Lesson, Break, Registration, Administration, or any custom type — and assign them to your periods. Each block type has its own colour used to shade the week view grid.
+Export your timetable and planning to Excel or CSV for sharing and reporting, or export the whole thing as an iCal file and import it into Google, Apple, or Outlook calendars. Rooms, class codes, your A and B weeks, and your one-off changes all come across exactly as they appear in the week view.
 
----
+## Getting started
+
+On first launch a short setup wizard walks you through everything: your name, the academic year, your school days, periods, block types, holidays, subjects, and classes. It comes pre-filled with sensible UK defaults, so you can be up and running in minutes, and every step can be changed later in settings.
+
+![The setup wizard](docs/screenshots/wizard-week-a-b.png)
 
 ## Installation
 
-### From the Obsidian Community Plugins list
+### From the Obsidian community plugins list
 
-1. Open Obsidian → **Settings → Community Plugins**
-2. Click **Browse** and search for **Teacher Planner**
-3. Click **Install**, then **Enable**
+1. Open Obsidian, then go to Settings, then Community plugins.
+2. Click Browse and search for Teacher Planner.
+3. Click Install, then Enable.
 
 ### Manual install
 
-1. Go to the [latest release](https://github.com/NSDerred/teacher-planner-obsidian/releases/latest)
-2. Download `main.js`, `manifest.json`, and `styles.css`
-3. In your vault, create the folder `.obsidian/plugins/teacher-planner/`
-4. Copy the three files into that folder
-5. Open Obsidian → **Settings → Community Plugins** → enable **Teacher Planner**
+1. Go to the [latest release](https://github.com/NSDerred/teacher-planner-obsidian/releases/latest).
+2. Download `main.js`, `manifest.json`, and `styles.css`.
+3. In your vault, create the folder `.obsidian/plugins/teacher-planner/`.
+4. Copy the three files into that folder.
+5. Open Obsidian, then Settings, then Community plugins, and enable Teacher Planner.
 
-**Requirements:** Obsidian v1.7.2 or later
+Teacher Planner requires Obsidian v1.7.2 or later. Your existing planners, timetables, and notes carry over automatically when you update.
 
----
+## Settings and configuration
 
-## Screenshots
+Everything is configurable from Settings, then Teacher Planner. Two of the most-used panels:
 
-**Building your timetable** — assign classes to periods in the timetable editor:
-![Timetable editor](docs/screenshots/timetable-template.gif)
+The subjects and classes panel gives each subject an emoji and nests its class groups beneath it, each with its own colour, year group, code, and default room.
 
-**Lesson notes** — open, create, and edit a lesson's note straight from the week view:
-![Lesson notes](docs/screenshots/lesson-notes-editing.gif)
-
-**Guided setup** — school days, A/B rotation, and per-day schedules in the wizard:
-![Setup wizard](docs/screenshots/wizard-week-a-b.png)
-
----
-
-## Settings & Configuration
-
-The plugin is fully configurable from **Settings → Teacher Planner**. A few of the most-used panels:
-
-**Directed Time Tracker** — enable in the wizard or settings; set contracted hours, timetable fraction (for part-time staff), default lesson duration, and directed-time activities:
-![Directed time tracker setup](docs/screenshots/directed-time-tracker.png)
-
-**Subjects & classes** — emoji-identified subjects with nested class groups, per-class colours and default classrooms:
-![Lessons settings](docs/screenshots/lessons-settings.png)
-
----
+![Subjects and classes](docs/screenshots/lessons-settings.png)
 
 ## Support
 
-If Teacher Planner saves you time, consider buying me a coffee — it helps keep the project going.
+If Teacher Planner saves you time, you can buy me a coffee. It genuinely helps keep the project going.
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support%20this%20project-yellow?logo=buymeacoffee)](https://buymeacoffee.com/teacher.nsmith)
 
-Found a bug or have a feature request? [Open an issue](https://github.com/NSDerred/teacher-planner-obsidian/issues).
-
----
+Found a bug or have an idea? [Open an issue](https://github.com/NSDerred/teacher-planner-obsidian/issues).
 
 ## Development
 
@@ -150,7 +131,7 @@ npm run typecheck
 ```
 
 ### Tech stack
-- TypeScript · Svelte 4 · esbuild · Obsidian Plugin API
+TypeScript, Svelte 4, esbuild, and the Obsidian plugin API.
 
 ### Project structure
 
@@ -167,28 +148,16 @@ src/
 
 </details>
 
----
-
 ## Security
 
-Excel exports are generated with [`write-excel-file`](https://www.npmjs.com/package/write-excel-file),
-a write-only library — the plugin never reads or parses user-supplied Excel
-files, and no dependency with a known security advisory is used.
-
----
+Excel exports are generated with [`write-excel-file`](https://www.npmjs.com/package/write-excel-file), a write-only library. The plugin never reads or parses user-supplied Excel files, and it uses no dependency with a known security advisory.
 
 ## Licence
 
-**Teacher Planner is dual-licensed.** Pick whichever option suits you:
+Teacher Planner is dual-licensed. Pick whichever option suits you:
 
-1. **[GPL-3.0](LICENSE)** © 2026 Nick Smith — free to use, fork, and modify.
-   If you distribute a modified version, the source for your version must
-   remain available under GPL-3.0 too. This is the right choice for individuals,
-   schools, and contributors.
+1. [GPL-3.0](LICENSE), Copyright 2026 Nick Smith. Free to use, fork, and modify. If you distribute a modified version, the source for your version must remain available under GPL-3.0 too. This is the right choice for individuals, schools, and contributors.
 
-2. **[Commercial Licence](COMMERCIAL-LICENSE.md)** — for incorporating Teacher
-   Planner into a commercial product without GPL's copyleft requirements.
-   Contact [nicholas.f.smith@pm.me](mailto:nicholas.f.smith@pm.me) for terms.
+2. [Commercial Licence](COMMERCIAL-LICENSE.md), for incorporating Teacher Planner into a commercial product without GPL's copyleft requirements. Contact [nicholas.f.smith@pm.me](mailto:nicholas.f.smith@pm.me) for terms.
 
-Both options grant the right to *use* the plugin; the difference is in how you
-can distribute modifications.
+Both options grant the right to use the plugin. The difference is in how you can distribute modifications.

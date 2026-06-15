@@ -197,7 +197,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     this.renderPlannersSection(containerEl);
 
     // ── Academic Year ──────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Academic Year").setHeading();
+    new Setting(containerEl).setName("Academic year").setHeading();
     new Setting(containerEl).setName("Planner name").setDesc('e.g. "2025-26 IB Science"')
       .addText(t => t.setPlaceholder("2025-26").setValue(this.plugin.settings.academicYear.name)
         .onChange(v => { this.plugin.settings.academicYear.name = v; this.plugin.requestSave(); }));
@@ -241,7 +241,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     }
 
     // ── Directed Time Tracker ──────────────────────────────────────────────
-    new Setting(containerEl).setName("Directed Time Tracker").setHeading();
+    new Setting(containerEl).setName("Directed time tracker").setHeading();
     if (!this.plugin.settings.directedTime) {
       this.plugin.settings.directedTime = { enabled: false, contractedHours: 1265, timetablePercentage: 100, defaultLessonDurationMinutes: 60 };
     }
@@ -355,7 +355,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Block Types ────────────────────────────────────────────────────────
-    new Setting(containerEl).setName("School Day Blocks").setHeading();
+    new Setting(containerEl).setName("School day blocks").setHeading();
     containerEl.createEl("p", {
       text: "Define the types of block that make up your school day — lessons, breaks, registration, admin time, and so on. Each block type has a colour that appears as a shaded band in the week view, making it easy to see your day structure at a glance. Assign block types to individual periods in School Timetable.",
       cls: "setting-item-description"
@@ -385,7 +385,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         }));
 
     // ── Periods / day schedules ────────────────────────────────────────────
-    new Setting(containerEl).setName("School Timetable").setHeading();
+    new Setting(containerEl).setName("School timetable").setHeading();
     containerEl.createEl("p", {
       text: "Periods are grouped into day schedules. Most schools only need the Standard day. Add another schedule for days shaped differently — a sports afternoon, a half-day Saturday — and assign it to those days. Colours and types are configured in School Day Blocks above.",
       cls: "setting-item-description"
@@ -641,7 +641,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     eventTitlePreview.setText("Preview:  " + renderEventTitle(this.plugin.settings.eventNoteTitleTemplate ?? DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
 
     // ── Grid Visuals ───────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Grid Visuals").setHeading();
+    new Setting(containerEl).setName("Grid visuals").setHeading();
     const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
 
     const blockColourSetting = new Setting(containerEl)

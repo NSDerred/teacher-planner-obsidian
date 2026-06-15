@@ -1,9 +1,9 @@
 {
 	"id": "teacher-planner",
 	"name": "Teacher Planner",
-	"version": "0.2.6",
+	"version": "0.2.7",
 	"minAppVersion": "1.7.2",
-	"description": "Academic year planner for teachers \u2014 timetable management, lesson tracking, and weekly planning.",
+	"description": "An academic planner built for teachers. Build your timetable, plan lessons, track directed time, and keep notes, all inside your vault.",
 	"author": "Nick Smith",
 	"authorUrl": "https://github.com/NSDerred",
 	"fundingUrl": "https://buymeacoffee.com/teacher.nsmith",

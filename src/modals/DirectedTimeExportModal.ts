@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Platform } from "obsidian";
+import { App, Modal, Notice, Platform, TFile } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import { buildXlsx } from "../utils/xlsxWriter";
 import {
@@ -138,7 +138,9 @@ export class DirectedTimeExportModal extends Modal {
         try { await this.app.vault.createFolder(vaultFolder); } catch { /* non-fatal */ }
       }
       const path = `${vaultFolder}/${filename}`;
-      await this.app.vault.adapter.writeBinary(path, buf);
+      const existing = this.app.vault.getAbstractFileByPath(path);
+      if (existing instanceof TFile) await this.app.vault.modifyBinary(existing, buf);
+      else await this.app.vault.createBinary(path, buf);
       new Notice(`Directed time exported to ${path}`);
     }
   }
