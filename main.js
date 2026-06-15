@@ -15507,13 +15507,13 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
     const colourSwatch = colourField.createEl("button", { cls: "tp-colour-swatch" });
     colourSwatch.setAttribute("aria-label", "Choose colour");
     const colourPop = colourField.createDiv("tp-colour-pop");
-    colourPop.style.display = "none";
+    colourPop.setCssStyles({ display: "none" });
     const comboWrap = nameRow.createDiv("tp-combo-wrap");
     const titleInput = comboWrap.createEl("input", { type: "text", cls: "tp-modal-input" });
     titleInput.value = title;
     titleInput.placeholder = "Department meeting";
     const comboPanel = comboWrap.createDiv("tp-combo-panel");
-    comboPanel.style.display = "none";
+    comboPanel.setCssStyles({ display: "none" });
     const cItems = [];
     for (const c of [...this.plugin.settings.classes].filter((c2) => !c2.archived).sort((a, b) => a.code.localeCompare(b.code))) {
       const subj = this.plugin.settings.subjects.find((s) => s.id === c.subjectId);
@@ -15526,7 +15526,7 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
       comboPanel.empty();
       const raw = q.trim();
       if (!raw) {
-        comboPanel.style.display = "none";
+        comboPanel.setCssStyles({ display: "none" });
         return;
       }
       const ql = raw.toLowerCase();
@@ -15537,7 +15537,7 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
         e.preventDefault();
         title = raw;
         titleInput.value = raw;
-        comboPanel.style.display = "none";
+        comboPanel.setCssStyles({ display: "none" });
       });
       const matches = cItems.filter((it) => it.primary.toLowerCase().includes(ql) || it.secondary.toLowerCase().includes(ql));
       let lastGroup = "";
@@ -15548,7 +15548,7 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
         }
         const row = comboPanel.createDiv("tp-combo-item");
         const sw = row.createEl("span", { cls: "tp-combo-swatch" });
-        sw.style.background = it.colour;
+        sw.setCssStyles({ background: it.colour });
         row.createEl("span", { text: it.primary, cls: "tp-combo-item-primary" });
         if (it.secondary) row.createEl("span", { text: it.secondary, cls: "tp-combo-item-secondary" });
         row.addEventListener("mousedown", (e) => {
@@ -15563,10 +15563,10 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
             classroom = it.classroom;
             classroomInput.value = classroom;
           }
-          comboPanel.style.display = "none";
+          comboPanel.setCssStyles({ display: "none" });
         });
       }
-      comboPanel.style.display = "block";
+      comboPanel.setCssStyles({ display: "block" });
     };
     titleInput.addEventListener("input", () => {
       title = titleInput.value;
@@ -15577,24 +15577,24 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
     });
     titleInput.addEventListener("blur", () => {
       window.setTimeout(() => {
-        comboPanel.style.display = "none";
+        comboPanel.setCssStyles({ display: "none" });
       }, 120);
     });
     for (const c of CLASS_COLOUR_PALETTE) {
       const sw = colourPop.createEl("button", { cls: "tp-swatch" });
       sw.dataset.colour = c;
-      sw.style.background = c;
+      sw.setCssStyles({ background: c });
       sw.addEventListener("click", () => {
         colour = c;
         paintColour();
-        colourPop.style.display = "none";
+        colourPop.setCssStyles({ display: "none" });
       });
     }
     const customSw = colourPop.createEl("button", { cls: "tp-colour-custom" });
     customSw.setText("+");
     customSw.title = "Custom colour";
     customSw.addEventListener("click", () => {
-      colourPop.style.display = "none";
+      colourPop.setCssStyles({ display: "none" });
       new ColourPickerModal(this.plugin.app, colour, "Event colour", async (picked) => {
         colour = picked;
         paintColour();
@@ -15602,10 +15602,10 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
     });
     colourSwatch.addEventListener("click", (e) => {
       e.stopPropagation();
-      colourPop.style.display = colourPop.style.display === "none" ? "flex" : "none";
+      colourPop.setCssStyles({ display: colourPop.style.display === "none" ? "flex" : "none" });
     });
     function paintColour() {
-      colourSwatch.style.background = colour;
+      colourSwatch.setCssStyles({ background: colour });
       colourPop.querySelectorAll(".tp-swatch").forEach((el) => el.toggleClass("tp-swatch--on", el.dataset.colour === colour));
       renderTags();
     }
@@ -15648,14 +15648,14 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
     const periodWrap = periodRow.createDiv("tp-combo-wrap");
     const periodField = periodWrap.createDiv("tp-period-field");
     const periodPanel = periodWrap.createDiv("tp-combo-panel tp-period-panel");
-    periodPanel.style.display = "none";
+    periodPanel.setCssStyles({ display: "none" });
     const filterInput = periodPanel.createEl("input", { type: "text", cls: "tp-period-filter" });
     filterInput.placeholder = "Filter blocks\u2026";
     const optionList = periodPanel.createDiv("tp-period-options");
     periodField.addEventListener("click", (e) => {
       if (e.target.closest(".tp-period-tag-x")) return;
       const open = periodPanel.style.display === "none";
-      periodPanel.style.display = open ? "block" : "none";
+      periodPanel.setCssStyles({ display: open ? "block" : "none" });
       if (open) {
         filterInput.value = "";
         renderOptions("");
@@ -15671,8 +15671,7 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
       } else {
         for (const p of ordered) {
           const tag = periodField.createEl("span", { cls: "tp-period-tag" });
-          tag.style.background = hexToRgba3(colour, 0.18);
-          tag.style.border = `1px solid ${colour}`;
+          tag.setCssStyles({ background: hexToRgba3(colour, 0.18), border: `1px solid ${colour}` });
           tag.createEl("span", { text: p.name });
           const x = tag.createEl("span", { cls: "tp-period-tag-x" });
           x.setText("\u2715");
@@ -15756,8 +15755,8 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
     });
     contentEl.addEventListener("mousedown", (e) => {
       const t = e.target;
-      if (!t.closest(".tp-period-field") && !t.closest(".tp-period-panel")) periodPanel.style.display = "none";
-      if (!t.closest(".tp-colour-field")) colourPop.style.display = "none";
+      if (!t.closest(".tp-period-field") && !t.closest(".tp-period-panel")) periodPanel.setCssStyles({ display: "none" });
+      if (!t.closest(".tp-colour-field")) colourPop.setCssStyles({ display: "none" });
     });
     paintColour();
     renderTags();
@@ -25353,16 +25352,14 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
   }
   /** Time-axis scale in pixels per hour. Per-device; defaults 150 (mobile) / 120 (desktop). */
   getGridScale() {
-    var _a2, _b2;
-    const raw = (_b2 = (_a2 = this.app).loadLocalStorage) == null ? void 0 : _b2.call(_a2, _TeacherPlannerPlugin.GRID_SCALE_KEY);
-    const n = typeof raw === "number" ? raw : parseInt(raw);
+    const raw = this.app.loadLocalStorage(_TeacherPlannerPlugin.GRID_SCALE_KEY);
+    const n = typeof raw === "number" ? raw : parseInt(String(raw != null ? raw : ""), 10);
     if (!isNaN(n) && n >= 60 && n <= 240) return n;
     return import_obsidian20.Platform.isMobile ? 150 : 120;
   }
   setGridScale(pxPerHour) {
-    var _a2, _b2;
     const clamped = Math.max(60, Math.min(240, Math.round(pxPerHour)));
-    (_b2 = (_a2 = this.app).saveLocalStorage) == null ? void 0 : _b2.call(_a2, _TeacherPlannerPlugin.GRID_SCALE_KEY, clamped);
+    this.app.saveLocalStorage(_TeacherPlannerPlugin.GRID_SCALE_KEY, clamped);
     this.refreshViews();
   }
   // ── Planner management ──────────────────────────────────────────────────────────────────────────

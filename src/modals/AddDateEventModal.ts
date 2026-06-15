@@ -118,14 +118,14 @@ export class AddDateEventModal extends Modal {
     const colourSwatch = colourField.createEl("button", { cls: "tp-colour-swatch" });
     colourSwatch.setAttribute("aria-label", "Choose colour");
     const colourPop = colourField.createDiv("tp-colour-pop");
-    colourPop.style.display = "none";
+    colourPop.setCssStyles({ display: "none" });
 
     const comboWrap = nameRow.createDiv("tp-combo-wrap");
     const titleInput = comboWrap.createEl("input", { type: "text", cls: "tp-modal-input" });
     titleInput.value = title;
     titleInput.placeholder = "Department meeting";
     const comboPanel = comboWrap.createDiv("tp-combo-panel");
-    comboPanel.style.display = "none";
+    comboPanel.setCssStyles({ display: "none" });
 
     // Build the existing-item list once
     interface CItem { primary: string; secondary: string; colour: string; directed: boolean; classroom: string; group: string; }
@@ -141,7 +141,7 @@ export class AddDateEventModal extends Modal {
     const renderCombo = (q: string) => {
       comboPanel.empty();
       const raw = q.trim();
-      if (!raw) { comboPanel.style.display = "none"; return; }
+      if (!raw) { comboPanel.setCssStyles({ display: "none" }); return; }
       const ql = raw.toLowerCase();
 
       // "Create new event" pinned to the top, visible from the first character.
@@ -151,7 +151,7 @@ export class AddDateEventModal extends Modal {
       useRow.addEventListener("mousedown", (e) => {
         e.preventDefault();
         title = raw; titleInput.value = raw;
-        comboPanel.style.display = "none";
+        comboPanel.setCssStyles({ display: "none" });
       });
 
       const matches = cItems.filter(it => it.primary.toLowerCase().includes(ql) || it.secondary.toLowerCase().includes(ql));
@@ -159,7 +159,7 @@ export class AddDateEventModal extends Modal {
       for (const it of matches) {
         if (it.group !== lastGroup) { comboPanel.createEl("div", { text: it.group, cls: "tp-combo-group" }); lastGroup = it.group; }
         const row = comboPanel.createDiv("tp-combo-item");
-        const sw = row.createEl("span", { cls: "tp-combo-swatch" }); sw.style.background = it.colour;
+        const sw = row.createEl("span", { cls: "tp-combo-swatch" }); sw.setCssStyles({ background: it.colour });
         row.createEl("span", { text: it.primary, cls: "tp-combo-item-primary" });
         if (it.secondary) row.createEl("span", { text: it.secondary, cls: "tp-combo-item-secondary" });
         row.addEventListener("mousedown", (e) => {
@@ -168,36 +168,36 @@ export class AddDateEventModal extends Modal {
           colour = it.colour; paintColour();
           directed = directedTimeEnabled ? it.directed : false; if (directedToggle) directedToggle.checked = directed;
           if (!classroom.trim() && it.classroom) { classroom = it.classroom; classroomInput.value = classroom; }
-          comboPanel.style.display = "none";
+          comboPanel.setCssStyles({ display: "none" });
         });
       }
-      comboPanel.style.display = "block";
+      comboPanel.setCssStyles({ display: "block" });
     };
     titleInput.addEventListener("input", () => { title = titleInput.value; renderCombo(titleInput.value); });
     titleInput.addEventListener("focus", () => { if (titleInput.value.trim()) renderCombo(titleInput.value); });
-    titleInput.addEventListener("blur", () => { window.setTimeout(() => { comboPanel.style.display = "none"; }, 120); });
+    titleInput.addEventListener("blur", () => { window.setTimeout(() => { comboPanel.setCssStyles({ display: "none" }); }, 120); });
 
     // Colour popover (palette + custom)
     for (const c of CLASS_COLOUR_PALETTE) {
       const sw = colourPop.createEl("button", { cls: "tp-swatch" });
-      sw.dataset.colour = c; sw.style.background = c;
-      sw.addEventListener("click", () => { colour = c; paintColour(); colourPop.style.display = "none"; });
+      sw.dataset.colour = c; sw.setCssStyles({ background: c });
+      sw.addEventListener("click", () => { colour = c; paintColour(); colourPop.setCssStyles({ display: "none" }); });
     }
     const customSw = colourPop.createEl("button", { cls: "tp-colour-custom" });
     customSw.setText("+"); customSw.title = "Custom colour";
     customSw.addEventListener("click", () => {
-      colourPop.style.display = "none";
+      colourPop.setCssStyles({ display: "none" });
       new ColourPickerModal(this.plugin.app, colour, "Event colour", async (picked: string) => {
         colour = picked; paintColour();
       }).open();
     });
     colourSwatch.addEventListener("click", (e) => {
       e.stopPropagation();
-      colourPop.style.display = colourPop.style.display === "none" ? "flex" : "none";
+      colourPop.setCssStyles({ display: colourPop.style.display === "none" ? "flex" : "none" });
     });
 
     function paintColour() {
-      colourSwatch.style.background = colour;
+      colourSwatch.setCssStyles({ background: colour });
       colourPop.querySelectorAll<HTMLElement>(".tp-swatch").forEach(el => el.toggleClass("tp-swatch--on", el.dataset.colour === colour));
       renderTags();
     }
@@ -229,7 +229,7 @@ export class AddDateEventModal extends Modal {
     const periodWrap = periodRow.createDiv("tp-combo-wrap");
     const periodField = periodWrap.createDiv("tp-period-field");
     const periodPanel = periodWrap.createDiv("tp-combo-panel tp-period-panel");
-    periodPanel.style.display = "none";
+    periodPanel.setCssStyles({ display: "none" });
 
     const filterInput = periodPanel.createEl("input", { type: "text", cls: "tp-period-filter" });
     filterInput.placeholder = "Filter blocks…";
@@ -238,7 +238,7 @@ export class AddDateEventModal extends Modal {
     periodField.addEventListener("click", (e) => {
       if ((e.target as HTMLElement).closest(".tp-period-tag-x")) return;
       const open = periodPanel.style.display === "none";
-      periodPanel.style.display = open ? "block" : "none";
+      periodPanel.setCssStyles({ display: open ? "block" : "none" });
       if (open) { filterInput.value = ""; renderOptions(""); window.setTimeout(() => filterInput.focus(), 0); }
     });
     filterInput.addEventListener("input", () => renderOptions(filterInput.value));
@@ -251,8 +251,7 @@ export class AddDateEventModal extends Modal {
       } else {
         for (const p of ordered) {
           const tag = periodField.createEl("span", { cls: "tp-period-tag" });
-          tag.style.background = hexToRgba(colour, 0.18);
-          tag.style.border = `1px solid ${colour}`;
+          tag.setCssStyles({ background: hexToRgba(colour, 0.18), border: `1px solid ${colour}` });
           tag.createEl("span", { text: p.name });
           const x = tag.createEl("span", { cls: "tp-period-tag-x" }); x.setText("✕");
           x.addEventListener("click", (e) => { e.stopPropagation(); selected.delete(p.id); renderTags(); renderOptions(filterInput.value); recalcDuration(); paintDuration(); });
@@ -318,8 +317,8 @@ export class AddDateEventModal extends Modal {
     // Close popovers when clicking elsewhere in the modal
     contentEl.addEventListener("mousedown", (e) => {
       const t = e.target as HTMLElement;
-      if (!t.closest(".tp-period-field") && !t.closest(".tp-period-panel")) periodPanel.style.display = "none";
-      if (!t.closest(".tp-colour-field")) colourPop.style.display = "none";
+      if (!t.closest(".tp-period-field") && !t.closest(".tp-period-panel")) periodPanel.setCssStyles({ display: "none" });
+      if (!t.closest(".tp-colour-field")) colourPop.setCssStyles({ display: "none" });
     });
 
     // Initial paint
