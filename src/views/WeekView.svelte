@@ -18,7 +18,7 @@
   import { AddDateEventModal } from "../modals/AddDateEventModal";
   import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
   import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
-  import { eventPeriodIds, contiguousRuns } from "../utils/eventUtils";
+  import { eventPeriodIds } from "../utils/eventUtils";
   import {
     getSlotPlan, setSlotPlan, clearSlotPlan, getEventPlan, setEventPlan, clearEventPlan,
     migrateSlotPlanToEvent, bulkApplyPlan, undoBulkApply,
@@ -136,12 +136,12 @@
     return m;
   })();
 
-  // Date events for the current week, keyed by "day:periodId" → array
-  // Single-period events keyed "day:periodId" (rendered inside their block).
-  // Multi-period events keyed by day (rendered as spanning blocks / agenda rows).
-  $: _eventMaps = (() => {
-    const single: Record<string, DateEvent[]> = {};
-    const multi: Record<string, DateEvent[]> = {};
+  // Date events for the current week, keyed by "day:periodId" → array.
+  // Multi-period events are added under EACH period they cover, so they render
+  // as a normal event chip inside every block (same hover-expand, prepared tick,
+  // plan/attachment icons and menu as a single-period event).
+  $: _dateEventMap = (() => {
+    const m: Record<string, DateEvent[]> = {};
     const monday = currentMonday;
     const dayMap: Record<number, SchoolDay> = { 0:"sunday", 1:"monday", 2:"tuesday", 3:"wednesday", 4:"thursday", 5:"friday", 6:"saturday" };
     for (const ev of _dateEvents) {
@@ -149,25 +149,57 @@
       if (getMondayOfWeek(d).getTime() !== monday.getTime()) continue;
       const day = dayMap[d.getDay()];
       if (!day) continue;
-      const pids = eventPeriodIds(ev);
-      if (pids.length <= 1) {
-        const key = day + ":" + (pids[0] ?? ev.periodId);
-        (single[key] ??= []).push(ev);
-      } else {
-        (multi[day] ??= []).push(ev);
+      for (const pid of eventPeriodIds(ev)) {
+        (m[day + ":" + pid] ??= []).push(ev);
       }
     }
-    return { single, multi };
+    return m;
   })();
-  $: _dateEventMap = _eventMaps.single;
-  $: _multiEventMap = _eventMaps.multi;
 
-  function multiEventsForDay(dayKey: SchoolDay): DateEvent[] {
-    return _multiEventMap[dayKey] ?? [];
+  // ── Multi-period event block merging ─────────────────────────────────────
+  // A multi-period event covering 2+ adjacent blocks that are otherwise empty
+  // (no lesson, no other event) merges those blocks into ONE spanning block
+  // holding the event. Any clash (lesson/other event/gap) splits the run back
+  // into the normal in-block chips. All reactive — removing the event reverts.
+  function multiEventsOnDay(dayKey: SchoolDay): DateEvent[] {
+    const monday = currentMonday;
+    const dayMap: Record<number, SchoolDay> = { 0:"sunday", 1:"monday", 2:"tuesday", 3:"wednesday", 4:"thursday", 5:"friday", 6:"saturday" };
+    return _dateEvents.filter(ev => {
+      if (eventPeriodIds(ev).length < 2) return false;
+      const d = new Date(ev.date + "T12:00:00");
+      return getMondayOfWeek(d).getTime() === monday.getTime() && dayMap[d.getDay()] === dayKey;
+    });
   }
-  // Multi-period events anchored to their first period (agenda list rendering).
-  function agendaMultiAt(dayKey: SchoolDay, periodId: string): DateEvent[] {
-    return (_multiEventMap[dayKey] ?? []).filter(ev => eventPeriodIds(ev)[0] === periodId);
+  // A period is free for merging if it has no visible lesson and the only date
+  // event occupying it is `ev` itself.
+  function periodFreeExceptEvent(dayKey: SchoolDay, dayDate: string, periodId: string, ev: DateEvent): boolean {
+    const raw = _slotMap[dayKey + ":" + periodId];
+    if (raw && !isSlotExcluded(raw.id, dayDate)) return false;
+    const evs = _dateEventMap[dayKey + ":" + periodId] ?? [];
+    return evs.every(e => e.id === ev.id);
+  }
+  interface MergeRun { ev: DateEvent; run: SchoolPeriod[]; }
+  function computeMerges(dayKey: SchoolDay, dayDate: string): { starts: Record<string, MergeRun>; consumed: Set<string> } {
+    const ordered = getPeriodsForDay(plugin.settings.academicYear, dayKey);
+    const starts: Record<string, MergeRun> = {};
+    const consumed = new Set<string>();
+    for (const ev of multiEventsOnDay(dayKey)) {
+      const covered = new Set(eventPeriodIds(ev));
+      let run: SchoolPeriod[] = [];
+      const flush = () => {
+        if (run.length >= 2) {
+          starts[run[0].id] = { ev, run: run.slice() };
+          for (const pr of run) consumed.add(pr.id);
+        }
+        run = [];
+      };
+      for (const pr of ordered) {
+        if (covered.has(pr.id) && periodFreeExceptEvent(dayKey, dayDate, pr.id, ev)) run.push(pr);
+        else flush();
+      }
+      flush();
+    }
+    return { starts, consumed };
   }
 
   // Per-day template resolution — different days in the same week can belong to
@@ -812,7 +844,6 @@
   // Does a school day in the current week have any lesson/event? (day-strip dot / agenda empty state)
   function dayHasItems(day: { key: SchoolDay; offset: number }): boolean {
     const date = dayISODate(day.offset, currentMonday);
-    if ((_multiEventMap[day.key] ?? []).length > 0) return true;
     for (const p of getPeriodsForDay(plugin.settings.academicYear, day.key)) {
       const raw = _slotMap[day.key + ":" + p.id];
       if (raw && !isSlotExcluded(raw.id, date)) return true;
@@ -1065,17 +1096,6 @@
                   {#if el.classroom}<span class="tp-agenda-room">{el.classroom}</span>{/if}
                 </button>
               {/each}
-              {#each agendaMultiAt(day.key, period.id) as mEv (mEv.id)}
-                {@const mel  = getDateEventLabel(mEv)}
-                {@const mOrd = getPeriodsForDay(plugin.settings.academicYear, day.key)}
-                {@const mSel = mOrd.filter(pp => eventPeriodIds(mEv).includes(pp.id))}
-                <button class="tp-agenda-row tp-agenda-row--event" style="border-left:3px solid {mel.colour}; background:{hexToRgba(mel.colour,0.16)};"
-                  on:click={(e) => openChipMenu(e, "event", aDate, eventPeriodIds(mEv)[0], undefined, mEv)}>
-                  <span class="tp-agenda-period">{mSel.length ? mSel[0].name + (mSel.length > 1 ? "–" + mSel[mSel.length - 1].name : "") : period.name}</span>
-                  <span class="tp-agenda-main">{mel.code}</span>
-                  {#if mel.classroom}<span class="tp-agenda-room">{mel.classroom}</span>{/if}
-                </button>
-              {/each}
             {/each}
             {#if !dayHasItems(day)}<div class="tp-agenda-empty">No lessons</div>{/if}
           {/if}
@@ -1135,6 +1155,7 @@
             {#if dayOverride}
               <div class="tp-axis-override-label">{dayOverride === "holiday" ? "Holiday" : "INSET"}</div>
             {:else}
+              {@const dayMerges = computeMerges(day.key, dayDate)}
               {#each getPeriodsForDay(plugin.settings.academicYear, day.key) as period (period.id)}
                 {@const tc        = getPeriodTypeColour(period.type)}
                 {@const bTop      = (timeToMinutes(period.start) - _axis.start) * PX_PER_MIN}
@@ -1145,6 +1166,58 @@
                 {@const key       = cellKey(day.key, period.id)}
                 {@const isOver    = dragOverKey === key && !slot}
                 {@const isReject  = rejectKey   === key}
+                {#if dayMerges.starts[period.id]}
+                  {@const _mrun  = dayMerges.starts[period.id]}
+                  {@const _mev   = _mrun.ev}
+                  {@const _first = _mrun.run[0]}
+                  {@const _last  = _mrun.run[_mrun.run.length - 1]}
+                  {@const _mTop  = (timeToMinutes(_first.start) - _axis.start) * PX_PER_MIN}
+                  {@const _mH    = Math.max(20, (timeToMinutes(_last.end) - timeToMinutes(_first.start)) * PX_PER_MIN)}
+                  {@const _mlbl  = getDateEventLabel(_mev)}
+                  {@const _mPlan = _eventPlanMap[_mev.id]}
+                  {@const _mPrep = _preparedEventMap[_mev.id]}
+                  {@const _mExt  = _eventExternalMap[_mev.id]}
+                  {@const _mRange = _first.name + (_mrun.run.length > 1 ? " – " + _last.name : "") + " · " + _first.start + "–" + _last.end}
+                  <div class="tp-block tp-block--merged" style="top:{_mTop}px; height:{_mH}px; --bh:{_mH}px; --tint:{hexToRgba(_mlbl.colour, 0.08)}; background:{hexToRgba(_mlbl.colour, 0.08)}; border-left:3px solid {_mlbl.colour};">
+                    <div class="tp-event-stack">
+                      <!-- svelte-ignore a11y-interactive-supports-focus -->
+                      <div class="tp-chip tp-chip--event" role="button" tabindex="0" draggable="true"
+                        on:dragstart={(e) => onEventDragStart(e, _mev)}
+                        on:dragend={onDragEnd}
+                        on:click={(e) => openChipMenu(e, "event", dayDate, _first.id, undefined, _mev)}
+                        on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
+                        title="{_mlbl.code} · {_mRange}"
+                        style="--ctint:{hexToRgba(_mlbl.colour,0.22)}; border-left:3px solid {_mlbl.colour}; background:{hexToRgba(_mlbl.colour,0.22)};">
+                        <span class="tp-chip-period-time">{_mRange}</span>
+                        <div class="tp-chip-body">
+                          <span class="tp-chip-code">{_mlbl.code}</span>
+                          {#if _mlbl.notes}<span class="tp-chip-notes">{_mlbl.notes}</span>{/if}
+                        </div>
+                        <div class="tp-chip-footer">
+                          {#if _mlbl.classroom}<span class="tp-chip-room">{_mlbl.classroom}</span>{/if}
+                          <div class="tp-chip-marks">
+                            {#if _showPrepared && (isClassId(_mev.classId) || !!(_mev.title && _mev.title.trim()))}
+                              <button class="tp-prep-tick" class:tp-prep-tick--on={_mPrep}
+                                title={_mPrep ? "Marked prepared — click to clear" : "Mark prepared"}
+                                aria-label="Toggle prepared" aria-pressed={_mPrep}
+                                on:click|stopPropagation={() => toggleEventPrep(_mev)} use:obsIcon={"check"}></button>
+                            {/if}
+                            {#if _mPlan}
+                              <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                                on:click|stopPropagation={() => openPlan(_mPlan)} use:obsIcon={"file-text"}></button>
+                            {/if}
+                            {#if _mExt && !_isMobileApp}
+                              <button class="tp-ext-mark" title={_mExt.kind === "folder" ? "Open external folder" : "Open external file"} aria-label="Open external resource"
+                                on:click|stopPropagation={() => openSystemPath(_mExt.path)} use:obsIcon={_mExt.kind === "folder" ? "folder" : "paperclip"}></button>
+                            {/if}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {:else if dayMerges.consumed.has(period.id)}
+                  <!-- block consumed by the merged event rendered above -->
+                {:else}
                 <!-- svelte-ignore a11y-no-static-element-interactions -->
                 <div
                   class="tp-block"
@@ -1246,7 +1319,7 @@
                               <span class="tp-chip-room">{lbl.classroom}</span>
                             {/if}
                             <div class="tp-chip-marks">
-                              {#if _showPrepared && isClassId(devEv.classId)}
+                              {#if _showPrepared && (isClassId(devEv.classId) || !!(devEv.title && devEv.title.trim()))}
                                 <button class="tp-prep-tick" class:tp-prep-tick--on={evPrepared}
                                   title={evPrepared ? "Marked prepared — click to clear" : "Mark lesson prepared"}
                                   aria-label="Toggle lesson prepared" aria-pressed={evPrepared}
@@ -1273,38 +1346,9 @@
                     >＋ Event</button>
                   {/if}
                 </div>
+                {/if}
               {/each}
 
-              <!-- Multi-period custom events: one spanning block per contiguous run -->
-              {#each multiEventsForDay(day.key) as devEv (devEv.id)}
-                {@const mlbl   = getDateEventLabel(devEv)}
-                {@const mOrder = getPeriodsForDay(plugin.settings.academicYear, day.key)}
-                {#each contiguousRuns(mOrder, eventPeriodIds(devEv)) as run}
-                  {@const rStart  = timeToMinutes(run[0].start)}
-                  {@const rEnd    = timeToMinutes(run[run.length - 1].end)}
-                  {@const rTop    = (rStart - _axis.start) * PX_PER_MIN}
-                  {@const rHeight = Math.max(24, (rEnd - rStart) * PX_PER_MIN)}
-                  <!-- svelte-ignore a11y-no-static-element-interactions a11y-interactive-supports-focus -->
-                  <div
-                    class="tp-event-span"
-                    role="button"
-                    tabindex="0"
-                    style="top:{rTop}px; height:{rHeight}px; background:linear-gradient({hexToRgba(mlbl.colour,0.22)},{hexToRgba(mlbl.colour,0.22)}), var(--background-primary); border-left:3px solid {mlbl.colour};"
-                    on:click={(e) => openChipMenu(e, "event", dayDate, run[0].id, undefined, devEv)}
-                    on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
-                    title="{mlbl.code} · {run[0].start}–{run[run.length - 1].end}"
-                  >
-                    <span class="tp-chip-period-time">{run[0].name}{run.length > 1 ? " – " + run[run.length - 1].name : ""} · {run[0].start}–{run[run.length - 1].end}</span>
-                    <div class="tp-chip-body">
-                      <span class="tp-chip-code">{mlbl.code}</span>
-                      {#if mlbl.notes}<span class="tp-chip-notes">{mlbl.notes}</span>{/if}
-                    </div>
-                    {#if mlbl.classroom}
-                      <div class="tp-chip-footer"><span class="tp-chip-room">{mlbl.classroom}</span></div>
-                    {/if}
-                  </div>
-                {/each}
-              {/each}
             {/if}
           </div>
         {/each}
@@ -1380,11 +1424,6 @@
   /* Period blocks — positioned by time within the day column */
   .tp-block { position:absolute; left:4px; right:4px; border:1px solid var(--background-modifier-border); border-radius:4px; box-sizing:border-box; overflow:hidden; transition:background 0.1s; z-index:2; container-type:inline-size; container-name:block; }
 
-  /* Multi-period custom event — floats over period blocks, spanning a contiguous run */
-  .tp-event-span { position:absolute; left:4px; right:4px; z-index:4; border-radius:4px; padding:4px 7px; box-sizing:border-box; display:flex; flex-direction:column; gap:2px; overflow:hidden; cursor:pointer; user-select:none; color:var(--text-normal); border:1px solid var(--background-modifier-border); box-shadow:0 1px 5px rgba(0,0,0,0.2); transition:filter 0.1s; }
-  .tp-event-span:hover { filter:brightness(1.06); }
-  .tp-event-span .tp-chip-period-time { display:block; font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .tp-event-span .tp-chip-code { font-weight:700; font-size:13px; line-height:1.2; }
   .tp-block--dragover { background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important; outline:2px dashed var(--interactive-accent); outline-offset:-2px; }
   .tp-block--reject   { background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important; transition:background 0s; }
   /* Stacked label: period name with its time range underneath. Short blocks

@@ -373,8 +373,10 @@
 .tp-modal-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
 .tp-modal-field--dur { flex: 0 0 auto; }
 .tp-modal-input--short { width: 64px; }
+.tp-modal-input-inline { display: flex; align-items: center; gap: 8px; }
+.tp-modal-input-unit { font-size: 12px; color: var(--text-muted); }
 .tp-dur-reset {
-  font-size: 11px; padding: 2px 7px; border-radius: 5px; cursor: pointer;
+  margin-left: 4px; font-size: 11px; padding: 3px 9px; border-radius: 5px; cursor: pointer;
   border: 1px solid var(--background-modifier-border); background: var(--background-primary); color: var(--text-muted);
 }
 .tp-dur-reset:hover { background: var(--background-modifier-hover); color: var(--text-normal); }

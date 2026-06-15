@@ -139,8 +139,20 @@ export class AddDateEventModal extends Modal {
 
     const renderCombo = (q: string) => {
       comboPanel.empty();
-      const ql = q.trim().toLowerCase();
-      if (!ql) { comboPanel.style.display = "none"; return; }
+      const raw = q.trim();
+      if (!raw) { comboPanel.style.display = "none"; return; }
+      const ql = raw.toLowerCase();
+
+      // "Create new event" pinned to the top, visible from the first character.
+      const useRow = comboPanel.createDiv("tp-combo-item tp-combo-new");
+      useRow.createEl("span", { cls: "tp-combo-plus", text: "+" });
+      useRow.createEl("span", { text: `Create new event “${raw}”` });
+      useRow.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        title = raw; titleInput.value = raw;
+        comboPanel.style.display = "none";
+      });
+
       const matches = cItems.filter(it => it.primary.toLowerCase().includes(ql) || it.secondary.toLowerCase().includes(ql));
       let lastGroup = "";
       for (const it of matches) {
@@ -158,10 +170,6 @@ export class AddDateEventModal extends Modal {
           comboPanel.style.display = "none";
         });
       }
-      const useRow = comboPanel.createDiv("tp-combo-item tp-combo-new");
-      useRow.createEl("span", { cls: "tp-combo-plus", text: "+" });
-      useRow.createEl("span", { text: `Use “${q.trim()}” as a new name` });
-      useRow.addEventListener("mousedown", (e) => { e.preventDefault(); comboPanel.style.display = "none"; });
       comboPanel.style.display = "block";
     };
     titleInput.addEventListener("input", () => { title = titleInput.value; renderCombo(titleInput.value); });
@@ -293,30 +301,18 @@ export class AddDateEventModal extends Modal {
       directedToggle.addEventListener("change", () => { directed = !!directedToggle!.checked; });
     }
 
-    // ── More (location + notes) ──────────────────────────────────────────
-    const moreToggle = form.createDiv("tp-more-toggle");
-    const moreCaret = moreToggle.createEl("span", { cls: "tp-more-caret", text: "▾" });
-    moreToggle.createEl("span", { text: "More — location & notes" });
-    const moreSection = form.createDiv("tp-more-section");
-
-    const locRow = moreSection.createDiv("tp-modal-row tp-modal-row--col");
+    // ── Location + Notes (always visible) ────────────────────────────────
+    const locRow = form.createDiv("tp-modal-row tp-modal-row--col");
     locRow.createEl("label", { text: "Location", cls: "tp-modal-label" });
     const classroomInput = locRow.createEl("input", { type: "text", cls: "tp-modal-input" });
     classroomInput.value = classroom; classroomInput.placeholder = "e.g. Room 303, Lab 3";
     classroomInput.addEventListener("input", () => { classroom = classroomInput.value; });
 
-    const notesRow = moreSection.createDiv("tp-modal-row tp-modal-row--col");
+    const notesRow = form.createDiv("tp-modal-row tp-modal-row--col");
     notesRow.createEl("label", { text: "Notes", cls: "tp-modal-label" });
     const notesInput = notesRow.createEl("textarea", { cls: "tp-modal-textarea" });
     notesInput.value = notes; notesInput.rows = 3; notesInput.placeholder = "Optional details for this event";
     notesInput.addEventListener("input", () => { notes = notesInput.value; });
-
-    let moreOpen = !!(classroom.trim() || notes.trim());
-    const paintMore = () => {
-      moreSection.style.display = moreOpen ? "flex" : "none";
-      moreCaret.setText(moreOpen ? "▴" : "▾");
-    };
-    moreToggle.addEventListener("click", () => { moreOpen = !moreOpen; paintMore(); });
 
     // Close popovers when clicking elsewhere in the modal
     contentEl.addEventListener("mousedown", (e) => {
@@ -329,7 +325,6 @@ export class AddDateEventModal extends Modal {
     paintColour();
     renderTags();
     paintDuration();
-    paintMore();
 
     // ── Footer ───────────────────────────────────────────────────────────
     const footer = contentEl.createDiv("tp-modal-footer");
