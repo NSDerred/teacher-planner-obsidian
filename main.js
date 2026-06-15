@@ -25352,14 +25352,14 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
   }
   /** Time-axis scale in pixels per hour. Per-device; defaults 150 (mobile) / 120 (desktop). */
   getGridScale() {
-    const raw = this.app.loadLocalStorage(_TeacherPlannerPlugin.GRID_SCALE_KEY);
-    const n = typeof raw === "number" ? raw : parseInt(String(raw != null ? raw : ""), 10);
+    const raw = window.localStorage.getItem(_TeacherPlannerPlugin.GRID_SCALE_KEY);
+    const n = raw != null ? parseInt(raw, 10) : NaN;
     if (!isNaN(n) && n >= 60 && n <= 240) return n;
     return import_obsidian20.Platform.isMobile ? 150 : 120;
   }
   setGridScale(pxPerHour) {
     const clamped = Math.max(60, Math.min(240, Math.round(pxPerHour)));
-    this.app.saveLocalStorage(_TeacherPlannerPlugin.GRID_SCALE_KEY, clamped);
+    window.localStorage.setItem(_TeacherPlannerPlugin.GRID_SCALE_KEY, String(clamped));
     this.refreshViews();
   }
   // ── Planner management ──────────────────────────────────────────────────────────────────────────

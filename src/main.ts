@@ -173,14 +173,14 @@ export default class TeacherPlannerPlugin extends Plugin {
   private static readonly GRID_SCALE_KEY = "teacher-planner:gridScale";
   /** Time-axis scale in pixels per hour. Per-device; defaults 150 (mobile) / 120 (desktop). */
   getGridScale(): number {
-    const raw: unknown = this.app.loadLocalStorage(TeacherPlannerPlugin.GRID_SCALE_KEY);
-    const n = typeof raw === "number" ? raw : parseInt(String(raw ?? ""), 10);
+    const raw = window.localStorage.getItem(TeacherPlannerPlugin.GRID_SCALE_KEY);
+    const n = raw != null ? parseInt(raw, 10) : NaN;
     if (!isNaN(n) && n >= 60 && n <= 240) return n;
     return Platform.isMobile ? 150 : 120;
   }
   setGridScale(pxPerHour: number): void {
     const clamped = Math.max(60, Math.min(240, Math.round(pxPerHour)));
-    this.app.saveLocalStorage(TeacherPlannerPlugin.GRID_SCALE_KEY, clamped);
+    window.localStorage.setItem(TeacherPlannerPlugin.GRID_SCALE_KEY, String(clamped));
     this.refreshViews();
   }
 
