@@ -17,7 +17,7 @@ import { ensureDaySchedules, syncPeriodsUnion } from "./scheduleUtils";
 
 const TEMPLATE_TYPE = "teacher-planner-template";
 
-const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null));
+const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null)) as T;
 
 export interface SchoolStructureTemplate {
   startDate?: string;

@@ -8,7 +8,7 @@ import { DEFAULT_PLANNER, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, FALLBACK_PERIO
 import { resolveColour } from "../utils/themeColours";
 import { isValidIsoDate, findOverlappingOverrides } from "../utils/weekUtils";
 import { syncPeriodsUnion } from "../utils/scheduleUtils";
-import { listTemplateFiles, readTemplateText, parseTemplate, structureTemplatesFolder, holidayTemplatesFolder, buildStructureTemplate, buildHolidayTemplate, writeTemplateFile, holidayCount } from "../utils/schoolTemplates";
+import { listTemplateFiles, readTemplateText, parseTemplate, structureTemplatesFolder, holidayTemplatesFolder, buildStructureTemplate, buildHolidayTemplate, writeTemplateFile, holidayCount, type ParsedTemplate } from "../utils/schoolTemplates";
 import type { LibFile } from "../utils/pluginLibrary";
 import { TimetableEditorModal } from "./TimetableEditorModal";
 import { openEmojiPicker, closeEmojiPicker, TextPromptModal, ConfirmModal } from "../settings/SettingsTab";
@@ -162,12 +162,12 @@ export class SetupWizardModal extends Modal {
     const files = await listTemplateFiles(this.plugin, "holidays");
     if (files.length === 0) { new Notice(`No holiday templates in "${holidayTemplatesFolder(this.plugin)}".`); return; }
     new WizardTemplatePickModal(this.app, files, "Pick a holiday calendar template…", (file) => { void (async () => {
-      let tpl;
+      let tpl: ParsedTemplate;
       try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
       catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
       if (tpl.kind !== "holidays" || !tpl.holidays) { new Notice("That file is not a holiday calendar template."); return; }
-      const cl = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null));
-      const tplOverrides = (cl(tpl.holidays.overrides) as WeekOverride[]).filter(o => o.type === "holiday" || o.type === "inset");
+      const cl = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null)) as T;
+      const tplOverrides = cl(tpl.holidays.overrides).filter(o => o.type === "holiday" || o.type === "inset");
       const keep = this.state.weekOverrides.filter(o => o.type !== "holiday" && o.type !== "inset");
       this.state.weekOverrides = [...keep, ...tplOverrides];
       new Notice(`Loaded ${tplOverrides.length} holiday/INSET ${tplOverrides.length === 1 ? "entry" : "entries"} from "${tpl.name}".`);
@@ -181,12 +181,12 @@ export class SetupWizardModal extends Modal {
     const files = await listTemplateFiles(this.plugin, "structure");
     if (files.length === 0) { new Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`); return; }
     new WizardTemplatePickModal(this.app, files, "Pick a school structure template…", (file) => { void (async () => {
-      let tpl;
+      let tpl: ParsedTemplate;
       try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
       catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
       if (tpl.kind !== "structure" || !tpl.structure) { new Notice("That file is not a school structure template."); return; }
       const st = tpl.structure;
-      const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null));
+      const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null)) as T;
       let daySchedules: DaySchedule[] = clone(st.daySchedules) ?? [];
       if (daySchedules.length === 0 && (st.periods?.length ?? 0) > 0) {
         daySchedules = [{ id: "sched-default", name: "Standard day", periods: clone(st.periods) }];

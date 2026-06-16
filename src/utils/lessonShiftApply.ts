@@ -75,14 +75,14 @@ export interface ShiftSnapshot {
   lessonNotes: unknown; lessonRooms: unknown; unplacedLessons: unknown;
 }
 export function snapshotState(s: TeacherPlannerSettings): ShiftSnapshot {
-  const c = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null));
+  const c = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null)) as T;
   return {
     lessonPlanLinks: c(s.lessonPlanLinks), preparedMarks: c(s.preparedMarks),
     externalLinks: c(s.externalLinks), lessonNotes: c(s.lessonNotes), lessonRooms: c(s.lessonRooms), unplacedLessons: c(s.unplacedLessons),
   };
 }
 export function restoreState(s: TeacherPlannerSettings, snap: ShiftSnapshot): void {
-  const c = <T>(v: unknown): T => JSON.parse(JSON.stringify(v ?? null));
+  const c = <T>(v: unknown): T => JSON.parse(JSON.stringify(v ?? null)) as T;
   s.lessonPlanLinks = c(snap.lessonPlanLinks);
   s.preparedMarks = c(snap.preparedMarks);
   s.externalLinks = c(snap.externalLinks);

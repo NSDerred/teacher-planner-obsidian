@@ -8,7 +8,7 @@ import { buildNoteTitle } from "../utils/noteTitleUtils";
 import { migrateWeekNotesToFiles } from "../utils/weekNoteFiles";
 import { backupPlanner, parseBackup, importPlanners, buildBackupOf, listLibraryBackups, readBackupText, backupsLibraryFolder, writeBackupToDestination } from "../utils/plannerBackup";
 import { renderDestinationPicker, openOSFilePicker, readSystemFile, type ExportDestination } from "../utils/exportDestination";
-import { buildStructureTemplate, buildHolidayTemplate, writeTemplateFile, listTemplateFiles, readTemplateText, parseTemplate, applyStructureTemplate, applyHolidayTemplate, holidayCount, shiftOverrideDates, structureTemplatesFolder, holidayTemplatesFolder } from "../utils/schoolTemplates";
+import { buildStructureTemplate, buildHolidayTemplate, writeTemplateFile, listTemplateFiles, readTemplateText, parseTemplate, applyStructureTemplate, applyHolidayTemplate, holidayCount, shiftOverrideDates, structureTemplatesFolder, holidayTemplatesFolder, type ParsedTemplate } from "../utils/schoolTemplates";
 import type { LibFile } from "../utils/pluginLibrary";
 import { resolveColour, isThemeToken, GRID_THEME_TOKEN } from "../utils/themeColours";
 import { findOverlappingOverrides } from "../utils/weekUtils";
@@ -1212,7 +1212,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const files = await listTemplateFiles(this.plugin, "structure");
     if (files.length === 0) { new Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`); return; }
     new TemplatePickModal(this.app, files, "Pick a school structure template…", (file) => { void (async () => {
-      let tpl;
+      let tpl: ParsedTemplate;
       try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
       catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
       if (tpl.kind !== "structure" || !tpl.structure) { new Notice("That file is not a school structure template."); return; }
@@ -1233,7 +1233,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const files = await listTemplateFiles(this.plugin, "holidays");
     if (files.length === 0) { new Notice(`No holiday templates in "${holidayTemplatesFolder(this.plugin)}".`); return; }
     new TemplatePickModal(this.app, files, "Pick a holiday calendar template…", (file) => { void (async () => {
-      let tpl;
+      let tpl: ParsedTemplate;
       try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
       catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
       if (tpl.kind !== "holidays" || !tpl.holidays) { new Notice("That file is not a holiday calendar template."); return; }
