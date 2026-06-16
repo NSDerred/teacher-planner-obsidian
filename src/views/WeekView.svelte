@@ -74,10 +74,10 @@
   $: currentWeekKey = weekKey(currentMonday);
   $: weekLabel      = getWeekLabel(currentDate);
   $: dateRange      = formatDateRange(currentDate);
-  $: abEnabled      = !!plugin.settings.academicYear.abWeekEnabled;
-  $: abWeekType     = abEnabled
+  $: abEnabled      = _dep(_tick, !!plugin.settings.academicYear.abWeekEnabled);
+  $: abWeekType     = _dep(_tick, abEnabled
     ? getAbWeekType(currentDate, plugin.settings.academicYear, plugin.settings.weekOverrides ?? [], plugin.settings.schoolDays)
-    : null;
+    : null);
   $: abOverridden   = _dep(_tick, (plugin.settings.weekOverrides ?? []).some(o => o.abWeekOverride && getMondayOfWeek(new Date(o.startDate + "T12:00:00")).getTime() === currentMonday.getTime()));
   // Per-day override status — keyed by day.key ("monday" etc.) → "holiday" | "inset" | null
   $: dayOverrideMap = (() => {

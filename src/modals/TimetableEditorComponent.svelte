@@ -314,6 +314,100 @@
     markDirty();
   }
 
+  // ── Drag-and-drop (move / Ctrl-copy), mirroring the week planner ───────────
+  let dragFromKey: string | null = null;   // "day:periodId" of the chip being dragged
+  let dragOverKey: string | null = null;   // cell currently hovered as a drop target
+  let rejectKey:   string | null = null;   // cell flashing the invalid-drop style
+  let rejectTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Flash the invalid-drop style on a cell for 600 ms. */
+  function flashReject(key: string) {
+    if (rejectTimer) clearTimeout(rejectTimer);
+    rejectKey = key;
+    rejectTimer = setTimeout(() => { rejectKey = null; rejectTimer = null; }, 600);
+  }
+
+  function onChipDragStart(e: DragEvent, day: string, periodId: string) {
+    dragFromKey = day + ":" + periodId;
+    if (e.dataTransfer) {
+      e.dataTransfer.setData("text/plain", dragFromKey);
+      e.dataTransfer.effectAllowed = "copyMove";
+    }
+  }
+
+  function onCellDragOver(e: DragEvent, day: SchoolDay, periodId: string) {
+    if (!dragFromKey) return;
+    // Periods not in this day's schedule can't accept a drop.
+    if (!periodAppliesTo(plugin.settings.academicYear, periodId, day)) {
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
+      dragOverKey = null;
+      return;
+    }
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = (e.ctrlKey || e.metaKey) ? "copy" : "move";
+    dragOverKey = day + ":" + periodId;
+  }
+
+  function onCellDragLeave(e: DragEvent) {
+    const rel = e.relatedTarget as HTMLElement | null;
+    if (!rel?.closest(".tp-te-cell")) dragOverKey = null;
+  }
+
+  function onCellDrop(e: DragEvent, day: SchoolDay, period: SchoolPeriod) {
+    e.preventDefault();
+    dragOverKey = null;
+    const from = dragFromKey;
+    dragFromKey = null;
+    if (!from) return;
+    const toKey = day + ":" + period.id;
+    if (from === toKey) return;
+
+    // Reject drops onto periods outside this day's schedule.
+    if (!periodAppliesTo(plugin.settings.academicYear, period.id, day)) {
+      flashReject(toKey);
+      return;
+    }
+
+    const [fromDay, fromPeriodId] = from.split(":");
+    const w = currentWeek;
+    const source = getSlot(fromDay, fromPeriodId, w);
+    if (!source) return;
+    const target = getSlot(day, period.id, w);
+    const copy = e.ctrlKey || e.metaKey;
+
+    if (copy) {
+      // Copy: drop a clone of the source class into the target, overwriting any class there.
+      if (target) {
+        target.classId = source.classId;
+        if (source.durationMinutes != null) target.durationMinutes = source.durationMinutes;
+        else delete target.durationMinutes;
+      } else {
+        slots = [...slots, {
+          id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+          day: day as any, periodId: period.id, classId: source.classId,
+          start: period.start, end: period.end,
+          ...(w ? { weekType: w } : {}),
+          ...(source.durationMinutes != null ? { durationMinutes: source.durationMinutes } : {}),
+        }];
+      }
+    } else if (target) {
+      // Move onto an occupied cell → swap the two classes (and any duration overrides).
+      const sClass = source.classId, sDur = source.durationMinutes;
+      source.classId = target.classId; source.durationMinutes = target.durationMinutes;
+      target.classId = sClass; target.durationMinutes = sDur;
+    } else {
+      // Move onto an empty cell → relocate the source slot (its weekType is preserved).
+      source.day = day as any;
+      source.periodId = period.id;
+      source.start = period.start;
+      source.end = period.end;
+    }
+    slots = [...slots];
+    markDirty();
+  }
+
+  function onChipDragEnd() { dragFromKey = null; dragOverKey = null; }
+
   // ── Save ───────────────────────────────────────────────────────────────────
   async function save(force = false) {
     if (isPast && !force) {
@@ -542,6 +636,11 @@
                 class:tp-te-cell--filled={!!slot && !isNA}
                 class:tp-te-cell--open={isOpen}
                 class:tp-te-cell--na={isNA}
+                class:tp-te-cell--dragover={dragOverKey === cellKey && !isNA}
+                class:tp-te-cell--reject={rejectKey === cellKey}
+                on:dragover={(e) => onCellDragOver(e, day.key, period.id)}
+                on:dragleave={onCellDragLeave}
+                on:drop={(e) => onCellDrop(e, day.key, period)}
               >
                 {#if isNA}
                   <!-- period not in this day's schedule -->
@@ -551,6 +650,9 @@
                     class="tp-te-chip"
                     style="border-left: 3px solid {lbl.colour}; background: {lbl.colour}22;"
                     title="{lbl.code}{lbl.classroom ? ' · ' + lbl.classroom : ''}"
+                    draggable="true"
+                    on:dragstart={(e) => onChipDragStart(e, day.key, period.id)}
+                    on:dragend={onChipDragEnd}
                     on:click={(e) => openPicker(day.key, period.id, currentWeek, e.currentTarget)}
                   >
                     <span class="tp-te-chip-code" style="color:{lbl.colour}">{lbl.code}</span>
@@ -852,4 +954,8 @@
   .tp-te-btn-primary { background: var(--interactive-accent); color: var(--text-on-accent); border-color: var(--interactive-accent); }
   .tp-te-btn-primary:hover { filter: brightness(1.08); }
   .tp-te-cell--na { background: var(--background-secondary); opacity: 0.5; pointer-events: none; }
+  .tp-te-cell--dragover { outline: 2px dashed var(--interactive-accent); outline-offset: -2px; background: color-mix(in srgb, var(--interactive-accent) 14%, transparent); }
+  .tp-te-cell--reject   { outline: 2px dashed var(--text-error); outline-offset: -2px; }
+  .tp-te-chip { cursor: grab; }
+  .tp-te-chip:active { cursor: grabbing; }
 </style>
