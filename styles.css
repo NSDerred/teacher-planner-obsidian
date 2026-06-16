@@ -540,26 +540,29 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   user-select: none;
-  margin-top: 1.2em;
+  margin-top: 14px;
+  padding: 4px 2px 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.tp-collapsible-header:hover {
-  color: var(--text-accent);
-}
+.tp-collapsible-header:hover { color: var(--text-accent); }
 
 .tp-collapsible-chevron {
-  font-size: 1.1em;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
   color: var(--text-muted);
   transition: transform 0.15s ease;
-  display: inline-block;
 }
+.tp-collapsible-chevron svg { width: 17px; height: 17px; }
+.tp-collapsible-chevron--open { transform: rotate(90deg); }
 
-.tp-collapsible-content {
-  display: block;
-}
+.tp-collapsible-content { display: block; }
 
 .tp-activity-header-label {
   flex: 1;
@@ -1494,8 +1497,6 @@
 
 /* Collapsible settings sections (class-based; no inline styles) */
 .tp-section-collapsed { display: none; }
-.tp-collapsible-chevron { display: inline-block; transition: transform 0.12s; }
-.tp-collapsible-chevron--open { transform: rotate(90deg); }
 
 /* Slider value label (replaces deprecated setDynamicTooltip) */
 .tp-slider-value {
