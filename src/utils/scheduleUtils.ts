@@ -55,3 +55,11 @@ export function syncPeriodsUnion(ay: AcademicYear): void {
   }
   ay.periods = [...seen.values()].sort((a, b) => a.start.localeCompare(b.start));
 }
+
+/** Length of a period in minutes (end - start). 0 if the period is unknown. */
+export function periodLengthMinutes(ay: AcademicYear, periodId: string): number {
+  const pr = (ay.periods ?? []).find(pp => pp.id === periodId);
+  if (!pr) return 0;
+  const toMin = (hm: string) => { const [h, m] = (hm ?? "").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
+  return Math.max(0, toMin(pr.end) - toMin(pr.start));
+}

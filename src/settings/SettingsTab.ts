@@ -287,35 +287,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
             if (!isNaN(n) && n > 0 && n <= 100) { dt.timetablePercentage = n; this.plugin.requestSave(); }
           }));
 
-      // Default lesson duration: preset dropdown + optional custom input (inline show/hide)
-      const lessonDurOptions = ["45", "50", "60"];
-      const lessonDurDropValue = lessonDurOptions.includes(String(dt.defaultLessonDurationMinutes))
-        ? String(dt.defaultLessonDurationMinutes) : "custom";
-
       new Setting(dtPanel)
-        .setName("Default lesson duration")
-        .setDesc("Applied to all timetable lessons unless overridden on individual slots.")
-        .addDropdown(d => d
-          .addOption("45", "45 minutes")
-          .addOption("50", "50 minutes")
-          .addOption("60", "60 minutes")
-          .addOption("custom", "Custom…")
-          .setValue(lessonDurDropValue)
-          .onChange(async v => {
-            if (v !== "custom") { dt.defaultLessonDurationMinutes = parseInt(v); await this.plugin.saveSettings(); }
-            // Show/hide the custom input in place — no full re-render
-            customDurSetting.settingEl.setCssStyles({ display: v === "custom" ? "" : "none" });
-          }));
-
-      // Custom duration input — always in DOM, shown only when dropdown = "custom"
-      const customDurSetting = new Setting(dtPanel)
-        .setName("Custom lesson duration (minutes)")
-        .addText(t => t.setPlaceholder("e.g. 55").setValue(String(dt.defaultLessonDurationMinutes))
-          .onChange(v => {
-            const n = parseInt(v);
-            if (!isNaN(n) && n > 0) { dt.defaultLessonDurationMinutes = n; this.plugin.requestSave(); }
-          }));
-      customDurSetting.settingEl.setCssStyles({ display: lessonDurDropValue === "custom" ? "" : "none" });
+        .setName("Lesson and activity duration")
+        .setDesc("Each lesson, activity, or event counts the length of the block it sits in. To count a different amount (a half period, say), click the duration badge on that block in the timetable editor.");
 
       new Setting(dtPanel)
         .setName("Export directed time")
@@ -532,7 +506,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // ── Directed time activities ───────────────────────────────────────────
     new Setting(containerEl).setName("Events — Directed time").setHeading();
     containerEl.createEl("p", {
-      text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Set a default duration so the tracker can calculate your hours automatically — or leave it blank to enter the duration each time.",
+      text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Each one counts the length of the block you put it in; to count a different amount, click the duration badge on that block in the timetable editor.",
       cls: "setting-item-description"
     });
     if (!this.plugin.settings.activities) this.plugin.settings.activities = [];
@@ -547,7 +521,6 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     makeHeader("Name");
     makeHeader("Info");
     makeHeader("Classroom");
-    makeHeader("Duration", "tp-activity-header-label--dur");
     activityHeaders.createDiv("tp-activity-header-spacer"); // archive btn placeholder
     activityHeaders.createDiv("tp-activity-header-spacer"); // delete btn placeholder
 
@@ -1277,22 +1250,6 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     classroomInputAct.placeholder = "Classroom";
     classroomInputAct.setCssStyles({ opacity: "0.7" });
     classroomInputAct.addEventListener("change", () => { void (async () => { activity.classroom = classroomInputAct.value; await this.plugin.saveSettings(); })(); });
-
-    // Duration field — only for directed activities
-    if (typeFilter === "directed") {
-      const durInput = row.createEl("input", { type: "number", cls: "tp-class-code-input tp-dur-input" });
-      durInput.value = activity.durationMinutes !== undefined ? String(activity.durationMinutes) : "";
-      durInput.placeholder = "mins";
-      durInput.min = "1";
-      durInput.max = "480";
-      durInput.title = "Default duration for this activity (minutes)";
-      // Width handled by .tp-dur-input class (responsive on narrow viewports)
-      durInput.addEventListener("change", () => { void (async () => {
-        const n = parseInt(durInput.value);
-        activity.durationMinutes = isNaN(n) || durInput.value === "" ? undefined : n;
-        await this.plugin.saveSettings();
-      })(); });
-    }
 
     const archiveBtn = row.createEl("button", {
       cls: "tp-icon-btn",

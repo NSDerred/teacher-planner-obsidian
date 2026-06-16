@@ -1490,6 +1490,16 @@ function syncPeriodsUnion(ay) {
   }
   ay.periods = [...seen.values()].sort((a, b) => a.start.localeCompare(b.start));
 }
+function periodLengthMinutes(ay, periodId) {
+  var _a2;
+  const pr = ((_a2 = ay.periods) != null ? _a2 : []).find((pp) => pp.id === periodId);
+  if (!pr) return 0;
+  const toMin = (hm) => {
+    const [h, m] = (hm != null ? hm : "").split(":").map(Number);
+    return (h || 0) * 60 + (m || 0);
+  };
+  return Math.max(0, toMin(pr.end) - toMin(pr.start));
+}
 var init_scheduleUtils = __esm({
   "src/utils/scheduleUtils.ts"() {
   }
@@ -7951,19 +7961,15 @@ function isClassId(classId, s) {
   var _a2;
   return !!((_a2 = s.classes) == null ? void 0 : _a2.find((c) => c.id === classId));
 }
-function resolveSlotMins(slot, s, def) {
-  var _a2;
+function resolveSlotMins(slot, s) {
   if (slot.durationMinutes) return slot.durationMinutes;
-  const act = (_a2 = s.activities) == null ? void 0 : _a2.find((a) => a.id === slot.classId);
-  if (act == null ? void 0 : act.durationMinutes) return act.durationMinutes;
-  return def;
+  return periodLengthMinutes(s.academicYear, slot.periodId);
 }
-function resolveEventMins(ev, s, def) {
+function resolveEventMins(ev, s) {
   var _a2;
   if (ev.durationMinutes) return ev.durationMinutes;
-  const act = (_a2 = s.activities) == null ? void 0 : _a2.find((a) => a.id === ev.classId);
-  if (act == null ? void 0 : act.durationMinutes) return act.durationMinutes;
-  return def;
+  const ids = (_a2 = ev.periodIds) != null ? _a2 : ev.periodId ? [ev.periodId] : [];
+  return ids.reduce((sum, pid) => sum + periodLengthMinutes(s.academicYear, pid), 0);
 }
 function workingDaysInRange(startIso, endIso, schoolDays) {
   const MS_DAY = 24 * 60 * 60 * 1e3;
@@ -7982,7 +7988,6 @@ function calcDirectedTime(s) {
   const dt = s.directedTime;
   if (!dt) return { contractedMins: 0, accruedMins: 0, predictedMins: 0, weeks: [] };
   const contractedMins = dt.contractedHours * (dt.timetablePercentage / 100) * 60;
-  const def = dt.defaultLessonDurationMinutes;
   const todayMonday = getMondayOfWeek(/* @__PURE__ */ new Date());
   const MS_DAY = 24 * 60 * 60 * 1e3;
   const MS_WEEK = 7 * MS_DAY;
@@ -8071,7 +8076,7 @@ function calcDirectedTime(s) {
         if (holidayDates.has(slotIso)) continue;
         if (insetDates.has(slotIso)) continue;
         if ((_g = s.slotExclusions) == null ? void 0 : _g.some((ex) => ex.slotId === slot.id && ex.date === slotIso)) continue;
-        const mins = resolveSlotMins(slot, s, def);
+        const mins = resolveSlotMins(slot, s);
         if (isClassId(slot.classId, s)) {
           lessonCount++;
           lessonMins += mins;
@@ -8088,7 +8093,7 @@ function calcDirectedTime(s) {
       if (evMon !== wKey || !directed) continue;
       if (holidayDates.has(ev.date)) continue;
       eventCount++;
-      eventMins += resolveEventMins(ev, s, def);
+      eventMins += resolveEventMins(ev, s);
     }
     const weekInsetMins = weekDays.reduce((s2, d) => {
       var _a3;
@@ -8486,23 +8491,10 @@ var init_SetupWizardModal = __esm({
             if (!isNaN(n) && n > 0 && n <= 100) this.state.timetablePercentage = n;
           });
         });
-        const lessonDurOptions = ["45", "50", "60"];
-        const lessonDurDropValue = lessonDurOptions.includes(String(this.state.defaultLessonDurationMinutes)) ? String(this.state.defaultLessonDurationMinutes) : "custom";
-        let customDurSetting;
-        new import_obsidian8.Setting(dtPanel).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange((v) => {
-          if (v !== "custom") {
-            this.state.defaultLessonDurationMinutes = parseInt(v);
-          }
-          customDurSetting.settingEl.setCssStyles({ display: v === "custom" ? "" : "none" });
-        }));
-        customDurSetting = new import_obsidian8.Setting(dtPanel).setName("Custom lesson duration (minutes)").addText((t) => {
-          t.setPlaceholder("e.g. 55").setValue(lessonDurDropValue === "custom" ? String(this.state.defaultLessonDurationMinutes) : "");
-          t.onChange((v) => {
-            const n = parseInt(v);
-            if (!isNaN(n) && n > 0) this.state.defaultLessonDurationMinutes = n;
-          });
+        dtPanel.createEl("p", {
+          text: "Each lesson, activity, and event counts the length of the block it sits in. You can set a different duration on any block later by clicking its duration badge in the timetable editor.",
+          cls: "setting-item-description"
         });
-        customDurSetting.settingEl.setCssStyles({ display: lessonDurDropValue === "custom" ? "" : "none" });
         dtPanel.createEl("p", { text: "Directed time activities", cls: "tp-wizard-sublabel" });
         const activityHeaders = dtPanel.createDiv("tp-activity-row tp-activity-headers");
         activityHeaders.createDiv().setCssStyles({ width: "28px", flexShrink: "0" });
@@ -8511,7 +8503,6 @@ var init_SetupWizardModal = __esm({
           if (extra) h.setCssStyles(extra);
         };
         makeH("Name");
-        makeH("Duration", { flex: "0 0 54px", width: "54px" });
         activityHeaders.createDiv().setCssStyles({ width: "28px", flexShrink: "0" });
         const actList = dtPanel.createDiv("tp-activities-list");
         const renderActs = () => {
@@ -8537,16 +8528,6 @@ var init_SetupWizardModal = __esm({
             labelIn.placeholder = "Activity name";
             labelIn.addEventListener("change", () => {
               act.label = labelIn.value;
-            });
-            const durIn = row.createEl("input", { type: "number", cls: "tp-class-code-input tp-dur-input" });
-            durIn.value = act.durationMinutes !== void 0 ? String(act.durationMinutes) : "";
-            durIn.placeholder = "mins";
-            durIn.min = "1";
-            durIn.max = "480";
-            durIn.setCssStyles({ width: "54px" });
-            durIn.addEventListener("change", () => {
-              const n = parseInt(durIn.value);
-              act.durationMinutes = isNaN(n) || durIn.value === "" ? void 0 : n;
             });
             const delBtn = row.createEl("button", { cls: "tp-icon-btn" });
             (0, import_obsidian8.setIcon)(delBtn, "trash-2");
@@ -9183,7 +9164,7 @@ var init_SetupWizardModal = __esm({
           "",
           "The directed time tracker calculates your cumulative directed time from events recorded in your planner. It counts:",
           "",
-          "- **Timetable lessons** \u2014 every class slot on your timetable, using the lesson duration you configure (default: 60 min, adjustable per slot in the timetable editor).",
+          "- **Timetable lessons** \u2014 every class slot on your timetable, each counting the length of its block (adjustable per slot via the duration badge in the timetable editor).",
           "- **Directed time activities** \u2014 items in the *Directed time* section of Settings added to your planner (e.g. Cover, Duty, Meetings, Tutor).",
           "- **Holiday/INSET weeks** \u2014 automatically excluded from the count.",
           "- **Other events** \u2014 items in the *Other events* section of Settings are excluded from the directed time total.",
@@ -9210,7 +9191,7 @@ var init_SetupWizardModal = __esm({
           "",
           "- Add one-off events (cover lessons, extra meetings, parents evenings) as **date events** in your planner using the **+ Event** button.",
           "- If a timetable lesson is cancelled, use the **Exclude** option in the lesson notes panel so it isn\u2019t counted.",
-          "- Update slot durations if your lessons aren\u2019t exactly 60 minutes (click the duration badge in the timetable editor).",
+          "- Set a custom duration on any block whose directed time differs from its length (click the duration badge in the timetable editor).",
           "",
           "---",
           "",
@@ -9637,23 +9618,7 @@ var init_SettingsTab = __esm({
               this.plugin.requestSave();
             }
           }));
-          const lessonDurOptions = ["45", "50", "60"];
-          const lessonDurDropValue = lessonDurOptions.includes(String(dt.defaultLessonDurationMinutes)) ? String(dt.defaultLessonDurationMinutes) : "custom";
-          new import_obsidian10.Setting(dtPanel).setName("Default lesson duration").setDesc("Applied to all timetable lessons unless overridden on individual slots.").addDropdown((d) => d.addOption("45", "45 minutes").addOption("50", "50 minutes").addOption("60", "60 minutes").addOption("custom", "Custom\u2026").setValue(lessonDurDropValue).onChange(async (v) => {
-            if (v !== "custom") {
-              dt.defaultLessonDurationMinutes = parseInt(v);
-              await this.plugin.saveSettings();
-            }
-            customDurSetting.settingEl.setCssStyles({ display: v === "custom" ? "" : "none" });
-          }));
-          const customDurSetting = new import_obsidian10.Setting(dtPanel).setName("Custom lesson duration (minutes)").addText((t) => t.setPlaceholder("e.g. 55").setValue(String(dt.defaultLessonDurationMinutes)).onChange((v) => {
-            const n = parseInt(v);
-            if (!isNaN(n) && n > 0) {
-              dt.defaultLessonDurationMinutes = n;
-              this.plugin.requestSave();
-            }
-          }));
-          customDurSetting.settingEl.setCssStyles({ display: lessonDurDropValue === "custom" ? "" : "none" });
+          new import_obsidian10.Setting(dtPanel).setName("Lesson and activity duration").setDesc("Each lesson, activity, or event counts the length of the block it sits in. To count a different amount (a half period, say), click the duration badge on that block in the timetable editor.");
           new import_obsidian10.Setting(dtPanel).setName("Export directed time").setDesc("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management.").addButton((btn) => btn.setButtonText("Export XLSX\u2026").setCta().onClick(() => new DirectedTimeExportModal(this.app, this.plugin).open()));
           new import_obsidian10.Setting(dtPanel).setName("Directed time guide").setDesc("Open the guide note explaining how the tracker works and your statutory rights.").addButton((btn) => btn.setButtonText("Open guide").onClick(async () => {
             await this.createDirectedTimeGuideNote();
@@ -9852,7 +9817,7 @@ var init_SettingsTab = __esm({
         }));
         new import_obsidian10.Setting(containerEl).setName("Events \u2014 Directed time").setHeading();
         containerEl.createEl("p", {
-          text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Set a default duration so the tracker can calculate your hours automatically \u2014 or leave it blank to enter the duration each time.",
+          text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Each one counts the length of the block you put it in; to count a different amount, click the duration badge on that block in the timetable editor.",
           cls: "setting-item-description"
         });
         if (!this.plugin.settings.activities) this.plugin.settings.activities = [];
@@ -9865,7 +9830,6 @@ var init_SettingsTab = __esm({
         makeHeader("Name");
         makeHeader("Info");
         makeHeader("Classroom");
-        makeHeader("Duration", "tp-activity-header-label--dur");
         activityHeaders.createDiv("tp-activity-header-spacer");
         activityHeaders.createDiv("tp-activity-header-spacer");
         const activitiesContainer = containerEl.createDiv("tp-activities-list");
@@ -10579,21 +10543,6 @@ var init_SettingsTab = __esm({
             await this.plugin.saveSettings();
           })();
         });
-        if (typeFilter === "directed") {
-          const durInput = row.createEl("input", { type: "number", cls: "tp-class-code-input tp-dur-input" });
-          durInput.value = activity.durationMinutes !== void 0 ? String(activity.durationMinutes) : "";
-          durInput.placeholder = "mins";
-          durInput.min = "1";
-          durInput.max = "480";
-          durInput.title = "Default duration for this activity (minutes)";
-          durInput.addEventListener("change", () => {
-            void (async () => {
-              const n = parseInt(durInput.value);
-              activity.durationMinutes = isNaN(n) || durInput.value === "" ? void 0 : n;
-              await this.plugin.saveSettings();
-            })();
-          });
-        }
         const archiveBtn = row.createEl("button", {
           cls: "tp-icon-btn",
           title: isArchived ? "Restore" : "Archive (hides from timetable editor)"
@@ -10997,129 +10946,129 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
 
 // src/modals/TimetableEditorComponent.svelte
 function add_css2(target) {
-  append_styles(target, "svelte-bfeqtd", ".tp-te-wrap.svelte-bfeqtd.svelte-bfeqtd{display:flex;flex-direction:column;width:100%;box-sizing:border-box;height:auto;overflow:visible;font-size:14px;position:relative}.tp-te-tmpl-bar.svelte-bfeqtd.svelte-bfeqtd{display:flex;align-items:flex-start;gap:8px;padding:8px 48px 12px 0;flex-shrink:0;flex-wrap:wrap}.tp-te-tmpl-tabs.svelte-bfeqtd.svelte-bfeqtd{display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:0}.tp-te-tmpl-tab-wrap.svelte-bfeqtd.svelte-bfeqtd{display:flex;align-items:center;gap:2px}.tp-te-tmpl-tab.svelte-bfeqtd.svelte-bfeqtd{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 16px 11px;min-height:54px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;cursor:pointer;transition:all 0.15s;text-align:left}.tp-te-tmpl-tab--active.svelte-bfeqtd.svelte-bfeqtd{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-tmpl-tab--past.svelte-bfeqtd.svelte-bfeqtd:not(.tp-te-tmpl-tab--active){opacity:0.65}.tp-te-tmpl-name.svelte-bfeqtd.svelte-bfeqtd{font-weight:600;line-height:1.2}.tp-te-tmpl-dates.svelte-bfeqtd.svelte-bfeqtd{font-size:11px;opacity:0.75;line-height:1.2;margin-top:1px}.tp-te-tmpl-rename-btn.svelte-bfeqtd.svelte-bfeqtd{background:transparent;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:0.6;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-rename-btn.svelte-bfeqtd.svelte-bfeqtd:hover{opacity:1}.tp-te-tmpl-rename-btn.svelte-bfeqtd svg{width:13px;height:13px}.tp-te-rename-input.svelte-bfeqtd.svelte-bfeqtd{font-size:13px;font-weight:600;padding:4px 8px;border:1px solid var(--interactive-accent);border-radius:6px;background:var(--background-primary);color:var(--text-normal);width:140px}.tp-te-tmpl-actions.svelte-bfeqtd.svelte-bfeqtd{display:flex;align-items:center;gap:6px;flex-shrink:0}.tp-te-tmpl-add-btn.svelte-bfeqtd.svelte-bfeqtd{padding:10px 16px;border-radius:6px;border:1.5px dashed var(--interactive-accent);background:transparent;color:var(--interactive-accent);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap}.tp-te-tmpl-add-btn.svelte-bfeqtd.svelte-bfeqtd:hover{background:color-mix(in srgb, var(--interactive-accent) 10%, transparent)}.tp-te-tmpl-del-btn.svelte-bfeqtd.svelte-bfeqtd{background:transparent;border:none;cursor:pointer;font-size:16px;padding:4px;opacity:0.5;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-del-btn.svelte-bfeqtd.svelte-bfeqtd:hover{opacity:1}.tp-te-tmpl-del-btn.svelte-bfeqtd svg{width:15px;height:15px}.tp-te-edit-warn.svelte-bfeqtd.svelte-bfeqtd{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;margin-bottom:12px;background:color-mix(in srgb, var(--color-yellow, #f59e0b) 12%, transparent);border:1px solid var(--color-yellow, #f59e0b);border-radius:6px;font-size:13px;color:var(--text-normal);flex-shrink:0}.tp-te-edit-warn--collapsed.svelte-bfeqtd.svelte-bfeqtd{align-items:center;padding:6px 12px}.tp-te-edit-warn--confirm.svelte-bfeqtd.svelte-bfeqtd{align-items:center}.tp-te-edit-warn-body.svelte-bfeqtd.svelte-bfeqtd{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0}.tp-te-edit-warn-icon.svelte-bfeqtd.svelte-bfeqtd{flex-shrink:0}.tp-te-edit-warn-text.svelte-bfeqtd.svelte-bfeqtd{line-height:1.5}.tp-te-edit-warn-actions.svelte-bfeqtd.svelte-bfeqtd{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:2px}.tp-te-edit-warn-pill.svelte-bfeqtd.svelte-bfeqtd{color:var(--text-muted);font-size:12px}.tp-te-edit-warn-show-btn.svelte-bfeqtd.svelte-bfeqtd{padding:3px 10px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-past-confirm-btn.svelte-bfeqtd.svelte-bfeqtd{padding:4px 12px;border-radius:4px;border:none;background:var(--color-red, #f38ba8);color:#fff;font-size:12px;cursor:pointer}.tp-te-past-cancel-btn.svelte-bfeqtd.svelte-bfeqtd{padding:4px 12px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-week-tabs.svelte-bfeqtd.svelte-bfeqtd{display:flex;gap:6px;margin-bottom:14px;flex-shrink:0}.tp-te-week-tab.svelte-bfeqtd.svelte-bfeqtd{padding:6px 20px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}.tp-te-week-tab--active.svelte-bfeqtd.svelte-bfeqtd{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-grid-wrap.svelte-bfeqtd.svelte-bfeqtd{overflow:auto;max-height:55vh;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-te-grid.svelte-bfeqtd.svelte-bfeqtd{width:100%;border-collapse:collapse;table-layout:fixed}.tp-te-th.svelte-bfeqtd.svelte-bfeqtd{padding:10px 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);text-align:center;background:var(--background-secondary);border-bottom:1px solid var(--background-modifier-border);position:sticky;top:0;z-index:2}.tp-te-th--period.svelte-bfeqtd.svelte-bfeqtd{text-align:left;width:130px}.tp-te-period-cell.svelte-bfeqtd.svelte-bfeqtd{padding:6px 10px;border-bottom:1px solid var(--background-modifier-border);vertical-align:middle}.tp-te-period-name.svelte-bfeqtd.svelte-bfeqtd{display:block;font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-period-time.svelte-bfeqtd.svelte-bfeqtd{display:block;font-size:11px;color:var(--text-normal);margin-top:1px}.tp-te-cell.svelte-bfeqtd.svelte-bfeqtd{height:52px;padding:4px;border-bottom:1px solid var(--background-modifier-border);border-left:1px solid var(--background-modifier-border);vertical-align:middle;position:relative}.tp-te-cell.svelte-bfeqtd:hover .tp-te-add.svelte-bfeqtd{opacity:1}.tp-te-add.svelte-bfeqtd.svelte-bfeqtd{opacity:0;width:100%;height:100%;border:1.5px dashed var(--background-modifier-border);border-radius:6px;background:transparent;color:var(--text-faint);font-size:18px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center}.tp-te-add.svelte-bfeqtd.svelte-bfeqtd:hover{border-color:var(--interactive-accent);color:var(--interactive-accent);background:var(--background-modifier-hover)}.tp-te-chip.svelte-bfeqtd.svelte-bfeqtd{width:100%;height:100%;border-radius:6px;border:none;cursor:pointer;padding:4px 6px;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden;transition:filter 0.1s}.tp-te-chip.svelte-bfeqtd.svelte-bfeqtd:hover{filter:brightness(1.1)}.tp-te-chip-code.svelte-bfeqtd.svelte-bfeqtd{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-chip-sub.svelte-bfeqtd.svelte-bfeqtd{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-duration-badge.svelte-bfeqtd.svelte-bfeqtd{position:absolute;bottom:3px;right:4px;font-size:10px;font-weight:700;background:rgba(0,0,0,0.30);color:#fff;border-radius:3px;padding:1px 4px;cursor:pointer;line-height:1.4;transition:background 0.1s;z-index:1;pointer-events:all}.tp-te-duration-badge.svelte-bfeqtd.svelte-bfeqtd:hover{background:rgba(0,0,0,0.50)}.tp-te-duration-input.svelte-bfeqtd.svelte-bfeqtd{position:absolute;bottom:3px;right:4px;width:46px;font-size:10px;padding:1px 3px;border:1px solid var(--interactive-accent);border-radius:3px;background:var(--background-primary);color:var(--text-normal);z-index:2;text-align:center}.tp-te-picker.svelte-bfeqtd.svelte-bfeqtd{position:fixed;z-index:1000;width:240px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.3);overflow:hidden}.tp-te-picker-inner.svelte-bfeqtd.svelte-bfeqtd{max-height:360px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:2px}.tp-te-picker-search.svelte-bfeqtd.svelte-bfeqtd{width:100%;box-sizing:border-box;padding:6px 10px;margin-bottom:2px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-secondary);color:var(--text-normal);font-size:13px;outline:none;flex-shrink:0}.tp-te-picker-search.svelte-bfeqtd.svelte-bfeqtd:focus{border-color:var(--interactive-accent)}.tp-te-picker-group-label.svelte-bfeqtd.svelte-bfeqtd{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);padding:4px 8px 2px}.tp-te-picker-divider.svelte-bfeqtd.svelte-bfeqtd{height:1px;background:var(--background-modifier-border);margin:4px 0}.tp-te-picker-row.svelte-bfeqtd.svelte-bfeqtd{display:flex;align-items:center;gap:2px}.tp-te-picker-item.svelte-bfeqtd.svelte-bfeqtd{flex:1;display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;text-align:left;width:100%;transition:background 0.1s;min-width:0}.tp-te-picker-item.svelte-bfeqtd.svelte-bfeqtd:hover{background:var(--background-modifier-hover)}.tp-te-picker-item--active.svelte-bfeqtd.svelte-bfeqtd{background:color-mix(in srgb, var(--interactive-accent) 16%, transparent)}.tp-te-picker-item--active.svelte-bfeqtd.svelte-bfeqtd:hover{background:color-mix(in srgb, var(--interactive-accent) 24%, transparent)}.tp-te-picker-emoji.svelte-bfeqtd.svelte-bfeqtd{font-size:14px;line-height:1;flex-shrink:0}.tp-te-picker-item--archived.svelte-bfeqtd.svelte-bfeqtd{cursor:default;pointer-events:none}.tp-te-picker-item-text.svelte-bfeqtd.svelte-bfeqtd{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1;min-width:0}.tp-te-picker-code.svelte-bfeqtd.svelte-bfeqtd{font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-room.svelte-bfeqtd.svelte-bfeqtd{font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-clear.svelte-bfeqtd.svelte-bfeqtd{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-red, #f38ba8);font-size:13px;width:100%;transition:background 0.1s}.tp-te-picker-clear.svelte-bfeqtd svg{width:13px;height:13px;flex-shrink:0}.tp-te-picker-clear.svelte-bfeqtd.svelte-bfeqtd:hover{background:var(--background-modifier-hover)}.tp-te-archive-btn.svelte-bfeqtd.svelte-bfeqtd{background:transparent;border:none;cursor:pointer;font-size:14px;padding:4px 5px;opacity:0;flex-shrink:0;border-radius:4px;transition:opacity 0.1s, background 0.1s;display:inline-flex;align-items:center}.tp-te-archive-btn.svelte-bfeqtd svg{width:13px;height:13px}.tp-te-picker-row.svelte-bfeqtd:hover .tp-te-archive-btn.svelte-bfeqtd{opacity:0.6}.tp-te-picker-row--archived.svelte-bfeqtd .tp-te-archive-btn.svelte-bfeqtd{opacity:0.7}.tp-te-archive-btn.svelte-bfeqtd.svelte-bfeqtd:hover{opacity:1 !important;background:var(--background-modifier-hover)}.tp-te-show-archived-btn.svelte-bfeqtd.svelte-bfeqtd{background:transparent;border:none;cursor:pointer;color:var(--text-faint);font-size:12px;padding:4px 8px;text-align:left;width:100%;border-radius:4px}.tp-te-show-archived-btn.svelte-bfeqtd.svelte-bfeqtd:hover{background:var(--background-modifier-hover);color:var(--text-muted)}.tp-te-unsaved-overlay.svelte-bfeqtd.svelte-bfeqtd{position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;border-radius:8px}.tp-te-unsaved-dialog.svelte-bfeqtd.svelte-bfeqtd{background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;padding:20px 24px;max-width:340px;width:100%;box-shadow:0 8px 28px rgba(0,0,0,0.35);display:flex;flex-direction:column;gap:14px}.tp-te-unsaved-msg.svelte-bfeqtd.svelte-bfeqtd{font-size:14px;color:var(--text-normal);margin:0;line-height:1.4}.tp-te-unsaved-actions.svelte-bfeqtd.svelte-bfeqtd{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.tp-te-btn-danger.svelte-bfeqtd.svelte-bfeqtd{background:var(--color-red,#f38ba8);color:var(--text-on-accent);border-color:var(--color-red,#f38ba8)}.tp-te-btn-danger.svelte-bfeqtd.svelte-bfeqtd:hover{filter:brightness(1.1)}.tp-te-footer.svelte-bfeqtd.svelte-bfeqtd{display:flex;justify-content:flex-end;gap:8px;padding-top:14px;flex-shrink:0}.tp-te-btn.svelte-bfeqtd.svelte-bfeqtd{padding:8px 18px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:14px;cursor:pointer;transition:background 0.1s}.tp-te-btn.svelte-bfeqtd.svelte-bfeqtd:hover{background:var(--background-modifier-hover)}.tp-te-btn-primary.svelte-bfeqtd.svelte-bfeqtd{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-btn-primary.svelte-bfeqtd.svelte-bfeqtd:hover{filter:brightness(1.08)}.tp-te-cell--na.svelte-bfeqtd.svelte-bfeqtd{background:var(--background-secondary);opacity:0.5;pointer-events:none}");
+  append_styles(target, "svelte-yrpqzy", ".tp-te-wrap.svelte-yrpqzy.svelte-yrpqzy{display:flex;flex-direction:column;width:100%;box-sizing:border-box;height:auto;overflow:visible;font-size:14px;position:relative}.tp-te-tmpl-bar.svelte-yrpqzy.svelte-yrpqzy{display:flex;align-items:flex-start;gap:8px;padding:8px 48px 12px 0;flex-shrink:0;flex-wrap:wrap}.tp-te-tmpl-tabs.svelte-yrpqzy.svelte-yrpqzy{display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:0}.tp-te-tmpl-tab-wrap.svelte-yrpqzy.svelte-yrpqzy{display:flex;align-items:center;gap:2px}.tp-te-tmpl-tab.svelte-yrpqzy.svelte-yrpqzy{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 16px 11px;min-height:54px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;cursor:pointer;transition:all 0.15s;text-align:left}.tp-te-tmpl-tab--active.svelte-yrpqzy.svelte-yrpqzy{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-tmpl-tab--past.svelte-yrpqzy.svelte-yrpqzy:not(.tp-te-tmpl-tab--active){opacity:0.65}.tp-te-tmpl-name.svelte-yrpqzy.svelte-yrpqzy{font-weight:600;line-height:1.2}.tp-te-tmpl-dates.svelte-yrpqzy.svelte-yrpqzy{font-size:11px;opacity:0.75;line-height:1.2;margin-top:1px}.tp-te-tmpl-rename-btn.svelte-yrpqzy.svelte-yrpqzy{background:transparent;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:0.6;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-rename-btn.svelte-yrpqzy.svelte-yrpqzy:hover{opacity:1}.tp-te-tmpl-rename-btn.svelte-yrpqzy svg{width:13px;height:13px}.tp-te-rename-input.svelte-yrpqzy.svelte-yrpqzy{font-size:13px;font-weight:600;padding:4px 8px;border:1px solid var(--interactive-accent);border-radius:6px;background:var(--background-primary);color:var(--text-normal);width:140px}.tp-te-tmpl-actions.svelte-yrpqzy.svelte-yrpqzy{display:flex;align-items:center;gap:6px;flex-shrink:0}.tp-te-tmpl-add-btn.svelte-yrpqzy.svelte-yrpqzy{padding:10px 16px;border-radius:6px;border:1.5px dashed var(--interactive-accent);background:transparent;color:var(--interactive-accent);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap}.tp-te-tmpl-add-btn.svelte-yrpqzy.svelte-yrpqzy:hover{background:color-mix(in srgb, var(--interactive-accent) 10%, transparent)}.tp-te-tmpl-del-btn.svelte-yrpqzy.svelte-yrpqzy{background:transparent;border:none;cursor:pointer;font-size:16px;padding:4px;opacity:0.5;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-del-btn.svelte-yrpqzy.svelte-yrpqzy:hover{opacity:1}.tp-te-tmpl-del-btn.svelte-yrpqzy svg{width:15px;height:15px}.tp-te-edit-warn.svelte-yrpqzy.svelte-yrpqzy{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;margin-bottom:12px;background:color-mix(in srgb, var(--color-yellow, #f59e0b) 12%, transparent);border:1px solid var(--color-yellow, #f59e0b);border-radius:6px;font-size:13px;color:var(--text-normal);flex-shrink:0}.tp-te-edit-warn--collapsed.svelte-yrpqzy.svelte-yrpqzy{align-items:center;padding:6px 12px}.tp-te-edit-warn--confirm.svelte-yrpqzy.svelte-yrpqzy{align-items:center}.tp-te-edit-warn-body.svelte-yrpqzy.svelte-yrpqzy{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0}.tp-te-edit-warn-icon.svelte-yrpqzy.svelte-yrpqzy{flex-shrink:0}.tp-te-edit-warn-text.svelte-yrpqzy.svelte-yrpqzy{line-height:1.5}.tp-te-edit-warn-actions.svelte-yrpqzy.svelte-yrpqzy{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:2px}.tp-te-edit-warn-pill.svelte-yrpqzy.svelte-yrpqzy{color:var(--text-muted);font-size:12px}.tp-te-edit-warn-show-btn.svelte-yrpqzy.svelte-yrpqzy{padding:3px 10px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-past-confirm-btn.svelte-yrpqzy.svelte-yrpqzy{padding:4px 12px;border-radius:4px;border:none;background:var(--color-red, #f38ba8);color:#fff;font-size:12px;cursor:pointer}.tp-te-past-cancel-btn.svelte-yrpqzy.svelte-yrpqzy{padding:4px 12px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-week-tabs.svelte-yrpqzy.svelte-yrpqzy{display:flex;gap:6px;margin-bottom:14px;flex-shrink:0}.tp-te-week-tab.svelte-yrpqzy.svelte-yrpqzy{padding:6px 20px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}.tp-te-week-tab--active.svelte-yrpqzy.svelte-yrpqzy{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-grid-wrap.svelte-yrpqzy.svelte-yrpqzy{overflow:auto;max-height:55vh;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-te-grid.svelte-yrpqzy.svelte-yrpqzy{width:100%;border-collapse:collapse;table-layout:fixed}.tp-te-th.svelte-yrpqzy.svelte-yrpqzy{padding:10px 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);text-align:center;background:var(--background-secondary);border-bottom:1px solid var(--background-modifier-border);position:sticky;top:0;z-index:2}.tp-te-th--period.svelte-yrpqzy.svelte-yrpqzy{text-align:left;width:130px}.tp-te-period-cell.svelte-yrpqzy.svelte-yrpqzy{padding:6px 10px;border-bottom:1px solid var(--background-modifier-border);vertical-align:middle}.tp-te-period-name.svelte-yrpqzy.svelte-yrpqzy{display:block;font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-period-time.svelte-yrpqzy.svelte-yrpqzy{display:block;font-size:11px;color:var(--text-normal);margin-top:1px}.tp-te-cell.svelte-yrpqzy.svelte-yrpqzy{height:52px;padding:4px;border-bottom:1px solid var(--background-modifier-border);border-left:1px solid var(--background-modifier-border);vertical-align:middle;position:relative}.tp-te-cell.svelte-yrpqzy:hover .tp-te-add.svelte-yrpqzy{opacity:1}.tp-te-add.svelte-yrpqzy.svelte-yrpqzy{opacity:0;width:100%;height:100%;border:1.5px dashed var(--background-modifier-border);border-radius:6px;background:transparent;color:var(--text-faint);font-size:18px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center}.tp-te-add.svelte-yrpqzy.svelte-yrpqzy:hover{border-color:var(--interactive-accent);color:var(--interactive-accent);background:var(--background-modifier-hover)}.tp-te-chip.svelte-yrpqzy.svelte-yrpqzy{width:100%;height:100%;border-radius:6px;border:none;cursor:pointer;padding:4px 6px;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:1px;overflow:hidden;transition:filter 0.1s}.tp-te-chip.svelte-yrpqzy.svelte-yrpqzy:hover{filter:brightness(1.1)}.tp-te-chip-code.svelte-yrpqzy.svelte-yrpqzy{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-chip-sub.svelte-yrpqzy.svelte-yrpqzy{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-duration-badge.svelte-yrpqzy.svelte-yrpqzy{position:absolute;bottom:3px;right:4px;font-size:10px;font-weight:700;background:rgba(0,0,0,0.30);color:#fff;border-radius:3px;padding:1px 4px;cursor:pointer;line-height:1.4;transition:background 0.1s;z-index:1;pointer-events:all}.tp-te-duration-badge.svelte-yrpqzy.svelte-yrpqzy:hover{background:rgba(0,0,0,0.50)}.tp-te-duration-badge--override.svelte-yrpqzy.svelte-yrpqzy{background:var(--interactive-accent);color:var(--text-on-accent, #fff)}.tp-te-duration-badge--override.svelte-yrpqzy.svelte-yrpqzy:hover{background:var(--interactive-accent-hover, var(--interactive-accent))}.tp-te-duration-input.svelte-yrpqzy.svelte-yrpqzy{position:absolute;bottom:3px;right:4px;width:46px;font-size:10px;padding:1px 3px;border:1px solid var(--interactive-accent);border-radius:3px;background:var(--background-primary);color:var(--text-normal);z-index:2;text-align:center}.tp-te-picker.svelte-yrpqzy.svelte-yrpqzy{position:fixed;z-index:1000;width:240px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.3);overflow:hidden}.tp-te-picker-inner.svelte-yrpqzy.svelte-yrpqzy{max-height:360px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:2px}.tp-te-picker-search.svelte-yrpqzy.svelte-yrpqzy{width:100%;box-sizing:border-box;padding:6px 10px;margin-bottom:2px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-secondary);color:var(--text-normal);font-size:13px;outline:none;flex-shrink:0}.tp-te-picker-search.svelte-yrpqzy.svelte-yrpqzy:focus{border-color:var(--interactive-accent)}.tp-te-picker-group-label.svelte-yrpqzy.svelte-yrpqzy{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);padding:4px 8px 2px}.tp-te-picker-divider.svelte-yrpqzy.svelte-yrpqzy{height:1px;background:var(--background-modifier-border);margin:4px 0}.tp-te-picker-row.svelte-yrpqzy.svelte-yrpqzy{display:flex;align-items:center;gap:2px}.tp-te-picker-item.svelte-yrpqzy.svelte-yrpqzy{flex:1;display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;text-align:left;width:100%;transition:background 0.1s;min-width:0}.tp-te-picker-item.svelte-yrpqzy.svelte-yrpqzy:hover{background:var(--background-modifier-hover)}.tp-te-picker-item--active.svelte-yrpqzy.svelte-yrpqzy{background:color-mix(in srgb, var(--interactive-accent) 16%, transparent)}.tp-te-picker-item--active.svelte-yrpqzy.svelte-yrpqzy:hover{background:color-mix(in srgb, var(--interactive-accent) 24%, transparent)}.tp-te-picker-emoji.svelte-yrpqzy.svelte-yrpqzy{font-size:14px;line-height:1;flex-shrink:0}.tp-te-picker-item--archived.svelte-yrpqzy.svelte-yrpqzy{cursor:default;pointer-events:none}.tp-te-picker-item-text.svelte-yrpqzy.svelte-yrpqzy{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1;min-width:0}.tp-te-picker-code.svelte-yrpqzy.svelte-yrpqzy{font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-room.svelte-yrpqzy.svelte-yrpqzy{font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-clear.svelte-yrpqzy.svelte-yrpqzy{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-red, #f38ba8);font-size:13px;width:100%;transition:background 0.1s}.tp-te-picker-clear.svelte-yrpqzy svg{width:13px;height:13px;flex-shrink:0}.tp-te-picker-clear.svelte-yrpqzy.svelte-yrpqzy:hover{background:var(--background-modifier-hover)}.tp-te-archive-btn.svelte-yrpqzy.svelte-yrpqzy{background:transparent;border:none;cursor:pointer;font-size:14px;padding:4px 5px;opacity:0;flex-shrink:0;border-radius:4px;transition:opacity 0.1s, background 0.1s;display:inline-flex;align-items:center}.tp-te-archive-btn.svelte-yrpqzy svg{width:13px;height:13px}.tp-te-picker-row.svelte-yrpqzy:hover .tp-te-archive-btn.svelte-yrpqzy{opacity:0.6}.tp-te-picker-row--archived.svelte-yrpqzy .tp-te-archive-btn.svelte-yrpqzy{opacity:0.7}.tp-te-archive-btn.svelte-yrpqzy.svelte-yrpqzy:hover{opacity:1 !important;background:var(--background-modifier-hover)}.tp-te-show-archived-btn.svelte-yrpqzy.svelte-yrpqzy{background:transparent;border:none;cursor:pointer;color:var(--text-faint);font-size:12px;padding:4px 8px;text-align:left;width:100%;border-radius:4px}.tp-te-show-archived-btn.svelte-yrpqzy.svelte-yrpqzy:hover{background:var(--background-modifier-hover);color:var(--text-muted)}.tp-te-unsaved-overlay.svelte-yrpqzy.svelte-yrpqzy{position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;border-radius:8px}.tp-te-unsaved-dialog.svelte-yrpqzy.svelte-yrpqzy{background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;padding:20px 24px;max-width:340px;width:100%;box-shadow:0 8px 28px rgba(0,0,0,0.35);display:flex;flex-direction:column;gap:14px}.tp-te-unsaved-msg.svelte-yrpqzy.svelte-yrpqzy{font-size:14px;color:var(--text-normal);margin:0;line-height:1.4}.tp-te-unsaved-actions.svelte-yrpqzy.svelte-yrpqzy{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.tp-te-btn-danger.svelte-yrpqzy.svelte-yrpqzy{background:var(--color-red,#f38ba8);color:var(--text-on-accent);border-color:var(--color-red,#f38ba8)}.tp-te-btn-danger.svelte-yrpqzy.svelte-yrpqzy:hover{filter:brightness(1.1)}.tp-te-footer.svelte-yrpqzy.svelte-yrpqzy{display:flex;justify-content:flex-end;gap:8px;padding-top:14px;flex-shrink:0}.tp-te-btn.svelte-yrpqzy.svelte-yrpqzy{padding:8px 18px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:14px;cursor:pointer;transition:background 0.1s}.tp-te-btn.svelte-yrpqzy.svelte-yrpqzy:hover{background:var(--background-modifier-hover)}.tp-te-btn-primary.svelte-yrpqzy.svelte-yrpqzy{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-btn-primary.svelte-yrpqzy.svelte-yrpqzy:hover{filter:brightness(1.08)}.tp-te-cell--na.svelte-yrpqzy.svelte-yrpqzy{background:var(--background-secondary);opacity:0.5;pointer-events:none}");
 }
 function get_each_context2(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[127] = list[i];
+  child_ctx[125] = list[i];
   return child_ctx;
 }
 function get_each_context_12(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[130] = list[i];
+  child_ctx[128] = list[i];
   return child_ctx;
 }
 function get_each_context_2(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[127] = list[i];
+  child_ctx[125] = list[i];
   return child_ctx;
 }
 function get_each_context_3(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[127] = list[i];
+  child_ctx[125] = list[i];
   return child_ctx;
 }
 function get_each_context_4(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[137] = list[i];
+  child_ctx[135] = list[i];
   const constants_0 = (
     /*pickerFilteredClasses*/
     child_ctx[25].filter(function func_1(...args) {
       return (
         /*func_1*/
-        ctx[101](
+        ctx[100](
           /*subj*/
-          child_ctx[137],
+          child_ctx[135],
           ...args
         )
       );
     }).sort((a, b) => a.code.localeCompare(b.code))
   );
-  child_ctx[138] = constants_0;
+  child_ctx[136] = constants_0;
   return child_ctx;
 }
 function get_each_context_5(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[130] = list[i];
+  child_ctx[128] = list[i];
   const constants_0 = [
     /*cls*/
-    child_ctx[130].year,
+    child_ctx[128].year,
     /*subj*/
-    child_ctx[137].name
+    child_ctx[135].name
   ].filter(Boolean).join(" \xB7 ");
-  child_ctx[141] = constants_0;
+  child_ctx[139] = constants_0;
   return child_ctx;
 }
 function get_each_context_6(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[144] = list[i];
+  child_ctx[142] = list[i];
   const constants_0 = (
     /*getPeriodTypeColour*/
-    child_ctx[57](
+    child_ctx[58](
       /*period*/
-      child_ctx[144].type
+      child_ctx[142].type
     )
   );
-  child_ctx[145] = constants_0;
+  child_ctx[143] = constants_0;
   return child_ctx;
 }
 function get_each_context_7(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[148] = list[i];
+  child_ctx[146] = list[i];
   const constants_0 = (
     /*_slotGrid*/
     child_ctx[29][
       /*day*/
-      child_ctx[148].key + ":" + /*period*/
-      child_ctx[144].id
+      child_ctx[146].key + ":" + /*period*/
+      child_ctx[142].id
     ]
   );
-  child_ctx[149] = constants_0;
+  child_ctx[147] = constants_0;
   const constants_1 = (
     /*pickerDay*/
     child_ctx[4] === /*day*/
-    child_ctx[148].key && /*pickerPeriodId*/
+    child_ctx[146].key && /*pickerPeriodId*/
     child_ctx[5] === /*period*/
-    child_ctx[144].id
+    child_ctx[142].id
   );
-  child_ctx[150] = constants_1;
+  child_ctx[148] = constants_1;
   const constants_2 = (
     /*day*/
-    child_ctx[148].key + ":" + /*period*/
-    child_ctx[144].id
+    child_ctx[146].key + ":" + /*period*/
+    child_ctx[142].id
   );
-  child_ctx[151] = constants_2;
+  child_ctx[149] = constants_2;
   const constants_3 = !periodAppliesTo(
     /*plugin*/
     child_ctx[0].settings.academicYear,
     /*period*/
-    child_ctx[144].id,
+    child_ctx[142].id,
     /*day*/
-    child_ctx[148].key
+    child_ctx[146].key
   );
-  child_ctx[152] = constants_3;
+  child_ctx[150] = constants_3;
   return child_ctx;
 }
 function get_if_ctx(ctx) {
   const child_ctx = ctx.slice();
   const constants_0 = (
     /*getLabel*/
-    child_ctx[48](
+    child_ctx[49](
       /*slot*/
-      child_ctx[149]
+      child_ctx[147]
     )
   );
-  child_ctx[155] = constants_0;
+  child_ctx[153] = constants_0;
   return child_ctx;
 }
 function get_each_context_8(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[148] = list[i];
+  child_ctx[146] = list[i];
   return child_ctx;
 }
 function get_each_context_9(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[158] = list[i];
+  child_ctx[156] = list[i];
   return child_ctx;
 }
 function create_else_block_3(ctx) {
@@ -11127,20 +11076,20 @@ function create_else_block_3(ctx) {
   let span0;
   let t0_value = (
     /*tmpl*/
-    ctx[158].name + ""
+    ctx[156].name + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = fmtDate2(
     /*tmpl*/
-    ctx[158].startDate
+    ctx[156].startDate
   ) + "";
   let t2;
   let t3;
   let t4_value = fmtDate2(
     /*tmpl*/
-    ctx[158].endDate
+    ctx[156].endDate
   ) + "";
   let t4;
   let t5;
@@ -11150,16 +11099,16 @@ function create_else_block_3(ctx) {
   function click_handler_2() {
     return (
       /*click_handler_2*/
-      ctx[84](
+      ctx[83](
         /*tmpl*/
-        ctx[158]
+        ctx[156]
       )
     );
   }
   let if_block = (
     /*tmpl*/
-    ctx[158].id === /*activeTemplateId*/
-    ctx[1] && create_if_block_24(ctx)
+    ctx[156].id === /*activeTemplateId*/
+    ctx[1] && create_if_block_25(ctx)
   );
   return {
     c() {
@@ -11174,22 +11123,22 @@ function create_else_block_3(ctx) {
       t5 = space();
       if (if_block) if_block.c();
       if_block_anchor = empty();
-      attr(span0, "class", "tp-te-tmpl-name svelte-bfeqtd");
-      attr(span1, "class", "tp-te-tmpl-dates svelte-bfeqtd");
-      attr(button, "class", "tp-te-tmpl-tab svelte-bfeqtd");
+      attr(span0, "class", "tp-te-tmpl-name svelte-yrpqzy");
+      attr(span1, "class", "tp-te-tmpl-dates svelte-yrpqzy");
+      attr(button, "class", "tp-te-tmpl-tab svelte-yrpqzy");
       toggle_class(
         button,
         "tp-te-tmpl-tab--active",
         /*tmpl*/
-        ctx[158].id === /*activeTemplateId*/
+        ctx[156].id === /*activeTemplateId*/
         ctx[1]
       );
       toggle_class(
         button,
         "tp-te-tmpl-tab--past",
         /*tmpl*/
-        ctx[158].endDate < /*today*/
-        ctx[38]
+        ctx[156].endDate < /*today*/
+        ctx[39]
       );
     },
     m(target, anchor) {
@@ -11213,16 +11162,16 @@ function create_else_block_3(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*allTemplates*/
       128 && t0_value !== (t0_value = /*tmpl*/
-      ctx[158].name + "")) set_data(t0, t0_value);
+      ctx[156].name + "")) set_data(t0, t0_value);
       if (dirty[0] & /*allTemplates*/
       128 && t2_value !== (t2_value = fmtDate2(
         /*tmpl*/
-        ctx[158].startDate
+        ctx[156].startDate
       ) + "")) set_data(t2, t2_value);
       if (dirty[0] & /*allTemplates*/
       128 && t4_value !== (t4_value = fmtDate2(
         /*tmpl*/
-        ctx[158].endDate
+        ctx[156].endDate
       ) + "")) set_data(t4, t4_value);
       if (dirty[0] & /*allTemplates, activeTemplateId*/
       130) {
@@ -11230,30 +11179,30 @@ function create_else_block_3(ctx) {
           button,
           "tp-te-tmpl-tab--active",
           /*tmpl*/
-          ctx[158].id === /*activeTemplateId*/
+          ctx[156].id === /*activeTemplateId*/
           ctx[1]
         );
       }
       if (dirty[0] & /*allTemplates*/
       128 | dirty[1] & /*today*/
-      128) {
+      256) {
         toggle_class(
           button,
           "tp-te-tmpl-tab--past",
           /*tmpl*/
-          ctx[158].endDate < /*today*/
-          ctx[38]
+          ctx[156].endDate < /*today*/
+          ctx[39]
         );
       }
       if (
         /*tmpl*/
-        ctx[158].id === /*activeTemplateId*/
+        ctx[156].id === /*activeTemplateId*/
         ctx[1]
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
         } else {
-          if_block = create_if_block_24(ctx);
+          if_block = create_if_block_25(ctx);
           if_block.c();
           if_block.m(if_block_anchor.parentNode, if_block_anchor);
         }
@@ -11274,14 +11223,14 @@ function create_else_block_3(ctx) {
     }
   };
 }
-function create_if_block_23(ctx) {
+function create_if_block_24(ctx) {
   let input;
   let mounted;
   let dispose;
   return {
     c() {
       input = element("input");
-      attr(input, "class", "tp-te-rename-input svelte-bfeqtd");
+      attr(input, "class", "tp-te-rename-input svelte-yrpqzy");
       input.autofocus = true;
     },
     m(target, anchor) {
@@ -11298,13 +11247,13 @@ function create_if_block_23(ctx) {
             input,
             "input",
             /*input_input_handler*/
-            ctx[82]
+            ctx[81]
           ),
           listen(
             input,
             "keydown",
             /*keydown_handler_1*/
-            ctx[83]
+            ctx[82]
           )
         ];
         mounted = true;
@@ -11330,7 +11279,7 @@ function create_if_block_23(ctx) {
     }
   };
 }
-function create_if_block_24(ctx) {
+function create_if_block_25(ctx) {
   let button;
   let icon_action;
   let mounted;
@@ -11338,16 +11287,16 @@ function create_if_block_24(ctx) {
   function click_handler_3() {
     return (
       /*click_handler_3*/
-      ctx[85](
+      ctx[84](
         /*tmpl*/
-        ctx[158]
+        ctx[156]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-te-tmpl-rename-btn svelte-bfeqtd");
+      attr(button, "class", "tp-te-tmpl-rename-btn svelte-yrpqzy");
       attr(button, "title", "Rename");
     },
     m(target, anchor) {
@@ -11380,8 +11329,8 @@ function create_each_block_9(key_1, ctx) {
     if (
       /*renamingId*/
       ctx2[19] === /*tmpl*/
-      ctx2[158].id
-    ) return create_if_block_23;
+      ctx2[156].id
+    ) return create_if_block_24;
     return create_else_block_3;
   }
   let current_block_type = select_block_type(ctx, [-1, -1, -1, -1, -1, -1]);
@@ -11393,7 +11342,7 @@ function create_each_block_9(key_1, ctx) {
       div = element("div");
       if_block.c();
       t = space();
-      attr(div, "class", "tp-te-tmpl-tab-wrap svelte-bfeqtd");
+      attr(div, "class", "tp-te-tmpl-tab-wrap svelte-yrpqzy");
       this.first = div;
     },
     m(target, anchor) {
@@ -11422,7 +11371,7 @@ function create_each_block_9(key_1, ctx) {
     }
   };
 }
-function create_if_block_22(ctx) {
+function create_if_block_23(ctx) {
   let button;
   let icon_action;
   let mounted;
@@ -11430,7 +11379,7 @@ function create_if_block_22(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-te-tmpl-del-btn svelte-bfeqtd");
+      attr(button, "class", "tp-te-tmpl-del-btn svelte-yrpqzy");
       attr(button, "title", "Delete this template");
     },
     m(target, anchor) {
@@ -11441,7 +11390,7 @@ function create_if_block_22(ctx) {
             button,
             "click",
             /*deleteTemplate*/
-            ctx[56]
+            ctx[57]
           ),
           action_destroyer(icon_action = /*icon*/
           ctx[32].call(null, button, "trash-2"))
@@ -11459,17 +11408,17 @@ function create_if_block_22(ctx) {
     }
   };
 }
-function create_if_block_18(ctx) {
+function create_if_block_19(ctx) {
   let if_block_anchor;
   function select_block_type_1(ctx2, dirty) {
     if (
       /*warnCollapsed*/
       ctx2[18]
-    ) return create_if_block_19;
+    ) return create_if_block_20;
     if (
       /*showPastConfirm*/
       ctx2[17]
-    ) return create_if_block_20;
+    ) return create_if_block_21;
     return create_else_block_2;
   }
   let current_block_type = select_block_type_1(ctx, [-1, -1, -1, -1, -1, -1]);
@@ -11517,7 +11466,7 @@ function create_else_block_2(ctx) {
   let dispose;
   let if_block = (
     /*isPast*/
-    ctx[27] && create_if_block_21(ctx)
+    ctx[27] && create_if_block_22(ctx)
   );
   return {
     c() {
@@ -11533,13 +11482,13 @@ function create_else_block_2(ctx) {
       div2 = element("div");
       button = element("button");
       button.textContent = "Dismiss";
-      attr(span, "class", "tp-te-edit-warn-icon svelte-bfeqtd");
-      attr(div0, "class", "tp-te-edit-warn-text svelte-bfeqtd");
-      attr(div1, "class", "tp-te-edit-warn-body svelte-bfeqtd");
-      attr(button, "class", "tp-te-past-cancel-btn svelte-bfeqtd");
+      attr(span, "class", "tp-te-edit-warn-icon svelte-yrpqzy");
+      attr(div0, "class", "tp-te-edit-warn-text svelte-yrpqzy");
+      attr(div1, "class", "tp-te-edit-warn-body svelte-yrpqzy");
+      attr(button, "class", "tp-te-past-cancel-btn svelte-yrpqzy");
       attr(button, "title", "Dismiss warning");
-      attr(div2, "class", "tp-te-edit-warn-actions svelte-bfeqtd");
-      attr(div3, "class", "tp-te-edit-warn svelte-bfeqtd");
+      attr(div2, "class", "tp-te-edit-warn-actions svelte-yrpqzy");
+      attr(div3, "class", "tp-te-edit-warn svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div3, anchor);
@@ -11557,7 +11506,7 @@ function create_else_block_2(ctx) {
           button,
           "click",
           /*click_handler_6*/
-          ctx[88]
+          ctx[87]
         );
         mounted = true;
       }
@@ -11570,7 +11519,7 @@ function create_else_block_2(ctx) {
         if (if_block) {
           if_block.p(ctx2, dirty);
         } else {
-          if_block = create_if_block_21(ctx2);
+          if_block = create_if_block_22(ctx2);
           if_block.c();
           if_block.m(div0, t2);
         }
@@ -11589,7 +11538,7 @@ function create_else_block_2(ctx) {
     }
   };
 }
-function create_if_block_20(ctx) {
+function create_if_block_21(ctx) {
   let div1;
   let span;
   let t0;
@@ -11620,10 +11569,10 @@ function create_if_block_20(ctx) {
       t5 = space();
       button1 = element("button");
       button1.textContent = "Cancel";
-      attr(button0, "class", "tp-te-past-confirm-btn svelte-bfeqtd");
-      attr(button1, "class", "tp-te-past-cancel-btn svelte-bfeqtd");
-      attr(div0, "class", "tp-te-edit-warn-actions svelte-bfeqtd");
-      attr(div1, "class", "tp-te-edit-warn tp-te-edit-warn--confirm svelte-bfeqtd");
+      attr(button0, "class", "tp-te-past-confirm-btn svelte-yrpqzy");
+      attr(button1, "class", "tp-te-past-cancel-btn svelte-yrpqzy");
+      attr(div0, "class", "tp-te-edit-warn-actions svelte-yrpqzy");
+      attr(div1, "class", "tp-te-edit-warn tp-te-edit-warn--confirm svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -11642,13 +11591,13 @@ function create_if_block_20(ctx) {
             button0,
             "click",
             /*confirmPastSave*/
-            ctx[54]
+            ctx[55]
           ),
           listen(
             button1,
             "click",
             /*click_handler_5*/
-            ctx[87]
+            ctx[86]
           )
         ];
         mounted = true;
@@ -11670,7 +11619,7 @@ function create_if_block_20(ctx) {
     }
   };
 }
-function create_if_block_19(ctx) {
+function create_if_block_20(ctx) {
   let div;
   let span;
   let t1;
@@ -11685,9 +11634,9 @@ function create_if_block_19(ctx) {
       t1 = space();
       button = element("button");
       button.textContent = "Show";
-      attr(span, "class", "tp-te-edit-warn-pill svelte-bfeqtd");
-      attr(button, "class", "tp-te-edit-warn-show-btn svelte-bfeqtd");
-      attr(div, "class", "tp-te-edit-warn tp-te-edit-warn--collapsed svelte-bfeqtd");
+      attr(span, "class", "tp-te-edit-warn-pill svelte-yrpqzy");
+      attr(button, "class", "tp-te-edit-warn-show-btn svelte-yrpqzy");
+      attr(div, "class", "tp-te-edit-warn tp-te-edit-warn--collapsed svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -11699,7 +11648,7 @@ function create_if_block_19(ctx) {
           button,
           "click",
           /*click_handler_4*/
-          ctx[86]
+          ctx[85]
         );
         mounted = true;
       }
@@ -11714,7 +11663,7 @@ function create_if_block_19(ctx) {
     }
   };
 }
-function create_if_block_21(ctx) {
+function create_if_block_22(ctx) {
   let strong;
   let t0;
   let t1_value = fmtDate2(
@@ -11755,7 +11704,7 @@ function create_if_block_21(ctx) {
     }
   };
 }
-function create_if_block_17(ctx) {
+function create_if_block_18(ctx) {
   let div;
   let button0;
   let t1;
@@ -11770,21 +11719,21 @@ function create_if_block_17(ctx) {
       t1 = space();
       button1 = element("button");
       button1.textContent = "Week B";
-      attr(button0, "class", "tp-te-week-tab svelte-bfeqtd");
+      attr(button0, "class", "tp-te-week-tab svelte-yrpqzy");
       toggle_class(
         button0,
         "tp-te-week-tab--active",
         /*activeWeek*/
         ctx[3] === "A"
       );
-      attr(button1, "class", "tp-te-week-tab tp-te-week-tab--b svelte-bfeqtd");
+      attr(button1, "class", "tp-te-week-tab tp-te-week-tab--b svelte-yrpqzy");
       toggle_class(
         button1,
         "tp-te-week-tab--active",
         /*activeWeek*/
         ctx[3] === "B"
       );
-      attr(div, "class", "tp-te-week-tabs svelte-bfeqtd");
+      attr(div, "class", "tp-te-week-tabs svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -11797,13 +11746,13 @@ function create_if_block_17(ctx) {
             button0,
             "click",
             /*click_handler_7*/
-            ctx[89]
+            ctx[88]
           ),
           listen(
             button1,
             "click",
             /*click_handler_8*/
-            ctx[90]
+            ctx[89]
           )
         ];
         mounted = true;
@@ -11842,14 +11791,14 @@ function create_each_block_8(ctx) {
   let th;
   let t_value = (
     /*day*/
-    ctx[148].label + ""
+    ctx[146].label + ""
   );
   let t;
   return {
     c() {
       th = element("th");
       t = text(t_value);
-      attr(th, "class", "tp-te-th svelte-bfeqtd");
+      attr(th, "class", "tp-te-th svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, th, anchor);
@@ -11858,7 +11807,7 @@ function create_each_block_8(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*DAYS*/
       16384 && t_value !== (t_value = /*day*/
-      ctx2[148].label + "")) set_data(t, t_value);
+      ctx2[146].label + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -11874,11 +11823,11 @@ function create_else_block_1(ctx) {
   function click_handler_11(...args) {
     return (
       /*click_handler_11*/
-      ctx[96](
+      ctx[95](
         /*day*/
-        ctx[148],
+        ctx[146],
         /*period*/
-        ctx[144],
+        ctx[142],
         ...args
       )
     );
@@ -11887,7 +11836,7 @@ function create_else_block_1(ctx) {
     c() {
       button = element("button");
       button.textContent = "+";
-      attr(button, "class", "tp-te-add svelte-bfeqtd");
+      attr(button, "class", "tp-te-add svelte-yrpqzy");
       attr(button, "aria-label", "Assign");
     },
     m(target, anchor) {
@@ -11914,7 +11863,7 @@ function create_if_block_13(ctx) {
   let span;
   let t0_value = (
     /*lbl*/
-    ctx[155].code + ""
+    ctx[153].code + ""
   );
   let t0;
   let t1;
@@ -11923,9 +11872,9 @@ function create_if_block_13(ctx) {
   let show_if = (
     /*directedTimeEnabled*/
     ctx[31] && /*isDirectedSlot*/
-    ctx[34](
+    ctx[35](
       /*slot*/
-      ctx[149]
+      ctx[147]
     )
   );
   let if_block1_anchor;
@@ -11933,17 +11882,17 @@ function create_if_block_13(ctx) {
   let dispose;
   let if_block0 = (
     /*lbl*/
-    (ctx[155].sub || /*lbl*/
-    ctx[155].classroom) && create_if_block_16(ctx)
+    (ctx[153].sub || /*lbl*/
+    ctx[153].classroom) && create_if_block_17(ctx)
   );
   function click_handler_9(...args) {
     return (
       /*click_handler_9*/
-      ctx[91](
+      ctx[90](
         /*day*/
-        ctx[148],
+        ctx[146],
         /*period*/
-        ctx[144],
+        ctx[142],
         ...args
       )
     );
@@ -11959,26 +11908,26 @@ function create_if_block_13(ctx) {
       t2 = space();
       if (if_block1) if_block1.c();
       if_block1_anchor = empty();
-      attr(span, "class", "tp-te-chip-code svelte-bfeqtd");
+      attr(span, "class", "tp-te-chip-code svelte-yrpqzy");
       set_style(
         span,
         "color",
         /*lbl*/
-        ctx[155].colour
+        ctx[153].colour
       );
-      attr(button, "class", "tp-te-chip svelte-bfeqtd");
+      attr(button, "class", "tp-te-chip svelte-yrpqzy");
       set_style(button, "border-left", "3px solid " + /*lbl*/
-      ctx[155].colour);
+      ctx[153].colour);
       set_style(
         button,
         "background",
         /*lbl*/
-        ctx[155].colour + "22"
+        ctx[153].colour + "22"
       );
       attr(button, "title", button_title_value = /*lbl*/
-      ctx[155].code + /*lbl*/
-      (ctx[155].classroom ? " \xB7 " + /*lbl*/
-      ctx[155].classroom : ""));
+      ctx[153].code + /*lbl*/
+      (ctx[153].classroom ? " \xB7 " + /*lbl*/
+      ctx[153].classroom : ""));
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -11998,25 +11947,25 @@ function create_if_block_13(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
       536895488 && t0_value !== (t0_value = /*lbl*/
-      ctx[155].code + "")) set_data(t0, t0_value);
+      ctx[153].code + "")) set_data(t0, t0_value);
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
       536895488) {
         set_style(
           span,
           "color",
           /*lbl*/
-          ctx[155].colour
+          ctx[153].colour
         );
       }
       if (
         /*lbl*/
-        ctx[155].sub || /*lbl*/
-        ctx[155].classroom
+        ctx[153].sub || /*lbl*/
+        ctx[153].classroom
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_16(ctx);
+          if_block0 = create_if_block_17(ctx);
           if_block0.c();
           if_block0.m(button, null);
         }
@@ -12027,7 +11976,7 @@ function create_if_block_13(ctx) {
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
       536895488) {
         set_style(button, "border-left", "3px solid " + /*lbl*/
-        ctx[155].colour);
+        ctx[153].colour);
       }
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
       536895488) {
@@ -12035,23 +11984,23 @@ function create_if_block_13(ctx) {
           button,
           "background",
           /*lbl*/
-          ctx[155].colour + "22"
+          ctx[153].colour + "22"
         );
       }
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
       536895488 && button_title_value !== (button_title_value = /*lbl*/
-      ctx[155].code + /*lbl*/
-      (ctx[155].classroom ? " \xB7 " + /*lbl*/
-      ctx[155].classroom : ""))) {
+      ctx[153].code + /*lbl*/
+      (ctx[153].classroom ? " \xB7 " + /*lbl*/
+      ctx[153].classroom : ""))) {
         attr(button, "title", button_title_value);
       }
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
       536895488 | dirty[1] & /*directedTimeEnabled*/
       1) show_if = /*directedTimeEnabled*/
       ctx[31] && /*isDirectedSlot*/
-      ctx[34](
+      ctx[35](
         /*slot*/
-        ctx[149]
+        ctx[147]
       );
       if (show_if) {
         if (if_block1) {
@@ -12082,20 +12031,20 @@ function create_if_block_13(ctx) {
 function create_if_block_12(ctx) {
   return { c: noop, m: noop, p: noop, d: noop };
 }
-function create_if_block_16(ctx) {
+function create_if_block_17(ctx) {
   let span;
   let t_value = [
     /*lbl*/
-    ctx[155].sub,
+    ctx[153].sub,
     /*lbl*/
-    ctx[155].classroom
+    ctx[153].classroom
   ].filter(Boolean).join(" \xB7 ") + "";
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-chip-sub svelte-bfeqtd");
+      attr(span, "class", "tp-te-chip-sub svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -12105,9 +12054,9 @@ function create_if_block_16(ctx) {
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
       536895488 && t_value !== (t_value = [
         /*lbl*/
-        ctx2[155].sub,
+        ctx2[153].sub,
         /*lbl*/
-        ctx2[155].classroom
+        ctx2[153].classroom
       ].filter(Boolean).join(" \xB7 ") + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -12123,7 +12072,7 @@ function create_if_block_14(ctx) {
     if (
       /*durationEditKey*/
       ctx2[15] === /*cellKey*/
-      ctx2[151]
+      ctx2[149]
     ) return create_if_block_15;
     return create_else_block;
   }
@@ -12164,22 +12113,30 @@ function create_else_block(ctx) {
     /*getSlotDuration*/
     ctx[33](
       /*slot*/
-      ctx[149]
+      ctx[147]
     ) + ""
   );
   let t0;
   let t1;
+  let show_if = (
+    /*isDurationOverride*/
+    ctx[34](
+      /*slot*/
+      ctx[147]
+    )
+  );
   let span_title_value;
   let mounted;
   let dispose;
+  let if_block = show_if && create_if_block_16(ctx);
   function click_handler_10(...args) {
     return (
       /*click_handler_10*/
-      ctx[95](
+      ctx[94](
         /*slot*/
-        ctx[149],
+        ctx[147],
         /*cellKey*/
-        ctx[151],
+        ctx[149],
         ...args
       )
     );
@@ -12189,17 +12146,41 @@ function create_else_block(ctx) {
       span = element("span");
       t0 = text(t0_value);
       t1 = text("m");
-      attr(span, "class", "tp-te-duration-badge svelte-bfeqtd");
-      attr(span, "title", span_title_value = "Duration: " + /*getSlotDuration*/
+      if (if_block) if_block.c();
+      attr(span, "class", "tp-te-duration-badge svelte-yrpqzy");
+      attr(span, "title", span_title_value = /*isDurationOverride*/
+      ctx[34](
+        /*slot*/
+        ctx[147]
+      ) ? `Custom duration ${/*getSlotDuration*/
       ctx[33](
         /*slot*/
-        ctx[149]
-      ) + " min \u2014 click to edit");
+        ctx[147]
+      )} min (block is ${periodLengthMinutes(
+        /*plugin*/
+        ctx[0].settings.academicYear,
+        /*slot*/
+        ctx[147].periodId
+      )} min) \u2014 click to edit` : `Duration ${/*getSlotDuration*/
+      ctx[33](
+        /*slot*/
+        ctx[147]
+      )} min (block length) \u2014 click to edit`);
+      toggle_class(
+        span,
+        "tp-te-duration-badge--override",
+        /*isDurationOverride*/
+        ctx[34](
+          /*slot*/
+          ctx[147]
+        )
+      );
     },
     m(target, anchor) {
       insert(target, span, anchor);
       append(span, t0);
       append(span, t1);
+      if (if_block) if_block.m(span, null);
       if (!mounted) {
         dispose = listen(span, "click", stop_propagation(click_handler_10));
         mounted = true;
@@ -12211,21 +12192,65 @@ function create_else_block(ctx) {
       536895488 && t0_value !== (t0_value = /*getSlotDuration*/
       ctx[33](
         /*slot*/
-        ctx[149]
+        ctx[147]
       ) + "")) set_data(t0, t0_value);
       if (dirty[0] & /*_slotGrid, DAYS, periods*/
-      536895488 && span_title_value !== (span_title_value = "Duration: " + /*getSlotDuration*/
+      536895488) show_if = /*isDurationOverride*/
+      ctx[34](
+        /*slot*/
+        ctx[147]
+      );
+      if (show_if) {
+        if (if_block) {
+        } else {
+          if_block = create_if_block_16(ctx);
+          if_block.c();
+          if_block.m(span, null);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
+      if (dirty[0] & /*_slotGrid, DAYS, periods, plugin*/
+      536895489 && span_title_value !== (span_title_value = /*isDurationOverride*/
+      ctx[34](
+        /*slot*/
+        ctx[147]
+      ) ? `Custom duration ${/*getSlotDuration*/
       ctx[33](
         /*slot*/
-        ctx[149]
-      ) + " min \u2014 click to edit")) {
+        ctx[147]
+      )} min (block is ${periodLengthMinutes(
+        /*plugin*/
+        ctx[0].settings.academicYear,
+        /*slot*/
+        ctx[147].periodId
+      )} min) \u2014 click to edit` : `Duration ${/*getSlotDuration*/
+      ctx[33](
+        /*slot*/
+        ctx[147]
+      )} min (block length) \u2014 click to edit`)) {
         attr(span, "title", span_title_value);
+      }
+      if (dirty[0] & /*_slotGrid, DAYS, periods*/
+      536895488 | dirty[1] & /*isDurationOverride*/
+      8) {
+        toggle_class(
+          span,
+          "tp-te-duration-badge--override",
+          /*isDurationOverride*/
+          ctx[34](
+            /*slot*/
+            ctx[147]
+          )
+        );
       }
     },
     d(detaching) {
       if (detaching) {
         detach(span);
       }
+      if (if_block) if_block.d();
       mounted = false;
       dispose();
     }
@@ -12238,9 +12263,9 @@ function create_if_block_15(ctx) {
   function keydown_handler_2(...args) {
     return (
       /*keydown_handler_2*/
-      ctx[93](
+      ctx[92](
         /*slot*/
-        ctx[149],
+        ctx[147],
         ...args
       )
     );
@@ -12248,16 +12273,16 @@ function create_if_block_15(ctx) {
   function blur_handler() {
     return (
       /*blur_handler*/
-      ctx[94](
+      ctx[93](
         /*slot*/
-        ctx[149]
+        ctx[147]
       )
     );
   }
   return {
     c() {
       input = element("input");
-      attr(input, "class", "tp-te-duration-input svelte-bfeqtd");
+      attr(input, "class", "tp-te-duration-input svelte-yrpqzy");
       attr(input, "type", "number");
       attr(input, "min", "1");
       attr(input, "max", "480");
@@ -12277,11 +12302,11 @@ function create_if_block_15(ctx) {
             input,
             "input",
             /*input_input_handler_1*/
-            ctx[92]
+            ctx[91]
           ),
           listen(input, "click", stop_propagation(
             /*click_handler*/
-            ctx[79]
+            ctx[78]
           )),
           listen(input, "keydown", keydown_handler_2),
           listen(input, "blur", blur_handler)
@@ -12310,16 +12335,32 @@ function create_if_block_15(ctx) {
     }
   };
 }
+function create_if_block_16(ctx) {
+  let t;
+  return {
+    c() {
+      t = text("*");
+    },
+    m(target, anchor) {
+      insert(target, t, anchor);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(t);
+      }
+    }
+  };
+}
 function create_each_block_7(ctx) {
   let td2;
   function select_block_type_2(ctx2, dirty) {
     if (
       /*isNA*/
-      ctx2[152]
+      ctx2[150]
     ) return create_if_block_12;
     if (
       /*slot*/
-      ctx2[149]
+      ctx2[147]
     ) return create_if_block_13;
     return create_else_block_1;
   }
@@ -12333,21 +12374,21 @@ function create_each_block_7(ctx) {
     c() {
       td2 = element("td");
       if_block.c();
-      attr(td2, "class", "tp-te-cell svelte-bfeqtd");
+      attr(td2, "class", "tp-te-cell svelte-yrpqzy");
       toggle_class(td2, "tp-te-cell--filled", !!/*slot*/
-      ctx[149] && !/*isNA*/
-      ctx[152]);
+      ctx[147] && !/*isNA*/
+      ctx[150]);
       toggle_class(
         td2,
         "tp-te-cell--open",
         /*isOpen*/
-        ctx[150]
+        ctx[148]
       );
       toggle_class(
         td2,
         "tp-te-cell--na",
         /*isNA*/
-        ctx[152]
+        ctx[150]
       );
     },
     m(target, anchor) {
@@ -12368,8 +12409,8 @@ function create_each_block_7(ctx) {
       if (dirty[0] & /*_slotGrid, DAYS, periods, plugin*/
       536895489) {
         toggle_class(td2, "tp-te-cell--filled", !!/*slot*/
-        ctx2[149] && !/*isNA*/
-        ctx2[152]);
+        ctx2[147] && !/*isNA*/
+        ctx2[150]);
       }
       if (dirty[0] & /*pickerDay, DAYS, pickerPeriodId, periods*/
       24624) {
@@ -12377,7 +12418,7 @@ function create_each_block_7(ctx) {
           td2,
           "tp-te-cell--open",
           /*isOpen*/
-          ctx2[150]
+          ctx2[148]
         );
       }
       if (dirty[0] & /*plugin, periods, DAYS*/
@@ -12386,7 +12427,7 @@ function create_each_block_7(ctx) {
           td2,
           "tp-te-cell--na",
           /*isNA*/
-          ctx2[152]
+          ctx2[150]
         );
       }
     },
@@ -12404,20 +12445,20 @@ function create_each_block_6(ctx) {
   let span0;
   let t0_value = (
     /*period*/
-    ctx[144].name + ""
+    ctx[142].name + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = (
     /*period*/
-    ctx[144].start + ""
+    ctx[142].start + ""
   );
   let t2;
   let t3;
   let t4_value = (
     /*period*/
-    ctx[144].end + ""
+    ctx[142].end + ""
   );
   let t4;
   let t5;
@@ -12446,19 +12487,19 @@ function create_each_block_6(ctx) {
         each_blocks[i].c();
       }
       t6 = space();
-      attr(span0, "class", "tp-te-period-name svelte-bfeqtd");
-      attr(span1, "class", "tp-te-period-time svelte-bfeqtd");
-      attr(td2, "class", "tp-te-period-cell svelte-bfeqtd");
+      attr(span0, "class", "tp-te-period-name svelte-yrpqzy");
+      attr(span1, "class", "tp-te-period-time svelte-yrpqzy");
+      attr(td2, "class", "tp-te-period-cell svelte-yrpqzy");
       set_style(td2, "background", hexToRgba2(
         /*tc*/
-        ctx[145],
+        ctx[143],
         0.25
       ));
       set_style(td2, "border-left", "3px solid " + /*tc*/
-      ctx[145]);
+      ctx[143]);
       set_style(tr, "background", hexToRgba2(
         /*tc*/
-        ctx[145],
+        ctx[143],
         0.05
       ));
     },
@@ -12483,29 +12524,29 @@ function create_each_block_6(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*periods*/
       8192 && t0_value !== (t0_value = /*period*/
-      ctx2[144].name + "")) set_data(t0, t0_value);
+      ctx2[142].name + "")) set_data(t0, t0_value);
       if (dirty[0] & /*periods*/
       8192 && t2_value !== (t2_value = /*period*/
-      ctx2[144].start + "")) set_data(t2, t2_value);
+      ctx2[142].start + "")) set_data(t2, t2_value);
       if (dirty[0] & /*periods*/
       8192 && t4_value !== (t4_value = /*period*/
-      ctx2[144].end + "")) set_data(t4, t4_value);
+      ctx2[142].end + "")) set_data(t4, t4_value);
       if (dirty[0] & /*periods*/
       8192) {
         set_style(td2, "background", hexToRgba2(
           /*tc*/
-          ctx2[145],
+          ctx2[143],
           0.25
         ));
       }
       if (dirty[0] & /*periods*/
       8192) {
         set_style(td2, "border-left", "3px solid " + /*tc*/
-        ctx2[145]);
+        ctx2[143]);
       }
       if (dirty[0] & /*_slotGrid, DAYS, periods, plugin, pickerDay, pickerPeriodId, durationEditValue, durationEditKey, currentWeek*/
-      536997937 | dirty[1] & /*commitDurationEdit, getSlotDuration, startDurationEdit, directedTimeEnabled, isDirectedSlot, getLabel, openPicker*/
-      393277) {
+      536997937 | dirty[1] & /*commitDurationEdit, isDurationOverride, getSlotDuration, startDurationEdit, directedTimeEnabled, isDirectedSlot, getLabel, openPicker*/
+      786557) {
         each_value_7 = ensure_array_like(
           /*DAYS*/
           ctx2[14]
@@ -12530,7 +12571,7 @@ function create_each_block_6(ctx) {
       8192) {
         set_style(tr, "background", hexToRgba2(
           /*tc*/
-          ctx2[145],
+          ctx2[143],
           0.05
         ));
       }
@@ -12551,7 +12592,7 @@ function create_if_block_1(ctx) {
   let t0;
   let show_if_1 = (
     /*getSlot*/
-    ctx[47](
+    ctx[48](
       /*pickerDay*/
       ctx[4],
       /*pickerPeriodId*/
@@ -12565,7 +12606,7 @@ function create_if_block_1(ctx) {
     /*sortedSubjects*/
     ctx[26].some(
       /*func*/
-      ctx[77]
+      ctx[76]
     )
   );
   let t2;
@@ -12603,11 +12644,11 @@ function create_if_block_1(ctx) {
       if (if_block3) if_block3.c();
       t4 = space();
       if (if_block4) if_block4.c();
-      attr(input, "class", "tp-te-picker-search svelte-bfeqtd");
+      attr(input, "class", "tp-te-picker-search svelte-yrpqzy");
       attr(input, "type", "text");
       attr(input, "placeholder", "Search\u2026");
-      attr(div0, "class", "tp-te-picker-inner svelte-bfeqtd");
-      attr(div1, "class", "tp-te-picker svelte-bfeqtd");
+      attr(div0, "class", "tp-te-picker-inner svelte-yrpqzy");
+      attr(div1, "class", "tp-te-picker svelte-yrpqzy");
       attr(div1, "style", div1_style_value = getPickerStyle(
         /*pickerEl*/
         ctx[22]
@@ -12638,12 +12679,12 @@ function create_if_block_1(ctx) {
             input,
             "input",
             /*input_input_handler_2*/
-            ctx[97]
+            ctx[96]
           ),
           action_destroyer(focusPicker_action = focusPicker.call(null, input)),
           listen(input, "click", stop_propagation(
             /*click_handler_1*/
-            ctx[78]
+            ctx[77]
           ))
         ];
         mounted = true;
@@ -12661,7 +12702,7 @@ function create_if_block_1(ctx) {
       }
       if (dirty[0] & /*pickerDay, pickerPeriodId, currentWeek*/
       4144) show_if_1 = /*getSlot*/
-      ctx2[47](
+      ctx2[48](
         /*pickerDay*/
         ctx2[4],
         /*pickerPeriodId*/
@@ -12685,7 +12726,7 @@ function create_if_block_1(ctx) {
       100663296) show_if = /*sortedSubjects*/
       ctx2[26].some(
         /*func*/
-        ctx2[77]
+        ctx2[76]
       );
       if (show_if) {
         if (if_block1) {
@@ -12782,8 +12823,8 @@ function create_if_block_11(ctx) {
       t0 = text(" Remove");
       t1 = space();
       div = element("div");
-      attr(button, "class", "tp-te-picker-clear svelte-bfeqtd");
-      attr(div, "class", "tp-te-picker-divider svelte-bfeqtd");
+      attr(button, "class", "tp-te-picker-clear svelte-yrpqzy");
+      attr(div, "class", "tp-te-picker-divider svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -12799,7 +12840,7 @@ function create_if_block_11(ctx) {
             button,
             "click",
             /*click_handler_12*/
-            ctx[98]
+            ctx[97]
           )
         ];
         mounted = true;
@@ -12838,7 +12879,7 @@ function create_if_block_8(ctx) {
         each_blocks[i].c();
       }
       each_1_anchor = empty();
-      attr(div, "class", "tp-te-picker-group-label svelte-bfeqtd");
+      attr(div, "class", "tp-te-picker-group-label svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -12853,7 +12894,7 @@ function create_if_block_8(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredClasses, sortedSubjects, pickerCurId, periods, pickerPeriodId, pickerDay, currentWeek*/
       369111088 | dirty[1] & /*toggleArchiveClass, assignItem, closePicker*/
-      1573888) {
+      3147776) {
         each_value_4 = ensure_array_like(
           /*sortedSubjects*/
           ctx2[26]
@@ -12889,14 +12930,14 @@ function create_if_block_10(ctx) {
   let span;
   let t_value = (
     /*subj*/
-    ctx[137].emoji + ""
+    ctx[135].emoji + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-picker-emoji svelte-bfeqtd");
+      attr(span, "class", "tp-te-picker-emoji svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -12905,7 +12946,7 @@ function create_if_block_10(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*sortedSubjects*/
       67108864 && t_value !== (t_value = /*subj*/
-      ctx2[137].emoji + "")) set_data(t, t_value);
+      ctx2[135].emoji + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -12918,14 +12959,14 @@ function create_if_block_9(ctx) {
   let span;
   let t_value = (
     /*secondary*/
-    ctx[141] + ""
+    ctx[139] + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-bfeqtd");
+      attr(span, "class", "tp-te-picker-room svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -12934,7 +12975,7 @@ function create_if_block_9(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
       100663296 && t_value !== (t_value = /*secondary*/
-      ctx2[141] + "")) set_data(t, t_value);
+      ctx2[139] + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -12951,7 +12992,7 @@ function create_each_block_5(ctx) {
   let span0;
   let t1_value = (
     /*cls*/
-    ctx[130].code + ""
+    ctx[128].code + ""
   );
   let t1;
   let t2;
@@ -12963,27 +13004,27 @@ function create_each_block_5(ctx) {
   let dispose;
   let if_block0 = (
     /*subj*/
-    ctx[137].emoji && create_if_block_10(ctx)
+    ctx[135].emoji && create_if_block_10(ctx)
   );
   let if_block1 = (
     /*secondary*/
-    ctx[141] && create_if_block_9(ctx)
+    ctx[139] && create_if_block_9(ctx)
   );
   function click_handler_13() {
     return (
       /*click_handler_13*/
-      ctx[99](
+      ctx[98](
         /*cls*/
-        ctx[130]
+        ctx[128]
       )
     );
   }
   function click_handler_14() {
     return (
       /*click_handler_14*/
-      ctx[100](
+      ctx[99](
         /*cls*/
-        ctx[130]
+        ctx[128]
       )
     );
   }
@@ -13001,21 +13042,21 @@ function create_each_block_5(ctx) {
       t3 = space();
       button1 = element("button");
       t4 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-bfeqtd");
-      attr(span1, "class", "tp-te-picker-item-text svelte-bfeqtd");
-      attr(button0, "class", "tp-te-picker-item svelte-bfeqtd");
+      attr(span0, "class", "tp-te-picker-code svelte-yrpqzy");
+      attr(span1, "class", "tp-te-picker-item-text svelte-yrpqzy");
+      attr(button0, "class", "tp-te-picker-item svelte-yrpqzy");
       set_style(button0, "border-left", "3px solid " + /*cls*/
-      ctx[130].colour);
+      ctx[128].colour);
       toggle_class(
         button0,
         "tp-te-picker-item--active",
         /*cls*/
-        ctx[130].id === /*pickerCurId*/
+        ctx[128].id === /*pickerCurId*/
         ctx[28]
       );
-      attr(button1, "class", "tp-te-archive-btn svelte-bfeqtd");
+      attr(button1, "class", "tp-te-archive-btn svelte-yrpqzy");
       attr(button1, "title", "Archive class");
-      attr(div, "class", "tp-te-picker-row svelte-bfeqtd");
+      attr(div, "class", "tp-te-picker-row svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -13044,7 +13085,7 @@ function create_each_block_5(ctx) {
       ctx = new_ctx;
       if (
         /*subj*/
-        ctx[137].emoji
+        ctx[135].emoji
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -13059,10 +13100,10 @@ function create_each_block_5(ctx) {
       }
       if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
       100663296 && t1_value !== (t1_value = /*cls*/
-      ctx[130].code + "")) set_data(t1, t1_value);
+      ctx[128].code + "")) set_data(t1, t1_value);
       if (
         /*secondary*/
-        ctx[141]
+        ctx[139]
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -13078,7 +13119,7 @@ function create_each_block_5(ctx) {
       if (dirty[0] & /*pickerFilteredClasses, sortedSubjects*/
       100663296) {
         set_style(button0, "border-left", "3px solid " + /*cls*/
-        ctx[130].colour);
+        ctx[128].colour);
       }
       if (dirty[0] & /*pickerFilteredClasses, sortedSubjects, pickerCurId*/
       369098752) {
@@ -13086,7 +13127,7 @@ function create_each_block_5(ctx) {
           button0,
           "tp-te-picker-item--active",
           /*cls*/
-          ctx[130].id === /*pickerCurId*/
+          ctx[128].id === /*pickerCurId*/
           ctx[28]
         );
       }
@@ -13106,7 +13147,7 @@ function create_each_block_4(ctx) {
   let each_1_anchor;
   let each_value_5 = ensure_array_like(
     /*subjClasses*/
-    ctx[138]
+    ctx[136]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_5.length; i += 1) {
@@ -13130,10 +13171,10 @@ function create_each_block_4(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredClasses, sortedSubjects, pickerCurId, periods, pickerPeriodId, pickerDay, currentWeek*/
       369111088 | dirty[1] & /*toggleArchiveClass, assignItem, closePicker*/
-      1573888) {
+      3147776) {
         each_value_5 = ensure_array_like(
           /*subjClasses*/
-          ctx2[138]
+          ctx2[136]
         );
         let i;
         for (i = 0; i < each_value_5.length; i += 1) {
@@ -13185,8 +13226,8 @@ function create_if_block_6(ctx) {
         each_blocks[i].c();
       }
       each_1_anchor = empty();
-      attr(div0, "class", "tp-te-picker-divider svelte-bfeqtd");
-      attr(div1, "class", "tp-te-picker-group-label svelte-bfeqtd");
+      attr(div0, "class", "tp-te-picker-divider svelte-yrpqzy");
+      attr(div1, "class", "tp-te-picker-group-label svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -13203,7 +13244,7 @@ function create_if_block_6(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredDirected, pickerCurId, periods, pickerPeriodId, pickerDay, currentWeek*/
       285225008 | dirty[1] & /*toggleArchiveActivity, assignItem, closePicker*/
-      1574912) {
+      3149824) {
         each_value_3 = ensure_array_like(
           /*pickerFilteredDirected*/
           ctx2[24]
@@ -13241,14 +13282,14 @@ function create_if_block_7(ctx) {
   let span;
   let t_value = (
     /*act*/
-    ctx[127].classroom + ""
+    ctx[125].classroom + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-bfeqtd");
+      attr(span, "class", "tp-te-picker-room svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -13257,7 +13298,7 @@ function create_if_block_7(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredDirected*/
       16777216 && t_value !== (t_value = /*act*/
-      ctx2[127].classroom + "")) set_data(t, t_value);
+      ctx2[125].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -13273,7 +13314,7 @@ function create_each_block_3(ctx) {
   let span0;
   let t0_value = (
     /*act*/
-    ctx[127].label + ""
+    ctx[125].label + ""
   );
   let t0;
   let t1;
@@ -13285,23 +13326,23 @@ function create_each_block_3(ctx) {
   let dispose;
   let if_block = (
     /*act*/
-    ctx[127].classroom && create_if_block_7(ctx)
+    ctx[125].classroom && create_if_block_7(ctx)
   );
   function click_handler_15() {
     return (
       /*click_handler_15*/
-      ctx[102](
+      ctx[101](
         /*act*/
-        ctx[127]
+        ctx[125]
       )
     );
   }
   function click_handler_16() {
     return (
       /*click_handler_16*/
-      ctx[103](
+      ctx[102](
         /*act*/
-        ctx[127]
+        ctx[125]
       )
     );
   }
@@ -13317,21 +13358,21 @@ function create_each_block_3(ctx) {
       t2 = space();
       button1 = element("button");
       t3 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-bfeqtd");
-      attr(span1, "class", "tp-te-picker-item-text svelte-bfeqtd");
-      attr(button0, "class", "tp-te-picker-item svelte-bfeqtd");
+      attr(span0, "class", "tp-te-picker-code svelte-yrpqzy");
+      attr(span1, "class", "tp-te-picker-item-text svelte-yrpqzy");
+      attr(button0, "class", "tp-te-picker-item svelte-yrpqzy");
       set_style(button0, "border-left", "3px solid " + /*act*/
-      ctx[127].colour);
+      ctx[125].colour);
       toggle_class(
         button0,
         "tp-te-picker-item--active",
         /*act*/
-        ctx[127].id === /*pickerCurId*/
+        ctx[125].id === /*pickerCurId*/
         ctx[28]
       );
-      attr(button1, "class", "tp-te-archive-btn svelte-bfeqtd");
+      attr(button1, "class", "tp-te-archive-btn svelte-yrpqzy");
       attr(button1, "title", "Archive activity");
-      attr(div, "class", "tp-te-picker-row svelte-bfeqtd");
+      attr(div, "class", "tp-te-picker-row svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -13358,10 +13399,10 @@ function create_each_block_3(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*pickerFilteredDirected*/
       16777216 && t0_value !== (t0_value = /*act*/
-      ctx[127].label + "")) set_data(t0, t0_value);
+      ctx[125].label + "")) set_data(t0, t0_value);
       if (
         /*act*/
-        ctx[127].classroom
+        ctx[125].classroom
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
@@ -13377,7 +13418,7 @@ function create_each_block_3(ctx) {
       if (dirty[0] & /*pickerFilteredDirected*/
       16777216) {
         set_style(button0, "border-left", "3px solid " + /*act*/
-        ctx[127].colour);
+        ctx[125].colour);
       }
       if (dirty[0] & /*pickerFilteredDirected, pickerCurId*/
       285212672) {
@@ -13385,7 +13426,7 @@ function create_each_block_3(ctx) {
           button0,
           "tp-te-picker-item--active",
           /*act*/
-          ctx[127].id === /*pickerCurId*/
+          ctx[125].id === /*pickerCurId*/
           ctx[28]
         );
       }
@@ -13425,8 +13466,8 @@ function create_if_block_4(ctx) {
         each_blocks[i].c();
       }
       each_1_anchor = empty();
-      attr(div0, "class", "tp-te-picker-divider svelte-bfeqtd");
-      attr(div1, "class", "tp-te-picker-group-label svelte-bfeqtd");
+      attr(div0, "class", "tp-te-picker-divider svelte-yrpqzy");
+      attr(div1, "class", "tp-te-picker-group-label svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -13443,7 +13484,7 @@ function create_if_block_4(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredOther, pickerCurId, periods, pickerPeriodId, pickerDay, currentWeek*/
       276836400 | dirty[1] & /*toggleArchiveActivity, assignItem, closePicker*/
-      1574912) {
+      3149824) {
         each_value_2 = ensure_array_like(
           /*pickerFilteredOther*/
           ctx2[23]
@@ -13481,14 +13522,14 @@ function create_if_block_5(ctx) {
   let span;
   let t_value = (
     /*act*/
-    ctx[127].classroom + ""
+    ctx[125].classroom + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-bfeqtd");
+      attr(span, "class", "tp-te-picker-room svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -13497,7 +13538,7 @@ function create_if_block_5(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*pickerFilteredOther*/
       8388608 && t_value !== (t_value = /*act*/
-      ctx2[127].classroom + "")) set_data(t, t_value);
+      ctx2[125].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -13513,7 +13554,7 @@ function create_each_block_2(ctx) {
   let span0;
   let t0_value = (
     /*act*/
-    ctx[127].label + ""
+    ctx[125].label + ""
   );
   let t0;
   let t1;
@@ -13525,23 +13566,23 @@ function create_each_block_2(ctx) {
   let dispose;
   let if_block = (
     /*act*/
-    ctx[127].classroom && create_if_block_5(ctx)
+    ctx[125].classroom && create_if_block_5(ctx)
   );
   function click_handler_17() {
     return (
       /*click_handler_17*/
-      ctx[104](
+      ctx[103](
         /*act*/
-        ctx[127]
+        ctx[125]
       )
     );
   }
   function click_handler_18() {
     return (
       /*click_handler_18*/
-      ctx[105](
+      ctx[104](
         /*act*/
-        ctx[127]
+        ctx[125]
       )
     );
   }
@@ -13557,21 +13598,21 @@ function create_each_block_2(ctx) {
       t2 = space();
       button1 = element("button");
       t3 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-bfeqtd");
-      attr(span1, "class", "tp-te-picker-item-text svelte-bfeqtd");
-      attr(button0, "class", "tp-te-picker-item svelte-bfeqtd");
+      attr(span0, "class", "tp-te-picker-code svelte-yrpqzy");
+      attr(span1, "class", "tp-te-picker-item-text svelte-yrpqzy");
+      attr(button0, "class", "tp-te-picker-item svelte-yrpqzy");
       set_style(button0, "border-left", "3px solid " + /*act*/
-      ctx[127].colour);
+      ctx[125].colour);
       toggle_class(
         button0,
         "tp-te-picker-item--active",
         /*act*/
-        ctx[127].id === /*pickerCurId*/
+        ctx[125].id === /*pickerCurId*/
         ctx[28]
       );
-      attr(button1, "class", "tp-te-archive-btn svelte-bfeqtd");
+      attr(button1, "class", "tp-te-archive-btn svelte-yrpqzy");
       attr(button1, "title", "Archive activity");
-      attr(div, "class", "tp-te-picker-row svelte-bfeqtd");
+      attr(div, "class", "tp-te-picker-row svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -13598,10 +13639,10 @@ function create_each_block_2(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*pickerFilteredOther*/
       8388608 && t0_value !== (t0_value = /*act*/
-      ctx[127].label + "")) set_data(t0, t0_value);
+      ctx[125].label + "")) set_data(t0, t0_value);
       if (
         /*act*/
-        ctx[127].classroom
+        ctx[125].classroom
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
@@ -13617,7 +13658,7 @@ function create_each_block_2(ctx) {
       if (dirty[0] & /*pickerFilteredOther*/
       8388608) {
         set_style(button0, "border-left", "3px solid " + /*act*/
-        ctx[127].colour);
+        ctx[125].colour);
       }
       if (dirty[0] & /*pickerFilteredOther, pickerCurId*/
       276824064) {
@@ -13625,7 +13666,7 @@ function create_each_block_2(ctx) {
           button0,
           "tp-te-picker-item--active",
           /*act*/
-          ctx[127].id === /*pickerCurId*/
+          ctx[125].id === /*pickerCurId*/
           ctx[28]
         );
       }
@@ -13667,8 +13708,8 @@ function create_if_block_2(ctx) {
       t2 = space();
       if (if_block) if_block.c();
       if_block_anchor = empty();
-      attr(div, "class", "tp-te-picker-divider svelte-bfeqtd");
-      attr(button, "class", "tp-te-show-archived-btn svelte-bfeqtd");
+      attr(div, "class", "tp-te-picker-divider svelte-yrpqzy");
+      attr(button, "class", "tp-te-show-archived-btn svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -13683,7 +13724,7 @@ function create_if_block_2(ctx) {
           button,
           "click",
           /*click_handler_19*/
-          ctx[106]
+          ctx[105]
         );
         mounted = true;
       }
@@ -13770,7 +13811,7 @@ function create_if_block_3(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*classes*/
       2048 | dirty[1] & /*toggleArchiveClass*/
-      1024) {
+      2048) {
         each_value_1 = ensure_array_like(
           /*classes*/
           ctx2[11].filter(func_3)
@@ -13793,7 +13834,7 @@ function create_if_block_3(ctx) {
       }
       if (dirty[0] & /*activities*/
       1024 | dirty[1] & /*toggleArchiveActivity*/
-      2048) {
+      4096) {
         each_value = ensure_array_like(
           /*activities*/
           ctx2[10].filter(func_4)
@@ -13832,7 +13873,7 @@ function create_each_block_12(ctx) {
   let span0;
   let t0_value = (
     /*cls*/
-    ctx[130].code + ""
+    ctx[128].code + ""
   );
   let t0;
   let t1;
@@ -13843,9 +13884,9 @@ function create_each_block_12(ctx) {
   function click_handler_20() {
     return (
       /*click_handler_20*/
-      ctx[107](
+      ctx[106](
         /*cls*/
-        ctx[130]
+        ctx[128]
       )
     );
   }
@@ -13858,15 +13899,15 @@ function create_each_block_12(ctx) {
       t0 = text(t0_value);
       t1 = space();
       button = element("button");
-      attr(span0, "class", "tp-te-picker-code svelte-bfeqtd");
-      attr(span1, "class", "tp-te-picker-item-text svelte-bfeqtd");
-      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-bfeqtd");
+      attr(span0, "class", "tp-te-picker-code svelte-yrpqzy");
+      attr(span1, "class", "tp-te-picker-item-text svelte-yrpqzy");
+      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-yrpqzy");
       set_style(span2, "border-left", "3px solid " + /*cls*/
-      ctx[130].colour);
+      ctx[128].colour);
       set_style(span2, "opacity", "0.5");
-      attr(button, "class", "tp-te-archive-btn svelte-bfeqtd");
+      attr(button, "class", "tp-te-archive-btn svelte-yrpqzy");
       attr(button, "title", "Restore");
-      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-bfeqtd");
+      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -13889,11 +13930,11 @@ function create_each_block_12(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*classes*/
       2048 && t0_value !== (t0_value = /*cls*/
-      ctx[130].code + "")) set_data(t0, t0_value);
+      ctx[128].code + "")) set_data(t0, t0_value);
       if (dirty[0] & /*classes*/
       2048) {
         set_style(span2, "border-left", "3px solid " + /*cls*/
-        ctx[130].colour);
+        ctx[128].colour);
       }
     },
     d(detaching) {
@@ -13912,7 +13953,7 @@ function create_each_block2(ctx) {
   let span0;
   let t0_value = (
     /*act*/
-    ctx[127].label + ""
+    ctx[125].label + ""
   );
   let t0;
   let t1;
@@ -13924,9 +13965,9 @@ function create_each_block2(ctx) {
   function click_handler_21() {
     return (
       /*click_handler_21*/
-      ctx[108](
+      ctx[107](
         /*act*/
-        ctx[127]
+        ctx[125]
       )
     );
   }
@@ -13940,15 +13981,15 @@ function create_each_block2(ctx) {
       t1 = space();
       button = element("button");
       t2 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-bfeqtd");
-      attr(span1, "class", "tp-te-picker-item-text svelte-bfeqtd");
-      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-bfeqtd");
+      attr(span0, "class", "tp-te-picker-code svelte-yrpqzy");
+      attr(span1, "class", "tp-te-picker-item-text svelte-yrpqzy");
+      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-yrpqzy");
       set_style(span2, "border-left", "3px solid " + /*act*/
-      ctx[127].colour);
+      ctx[125].colour);
       set_style(span2, "opacity", "0.5");
-      attr(button, "class", "tp-te-archive-btn svelte-bfeqtd");
+      attr(button, "class", "tp-te-archive-btn svelte-yrpqzy");
       attr(button, "title", "Restore");
-      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-bfeqtd");
+      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -13972,11 +14013,11 @@ function create_each_block2(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*activities*/
       1024 && t0_value !== (t0_value = /*act*/
-      ctx[127].label + "")) set_data(t0, t0_value);
+      ctx[125].label + "")) set_data(t0, t0_value);
       if (dirty[0] & /*activities*/
       1024) {
         set_style(span2, "border-left", "3px solid " + /*act*/
-        ctx[127].colour);
+        ctx[125].colour);
       }
     },
     d(detaching) {
@@ -14017,13 +14058,13 @@ function create_if_block2(ctx) {
       t5 = space();
       button2 = element("button");
       button2.textContent = "Keep editing";
-      attr(p, "class", "tp-te-unsaved-msg svelte-bfeqtd");
-      attr(button0, "class", "tp-te-btn tp-te-btn-primary svelte-bfeqtd");
-      attr(button1, "class", "tp-te-btn tp-te-btn-danger svelte-bfeqtd");
-      attr(button2, "class", "tp-te-btn svelte-bfeqtd");
-      attr(div0, "class", "tp-te-unsaved-actions svelte-bfeqtd");
-      attr(div1, "class", "tp-te-unsaved-dialog svelte-bfeqtd");
-      attr(div2, "class", "tp-te-unsaved-overlay svelte-bfeqtd");
+      attr(p, "class", "tp-te-unsaved-msg svelte-yrpqzy");
+      attr(button0, "class", "tp-te-btn tp-te-btn-primary svelte-yrpqzy");
+      attr(button1, "class", "tp-te-btn tp-te-btn-danger svelte-yrpqzy");
+      attr(button2, "class", "tp-te-btn svelte-yrpqzy");
+      attr(div0, "class", "tp-te-unsaved-actions svelte-yrpqzy");
+      attr(div1, "class", "tp-te-unsaved-dialog svelte-yrpqzy");
+      attr(div2, "class", "tp-te-unsaved-overlay svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div2, anchor);
@@ -14042,19 +14083,19 @@ function create_if_block2(ctx) {
             button0,
             "click",
             /*confirmUnsaved_save*/
-            ctx[43]
+            ctx[44]
           ),
           listen(
             button1,
             "click",
             /*confirmUnsaved_discard*/
-            ctx[44]
+            ctx[45]
           ),
           listen(
             button2,
             "click",
             /*confirmUnsaved_cancel*/
-            ctx[45]
+            ctx[46]
           )
         ];
         mounted = true;
@@ -14106,7 +14147,7 @@ function create_fragment2(ctx) {
   );
   const get_key = (ctx2) => (
     /*tmpl*/
-    ctx2[158].id
+    ctx2[156].id
   );
   for (let i = 0; i < each_value_9.length; i += 1) {
     let child_ctx = get_each_context_9(ctx, each_value_9, i);
@@ -14115,15 +14156,15 @@ function create_fragment2(ctx) {
   }
   let if_block0 = (
     /*allTemplates*/
-    ctx[7].length > 1 && create_if_block_22(ctx)
+    ctx[7].length > 1 && create_if_block_23(ctx)
   );
   let if_block1 = (
     /*activeTemplate*/
-    ctx[8] && create_if_block_18(ctx)
+    ctx[8] && create_if_block_19(ctx)
   );
   let if_block2 = (
     /*abEnabled*/
-    ctx[9] && create_if_block_17(ctx)
+    ctx[9] && create_if_block_18(ctx)
   );
   let each_value_8 = ensure_array_like(
     /*DAYS*/
@@ -14196,17 +14237,17 @@ function create_fragment2(ctx) {
       t13 = space();
       button2 = element("button");
       button2.textContent = "Save Timetable";
-      attr(div0, "class", "tp-te-tmpl-tabs svelte-bfeqtd");
-      attr(button0, "class", "tp-te-tmpl-add-btn svelte-bfeqtd");
-      attr(div1, "class", "tp-te-tmpl-actions svelte-bfeqtd");
-      attr(div2, "class", "tp-te-tmpl-bar svelte-bfeqtd");
-      attr(th, "class", "tp-te-th tp-te-th--period svelte-bfeqtd");
-      attr(table, "class", "tp-te-grid svelte-bfeqtd");
-      attr(div3, "class", "tp-te-grid-wrap svelte-bfeqtd");
-      attr(button1, "class", "tp-te-btn svelte-bfeqtd");
-      attr(button2, "class", "tp-te-btn tp-te-btn-primary svelte-bfeqtd");
-      attr(div4, "class", "tp-te-footer svelte-bfeqtd");
-      attr(div5, "class", "tp-te-wrap svelte-bfeqtd");
+      attr(div0, "class", "tp-te-tmpl-tabs svelte-yrpqzy");
+      attr(button0, "class", "tp-te-tmpl-add-btn svelte-yrpqzy");
+      attr(div1, "class", "tp-te-tmpl-actions svelte-yrpqzy");
+      attr(div2, "class", "tp-te-tmpl-bar svelte-yrpqzy");
+      attr(th, "class", "tp-te-th tp-te-th--period svelte-yrpqzy");
+      attr(table, "class", "tp-te-grid svelte-yrpqzy");
+      attr(div3, "class", "tp-te-grid-wrap svelte-yrpqzy");
+      attr(button1, "class", "tp-te-btn svelte-yrpqzy");
+      attr(button2, "class", "tp-te-btn tp-te-btn-primary svelte-yrpqzy");
+      attr(div4, "class", "tp-te-footer svelte-yrpqzy");
+      attr(div5, "class", "tp-te-wrap svelte-yrpqzy");
     },
     m(target, anchor) {
       insert(target, div5, anchor);
@@ -14260,31 +14301,31 @@ function create_fragment2(ctx) {
             window_1,
             "keydown",
             /*keydown_handler*/
-            ctx[80]
+            ctx[79]
           ),
           listen(
             window_1,
             "mousedown",
             /*mousedown_handler*/
-            ctx[81]
+            ctx[80]
           ),
           listen(
             button0,
             "click",
             /*openAddTemplate*/
-            ctx[55]
+            ctx[56]
           ),
           listen(
             button1,
             "click",
             /*onCancel*/
-            ctx[46]
+            ctx[47]
           ),
           listen(
             button2,
             "click",
             /*click_handler_22*/
-            ctx[109]
+            ctx[108]
           )
         ];
         mounted = true;
@@ -14293,7 +14334,7 @@ function create_fragment2(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*renameValue, renamingId, allTemplates, activeTemplateId*/
       1572994 | dirty[1] & /*commitRename, startRename, today, switchTemplate*/
-      960) {
+      1920) {
         each_value_9 = ensure_array_like(
           /*allTemplates*/
           ctx2[7]
@@ -14307,7 +14348,7 @@ function create_fragment2(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_22(ctx2);
+          if_block0 = create_if_block_23(ctx2);
           if_block0.c();
           if_block0.m(div1, null);
         }
@@ -14322,7 +14363,7 @@ function create_fragment2(ctx) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
         } else {
-          if_block1 = create_if_block_18(ctx2);
+          if_block1 = create_if_block_19(ctx2);
           if_block1.c();
           if_block1.m(div5, t4);
         }
@@ -14337,7 +14378,7 @@ function create_fragment2(ctx) {
         if (if_block2) {
           if_block2.p(ctx2, dirty);
         } else {
-          if_block2 = create_if_block_17(ctx2);
+          if_block2 = create_if_block_18(ctx2);
           if_block2.c();
           if_block2.m(div5, t5);
         }
@@ -14368,8 +14409,8 @@ function create_fragment2(ctx) {
         each_blocks_1.length = each_value_8.length;
       }
       if (dirty[0] & /*periods, DAYS, _slotGrid, plugin, pickerDay, pickerPeriodId, durationEditValue, durationEditKey, currentWeek*/
-      536997937 | dirty[1] & /*getPeriodTypeColour, commitDurationEdit, getSlotDuration, startDurationEdit, directedTimeEnabled, isDirectedSlot, getLabel, openPicker*/
-      67502141) {
+      536997937 | dirty[1] & /*getPeriodTypeColour, commitDurationEdit, isDurationOverride, getSlotDuration, startDurationEdit, directedTimeEnabled, isDirectedSlot, getLabel, openPicker*/
+      135004285) {
         each_value_6 = ensure_array_like(
           /*periods*/
           ctx2[13]
@@ -14485,7 +14526,6 @@ function instance2($$self, $$props, $$invalidate) {
   let abEnabled;
   let periods;
   let directedTimeEnabled;
-  let defaultDuration;
   let activeTemplate;
   let isPast;
   let visibleClasses;
@@ -14501,7 +14541,7 @@ function instance2($$self, $$props, $$invalidate) {
   let pickerFilteredDirected;
   let pickerFilteredOther;
   let periodTypes;
-  var _a2, _b2, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+  var _a2, _b2, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
   function icon(node, name) {
     (0, import_obsidian11.setIcon)(node, name);
     return {
@@ -14524,15 +14564,16 @@ function instance2($$self, $$props, $$invalidate) {
   ];
   let _tick = 0;
   function invalidate() {
-    $$invalidate(70, _tick++, _tick);
+    $$invalidate(69, _tick++, _tick);
   }
   let durationEditKey = null;
   let durationEditValue = 60;
   function getSlotDuration(slot) {
     if (slot.durationMinutes) return slot.durationMinutes;
-    const act = activities.find((a) => a.id === slot.classId);
-    if (act === null || act === void 0 ? void 0 : act.durationMinutes) return act.durationMinutes;
-    return defaultDuration;
+    return periodLengthMinutes(plugin.settings.academicYear, slot.periodId);
+  }
+  function isDurationOverride(slot) {
+    return slot.durationMinutes != null && slot.durationMinutes !== periodLengthMinutes(plugin.settings.academicYear, slot.periodId);
   }
   function isDirectedSlot(slot) {
     const cls = classes.find((c) => c.id === slot.classId);
@@ -14548,20 +14589,20 @@ function instance2($$self, $$props, $$invalidate) {
   function commitDurationEdit(slot) {
     if (durationEditValue >= 1 && durationEditValue <= 480) {
       slot.durationMinutes = durationEditValue;
-      $$invalidate(71, slots = [...slots]);
+      $$invalidate(70, slots = [...slots]);
       markDirty();
     }
     $$invalidate(15, durationEditKey = null);
   }
-  const _initTmpls = (_j = plugin.settings.timetableTemplates) !== null && _j !== void 0 ? _j : [];
-  const _initTmpl = (_k = _initTmpls[_initTmpls.length - 1]) !== null && _k !== void 0 ? _k : _initTmpls[0];
-  let activeTemplateId = (_l = _initTmpl === null || _initTmpl === void 0 ? void 0 : _initTmpl.id) !== null && _l !== void 0 ? _l : "";
-  let slots = JSON.parse(JSON.stringify((_o = _initTmpl === null || _initTmpl === void 0 ? void 0 : _initTmpl.slots) !== null && _o !== void 0 ? _o : []));
+  const _initTmpls = (_g = plugin.settings.timetableTemplates) !== null && _g !== void 0 ? _g : [];
+  const _initTmpl = (_h = _initTmpls[_initTmpls.length - 1]) !== null && _h !== void 0 ? _h : _initTmpls[0];
+  let activeTemplateId = (_j = _initTmpl === null || _initTmpl === void 0 ? void 0 : _initTmpl.id) !== null && _j !== void 0 ? _j : "";
+  let slots = JSON.parse(JSON.stringify((_l = _initTmpl === null || _initTmpl === void 0 ? void 0 : _initTmpl.slots) !== null && _l !== void 0 ? _l : []));
   function doSwitchTemplate(id) {
     var _a3, _b3;
     $$invalidate(1, activeTemplateId = id);
     const tmpl = ((_a3 = plugin.settings.timetableTemplates) !== null && _a3 !== void 0 ? _a3 : []).find((t) => t.id === id);
-    $$invalidate(71, slots = JSON.parse(JSON.stringify((_b3 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b3 !== void 0 ? _b3 : [])));
+    $$invalidate(70, slots = JSON.parse(JSON.stringify((_b3 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b3 !== void 0 ? _b3 : [])));
     $$invalidate(3, activeWeek = plugin.settings.academicYear.abWeekEnabled ? "A" : null);
     closePicker();
     $$invalidate(17, showPastConfirm = false);
@@ -14715,9 +14756,9 @@ function instance2($$self, $$props, $$invalidate) {
       const exact = slots.find((s) => s.day === day2 && s.periodId === period.id && s.weekType === week);
       if (exact) {
         exact.classId = itemId;
-        $$invalidate(71, slots = [...slots]);
+        $$invalidate(70, slots = [...slots]);
       } else {
-        $$invalidate(71, slots = [
+        $$invalidate(70, slots = [
           ...slots,
           {
             id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
@@ -14734,9 +14775,9 @@ function instance2($$self, $$props, $$invalidate) {
       const exact = slots.find((s) => s.day === day2 && s.periodId === period.id);
       if (exact) {
         exact.classId = itemId;
-        $$invalidate(71, slots = [...slots]);
+        $$invalidate(70, slots = [...slots]);
       } else {
-        $$invalidate(71, slots = [
+        $$invalidate(70, slots = [
           ...slots,
           {
             id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
@@ -14754,9 +14795,9 @@ function instance2($$self, $$props, $$invalidate) {
   }
   function clearSlot(day2, periodId, week) {
     if (abEnabled && week) {
-      $$invalidate(71, slots = slots.filter((s) => !(s.day === day2 && s.periodId === periodId && (s.weekType === week || s.weekType == null))));
+      $$invalidate(70, slots = slots.filter((s) => !(s.day === day2 && s.periodId === periodId && (s.weekType === week || s.weekType == null))));
     } else {
-      $$invalidate(71, slots = slots.filter((s) => !(s.day === day2 && s.periodId === periodId)));
+      $$invalidate(70, slots = slots.filter((s) => !(s.day === day2 && s.periodId === periodId)));
     }
     markDirty();
   }
@@ -14787,7 +14828,7 @@ function instance2($$self, $$props, $$invalidate) {
         invalidate();
         $$invalidate(1, activeTemplateId = newId);
         const tmpl = (_a3 = plugin.settings.timetableTemplates) === null || _a3 === void 0 ? void 0 : _a3.find((t) => t.id === newId);
-        $$invalidate(71, slots = JSON.parse(JSON.stringify((_b3 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b3 !== void 0 ? _b3 : [])));
+        $$invalidate(70, slots = JSON.parse(JSON.stringify((_b3 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _b3 !== void 0 ? _b3 : [])));
         $$invalidate(3, activeWeek = plugin.settings.academicYear.abWeekEnabled ? "A" : null);
         isDirty = false;
       }
@@ -14805,7 +14846,7 @@ function instance2($$self, $$props, $$invalidate) {
         const remaining = plugin.settings.timetableTemplates;
         $$invalidate(1, activeTemplateId = (_b3 = (_a3 = remaining[remaining.length - 1]) === null || _a3 === void 0 ? void 0 : _a3.id) !== null && _b3 !== void 0 ? _b3 : "");
         const tmpl = remaining.find((t) => t.id === activeTemplateId);
-        $$invalidate(71, slots = JSON.parse(JSON.stringify((_c2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _c2 !== void 0 ? _c2 : [])));
+        $$invalidate(70, slots = JSON.parse(JSON.stringify((_c2 = tmpl === null || tmpl === void 0 ? void 0 : tmpl.slots) !== null && _c2 !== void 0 ? _c2 : [])));
       },
       "Delete"
     ).open();
@@ -14899,12 +14940,12 @@ function instance2($$self, $$props, $$invalidate) {
   const click_handler_22 = () => void save();
   $$self.$$set = ($$props2) => {
     if ("plugin" in $$props2) $$invalidate(0, plugin = $$props2.plugin);
-    if ("modal" in $$props2) $$invalidate(58, modal = $$props2.modal);
+    if ("modal" in $$props2) $$invalidate(59, modal = $$props2.modal);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[2] & /*_tick*/
-    256) {
+    128) {
       $: $$invalidate(14, DAYS2 = _dep(_tick, ALL_DAYS.filter((d) => {
         var _a3;
         return ((_a3 = plugin.settings.schoolDays) !== null && _a3 !== void 0 ? _a3 : ["monday", "tuesday", "wednesday", "thursday", "friday"]).includes(d.key);
@@ -14912,24 +14953,24 @@ function instance2($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_a*/
-    268435456 | $$self.$$.dirty[2] & /*_tick*/
-    256) {
-      $: $$invalidate(7, allTemplates = _dep(_tick, $$invalidate(59, _a2 = plugin.settings.timetableTemplates) !== null && _a2 !== void 0 ? _a2 : []));
+    536870912 | $$self.$$.dirty[2] & /*_tick*/
+    128) {
+      $: $$invalidate(7, allTemplates = _dep(_tick, $$invalidate(60, _a2 = plugin.settings.timetableTemplates) !== null && _a2 !== void 0 ? _a2 : []));
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_b*/
-    536870912) {
-      $: $$invalidate(11, classes = $$invalidate(60, _b2 = plugin.settings.classes) !== null && _b2 !== void 0 ? _b2 : []);
+    1073741824) {
+      $: $$invalidate(11, classes = $$invalidate(61, _b2 = plugin.settings.classes) !== null && _b2 !== void 0 ? _b2 : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[1] & /*_c*/
-    1073741824) {
-      $: $$invalidate(74, subjects = $$invalidate(61, _c = plugin.settings.subjects) !== null && _c !== void 0 ? _c : []);
+    1 | $$self.$$.dirty[2] & /*_c*/
+    1) {
+      $: $$invalidate(73, subjects = $$invalidate(62, _c = plugin.settings.subjects) !== null && _c !== void 0 ? _c : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[2] & /*_d*/
-    1) {
-      $: $$invalidate(10, activities = $$invalidate(62, _d = plugin.settings.activities) !== null && _d !== void 0 ? _d : []);
+    2) {
+      $: $$invalidate(10, activities = $$invalidate(63, _d = plugin.settings.activities) !== null && _d !== void 0 ? _d : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1) {
@@ -14941,18 +14982,13 @@ function instance2($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[2] & /*_e, _f*/
-    6) {
-      $: $$invalidate(31, directedTimeEnabled = $$invalidate(64, _f = $$invalidate(63, _e = plugin.settings.directedTime) === null || _e === void 0 ? void 0 : _e.enabled) !== null && _f !== void 0 ? _f : false);
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[2] & /*_g, _h*/
-    24) {
-      $: defaultDuration = $$invalidate(66, _h = $$invalidate(65, _g = plugin.settings.directedTime) === null || _g === void 0 ? void 0 : _g.defaultLessonDurationMinutes) !== null && _h !== void 0 ? _h : 60;
+    12) {
+      $: $$invalidate(31, directedTimeEnabled = $$invalidate(65, _f = $$invalidate(64, _e = plugin.settings.directedTime) === null || _e === void 0 ? void 0 : _e.enabled) !== null && _f !== void 0 ? _f : false);
     }
     if ($$self.$$.dirty[0] & /*allTemplates, activeTemplateId*/
-    130 | $$self.$$.dirty[2] & /*_m*/
-    32) {
-      $: $$invalidate(8, activeTemplate = $$invalidate(67, _m = allTemplates.find((t) => t.id === activeTemplateId)) !== null && _m !== void 0 ? _m : allTemplates[0]);
+    130 | $$self.$$.dirty[2] & /*_k*/
+    16) {
+      $: $$invalidate(8, activeTemplate = $$invalidate(66, _k = allTemplates.find((t) => t.id === activeTemplateId)) !== null && _k !== void 0 ? _k : allTemplates[0]);
     }
     if ($$self.$$.dirty[0] & /*activeTemplate*/
     256) {
@@ -14967,19 +15003,19 @@ function instance2($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*showArchived, classes*/
     2052) {
-      $: $$invalidate(75, visibleClasses = showArchived ? classes : classes.filter((c) => !c.archived));
+      $: $$invalidate(74, visibleClasses = showArchived ? classes : classes.filter((c) => !c.archived));
     }
     if ($$self.$$.dirty[0] & /*showArchived, activities*/
     1028) {
-      $: $$invalidate(76, visibleActivities = showArchived ? activities : activities.filter((a) => !a.archived));
+      $: $$invalidate(75, visibleActivities = showArchived ? activities : activities.filter((a) => !a.archived));
     }
     if ($$self.$$.dirty[2] & /*visibleActivities*/
-    16384) {
-      $: $$invalidate(73, visibleDirected = visibleActivities.filter((a) => a.activityType !== "other"));
+    8192) {
+      $: $$invalidate(72, visibleDirected = visibleActivities.filter((a) => a.activityType !== "other"));
     }
     if ($$self.$$.dirty[2] & /*visibleActivities*/
-    16384) {
-      $: $$invalidate(72, visibleOther = visibleActivities.filter((a) => a.activityType === "other"));
+    8192) {
+      $: $$invalidate(71, visibleOther = visibleActivities.filter((a) => a.activityType === "other"));
     }
     if ($$self.$$.dirty[0] & /*classes, activities*/
     3072) {
@@ -14991,7 +15027,7 @@ function instance2($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*currentWeek, abEnabled, DAYS, periods*/
     29184 | $$self.$$.dirty[2] & /*slots*/
-    512) {
+    256) {
       $: $$invalidate(29, _slotGrid = (() => {
         const _s = slots;
         const _w = currentWeek;
@@ -15010,17 +15046,17 @@ function instance2($$self, $$props, $$invalidate) {
       })());
     }
     if ($$self.$$.dirty[0] & /*pickerDay, pickerPeriodId, currentWeek*/
-    4144 | $$self.$$.dirty[2] & /*_p*/
-    64) {
-      $: $$invalidate(28, pickerCurId = pickerDay && pickerPeriodId ? $$invalidate(68, _p = getSlot(pickerDay, pickerPeriodId, currentWeek)) === null || _p === void 0 ? void 0 : _p.classId : void 0);
+    4144 | $$self.$$.dirty[2] & /*_m*/
+    32) {
+      $: $$invalidate(28, pickerCurId = pickerDay && pickerPeriodId ? $$invalidate(67, _m = getSlot(pickerDay, pickerPeriodId, currentWeek)) === null || _m === void 0 ? void 0 : _m.classId : void 0);
     }
     if ($$self.$$.dirty[2] & /*subjects*/
-    4096) {
+    2048) {
       $: $$invalidate(26, sortedSubjects = [...subjects].sort((a, b) => a.name.localeCompare(b.name)));
     }
     if ($$self.$$.dirty[0] & /*pickerSearch*/
     64 | $$self.$$.dirty[2] & /*visibleClasses, subjects*/
-    12288) {
+    6144) {
       $: $$invalidate(25, pickerFilteredClasses = (() => {
         const q = pickerSearch.toLowerCase();
         if (!q) return visibleClasses;
@@ -15033,18 +15069,18 @@ function instance2($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*pickerSearch*/
     64 | $$self.$$.dirty[2] & /*visibleDirected*/
-    2048) {
+    1024) {
       $: $$invalidate(24, pickerFilteredDirected = pickerSearch ? visibleDirected.filter((a) => a.label.toLowerCase().includes(pickerSearch.toLowerCase())) : visibleDirected);
     }
     if ($$self.$$.dirty[0] & /*pickerSearch*/
     64 | $$self.$$.dirty[2] & /*visibleOther*/
-    1024) {
+    512) {
       $: $$invalidate(23, pickerFilteredOther = pickerSearch ? visibleOther.filter((a) => a.label.toLowerCase().includes(pickerSearch.toLowerCase())) : visibleOther);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[2] & /*_q*/
-    128) {
-      $: periodTypes = $$invalidate(69, _q = plugin.settings.periodTypes) !== null && _q !== void 0 ? _q : [];
+    1 | $$self.$$.dirty[2] & /*_o*/
+    64) {
+      $: periodTypes = $$invalidate(68, _o = plugin.settings.periodTypes) !== null && _o !== void 0 ? _o : [];
     }
   };
   return [
@@ -15082,6 +15118,7 @@ function instance2($$self, $$props, $$invalidate) {
     directedTimeEnabled,
     icon,
     getSlotDuration,
+    isDurationOverride,
     isDirectedSlot,
     startDurationEdit,
     commitDurationEdit,
@@ -15113,11 +15150,9 @@ function instance2($$self, $$props, $$invalidate) {
     _d,
     _e,
     _f,
-    _g,
-    _h,
+    _k,
     _m,
-    _p,
-    _q,
+    _o,
     _tick,
     slots,
     visibleOther,
@@ -15176,7 +15211,7 @@ var init_TimetableEditorComponent = __esm({
     TimetableEditorComponent = class extends SvelteComponent {
       constructor(options) {
         super();
-        init(this, options, instance2, create_fragment2, safe_not_equal, { plugin: 0, modal: 58 }, add_css2, [-1, -1, -1, -1, -1, -1]);
+        init(this, options, instance2, create_fragment2, safe_not_equal, { plugin: 0, modal: 59 }, add_css2, [-1, -1, -1, -1, -1, -1]);
       }
     };
     TimetableEditorComponent_default = TimetableEditorComponent;
@@ -16426,7 +16461,7 @@ init_noteTitleUtils();
 init_settings();
 init_runtime();
 function add_css3(target) {
-  append_styles(target, "svelte-4doiv5", '.tp-week-view.svelte-4doiv5.svelte-4doiv5{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-4doiv5.svelte-4doiv5{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-4doiv5.svelte-4doiv5{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-4doiv5.svelte-4doiv5{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-4doiv5.svelte-4doiv5{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-4doiv5.svelte-4doiv5{display:flex;align-items:center;gap:4px}.tp-nav-arrow.svelte-4doiv5.svelte-4doiv5{padding:4px 11px;font-size:18px;line-height:1}.tp-nav-jump.svelte-4doiv5.svelte-4doiv5{position:relative;display:inline-flex}.tp-nav-centre.svelte-4doiv5.svelte-4doiv5{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;font-size:13px;font-weight:600}.tp-nav-centre-icon.svelte-4doiv5 svg{width:14px;height:14px}.tp-nav-centre-label.svelte-4doiv5.svelte-4doiv5{white-space:nowrap}.tp-nav-caret.svelte-4doiv5.svelte-4doiv5{font-size:10px;color:var(--text-muted)}.tp-nav-backdrop.svelte-4doiv5.svelte-4doiv5{position:fixed;inset:0;z-index:40}.tp-nav-pop.svelte-4doiv5.svelte-4doiv5{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:6px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:8px;padding:8px;box-shadow:0 4px 18px rgba(0,0,0,0.32)}.tp-nav-date.svelte-4doiv5.svelte-4doiv5{font-size:13px;padding:4px 6px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-modifier-form-field);color:var(--text-normal);font-family:var(--font-interface)}.tp-header-actions.svelte-4doiv5.svelte-4doiv5{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-4doiv5.svelte-4doiv5{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}button.tp-week-ab-badge.svelte-4doiv5.svelte-4doiv5{border:none;cursor:pointer;font-family:var(--font-interface);line-height:1.5}button.tp-week-ab-badge.svelte-4doiv5.svelte-4doiv5:hover{opacity:0.85}.tp-week-ab-badge--forced.svelte-4doiv5.svelte-4doiv5{outline:1.5px dashed currentColor;outline-offset:1px}.tp-week-ab-badge--b.svelte-4doiv5.svelte-4doiv5{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-4doiv5.svelte-4doiv5{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-4doiv5.svelte-4doiv5:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-4doiv5.svelte-4doiv5:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-4doiv5.svelte-4doiv5{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-4doiv5.svelte-4doiv5:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-4doiv5 svg,.tp-btn-icon.svelte-4doiv5 svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-4doiv5.svelte-4doiv5{padding:5px 8px}.tp-action-btn--icon-only.svelte-4doiv5 svg{width:15px;height:15px}.tp-overflow-btn.svelte-4doiv5.svelte-4doiv5{display:none}.tp-table-scroll.svelte-4doiv5.svelte-4doiv5{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-4doiv5.svelte-4doiv5{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-4doiv5.svelte-4doiv5{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-4doiv5.svelte-4doiv5{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-4doiv5.svelte-4doiv5{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-4doiv5.svelte-4doiv5{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-4doiv5.svelte-4doiv5{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-4doiv5.svelte-4doiv5{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-4doiv5.svelte-4doiv5{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-4doiv5.svelte-4doiv5{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-4doiv5.svelte-4doiv5{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-4doiv5.svelte-4doiv5{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-4doiv5.svelte-4doiv5{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-4doiv5.svelte-4doiv5{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-4doiv5.svelte-4doiv5{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-4doiv5.svelte-4doiv5{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0;position:relative}.tp-axis-gutter.svelte-4doiv5.svelte-4doiv5{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-4doiv5.svelte-4doiv5{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-4doiv5.svelte-4doiv5{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-4doiv5.svelte-4doiv5{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-4doiv5.svelte-4doiv5{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-4doiv5.svelte-4doiv5{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-4doiv5.svelte-4doiv5{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-block.svelte-4doiv5.svelte-4doiv5{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block-clash.svelte-4doiv5.svelte-4doiv5{position:absolute;top:1px;right:3px;z-index:6;font-size:11px;line-height:1;color:var(--color-yellow,#e0af68);cursor:help}.tp-block-clash--directed.svelte-4doiv5.svelte-4doiv5{color:var(--color-red,#f38ba8);font-size:13px;font-weight:700}.tp-block--dragover.svelte-4doiv5.svelte-4doiv5{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-4doiv5.svelte-4doiv5{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-4doiv5.svelte-4doiv5{display:flex;flex-direction:column;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-4doiv5.svelte-4doiv5{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-4doiv5.svelte-4doiv5{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-4doiv5:hover .tp-block-time.svelte-4doiv5{display:block}.tp-block.svelte-4doiv5.svelte-4doiv5:hover{height:auto !important;min-height:max(var(--bh, 20px), 48px);z-index:30;padding-bottom:6px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-4doiv5.svelte-4doiv5:hover:has(.tp-event-stack){min-height:var(--bh, 20px);padding-bottom:0;overflow:visible;background:transparent !important;border-color:transparent !important;box-shadow:none;outline:none}.tp-block.svelte-4doiv5:hover .tp-event-stack.svelte-4doiv5{position:relative;inset:auto;height:auto;margin:3px;border-radius:4px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary);box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-4doiv5:hover .tp-block-label.svelte-4doiv5{padding:4px 8px}.tp-block.svelte-4doiv5:hover .tp-chip.svelte-4doiv5{container-type:normal;background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important}.tp-block.svelte-4doiv5:hover .tp-chip-body.svelte-4doiv5{overflow:visible}.tp-block.svelte-4doiv5:hover .tp-chip-notes.svelte-4doiv5{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}.tp-chip-period-time.svelte-4doiv5.svelte-4doiv5{display:none;font-size:12px;color:var(--text-muted);opacity:0.85;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-4doiv5:hover .tp-chip-period-time.svelte-4doiv5{display:block}.tp-chip.svelte-4doiv5.svelte-4doiv5{--mark-size:14px;position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip-body.svelte-4doiv5.svelte-4doiv5{flex:0 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}.tp-chip-footer.svelte-4doiv5.svelte-4doiv5{flex-shrink:0;display:flex;align-items:center;gap:4px}.tp-chip.svelte-4doiv5.svelte-4doiv5:hover{filter:brightness(1.08)}.tp-chip-code.svelte-4doiv5.svelte-4doiv5{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-4doiv5.svelte-4doiv5{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-4doiv5.svelte-4doiv5{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0;font-style:italic}.tp-chip-notes.svelte-4doiv5.svelte-4doiv5{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-4doiv5.svelte-4doiv5,.tp-chip-notes.svelte-4doiv5.svelte-4doiv5{display:none}.tp-chip-code.svelte-4doiv5.svelte-4doiv5{font-size:13px}.tp-chip-room.svelte-4doiv5.svelte-4doiv5{font-size:11px}.tp-chip-marks.svelte-4doiv5.svelte-4doiv5{--mark-size:12px}}@container chip (max-height: 44px){.tp-chip-code.svelte-4doiv5.svelte-4doiv5{font-size:12px}.tp-chip-room.svelte-4doiv5.svelte-4doiv5{font-size:10px}.tp-chip-marks.svelte-4doiv5.svelte-4doiv5{--mark-size:11px}}@container chip (max-height: 34px){.tp-chip-room.svelte-4doiv5.svelte-4doiv5{display:none}.tp-chip-code.svelte-4doiv5.svelte-4doiv5{font-size:11px}.tp-chip-marks.svelte-4doiv5.svelte-4doiv5{--mark-size:10px}}@container chip (max-width: 90px){.tp-chip-code.svelte-4doiv5.svelte-4doiv5{font-size:13px}.tp-chip-room.svelte-4doiv5.svelte-4doiv5{font-size:10px}.tp-chip-marks.svelte-4doiv5.svelte-4doiv5{--mark-size:12px}}@container chip (max-width: 60px){.tp-chip-code.svelte-4doiv5.svelte-4doiv5{font-size:11px}.tp-chip-room.svelte-4doiv5.svelte-4doiv5{font-size:9px}.tp-chip-marks.svelte-4doiv5.svelte-4doiv5{--mark-size:10px}}@container chip (max-width: 84px){.tp-chip-footer.svelte-4doiv5.svelte-4doiv5{flex-direction:column;align-items:stretch;gap:1px}.tp-chip-marks.svelte-4doiv5.svelte-4doiv5{margin-left:0;align-self:flex-end}}.tp-chip-marks.svelte-4doiv5.svelte-4doiv5{margin-left:auto;display:flex;gap:calc(var(--mark-size) * 0.3);align-items:center;justify-content:flex-end;flex-shrink:0}.tp-plan-mark.svelte-4doiv5.svelte-4doiv5{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0}button.tp-plan-mark--linked.svelte-4doiv5.svelte-4doiv5{color:#43a047;opacity:1;cursor:pointer}button.tp-plan-mark--linked.svelte-4doiv5.svelte-4doiv5:hover{opacity:0.7}.tp-plan-mark.svelte-4doiv5 svg{width:var(--mark-size);height:var(--mark-size)}.tp-ext-mark.svelte-4doiv5.svelte-4doiv5{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0;color:var(--text-muted);cursor:pointer;opacity:0.85}.tp-ext-mark.svelte-4doiv5.svelte-4doiv5:hover{opacity:1}.tp-ext-mark.svelte-4doiv5 svg{width:var(--mark-size);height:var(--mark-size)}.tp-prep-tick.svelte-4doiv5.svelte-4doiv5{width:var(--mark-size);height:var(--mark-size);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1.5px solid var(--text-muted);padding:0;line-height:0;cursor:pointer;color:var(--text-muted);opacity:0;transition:opacity 80ms ease;box-sizing:border-box;flex-shrink:0}.tp-chip.svelte-4doiv5:hover .tp-prep-tick.svelte-4doiv5{opacity:0.55}button.tp-prep-tick--on.svelte-4doiv5.svelte-4doiv5{opacity:1 !important;background:#43a047;border-color:#43a047;color:#fff}.tp-prep-tick.svelte-4doiv5 svg{width:calc(var(--mark-size) * 0.7);height:calc(var(--mark-size) * 0.7)}.tp-now-line.svelte-4doiv5.svelte-4doiv5{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-line--week.svelte-4doiv5.svelte-4doiv5{left:48px;right:6px}.tp-now-badge.svelte-4doiv5.svelte-4doiv5{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-4doiv5.svelte-4doiv5{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack.svelte-4doiv5 .tp-chip.svelte-4doiv5{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-4doiv5.svelte-4doiv5{display:none}@container (max-width: 680px){.tp-action-btn.svelte-4doiv5.svelte-4doiv5{display:none}.tp-overflow-btn.svelte-4doiv5.svelte-4doiv5{display:inline-flex !important}.tp-header.svelte-4doiv5.svelte-4doiv5{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-4doiv5.svelte-4doiv5{justify-content:center}.tp-header-identity.svelte-4doiv5.svelte-4doiv5{min-width:0;overflow:hidden}.tp-week-label.svelte-4doiv5.svelte-4doiv5{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-4doiv5.svelte-4doiv5{display:none}.tp-axis-head-day.svelte-4doiv5.svelte-4doiv5{padding:5px 2px}.tp-day-name.svelte-4doiv5.svelte-4doiv5{font-size:12px}.tp-day-date.svelte-4doiv5.svelte-4doiv5{font-size:10px}.tp-day-override-badge.svelte-4doiv5.svelte-4doiv5{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-4doiv5.svelte-4doiv5{min-width:440px}.tp-axis-head-gutter.svelte-4doiv5.svelte-4doiv5,.tp-axis-gutter.svelte-4doiv5.svelte-4doiv5{width:30px}.tp-now-line--week.svelte-4doiv5.svelte-4doiv5{left:30px}.tp-axis-hour.svelte-4doiv5.svelte-4doiv5{right:3px;font-size:9px}.tp-day-name.svelte-4doiv5.svelte-4doiv5{font-size:11px}.tp-day-date.svelte-4doiv5.svelte-4doiv5{font-size:10px}}.tp-mobile-modes.svelte-4doiv5.svelte-4doiv5{display:flex;gap:5px;padding:6px 12px;border-bottom:1px solid var(--background-modifier-border);background:var(--background-secondary);flex-shrink:0}.tp-mode-btn.svelte-4doiv5.svelte-4doiv5{flex:1;padding:6px 0;font-size:13px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-primary);color:var(--text-muted);cursor:pointer;font-family:var(--font-interface)}.tp-mode-btn--on.svelte-4doiv5.svelte-4doiv5{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent);font-weight:600}.tp-day-strip.svelte-4doiv5.svelte-4doiv5{display:flex;gap:5px;padding:8px 10px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0}.tp-day-pill.svelte-4doiv5.svelte-4doiv5{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 5px;border:1px solid transparent;border-radius:9px;background:var(--background-secondary);color:var(--text-muted);cursor:pointer;min-width:0}.tp-day-pill-dow.svelte-4doiv5.svelte-4doiv5{font-size:10px;text-transform:uppercase;letter-spacing:0.03em}.tp-day-pill-num.svelte-4doiv5.svelte-4doiv5{font-size:15px;font-weight:600;color:var(--text-normal)}.tp-day-pill--today.svelte-4doiv5 .tp-day-pill-num.svelte-4doiv5{color:var(--interactive-accent)}.tp-day-pill--sel.svelte-4doiv5.svelte-4doiv5{background:color-mix(in srgb,var(--interactive-accent) 18%,var(--background-secondary));outline:1.5px solid var(--interactive-accent)}.tp-day-pill-dot.svelte-4doiv5.svelte-4doiv5{width:4px;height:4px;border-radius:50%;background:var(--interactive-accent)}.tp-week-view[data-tp-view="day"].svelte-4doiv5 .tp-axis.svelte-4doiv5{min-width:0}.tp-week-view[data-tp-view="day"].svelte-4doiv5 .tp-axis-head.svelte-4doiv5{display:none}.tp-agenda.svelte-4doiv5.svelte-4doiv5{flex:1 1 0;overflow:auto;min-height:0;padding:8px 10px 16px}.tp-agenda-day.svelte-4doiv5.svelte-4doiv5{margin-bottom:12px}.tp-agenda-head.svelte-4doiv5.svelte-4doiv5{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-muted);padding:2px 2px 6px;position:sticky;top:0;background:var(--background-primary);z-index:2}.tp-agenda-head--today.svelte-4doiv5.svelte-4doiv5{color:var(--interactive-accent)}.tp-agenda-dayname.svelte-4doiv5.svelte-4doiv5{text-transform:uppercase;letter-spacing:0.03em}.tp-agenda-row.svelte-4doiv5.svelte-4doiv5{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:none;border-radius:0 7px 7px 0;padding:8px 10px;margin-bottom:5px;color:var(--text-normal);cursor:pointer;font-size:13px;font-family:var(--font-interface)}.tp-agenda-period.svelte-4doiv5.svelte-4doiv5{font-size:11px;color:var(--text-muted);min-width:64px;flex-shrink:0}.tp-agenda-main.svelte-4doiv5.svelte-4doiv5{flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-agenda-room.svelte-4doiv5.svelte-4doiv5{font-size:11px;font-style:italic;color:var(--text-muted);flex-shrink:0}.tp-agenda-empty.svelte-4doiv5.svelte-4doiv5{font-size:12px;color:var(--text-faint);padding:2px 4px 6px;font-style:italic}');
+  append_styles(target, "svelte-138iau3", '.tp-week-view.svelte-138iau3.svelte-138iau3{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-138iau3.svelte-138iau3{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-138iau3.svelte-138iau3{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-138iau3.svelte-138iau3{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-138iau3.svelte-138iau3{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-138iau3.svelte-138iau3{display:flex;align-items:center;gap:4px}.tp-nav-arrow.svelte-138iau3.svelte-138iau3{padding:4px 11px;font-size:18px;line-height:1}.tp-nav-jump.svelte-138iau3.svelte-138iau3{position:relative;display:inline-flex}.tp-nav-centre.svelte-138iau3.svelte-138iau3{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;font-size:13px;font-weight:600}.tp-nav-centre-icon.svelte-138iau3 svg{width:14px;height:14px}.tp-nav-centre-label.svelte-138iau3.svelte-138iau3{white-space:nowrap}.tp-nav-caret.svelte-138iau3.svelte-138iau3{font-size:10px;color:var(--text-muted)}.tp-nav-backdrop.svelte-138iau3.svelte-138iau3{position:fixed;inset:0;z-index:40}.tp-nav-pop.svelte-138iau3.svelte-138iau3{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:6px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:8px;padding:8px;box-shadow:0 4px 18px rgba(0,0,0,0.32)}.tp-nav-date.svelte-138iau3.svelte-138iau3{font-size:13px;padding:4px 6px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-modifier-form-field);color:var(--text-normal);font-family:var(--font-interface)}.tp-header-actions.svelte-138iau3.svelte-138iau3{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-138iau3.svelte-138iau3{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}button.tp-week-ab-badge.svelte-138iau3.svelte-138iau3{border:none;cursor:pointer;font-family:var(--font-interface);line-height:1.5}button.tp-week-ab-badge.svelte-138iau3.svelte-138iau3:hover{opacity:0.85}.tp-week-ab-badge--forced.svelte-138iau3.svelte-138iau3{outline:1.5px dashed currentColor;outline-offset:1px}.tp-week-ab-badge--b.svelte-138iau3.svelte-138iau3{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-138iau3.svelte-138iau3{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-138iau3.svelte-138iau3:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-138iau3.svelte-138iau3:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-138iau3.svelte-138iau3{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-138iau3.svelte-138iau3:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-138iau3 svg,.tp-btn-icon.svelte-138iau3 svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-138iau3.svelte-138iau3{padding:5px 8px}.tp-action-btn--icon-only.svelte-138iau3 svg{width:15px;height:15px}.tp-overflow-btn.svelte-138iau3.svelte-138iau3{display:none}.tp-table-scroll.svelte-138iau3.svelte-138iau3{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-138iau3.svelte-138iau3{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-138iau3.svelte-138iau3{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-138iau3.svelte-138iau3{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-138iau3.svelte-138iau3{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-138iau3.svelte-138iau3{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-138iau3.svelte-138iau3{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-138iau3.svelte-138iau3{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-138iau3.svelte-138iau3{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-138iau3.svelte-138iau3{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-138iau3.svelte-138iau3{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-138iau3.svelte-138iau3{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-138iau3.svelte-138iau3{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-138iau3.svelte-138iau3{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-138iau3.svelte-138iau3{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-138iau3.svelte-138iau3{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0;position:relative}.tp-axis-gutter.svelte-138iau3.svelte-138iau3{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-138iau3.svelte-138iau3{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-138iau3.svelte-138iau3{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-138iau3.svelte-138iau3{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-138iau3.svelte-138iau3{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-138iau3.svelte-138iau3{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-138iau3.svelte-138iau3{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-block.svelte-138iau3.svelte-138iau3{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block-clash.svelte-138iau3.svelte-138iau3{position:absolute;top:1px;right:3px;z-index:6;font-size:11px;line-height:1;color:var(--color-yellow,#e0af68);cursor:help}.tp-block-clash--directed.svelte-138iau3.svelte-138iau3{color:var(--color-red,#f38ba8);font-size:13px;font-weight:700}.tp-block--dragover.svelte-138iau3.svelte-138iau3{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-138iau3.svelte-138iau3{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-138iau3.svelte-138iau3{display:flex;flex-direction:column;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-138iau3.svelte-138iau3{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-138iau3.svelte-138iau3{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-138iau3:hover .tp-block-time.svelte-138iau3{display:block}.tp-block.svelte-138iau3.svelte-138iau3:hover{height:auto !important;min-height:max(var(--bh, 20px), 48px);z-index:30;padding-bottom:6px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-138iau3.svelte-138iau3:hover:has(.tp-event-stack){min-height:var(--bh, 20px);padding-bottom:0;overflow:visible;background:transparent !important;border-color:transparent !important;box-shadow:none;outline:none}.tp-block.svelte-138iau3:hover .tp-event-stack.svelte-138iau3{position:relative;inset:auto;height:auto;margin:3px;border-radius:4px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary);box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border))}.tp-block.svelte-138iau3:hover .tp-block-label.svelte-138iau3{padding:4px 8px}.tp-block.svelte-138iau3:hover .tp-chip.svelte-138iau3{container-type:normal;background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important}.tp-block.svelte-138iau3:hover .tp-chip-body.svelte-138iau3{overflow:visible}.tp-block.svelte-138iau3:hover .tp-chip-notes.svelte-138iau3{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}.tp-chip-period-time.svelte-138iau3.svelte-138iau3{display:none;font-size:12px;color:var(--text-muted);opacity:0.85;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-138iau3:hover .tp-chip-period-time.svelte-138iau3{display:block}.tp-chip.svelte-138iau3.svelte-138iau3{--mark-size:14px;position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip-body.svelte-138iau3.svelte-138iau3{flex:0 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}.tp-chip-footer.svelte-138iau3.svelte-138iau3{flex-shrink:0;display:flex;align-items:center;gap:4px}.tp-chip.svelte-138iau3.svelte-138iau3:hover{filter:brightness(1.08)}.tp-chip-code.svelte-138iau3.svelte-138iau3{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-138iau3.svelte-138iau3{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-138iau3.svelte-138iau3{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0;font-style:italic}.tp-chip-notes.svelte-138iau3.svelte-138iau3{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-138iau3.svelte-138iau3,.tp-chip-notes.svelte-138iau3.svelte-138iau3{display:none}.tp-chip-code.svelte-138iau3.svelte-138iau3{font-size:13px}.tp-chip-room.svelte-138iau3.svelte-138iau3{font-size:11px}.tp-chip-marks.svelte-138iau3.svelte-138iau3{--mark-size:12px}}@container chip (max-height: 44px){.tp-chip-code.svelte-138iau3.svelte-138iau3{font-size:12px}.tp-chip-room.svelte-138iau3.svelte-138iau3{font-size:10px}.tp-chip-marks.svelte-138iau3.svelte-138iau3{--mark-size:11px}}@container chip (max-height: 34px){.tp-chip-room.svelte-138iau3.svelte-138iau3{display:none}.tp-chip-code.svelte-138iau3.svelte-138iau3{font-size:11px}.tp-chip-marks.svelte-138iau3.svelte-138iau3{--mark-size:10px}}@container chip (max-width: 90px){.tp-chip-code.svelte-138iau3.svelte-138iau3{font-size:13px}.tp-chip-room.svelte-138iau3.svelte-138iau3{font-size:10px}.tp-chip-marks.svelte-138iau3.svelte-138iau3{--mark-size:12px}}@container chip (max-width: 60px){.tp-chip-code.svelte-138iau3.svelte-138iau3{font-size:11px}.tp-chip-room.svelte-138iau3.svelte-138iau3{font-size:9px}.tp-chip-marks.svelte-138iau3.svelte-138iau3{--mark-size:10px}}@container chip (max-width: 84px){.tp-chip-footer.svelte-138iau3.svelte-138iau3{flex-direction:column;align-items:stretch;gap:1px}.tp-chip-marks.svelte-138iau3.svelte-138iau3{margin-left:0;align-self:flex-end}}.tp-chip-marks.svelte-138iau3.svelte-138iau3{margin-left:auto;display:flex;gap:calc(var(--mark-size) * 0.3);align-items:center;justify-content:flex-end;flex-shrink:0}.tp-plan-mark.svelte-138iau3.svelte-138iau3{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0}button.tp-plan-mark--linked.svelte-138iau3.svelte-138iau3{color:#43a047;opacity:1;cursor:pointer}button.tp-plan-mark--linked.svelte-138iau3.svelte-138iau3:hover{opacity:0.7}.tp-plan-mark.svelte-138iau3 svg{width:var(--mark-size);height:var(--mark-size)}.tp-ext-mark.svelte-138iau3.svelte-138iau3{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0;color:var(--text-muted);cursor:pointer;opacity:0.85}.tp-ext-mark.svelte-138iau3.svelte-138iau3:hover{opacity:1}.tp-ext-mark.svelte-138iau3 svg{width:var(--mark-size);height:var(--mark-size)}.tp-prep-tick.svelte-138iau3.svelte-138iau3{width:var(--mark-size);height:var(--mark-size);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1.5px solid var(--text-muted);padding:0;line-height:0;cursor:pointer;color:var(--text-muted);opacity:0;transition:opacity 80ms ease;box-sizing:border-box;flex-shrink:0}.tp-chip.svelte-138iau3:hover .tp-prep-tick.svelte-138iau3{opacity:0.55}button.tp-prep-tick--on.svelte-138iau3.svelte-138iau3{opacity:1 !important;background:#43a047;border-color:#43a047;color:#fff}.tp-prep-tick.svelte-138iau3 svg{width:calc(var(--mark-size) * 0.7);height:calc(var(--mark-size) * 0.7)}.tp-now-line.svelte-138iau3.svelte-138iau3{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-line--week.svelte-138iau3.svelte-138iau3{left:48px;right:6px}.tp-now-badge.svelte-138iau3.svelte-138iau3{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-138iau3.svelte-138iau3{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-block-free.svelte-138iau3.svelte-138iau3{position:absolute;left:6px;right:6px;text-align:center;font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:2}.tp-block-durbadge.svelte-138iau3.svelte-138iau3{position:absolute;top:4px;right:4px;font-size:10px;font-weight:700;line-height:1.5;padding:0 4px;border-radius:3px;background:var(--interactive-accent);color:var(--text-on-accent, #fff);pointer-events:none;z-index:4}.tp-event-stack.svelte-138iau3 .tp-chip.svelte-138iau3{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-138iau3.svelte-138iau3{display:none}@container (max-width: 680px){.tp-action-btn.svelte-138iau3.svelte-138iau3{display:none}.tp-overflow-btn.svelte-138iau3.svelte-138iau3{display:inline-flex !important}.tp-header.svelte-138iau3.svelte-138iau3{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-138iau3.svelte-138iau3{justify-content:center}.tp-header-identity.svelte-138iau3.svelte-138iau3{min-width:0;overflow:hidden}.tp-week-label.svelte-138iau3.svelte-138iau3{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-138iau3.svelte-138iau3{display:none}.tp-axis-head-day.svelte-138iau3.svelte-138iau3{padding:5px 2px}.tp-day-name.svelte-138iau3.svelte-138iau3{font-size:12px}.tp-day-date.svelte-138iau3.svelte-138iau3{font-size:10px}.tp-day-override-badge.svelte-138iau3.svelte-138iau3{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-138iau3.svelte-138iau3{min-width:440px}.tp-axis-head-gutter.svelte-138iau3.svelte-138iau3,.tp-axis-gutter.svelte-138iau3.svelte-138iau3{width:30px}.tp-now-line--week.svelte-138iau3.svelte-138iau3{left:30px}.tp-axis-hour.svelte-138iau3.svelte-138iau3{right:3px;font-size:9px}.tp-day-name.svelte-138iau3.svelte-138iau3{font-size:11px}.tp-day-date.svelte-138iau3.svelte-138iau3{font-size:10px}}.tp-mobile-modes.svelte-138iau3.svelte-138iau3{display:flex;gap:5px;padding:6px 12px;border-bottom:1px solid var(--background-modifier-border);background:var(--background-secondary);flex-shrink:0}.tp-mode-btn.svelte-138iau3.svelte-138iau3{flex:1;padding:6px 0;font-size:13px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-primary);color:var(--text-muted);cursor:pointer;font-family:var(--font-interface)}.tp-mode-btn--on.svelte-138iau3.svelte-138iau3{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent);font-weight:600}.tp-day-strip.svelte-138iau3.svelte-138iau3{display:flex;gap:5px;padding:8px 10px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0}.tp-day-pill.svelte-138iau3.svelte-138iau3{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 5px;border:1px solid transparent;border-radius:9px;background:var(--background-secondary);color:var(--text-muted);cursor:pointer;min-width:0}.tp-day-pill-dow.svelte-138iau3.svelte-138iau3{font-size:10px;text-transform:uppercase;letter-spacing:0.03em}.tp-day-pill-num.svelte-138iau3.svelte-138iau3{font-size:15px;font-weight:600;color:var(--text-normal)}.tp-day-pill--today.svelte-138iau3 .tp-day-pill-num.svelte-138iau3{color:var(--interactive-accent)}.tp-day-pill--sel.svelte-138iau3.svelte-138iau3{background:color-mix(in srgb,var(--interactive-accent) 18%,var(--background-secondary));outline:1.5px solid var(--interactive-accent)}.tp-day-pill-dot.svelte-138iau3.svelte-138iau3{width:4px;height:4px;border-radius:50%;background:var(--interactive-accent)}.tp-week-view[data-tp-view="day"].svelte-138iau3 .tp-axis.svelte-138iau3{min-width:0}.tp-week-view[data-tp-view="day"].svelte-138iau3 .tp-axis-head.svelte-138iau3{display:none}.tp-agenda.svelte-138iau3.svelte-138iau3{flex:1 1 0;overflow:auto;min-height:0;padding:8px 10px 16px}.tp-agenda-day.svelte-138iau3.svelte-138iau3{margin-bottom:12px}.tp-agenda-head.svelte-138iau3.svelte-138iau3{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-muted);padding:2px 2px 6px;position:sticky;top:0;background:var(--background-primary);z-index:2}.tp-agenda-head--today.svelte-138iau3.svelte-138iau3{color:var(--interactive-accent)}.tp-agenda-dayname.svelte-138iau3.svelte-138iau3{text-transform:uppercase;letter-spacing:0.03em}.tp-agenda-row.svelte-138iau3.svelte-138iau3{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:none;border-radius:0 7px 7px 0;padding:8px 10px;margin-bottom:5px;color:var(--text-normal);cursor:pointer;font-size:13px;font-family:var(--font-interface)}.tp-agenda-period.svelte-138iau3.svelte-138iau3{font-size:11px;color:var(--text-muted);min-width:64px;flex-shrink:0}.tp-agenda-main.svelte-138iau3.svelte-138iau3{flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-agenda-room.svelte-138iau3.svelte-138iau3{font-size:11px;font-style:italic;color:var(--text-muted);flex-shrink:0}.tp-agenda-empty.svelte-138iau3.svelte-138iau3{font-size:12px;color:var(--text-faint);padding:2px 4px 6px;font-style:italic}');
 }
 function get_each_context_32(ctx, list, i) {
   const child_ctx = ctx.slice();
@@ -16449,7 +16484,7 @@ function get_each_context_32(ctx, list, i) {
   return child_ctx;
 }
 function get_each_context_42(ctx, list, i) {
-  var _a2;
+  var _a2, _b2, _c;
   const child_ctx = ctx.slice();
   child_ctx[195] = list[i];
   const constants_0 = (
@@ -16528,43 +16563,125 @@ function get_each_context_42(ctx, list, i) {
     child_ctx[217]
   );
   child_ctx[219] = constants_8;
+  const constants_9 = timeToMinutes(
+    /*period*/
+    child_ctx[195].end
+  ) - timeToMinutes(
+    /*period*/
+    child_ctx[195].start
+  );
+  child_ctx[220] = constants_9;
+  const constants_10 = (
+    /*slot*/
+    (child_ctx[215] ? 1 : 0) + /*devEvents*/
+    child_ctx[216].length
+  );
+  child_ctx[221] = constants_10;
+  const constants_11 = !/*slot*/
+  child_ctx[215] && /*devEvents*/
+  child_ctx[216].length === 1 ? (
+    /*devEvents*/
+    child_ctx[216][0]
+  ) : void 0;
+  child_ctx[222] = constants_11;
+  const constants_12 = (
+    /*_soleEv*/
+    child_ctx[222] ? eventPeriodIds(
+      /*_soleEv*/
+      child_ctx[222]
+    ).length <= 1 : false
+  );
+  child_ctx[223] = constants_12;
+  const constants_13 = (
+    /*slot*/
+    child_ctx[215] && /*devEvents*/
+    child_ctx[216].length === 0 ? (
+      /*slot*/
+      (_b2 = child_ctx[215].durationMinutes) != null ? _b2 : (
+        /*_blockMins*/
+        child_ctx[220]
+      )
+    ) : (
+      /*_soleEv*/
+      child_ctx[222] && /*_evSingleBlock*/
+      child_ctx[223] ? (
+        /*_soleEv*/
+        (_c = child_ctx[222].durationMinutes) != null ? _c : (
+          /*_blockMins*/
+          child_ctx[220]
+        )
+      ) : (
+        /*_blockMins*/
+        child_ctx[220]
+      )
+    )
+  );
+  child_ctx[224] = constants_13;
+  const constants_14 = (
+    /*_occCount*/
+    child_ctx[221] === 1 && /*_occMins*/
+    child_ctx[224] > 0 && /*_occMins*/
+    child_ctx[224] < /*_blockMins*/
+    child_ctx[220] && /*slot*/
+    (child_ctx[215] ? true : (
+      /*_evSingleBlock*/
+      child_ctx[223]
+    )) && /*_occMins*/
+    child_ctx[224] * /*PX_PER_MIN*/
+    child_ctx[8] <= /*bHeight*/
+    child_ctx[213] - 16
+  );
+  child_ctx[225] = constants_14;
+  const constants_15 = Math.max(
+    22,
+    /*_occMins*/
+    child_ctx[224] * /*PX_PER_MIN*/
+    child_ctx[8]
+  );
+  child_ctx[226] = constants_15;
+  const constants_16 = minutesToTime(timeToMinutes(
+    /*period*/
+    child_ctx[195].start
+  ) + /*_occMins*/
+  child_ctx[224]);
+  child_ctx[227] = constants_16;
   return child_ctx;
 }
 function get_each_context_52(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[233] = list[i];
+  child_ctx[241] = list[i];
   const constants_0 = (
     /*getDateEventLabel*/
     child_ctx[47](
       /*devEv*/
-      child_ctx[233]
+      child_ctx[241]
     )
   );
-  child_ctx[234] = constants_0;
+  child_ctx[242] = constants_0;
   const constants_1 = (
     /*_eventPlanMap*/
     child_ctx[34][
       /*devEv*/
-      child_ctx[233].id
+      child_ctx[241].id
     ]
   );
-  child_ctx[235] = constants_1;
+  child_ctx[243] = constants_1;
   const constants_2 = (
     /*_preparedEventMap*/
     child_ctx[30][
       /*devEv*/
-      child_ctx[233].id
+      child_ctx[241].id
     ]
   );
-  child_ctx[236] = constants_2;
+  child_ctx[244] = constants_2;
   const constants_3 = (
     /*_eventExternalMap*/
     child_ctx[28][
       /*devEv*/
-      child_ctx[233].id
+      child_ctx[241].id
     ]
   );
-  child_ctx[237] = constants_3;
+  child_ctx[245] = constants_3;
   return child_ctx;
 }
 function get_if_ctx_2(ctx) {
@@ -16576,7 +16693,7 @@ function get_if_ctx_2(ctx) {
       child_ctx[215]
     )
   );
-  child_ctx[234] = constants_0;
+  child_ctx[242] = constants_0;
   const constants_1 = (
     /*_slotPlanMap*/
     child_ctx[35][
@@ -16585,7 +16702,7 @@ function get_if_ctx_2(ctx) {
       child_ctx[206]
     ]
   );
-  child_ctx[240] = constants_1;
+  child_ctx[248] = constants_1;
   const constants_2 = (
     /*_preparedSlotMap*/
     child_ctx[31][
@@ -16594,7 +16711,7 @@ function get_if_ctx_2(ctx) {
       child_ctx[206]
     ]
   );
-  child_ctx[241] = constants_2;
+  child_ctx[249] = constants_2;
   const constants_3 = (
     /*_slotExternalMap*/
     child_ctx[29][
@@ -16603,7 +16720,7 @@ function get_if_ctx_2(ctx) {
       child_ctx[206]
     ]
   );
-  child_ctx[242] = constants_3;
+  child_ctx[250] = constants_3;
   return child_ctx;
 }
 function get_if_ctx_3(ctx) {
@@ -16621,7 +16738,7 @@ function get_if_ctx_3(ctx) {
       child_ctx[0].settings
     )).length
   );
-  child_ctx[243] = constants_0;
+  child_ctx[251] = constants_0;
   return child_ctx;
 }
 function get_if_ctx_1(ctx) {
@@ -16633,82 +16750,82 @@ function get_if_ctx_1(ctx) {
       child_ctx[195].id
     ]
   );
-  child_ctx[222] = constants_0;
+  child_ctx[230] = constants_0;
   const constants_1 = (
     /*_mrun*/
-    child_ctx[222].ev
+    child_ctx[230].ev
   );
-  child_ctx[223] = constants_1;
+  child_ctx[231] = constants_1;
   const constants_2 = (
     /*_mrun*/
-    child_ctx[222].run[0]
+    child_ctx[230].run[0]
   );
-  child_ctx[224] = constants_2;
+  child_ctx[232] = constants_2;
   const constants_3 = (
     /*_mrun*/
-    child_ctx[222].run[
+    child_ctx[230].run[
       /*_mrun*/
-      child_ctx[222].run.length - 1
+      child_ctx[230].run.length - 1
     ]
   );
-  child_ctx[225] = constants_3;
+  child_ctx[233] = constants_3;
   const constants_4 = (timeToMinutes(
     /*_first*/
-    child_ctx[224].start
+    child_ctx[232].start
   ) - /*_axis*/
   child_ctx[9].start) * /*PX_PER_MIN*/
   child_ctx[8];
-  child_ctx[226] = constants_4;
+  child_ctx[234] = constants_4;
   const constants_5 = Math.max(20, (timeToMinutes(
     /*_last*/
-    child_ctx[225].end
+    child_ctx[233].end
   ) - timeToMinutes(
     /*_first*/
-    child_ctx[224].start
+    child_ctx[232].start
   )) * /*PX_PER_MIN*/
   child_ctx[8]);
-  child_ctx[227] = constants_5;
+  child_ctx[235] = constants_5;
   const constants_6 = (
     /*getDateEventLabel*/
     child_ctx[47](
       /*_mev*/
-      child_ctx[223]
+      child_ctx[231]
     )
   );
-  child_ctx[228] = constants_6;
+  child_ctx[236] = constants_6;
   const constants_7 = (
     /*_eventPlanMap*/
     child_ctx[34][
       /*_mev*/
-      child_ctx[223].id
+      child_ctx[231].id
     ]
   );
-  child_ctx[229] = constants_7;
+  child_ctx[237] = constants_7;
   const constants_8 = (
     /*_preparedEventMap*/
     child_ctx[30][
       /*_mev*/
-      child_ctx[223].id
+      child_ctx[231].id
     ]
   );
-  child_ctx[230] = constants_8;
+  child_ctx[238] = constants_8;
   const constants_9 = (
     /*_eventExternalMap*/
     child_ctx[28][
       /*_mev*/
-      child_ctx[223].id
+      child_ctx[231].id
     ]
   );
-  child_ctx[231] = constants_9;
+  child_ctx[239] = constants_9;
   const constants_10 = (
     /*_first*/
-    child_ctx[224].name + /*_mrun*/
-    (child_ctx[222].run.length > 1 ? " \u2013 " + /*_last*/
-    child_ctx[225].name : "") + " \xB7 " + /*_first*/
-    child_ctx[224].start + "\u2013" + /*_last*/
-    child_ctx[225].end
+    child_ctx[232].name + /*_mrun*/
+    (child_ctx[230].run.length > 1 ? " \u2013 " + /*_last*/
+    child_ctx[233].name : "") + " \xB7 " + /*_first*/
+    child_ctx[232].start + "\u2013" + /*_last*/
+    child_ctx[233].end
   );
-  child_ctx[232] = constants_10;
+  child_ctx[240] = constants_10;
   return child_ctx;
 }
 function get_else_ctx(ctx) {
@@ -16727,12 +16844,12 @@ function get_else_ctx(ctx) {
 }
 function get_each_context_62(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[244] = list[i];
+  child_ctx[252] = list[i];
   return child_ctx;
 }
 function get_each_context_72(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[244] = list[i];
+  child_ctx[252] = list[i];
   return child_ctx;
 }
 function get_each_context_82(ctx, list, i) {
@@ -16836,7 +16953,7 @@ function get_each_context_92(ctx, list, i) {
   child_ctx[190] = list[i];
   return child_ctx;
 }
-function create_if_block_42(ctx) {
+function create_if_block_43(ctx) {
   let button;
   let t0;
   let t1;
@@ -16853,7 +16970,7 @@ function create_if_block_42(ctx) {
         ctx[7]
       );
       attr(button, "class", button_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx[7].toLowerCase() + " svelte-4doiv5");
+      ctx[7].toLowerCase() + " svelte-138iau3");
       attr(button, "title", button_title_value = /*abOverridden*/
       ctx[36] ? "A/B forced for this week \u2014 click to change" : "Click to override this week's A/B");
       toggle_class(
@@ -16886,7 +17003,7 @@ function create_if_block_42(ctx) {
       );
       if (dirty[0] & /*abWeekType*/
       128 && button_class_value !== (button_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx2[7].toLowerCase() + " svelte-4doiv5")) {
+      ctx2[7].toLowerCase() + " svelte-138iau3")) {
         attr(button, "class", button_class_value);
       }
       if (dirty[1] & /*abOverridden*/
@@ -16914,7 +17031,7 @@ function create_if_block_42(ctx) {
     }
   };
 }
-function create_if_block_41(ctx) {
+function create_if_block_42(ctx) {
   let div0;
   let t0;
   let div1;
@@ -16935,8 +17052,8 @@ function create_if_block_41(ctx) {
       t1 = space();
       button = element("button");
       button.textContent = "Today";
-      attr(div0, "class", "tp-nav-backdrop svelte-4doiv5");
-      attr(input, "class", "tp-nav-date svelte-4doiv5");
+      attr(div0, "class", "tp-nav-backdrop svelte-138iau3");
+      attr(input, "class", "tp-nav-date svelte-138iau3");
       attr(input, "type", "date");
       input.value = input_value_value = isoOf(
         /*currentDate*/
@@ -16946,8 +17063,8 @@ function create_if_block_41(ctx) {
       ctx[0].settings.academicYear.startDate);
       attr(input, "max", input_max_value = /*plugin*/
       ctx[0].settings.academicYear.endDate);
-      attr(button, "class", "tp-btn svelte-4doiv5");
-      attr(div1, "class", "tp-nav-pop svelte-4doiv5");
+      attr(button, "class", "tp-btn svelte-138iau3");
+      attr(div1, "class", "tp-nav-pop svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -17010,7 +17127,7 @@ function create_if_block_41(ctx) {
     }
   };
 }
-function create_if_block_40(ctx) {
+function create_if_block_41(ctx) {
   let div;
   let button0;
   let t0;
@@ -17036,7 +17153,7 @@ function create_if_block_40(ctx) {
       t3 = space();
       button2 = element("button");
       t4 = text("Grid");
-      attr(button0, "class", "tp-mode-btn svelte-4doiv5");
+      attr(button0, "class", "tp-mode-btn svelte-138iau3");
       attr(button0, "role", "tab");
       attr(button0, "aria-selected", button0_aria_selected_value = /*viewMode*/
       ctx[6] === "day");
@@ -17046,7 +17163,7 @@ function create_if_block_40(ctx) {
         /*viewMode*/
         ctx[6] === "day"
       );
-      attr(button1, "class", "tp-mode-btn svelte-4doiv5");
+      attr(button1, "class", "tp-mode-btn svelte-138iau3");
       attr(button1, "role", "tab");
       attr(button1, "aria-selected", button1_aria_selected_value = /*viewMode*/
       ctx[6] === "agenda");
@@ -17056,7 +17173,7 @@ function create_if_block_40(ctx) {
         /*viewMode*/
         ctx[6] === "agenda"
       );
-      attr(button2, "class", "tp-mode-btn svelte-4doiv5");
+      attr(button2, "class", "tp-mode-btn svelte-138iau3");
       attr(button2, "role", "tab");
       attr(button2, "aria-selected", button2_aria_selected_value = /*viewMode*/
       ctx[6] === "grid");
@@ -17066,7 +17183,7 @@ function create_if_block_40(ctx) {
         /*viewMode*/
         ctx[6] === "grid"
       );
-      attr(div, "class", "tp-mobile-modes svelte-4doiv5");
+      attr(div, "class", "tp-mobile-modes svelte-138iau3");
       attr(div, "role", "tablist");
       attr(div, "aria-label", "View mode");
     },
@@ -17157,7 +17274,7 @@ function create_if_block_40(ctx) {
     }
   };
 }
-function create_if_block_38(ctx) {
+function create_if_block_39(ctx) {
   let div;
   let each_value_9 = ensure_array_like(
     /*DAYS*/
@@ -17173,7 +17290,7 @@ function create_if_block_38(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-day-strip svelte-4doiv5");
+      attr(div, "class", "tp-day-strip svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -17216,12 +17333,12 @@ function create_if_block_38(ctx) {
     }
   };
 }
-function create_if_block_39(ctx) {
+function create_if_block_40(ctx) {
   let span;
   return {
     c() {
       span = element("span");
-      attr(span, "class", "tp-day-pill-dot svelte-4doiv5");
+      attr(span, "class", "tp-day-pill-dot svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -17262,7 +17379,7 @@ function create_each_block_92(ctx) {
   let button_aria_label_value;
   let mounted;
   let dispose;
-  let if_block = show_if && create_if_block_39(ctx);
+  let if_block = show_if && create_if_block_40(ctx);
   function click_handler_7() {
     return (
       /*click_handler_7*/
@@ -17283,9 +17400,9 @@ function create_each_block_92(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-pill-dow svelte-4doiv5");
-      attr(span1, "class", "tp-day-pill-num svelte-4doiv5");
-      attr(button, "class", "tp-day-pill svelte-4doiv5");
+      attr(span0, "class", "tp-day-pill-dow svelte-138iau3");
+      attr(span1, "class", "tp-day-pill-num svelte-138iau3");
+      attr(button, "class", "tp-day-pill svelte-138iau3");
       attr(button, "aria-label", button_aria_label_value = /*day*/
       ctx[190].label);
       toggle_class(
@@ -17338,7 +17455,7 @@ function create_each_block_92(ctx) {
       if (show_if) {
         if (if_block) {
         } else {
-          if_block = create_if_block_39(ctx);
+          if_block = create_if_block_40(ctx);
           if_block.c();
           if_block.m(button, t4);
         }
@@ -17411,11 +17528,11 @@ function create_else_block_12(ctx) {
   }
   let if_block0 = (
     /*nowTop*/
-    ctx[25] !== null && create_if_block_35(ctx)
+    ctx[25] !== null && create_if_block_36(ctx)
   );
   let if_block1 = (
     /*nowTop*/
-    ctx[25] !== null && create_if_block_34(ctx)
+    ctx[25] !== null && create_if_block_35(ctx)
   );
   let each_value_3 = ensure_array_like(
     /*renderDays*/
@@ -17450,17 +17567,17 @@ function create_else_block_12(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div0, "class", "tp-axis-head-gutter svelte-4doiv5");
-      attr(div1, "class", "tp-axis-head svelte-4doiv5");
-      attr(div2, "class", "tp-axis-gutter svelte-4doiv5");
+      attr(div0, "class", "tp-axis-head-gutter svelte-138iau3");
+      attr(div1, "class", "tp-axis-head svelte-138iau3");
+      attr(div2, "class", "tp-axis-gutter svelte-138iau3");
       set_style(
         div2,
         "height",
         /*axisHeight*/
         ctx[27] + "px"
       );
-      attr(div3, "class", "tp-axis-body svelte-4doiv5");
-      attr(div4, "class", "tp-axis svelte-4doiv5");
+      attr(div3, "class", "tp-axis-body svelte-138iau3");
+      attr(div4, "class", "tp-axis svelte-138iau3");
       set_style(div4, "--grid-colour", colourToCss(
         /*plugin*/
         ctx[0].settings.gridLineColour,
@@ -17483,7 +17600,7 @@ function create_else_block_12(ctx) {
         /*plugin*/
         ((_b2 = ctx[0].settings.blockBorderWeight) != null ? _b2 : 1) + "px"
       );
-      attr(div5, "class", "tp-table-scroll svelte-4doiv5");
+      attr(div5, "class", "tp-table-scroll svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, div5, anchor);
@@ -17568,7 +17685,7 @@ function create_else_block_12(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_35(ctx2);
+          if_block0 = create_if_block_36(ctx2);
           if_block0.c();
           if_block0.m(div2, null);
         }
@@ -17592,7 +17709,7 @@ function create_else_block_12(ctx) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
         } else {
-          if_block1 = create_if_block_34(ctx2);
+          if_block1 = create_if_block_35(ctx2);
           if_block1.c();
           if_block1.m(div3, t4);
         }
@@ -17687,7 +17804,7 @@ function create_if_block3(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-agenda svelte-4doiv5");
+      attr(div, "class", "tp-agenda svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -17731,13 +17848,13 @@ function create_if_block3(ctx) {
     }
   };
 }
-function create_if_block_37(ctx) {
+function create_if_block_38(ctx) {
   let span;
   return {
     c() {
       span = element("span");
       span.textContent = "Inset";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-4doiv5");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -17749,13 +17866,13 @@ function create_if_block_37(ctx) {
     }
   };
 }
-function create_if_block_36(ctx) {
+function create_if_block_37(ctx) {
   let span;
   return {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-4doiv5");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -17792,11 +17909,11 @@ function create_each_block_82(ctx) {
     if (
       /*dayOverride*/
       ctx2[207] === "holiday"
-    ) return create_if_block_36;
+    ) return create_if_block_37;
     if (
       /*dayOverride*/
       ctx2[207] === "inset"
-    ) return create_if_block_37;
+    ) return create_if_block_38;
   }
   let current_block_type = select_block_type_3(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
   let if_block = current_block_type && current_block_type(ctx);
@@ -17813,11 +17930,11 @@ function create_each_block_82(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-name svelte-4doiv5");
-      attr(span1, "class", "tp-day-date svelte-4doiv5");
-      attr(span2, "class", "tp-day-label svelte-4doiv5");
-      attr(div0, "class", "tp-th-day-inner svelte-4doiv5");
-      attr(div1, "class", "tp-axis-head-day svelte-4doiv5");
+      attr(span0, "class", "tp-day-name svelte-138iau3");
+      attr(span1, "class", "tp-day-date svelte-138iau3");
+      attr(span2, "class", "tp-day-label svelte-138iau3");
+      attr(div0, "class", "tp-th-day-inner svelte-138iau3");
+      attr(div1, "class", "tp-axis-head-day svelte-138iau3");
       toggle_class(div1, "tp-th-day--today", isToday(
         /*day*/
         ctx[190].offset,
@@ -17911,19 +18028,19 @@ function create_each_block_72(ctx) {
   let div;
   let t_value = fmtAxisTime(
     /*hm*/
-    ctx[244]
+    ctx[252]
   ) + "";
   let t;
   return {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-hour svelte-4doiv5");
+      attr(div, "class", "tp-axis-hour svelte-138iau3");
       set_style(
         div,
         "top",
         /*hm*/
-        (ctx[244] - /*_axis*/
+        (ctx[252] - /*_axis*/
         ctx[9].start) * /*PX_PER_MIN*/
         ctx[8] + "px"
       );
@@ -17936,7 +18053,7 @@ function create_each_block_72(ctx) {
       if (dirty[0] & /*hourMarks*/
       67108864 && t_value !== (t_value = fmtAxisTime(
         /*hm*/
-        ctx2[244]
+        ctx2[252]
       ) + "")) set_data(t, t_value);
       if (dirty[0] & /*hourMarks, _axis, PX_PER_MIN*/
       67109632) {
@@ -17944,7 +18061,7 @@ function create_each_block_72(ctx) {
           div,
           "top",
           /*hm*/
-          (ctx2[244] - /*_axis*/
+          (ctx2[252] - /*_axis*/
           ctx2[9].start) * /*PX_PER_MIN*/
           ctx2[8] + "px"
         );
@@ -17957,7 +18074,7 @@ function create_each_block_72(ctx) {
     }
   };
 }
-function create_if_block_35(ctx) {
+function create_if_block_36(ctx) {
   let div;
   let t;
   return {
@@ -17967,7 +18084,7 @@ function create_if_block_35(ctx) {
         /*currentTimeStr*/
         ctx[23]
       );
-      attr(div, "class", "tp-now-badge svelte-4doiv5");
+      attr(div, "class", "tp-now-badge svelte-138iau3");
       set_style(
         div,
         "top",
@@ -18003,12 +18120,12 @@ function create_if_block_35(ctx) {
     }
   };
 }
-function create_if_block_34(ctx) {
+function create_if_block_35(ctx) {
   let div;
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-now-line tp-now-line--week svelte-4doiv5");
+      attr(div, "class", "tp-now-line tp-now-line--week svelte-138iau3");
       set_style(
         div,
         "top",
@@ -18042,12 +18159,12 @@ function create_each_block_62(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-axis-line svelte-4doiv5");
+      attr(div, "class", "tp-axis-line svelte-138iau3");
       set_style(
         div,
         "top",
         /*hm*/
-        (ctx[244] - /*_axis*/
+        (ctx[252] - /*_axis*/
         ctx[9].start) * /*PX_PER_MIN*/
         ctx[8] + "px"
       );
@@ -18062,7 +18179,7 @@ function create_each_block_62(ctx) {
           div,
           "top",
           /*hm*/
-          (ctx2[244] - /*_axis*/
+          (ctx2[252] - /*_axis*/
           ctx2[9].start) * /*PX_PER_MIN*/
           ctx2[8] + "px"
         );
@@ -18144,7 +18261,7 @@ function create_if_block_102(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-override-label svelte-4doiv5");
+      attr(div, "class", "tp-axis-override-label svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -18167,26 +18284,31 @@ function create_else_block_32(ctx) {
   let t0;
   let t1;
   let t2;
+  let t3;
   let mounted;
   let dispose;
   let if_block0 = (
     /*slot*/
     (ctx[215] ? 1 : 0) + /*devEvents*/
-    ctx[216].length >= 2 && create_if_block_33(get_if_ctx_3(ctx))
+    ctx[216].length >= 2 && create_if_block_34(get_if_ctx_3(ctx))
   );
   let if_block1 = !/*slot*/
   ctx[215] && /*devEvents*/
-  ctx[216].length === 0 && create_if_block_32(ctx);
+  ctx[216].length === 0 && create_if_block_33(ctx);
   function select_block_type_6(ctx2, dirty) {
     if (
       /*slot*/
       ctx2[215] || /*devEvents*/
       ctx2[216].length > 0
-    ) return create_if_block_182;
+    ) return create_if_block_192;
     return create_else_block_4;
   }
   let current_block_type = select_block_type_6(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
   let if_block2 = current_block_type(ctx);
+  let if_block3 = (
+    /*_partial*/
+    ctx[225] && create_if_block_182(ctx)
+  );
   function dragover_handler(...args) {
     return (
       /*dragover_handler*/
@@ -18220,7 +18342,9 @@ function create_else_block_32(ctx) {
       t1 = space();
       if_block2.c();
       t2 = space();
-      attr(div, "class", "tp-block svelte-4doiv5");
+      if (if_block3) if_block3.c();
+      t3 = space();
+      attr(div, "class", "tp-block svelte-138iau3");
       set_style(
         div,
         "top",
@@ -18275,6 +18399,8 @@ function create_else_block_32(ctx) {
       append(div, t1);
       if_block2.m(div, null);
       append(div, t2);
+      if (if_block3) if_block3.m(div, null);
+      append(div, t3);
       if (!mounted) {
         dispose = [
           listen(div, "dragover", dragover_handler),
@@ -18299,7 +18425,7 @@ function create_else_block_32(ctx) {
         if (if_block0) {
           if_block0.p(get_if_ctx_3(ctx), dirty);
         } else {
-          if_block0 = create_if_block_33(get_if_ctx_3(ctx));
+          if_block0 = create_if_block_34(get_if_ctx_3(ctx));
           if_block0.c();
           if_block0.m(div, t0);
         }
@@ -18313,7 +18439,7 @@ function create_else_block_32(ctx) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_32(ctx);
+          if_block1 = create_if_block_33(ctx);
           if_block1.c();
           if_block1.m(div, t1);
         }
@@ -18330,6 +18456,21 @@ function create_else_block_32(ctx) {
           if_block2.c();
           if_block2.m(div, t2);
         }
+      }
+      if (
+        /*_partial*/
+        ctx[225]
+      ) {
+        if (if_block3) {
+          if_block3.p(ctx, dirty);
+        } else {
+          if_block3 = create_if_block_182(ctx);
+          if_block3.c();
+          if_block3.m(div, t3);
+        }
+      } else if (if_block3) {
+        if_block3.d(1);
+        if_block3 = null;
       }
       if (dirty[0] & /*plugin, renderDays, _axis, PX_PER_MIN*/
       262913) {
@@ -18409,6 +18550,7 @@ function create_else_block_32(ctx) {
       if (if_block0) if_block0.d();
       if (if_block1) if_block1.d();
       if_block2.d();
+      if (if_block3) if_block3.d();
       mounted = false;
       run_all(dispose);
     }
@@ -18424,7 +18566,7 @@ function create_if_block_112(ctx) {
   let span0;
   let t0_value = (
     /*_mRange*/
-    ctx[232] + ""
+    ctx[240] + ""
   );
   let t0;
   let t1;
@@ -18432,7 +18574,7 @@ function create_if_block_112(ctx) {
   let span1;
   let t2_value = (
     /*_mlbl*/
-    ctx[228].code + ""
+    ctx[236].code + ""
   );
   let t2;
   let t3;
@@ -18445,10 +18587,10 @@ function create_if_block_112(ctx) {
     ctx[33] && /*isClassId*/
     (ctx[71](
       /*_mev*/
-      ctx[223].classId
+      ctx[231].classId
     ) || !!/*_mev*/
-    (ctx[223].title && /*_mev*/
-    ctx[223].title.trim()))
+    (ctx[231].title && /*_mev*/
+    ctx[231].title.trim()))
   );
   let t6;
   let t7;
@@ -18458,20 +18600,20 @@ function create_if_block_112(ctx) {
   let dispose;
   let if_block0 = (
     /*_mlbl*/
-    ctx[228].notes && create_if_block_162(ctx)
+    ctx[236].notes && create_if_block_162(ctx)
   );
   let if_block1 = (
     /*_mlbl*/
-    ctx[228].classroom && create_if_block_152(ctx)
+    ctx[236].classroom && create_if_block_152(ctx)
   );
   let if_block2 = show_if && create_if_block_142(ctx);
   let if_block3 = (
     /*_mPlan*/
-    ctx[229] && create_if_block_132(ctx)
+    ctx[237] && create_if_block_132(ctx)
   );
   let if_block4 = (
     /*_mExt*/
-    ctx[231] && !/*_isMobileApp*/
+    ctx[239] && !/*_isMobileApp*/
     ctx[66] && create_if_block_122(ctx)
   );
   function dragstart_handler(...args) {
@@ -18479,7 +18621,7 @@ function create_if_block_112(ctx) {
       /*dragstart_handler*/
       ctx[123](
         /*_mev*/
-        ctx[223],
+        ctx[231],
         ...args
       )
     );
@@ -18491,9 +18633,9 @@ function create_if_block_112(ctx) {
         /*dayDate*/
         ctx[206],
         /*_first*/
-        ctx[224],
+        ctx[232],
         /*_mev*/
-        ctx[223],
+        ctx[231],
         ...args
       )
     );
@@ -18522,62 +18664,62 @@ function create_if_block_112(ctx) {
       t7 = space();
       if (if_block4) if_block4.c();
       t8 = space();
-      attr(span0, "class", "tp-chip-period-time svelte-4doiv5");
-      attr(span1, "class", "tp-chip-code svelte-4doiv5");
-      attr(div0, "class", "tp-chip-body svelte-4doiv5");
-      attr(div1, "class", "tp-chip-marks svelte-4doiv5");
-      attr(div2, "class", "tp-chip-footer svelte-4doiv5");
-      attr(div3, "class", "tp-chip tp-chip--event svelte-4doiv5");
+      attr(span0, "class", "tp-chip-period-time svelte-138iau3");
+      attr(span1, "class", "tp-chip-code svelte-138iau3");
+      attr(div0, "class", "tp-chip-body svelte-138iau3");
+      attr(div1, "class", "tp-chip-marks svelte-138iau3");
+      attr(div2, "class", "tp-chip-footer svelte-138iau3");
+      attr(div3, "class", "tp-chip tp-chip--event svelte-138iau3");
       attr(div3, "role", "button");
       attr(div3, "tabindex", "0");
       attr(div3, "draggable", "true");
       attr(div3, "title", div3_title_value = /*_mlbl*/
-      ctx[228].code + " \xB7 " + /*_mRange*/
-      ctx[232]);
+      ctx[236].code + " \xB7 " + /*_mRange*/
+      ctx[240]);
       set_style(div3, "--ctint", hexToRgba4(
         /*_mlbl*/
-        ctx[228].colour,
+        ctx[236].colour,
         0.22
       ));
       set_style(div3, "border-left", "3px solid " + /*_mlbl*/
-      ctx[228].colour);
+      ctx[236].colour);
       set_style(div3, "background", hexToRgba4(
         /*_mlbl*/
-        ctx[228].colour,
+        ctx[236].colour,
         0.22
       ));
-      attr(div4, "class", "tp-event-stack svelte-4doiv5");
-      attr(div5, "class", "tp-block tp-block--merged svelte-4doiv5");
+      attr(div4, "class", "tp-event-stack svelte-138iau3");
+      attr(div5, "class", "tp-block tp-block--merged svelte-138iau3");
       set_style(
         div5,
         "top",
         /*_mTop*/
-        ctx[226] + "px"
+        ctx[234] + "px"
       );
       set_style(
         div5,
         "height",
         /*_mH*/
-        ctx[227] + "px"
+        ctx[235] + "px"
       );
       set_style(
         div5,
         "--bh",
         /*_mH*/
-        ctx[227] + "px"
+        ctx[235] + "px"
       );
       set_style(div5, "--tint", hexToRgba4(
         /*_mlbl*/
-        ctx[228].colour,
+        ctx[236].colour,
         0.08
       ));
       set_style(div5, "background", hexToRgba4(
         /*_mlbl*/
-        ctx[228].colour,
+        ctx[236].colour,
         0.08
       ));
       set_style(div5, "border-left", "3px solid " + /*_mlbl*/
-      ctx[228].colour);
+      ctx[236].colour);
     },
     m(target, anchor) {
       insert(target, div5, anchor);
@@ -18626,13 +18768,13 @@ function create_if_block_112(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
       262149 && t0_value !== (t0_value = /*_mRange*/
-      ctx[232] + "")) set_data(t0, t0_value);
+      ctx[240] + "")) set_data(t0, t0_value);
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
       262149 && t2_value !== (t2_value = /*_mlbl*/
-      ctx[228].code + "")) set_data(t2, t2_value);
+      ctx[236].code + "")) set_data(t2, t2_value);
       if (
         /*_mlbl*/
-        ctx[228].notes
+        ctx[236].notes
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -18647,7 +18789,7 @@ function create_if_block_112(ctx) {
       }
       if (
         /*_mlbl*/
-        ctx[228].classroom
+        ctx[236].classroom
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -18666,10 +18808,10 @@ function create_if_block_112(ctx) {
       ctx[33] && /*isClassId*/
       (ctx[71](
         /*_mev*/
-        ctx[223].classId
+        ctx[231].classId
       ) || !!/*_mev*/
-      (ctx[223].title && /*_mev*/
-      ctx[223].title.trim()));
+      (ctx[231].title && /*_mev*/
+      ctx[231].title.trim()));
       if (show_if) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
@@ -18684,7 +18826,7 @@ function create_if_block_112(ctx) {
       }
       if (
         /*_mPlan*/
-        ctx[229]
+        ctx[237]
       ) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
@@ -18699,7 +18841,7 @@ function create_if_block_112(ctx) {
       }
       if (
         /*_mExt*/
-        ctx[231] && !/*_isMobileApp*/
+        ctx[239] && !/*_isMobileApp*/
         ctx[66]
       ) {
         if (if_block4) {
@@ -18715,28 +18857,28 @@ function create_if_block_112(ctx) {
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
       262149 && div3_title_value !== (div3_title_value = /*_mlbl*/
-      ctx[228].code + " \xB7 " + /*_mRange*/
-      ctx[232])) {
+      ctx[236].code + " \xB7 " + /*_mRange*/
+      ctx[240])) {
         attr(div3, "title", div3_title_value);
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
       262149) {
         set_style(div3, "--ctint", hexToRgba4(
           /*_mlbl*/
-          ctx[228].colour,
+          ctx[236].colour,
           0.22
         ));
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
       262149) {
         set_style(div3, "border-left", "3px solid " + /*_mlbl*/
-        ctx[228].colour);
+        ctx[236].colour);
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
       262149) {
         set_style(div3, "background", hexToRgba4(
           /*_mlbl*/
-          ctx[228].colour,
+          ctx[236].colour,
           0.22
         ));
       }
@@ -18746,7 +18888,7 @@ function create_if_block_112(ctx) {
           div5,
           "top",
           /*_mTop*/
-          ctx[226] + "px"
+          ctx[234] + "px"
         );
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin, PX_PER_MIN*/
@@ -18755,7 +18897,7 @@ function create_if_block_112(ctx) {
           div5,
           "height",
           /*_mH*/
-          ctx[227] + "px"
+          ctx[235] + "px"
         );
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin, PX_PER_MIN*/
@@ -18764,14 +18906,14 @@ function create_if_block_112(ctx) {
           div5,
           "--bh",
           /*_mH*/
-          ctx[227] + "px"
+          ctx[235] + "px"
         );
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
       262149) {
         set_style(div5, "--tint", hexToRgba4(
           /*_mlbl*/
-          ctx[228].colour,
+          ctx[236].colour,
           0.08
         ));
       }
@@ -18779,14 +18921,14 @@ function create_if_block_112(ctx) {
       262149) {
         set_style(div5, "background", hexToRgba4(
           /*_mlbl*/
-          ctx[228].colour,
+          ctx[236].colour,
           0.08
         ));
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
       262149) {
         set_style(div5, "border-left", "3px solid " + /*_mlbl*/
-        ctx[228].colour);
+        ctx[236].colour);
       }
     },
     d(detaching) {
@@ -18803,7 +18945,7 @@ function create_if_block_112(ctx) {
     }
   };
 }
-function create_if_block_33(ctx) {
+function create_if_block_34(ctx) {
   let div;
   let t;
   let div_title_value;
@@ -18811,16 +18953,16 @@ function create_if_block_33(ctx) {
     c() {
       div = element("div");
       t = text("\u26A0");
-      attr(div, "class", "tp-block-clash svelte-4doiv5");
+      attr(div, "class", "tp-block-clash svelte-138iau3");
       attr(div, "title", div_title_value = /*_showDirected*/
       ctx[32] && /*_dirOcc*/
-      ctx[243] >= 2 ? "Double-booked \u2014 directed time is counted twice here" : "Double-booked block");
+      ctx[251] >= 2 ? "Double-booked \u2014 directed time is counted twice here" : "Double-booked block");
       toggle_class(
         div,
         "tp-block-clash--directed",
         /*_showDirected*/
         ctx[32] && /*_dirOcc*/
-        ctx[243] >= 2
+        ctx[251] >= 2
       );
     },
     m(target, anchor) {
@@ -18832,7 +18974,7 @@ function create_if_block_33(ctx) {
       311301 | dirty[1] & /*_showDirected*/
       2 && div_title_value !== (div_title_value = /*_showDirected*/
       ctx2[32] && /*_dirOcc*/
-      ctx2[243] >= 2 ? "Double-booked \u2014 directed time is counted twice here" : "Double-booked block")) {
+      ctx2[251] >= 2 ? "Double-booked \u2014 directed time is counted twice here" : "Double-booked block")) {
         attr(div, "title", div_title_value);
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap*/
@@ -18843,7 +18985,7 @@ function create_if_block_33(ctx) {
           "tp-block-clash--directed",
           /*_showDirected*/
           ctx2[32] && /*_dirOcc*/
-          ctx2[243] >= 2
+          ctx2[251] >= 2
         );
       }
     },
@@ -18854,7 +18996,7 @@ function create_if_block_33(ctx) {
     }
   };
 }
-function create_if_block_32(ctx) {
+function create_if_block_33(ctx) {
   let div;
   let span0;
   let t0_value = (
@@ -18885,9 +19027,9 @@ function create_if_block_32(ctx) {
       t2 = text(t2_value);
       t3 = text("\u2013");
       t4 = text(t4_value);
-      attr(span0, "class", "tp-block-name svelte-4doiv5");
-      attr(span1, "class", "tp-block-time svelte-4doiv5");
-      attr(div, "class", "tp-block-label svelte-4doiv5");
+      attr(span0, "class", "tp-block-name svelte-138iau3");
+      attr(span1, "class", "tp-block-time svelte-138iau3");
+      attr(div, "class", "tp-block-label svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -18959,14 +19101,15 @@ function create_else_block_4(ctx) {
     }
   };
 }
-function create_if_block_182(ctx) {
+function create_if_block_192(ctx) {
   let div;
   let t;
   let each_blocks = [];
   let each_1_lookup = /* @__PURE__ */ new Map();
+  let div_style_value;
   let if_block = (
     /*slot*/
-    ctx[215] && create_if_block_25(get_if_ctx_2(ctx))
+    ctx[215] && create_if_block_26(get_if_ctx_2(ctx))
   );
   let each_value_5 = ensure_array_like(
     /*devEvents*/
@@ -18974,7 +19117,7 @@ function create_if_block_182(ctx) {
   );
   const get_key = (ctx2) => (
     /*devEv*/
-    ctx2[233].id
+    ctx2[241].id
   );
   for (let i = 0; i < each_value_5.length; i += 1) {
     let child_ctx = get_each_context_52(ctx, each_value_5, i);
@@ -18989,7 +19132,10 @@ function create_if_block_182(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-event-stack svelte-4doiv5");
+      attr(div, "class", "tp-event-stack svelte-138iau3");
+      attr(div, "style", div_style_value = /*_partial*/
+      ctx[225] ? `bottom:auto; height:${/*_occPx*/
+      ctx[226]}px;` : "");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -19009,7 +19155,7 @@ function create_if_block_182(ctx) {
         if (if_block) {
           if_block.p(get_if_ctx_2(ctx2), dirty);
         } else {
-          if_block = create_if_block_25(get_if_ctx_2(ctx2));
+          if_block = create_if_block_26(get_if_ctx_2(ctx2));
           if_block.c();
           if_block.m(div, t);
         }
@@ -19017,15 +19163,21 @@ function create_if_block_182(ctx) {
         if_block.d(1);
         if_block = null;
       }
-      if (dirty[0] & /*plugin, renderDays, _dateEventMap, currentMonday, _eventExternalMap, _preparedEventMap*/
-      1342455813 | dirty[1] & /*getDateEventLabel, onEventDragStart, onDragEnd, openChipMenu, _eventPlanMap, _showPrepared*/
-      12910604 | dirty[2] & /*_isMobileApp, openPlan, toggleEventPrep, isClassId*/
+      if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN, _eventExternalMap, _preparedEventMap*/
+      1342488837 | dirty[1] & /*isSlotExcluded, getDateEventLabel, onEventDragStart, onDragEnd, openChipMenu, _eventPlanMap, _showPrepared*/
+      12914700 | dirty[2] & /*_isMobileApp, openPlan, toggleEventPrep, isClassId*/
       6672) {
         each_value_5 = ensure_array_like(
           /*devEvents*/
           ctx2[216]
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_5, each_1_lookup, div, destroy_block, create_each_block_52, null, get_each_context_52);
+      }
+      if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
+      311557 && div_style_value !== (div_style_value = /*_partial*/
+      ctx2[225] ? `bottom:auto; height:${/*_occPx*/
+      ctx2[226]}px;` : "")) {
+        attr(div, "style", div_style_value);
       }
     },
     d(detaching) {
@@ -19039,36 +19191,30 @@ function create_if_block_182(ctx) {
     }
   };
 }
-function create_if_block_25(ctx) {
+function create_if_block_26(ctx) {
   let div3;
   let span0;
   let t0_value = (
-    /*period*/
-    ctx[195].name + ""
+    /*_partial*/
+    ctx[225] ? `${/*period*/
+    ctx[195].start}\u2013${/*_occEnd*/
+    ctx[227]} \xB7 ${/*_occMins*/
+    ctx[224]} min` : `${/*period*/
+    ctx[195].name} \xB7 ${/*period*/
+    ctx[195].start}\u2013${/*period*/
+    ctx[195].end}`
   );
   let t0;
   let t1;
+  let div0;
+  let span1;
   let t2_value = (
-    /*period*/
-    ctx[195].start + ""
+    /*lbl*/
+    ctx[242].code + ""
   );
   let t2;
   let t3;
-  let t4_value = (
-    /*period*/
-    ctx[195].end + ""
-  );
   let t4;
-  let t5;
-  let div0;
-  let span1;
-  let t6_value = (
-    /*lbl*/
-    ctx[234].code + ""
-  );
-  let t6;
-  let t7;
-  let t8;
   let show_if_2 = (
     /*effNote*/
     ctx[45](
@@ -19077,10 +19223,10 @@ function create_if_block_25(ctx) {
       /*dayDate*/
       ctx[206],
       /*lbl*/
-      ctx[234].notes
+      ctx[242].notes
     )
   );
-  let t9;
+  let t5;
   let div2;
   let show_if_1 = (
     /*effRoom*/
@@ -19090,10 +19236,10 @@ function create_if_block_25(ctx) {
       /*dayDate*/
       ctx[206],
       /*lbl*/
-      ctx[234].classroom
+      ctx[242].classroom
     )
   );
-  let t10;
+  let t6;
   let div1;
   let show_if = (
     /*_showPrepared*/
@@ -19103,27 +19249,27 @@ function create_if_block_25(ctx) {
       ctx[215].classId
     )
   );
-  let t11;
-  let t12;
+  let t7;
+  let t8;
   let div3_title_value;
   let mounted;
   let dispose;
   let if_block0 = (
     /*lbl*/
-    (ctx[234].year || /*lbl*/
-    ctx[234].subjectName) && create_if_block_31(ctx)
+    (ctx[242].year || /*lbl*/
+    ctx[242].subjectName) && create_if_block_32(ctx)
   );
-  let if_block1 = show_if_2 && create_if_block_30(ctx);
-  let if_block2 = show_if_1 && create_if_block_29(ctx);
-  let if_block3 = show_if && create_if_block_28(ctx);
+  let if_block1 = show_if_2 && create_if_block_31(ctx);
+  let if_block2 = show_if_1 && create_if_block_30(ctx);
+  let if_block3 = show_if && create_if_block_29(ctx);
   let if_block4 = (
     /*slotPlanPath*/
-    ctx[240] && create_if_block_27(ctx)
+    ctx[248] && create_if_block_28(ctx)
   );
   let if_block5 = (
     /*slotExternal*/
-    ctx[242] && !/*_isMobileApp*/
-    ctx[66] && create_if_block_26(ctx)
+    ctx[250] && !/*_isMobileApp*/
+    ctx[66] && create_if_block_27(ctx)
   );
   function dragstart_handler_1(...args) {
     return (
@@ -19154,79 +19300,76 @@ function create_if_block_25(ctx) {
       div3 = element("div");
       span0 = element("span");
       t0 = text(t0_value);
-      t1 = text(" \xB7 ");
-      t2 = text(t2_value);
-      t3 = text("\u2013");
-      t4 = text(t4_value);
-      t5 = space();
+      t1 = space();
       div0 = element("div");
       span1 = element("span");
-      t6 = text(t6_value);
-      t7 = space();
+      t2 = text(t2_value);
+      t3 = space();
       if (if_block0) if_block0.c();
-      t8 = space();
+      t4 = space();
       if (if_block1) if_block1.c();
-      t9 = space();
+      t5 = space();
       div2 = element("div");
       if (if_block2) if_block2.c();
-      t10 = space();
+      t6 = space();
       div1 = element("div");
       if (if_block3) if_block3.c();
-      t11 = space();
+      t7 = space();
       if (if_block4) if_block4.c();
-      t12 = space();
+      t8 = space();
       if (if_block5) if_block5.c();
-      attr(span0, "class", "tp-chip-period-time svelte-4doiv5");
-      attr(span1, "class", "tp-chip-code svelte-4doiv5");
-      attr(div0, "class", "tp-chip-body svelte-4doiv5");
-      attr(div1, "class", "tp-chip-marks svelte-4doiv5");
-      attr(div2, "class", "tp-chip-footer svelte-4doiv5");
-      attr(div3, "class", "tp-chip svelte-4doiv5");
+      attr(span0, "class", "tp-chip-period-time svelte-138iau3");
+      attr(span1, "class", "tp-chip-code svelte-138iau3");
+      attr(div0, "class", "tp-chip-body svelte-138iau3");
+      attr(div1, "class", "tp-chip-marks svelte-138iau3");
+      attr(div2, "class", "tp-chip-footer svelte-138iau3");
+      attr(div3, "class", "tp-chip svelte-138iau3");
       attr(div3, "draggable", "true");
       attr(div3, "role", "button");
       attr(div3, "tabindex", "0");
-      attr(div3, "title", div3_title_value = /*period*/
-      ctx[195].name + " \xB7 " + /*period*/
-      ctx[195].start + "\u2013" + /*period*/
-      ctx[195].end);
+      attr(div3, "title", div3_title_value = /*_partial*/
+      ctx[225] ? `${/*period*/
+      ctx[195].name} \xB7 ${/*period*/
+      ctx[195].start}\u2013${/*_occEnd*/
+      ctx[227]} \xB7 ${/*_occMins*/
+      ctx[224]} min` : `${/*period*/
+      ctx[195].name} \xB7 ${/*period*/
+      ctx[195].start}\u2013${/*period*/
+      ctx[195].end}`);
       set_style(div3, "--ctint", hexToRgba4(
         /*lbl*/
-        ctx[234].colour,
+        ctx[242].colour,
         0.22
       ));
       set_style(div3, "background", hexToRgba4(
         /*lbl*/
-        ctx[234].colour,
+        ctx[242].colour,
         0.22
       ));
       set_style(div3, "border-left", "3px solid " + /*lbl*/
-      ctx[234].colour);
+      ctx[242].colour);
     },
     m(target, anchor) {
       insert(target, div3, anchor);
       append(div3, span0);
       append(span0, t0);
-      append(span0, t1);
-      append(span0, t2);
-      append(span0, t3);
-      append(span0, t4);
-      append(div3, t5);
+      append(div3, t1);
       append(div3, div0);
       append(div0, span1);
-      append(span1, t6);
-      append(div0, t7);
+      append(span1, t2);
+      append(div0, t3);
       if (if_block0) if_block0.m(div0, null);
-      append(div0, t8);
+      append(div0, t4);
       if (if_block1) if_block1.m(div0, null);
-      append(div3, t9);
+      append(div3, t5);
       append(div3, div2);
       if (if_block2) if_block2.m(div2, null);
-      append(div2, t10);
+      append(div2, t6);
       append(div2, div1);
       if (if_block3) if_block3.m(div1, null);
-      append(div1, t11);
+      append(div1, t7);
       if (if_block4) if_block4.m(div1, null);
-      append(div1, t12);
+      append(div1, t8);
       if (if_block5) if_block5.m(div1, null);
       if (!mounted) {
         dispose = [
@@ -19250,29 +19393,29 @@ function create_if_block_25(ctx) {
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*plugin, renderDays*/
-      262145 && t0_value !== (t0_value = /*period*/
-      ctx[195].name + "")) set_data(t0, t0_value);
-      if (dirty[0] & /*plugin, renderDays*/
-      262145 && t2_value !== (t2_value = /*period*/
-      ctx[195].start + "")) set_data(t2, t2_value);
-      if (dirty[0] & /*plugin, renderDays*/
-      262145 && t4_value !== (t4_value = /*period*/
-      ctx[195].end + "")) set_data(t4, t4_value);
+      if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
+      311557 && t0_value !== (t0_value = /*_partial*/
+      ctx[225] ? `${/*period*/
+      ctx[195].start}\u2013${/*_occEnd*/
+      ctx[227]} \xB7 ${/*_occMins*/
+      ctx[224]} min` : `${/*period*/
+      ctx[195].name} \xB7 ${/*period*/
+      ctx[195].start}\u2013${/*period*/
+      ctx[195].end}`)) set_data(t0, t0_value);
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      294917 && t6_value !== (t6_value = /*lbl*/
-      ctx[234].code + "")) set_data(t6, t6_value);
+      294917 && t2_value !== (t2_value = /*lbl*/
+      ctx[242].code + "")) set_data(t2, t2_value);
       if (
         /*lbl*/
-        ctx[234].year || /*lbl*/
-        ctx[234].subjectName
+        ctx[242].year || /*lbl*/
+        ctx[242].subjectName
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_31(ctx);
+          if_block0 = create_if_block_32(ctx);
           if_block0.c();
-          if_block0.m(div0, t8);
+          if_block0.m(div0, t4);
         }
       } else if (if_block0) {
         if_block0.d(1);
@@ -19286,13 +19429,13 @@ function create_if_block_25(ctx) {
         /*dayDate*/
         ctx[206],
         /*lbl*/
-        ctx[234].notes
+        ctx[242].notes
       );
       if (show_if_2) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_30(ctx);
+          if_block1 = create_if_block_31(ctx);
           if_block1.c();
           if_block1.m(div0, null);
         }
@@ -19308,15 +19451,15 @@ function create_if_block_25(ctx) {
         /*dayDate*/
         ctx[206],
         /*lbl*/
-        ctx[234].classroom
+        ctx[242].classroom
       );
       if (show_if_1) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block_29(ctx);
+          if_block2 = create_if_block_30(ctx);
           if_block2.c();
-          if_block2.m(div2, t10);
+          if_block2.m(div2, t6);
         }
       } else if (if_block2) {
         if_block2.d(1);
@@ -19334,9 +19477,9 @@ function create_if_block_25(ctx) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
         } else {
-          if_block3 = create_if_block_28(ctx);
+          if_block3 = create_if_block_29(ctx);
           if_block3.c();
-          if_block3.m(div1, t11);
+          if_block3.m(div1, t7);
         }
       } else if (if_block3) {
         if_block3.d(1);
@@ -19344,14 +19487,14 @@ function create_if_block_25(ctx) {
       }
       if (
         /*slotPlanPath*/
-        ctx[240]
+        ctx[248]
       ) {
         if (if_block4) {
           if_block4.p(ctx, dirty);
         } else {
-          if_block4 = create_if_block_27(ctx);
+          if_block4 = create_if_block_28(ctx);
           if_block4.c();
-          if_block4.m(div1, t12);
+          if_block4.m(div1, t8);
         }
       } else if (if_block4) {
         if_block4.d(1);
@@ -19359,13 +19502,13 @@ function create_if_block_25(ctx) {
       }
       if (
         /*slotExternal*/
-        ctx[242] && !/*_isMobileApp*/
+        ctx[250] && !/*_isMobileApp*/
         ctx[66]
       ) {
         if (if_block5) {
           if_block5.p(ctx, dirty);
         } else {
-          if_block5 = create_if_block_26(ctx);
+          if_block5 = create_if_block_27(ctx);
           if_block5.c();
           if_block5.m(div1, null);
         }
@@ -19373,18 +19516,23 @@ function create_if_block_25(ctx) {
         if_block5.d(1);
         if_block5 = null;
       }
-      if (dirty[0] & /*plugin, renderDays*/
-      262145 && div3_title_value !== (div3_title_value = /*period*/
-      ctx[195].name + " \xB7 " + /*period*/
-      ctx[195].start + "\u2013" + /*period*/
-      ctx[195].end)) {
+      if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
+      311557 && div3_title_value !== (div3_title_value = /*_partial*/
+      ctx[225] ? `${/*period*/
+      ctx[195].name} \xB7 ${/*period*/
+      ctx[195].start}\u2013${/*_occEnd*/
+      ctx[227]} \xB7 ${/*_occMins*/
+      ctx[224]} min` : `${/*period*/
+      ctx[195].name} \xB7 ${/*period*/
+      ctx[195].start}\u2013${/*period*/
+      ctx[195].end}`)) {
         attr(div3, "title", div3_title_value);
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
       294917) {
         set_style(div3, "--ctint", hexToRgba4(
           /*lbl*/
-          ctx[234].colour,
+          ctx[242].colour,
           0.22
         ));
       }
@@ -19392,14 +19540,14 @@ function create_if_block_25(ctx) {
       294917) {
         set_style(div3, "background", hexToRgba4(
           /*lbl*/
-          ctx[234].colour,
+          ctx[242].colour,
           0.22
         ));
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
       294917) {
         set_style(div3, "border-left", "3px solid " + /*lbl*/
-        ctx[234].colour);
+        ctx[242].colour);
       }
     },
     d(detaching) {
@@ -19417,20 +19565,20 @@ function create_if_block_25(ctx) {
     }
   };
 }
-function create_if_block_31(ctx) {
+function create_if_block_32(ctx) {
   let span;
   let t_value = [
     /*lbl*/
-    ctx[234].year,
+    ctx[242].year,
     /*lbl*/
-    ctx[234].subjectName
+    ctx[242].subjectName
   ].filter(Boolean).join(" \xB7 ") + "";
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-4doiv5");
+      attr(span, "class", "tp-chip-meta svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -19440,9 +19588,9 @@ function create_if_block_31(ctx) {
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
       294917 && t_value !== (t_value = [
         /*lbl*/
-        ctx2[234].year,
+        ctx2[242].year,
         /*lbl*/
-        ctx2[234].subjectName
+        ctx2[242].subjectName
       ].filter(Boolean).join(" \xB7 ") + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -19452,7 +19600,7 @@ function create_if_block_31(ctx) {
     }
   };
 }
-function create_if_block_30(ctx) {
+function create_if_block_31(ctx) {
   let span;
   let t_value = (
     /*effNote*/
@@ -19462,7 +19610,7 @@ function create_if_block_30(ctx) {
       /*dayDate*/
       ctx[206],
       /*lbl*/
-      ctx[234].notes
+      ctx[242].notes
     ) + ""
   );
   let t;
@@ -19470,7 +19618,7 @@ function create_if_block_30(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-4doiv5");
+      attr(span, "class", "tp-chip-notes svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -19485,7 +19633,7 @@ function create_if_block_30(ctx) {
         /*dayDate*/
         ctx2[206],
         /*lbl*/
-        ctx2[234].notes
+        ctx2[242].notes
       ) + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -19495,7 +19643,7 @@ function create_if_block_30(ctx) {
     }
   };
 }
-function create_if_block_29(ctx) {
+function create_if_block_30(ctx) {
   let span;
   let t_value = (
     /*effRoom*/
@@ -19505,7 +19653,7 @@ function create_if_block_29(ctx) {
       /*dayDate*/
       ctx[206],
       /*lbl*/
-      ctx[234].classroom
+      ctx[242].classroom
     ) + ""
   );
   let t;
@@ -19513,7 +19661,7 @@ function create_if_block_29(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-4doiv5");
+      attr(span, "class", "tp-chip-room svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -19528,7 +19676,7 @@ function create_if_block_29(ctx) {
         /*dayDate*/
         ctx2[206],
         /*lbl*/
-        ctx2[234].classroom
+        ctx2[242].classroom
       ) + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -19538,7 +19686,7 @@ function create_if_block_29(ctx) {
     }
   };
 }
-function create_if_block_28(ctx) {
+function create_if_block_29(ctx) {
   let button;
   let button_title_value;
   let button_aria_pressed_value;
@@ -19559,17 +19707,17 @@ function create_if_block_28(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-prep-tick svelte-4doiv5");
+      attr(button, "class", "tp-prep-tick svelte-138iau3");
       attr(button, "title", button_title_value = /*slotPrepared*/
-      ctx[241] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared");
+      ctx[249] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared");
       attr(button, "aria-label", "Toggle lesson prepared");
       attr(button, "aria-pressed", button_aria_pressed_value = /*slotPrepared*/
-      ctx[241]);
+      ctx[249]);
       toggle_class(
         button,
         "tp-prep-tick--on",
         /*slotPrepared*/
-        ctx[241]
+        ctx[249]
       );
     },
     m(target, anchor) {
@@ -19588,13 +19736,13 @@ function create_if_block_28(ctx) {
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
       294917 | dirty[1] & /*_preparedSlotMap*/
       1 && button_title_value !== (button_title_value = /*slotPrepared*/
-      ctx[241] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared")) {
+      ctx[249] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared")) {
         attr(button, "title", button_title_value);
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
       294917 | dirty[1] & /*_preparedSlotMap*/
       1 && button_aria_pressed_value !== (button_aria_pressed_value = /*slotPrepared*/
-      ctx[241])) {
+      ctx[249])) {
         attr(button, "aria-pressed", button_aria_pressed_value);
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
@@ -19604,7 +19752,7 @@ function create_if_block_28(ctx) {
           button,
           "tp-prep-tick--on",
           /*slotPrepared*/
-          ctx[241]
+          ctx[249]
         );
       }
     },
@@ -19617,7 +19765,7 @@ function create_if_block_28(ctx) {
     }
   };
 }
-function create_if_block_27(ctx) {
+function create_if_block_28(ctx) {
   let button;
   let obsIcon_action;
   let mounted;
@@ -19627,14 +19775,14 @@ function create_if_block_27(ctx) {
       /*click_handler_15*/
       ctx[127](
         /*slotPlanPath*/
-        ctx[240]
+        ctx[248]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-4doiv5");
+      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-138iau3");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -19661,7 +19809,7 @@ function create_if_block_27(ctx) {
     }
   };
 }
-function create_if_block_26(ctx) {
+function create_if_block_27(ctx) {
   let button;
   let button_title_value;
   let obsIcon_action;
@@ -19672,16 +19820,16 @@ function create_if_block_26(ctx) {
       /*click_handler_16*/
       ctx[128](
         /*slotExternal*/
-        ctx[242]
+        ctx[250]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-ext-mark svelte-4doiv5");
+      attr(button, "class", "tp-ext-mark svelte-138iau3");
       attr(button, "title", button_title_value = /*slotExternal*/
-      ctx[242].kind === "folder" ? "Open external folder" : "Open external file");
+      ctx[250].kind === "folder" ? "Open external folder" : "Open external file");
       attr(button, "aria-label", "Open external resource");
     },
     m(target, anchor) {
@@ -19694,7 +19842,7 @@ function create_if_block_26(ctx) {
             null,
             button,
             /*slotExternal*/
-            ctx[242].kind === "folder" ? "folder" : "paperclip"
+            ctx[250].kind === "folder" ? "folder" : "paperclip"
           ))
         ];
         mounted = true;
@@ -19704,14 +19852,14 @@ function create_if_block_26(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*_slotExternalMap, _slotMap, renderDays, plugin, currentMonday*/
       537165829 && button_title_value !== (button_title_value = /*slotExternal*/
-      ctx[242].kind === "folder" ? "Open external folder" : "Open external file")) {
+      ctx[250].kind === "folder" ? "Open external folder" : "Open external file")) {
         attr(button, "title", button_title_value);
       }
       if (obsIcon_action && is_function(obsIcon_action.update) && dirty[0] & /*_slotExternalMap, _slotMap, renderDays, plugin, currentMonday*/
       537165829) obsIcon_action.update.call(
         null,
         /*slotExternal*/
-        ctx[242].kind === "folder" ? "folder" : "paperclip"
+        ctx[250].kind === "folder" ? "folder" : "paperclip"
       );
     },
     d(detaching) {
@@ -19723,18 +19871,18 @@ function create_if_block_26(ctx) {
     }
   };
 }
-function create_if_block_242(ctx) {
+function create_if_block_252(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[234].meta + ""
+    ctx[242].meta + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-4doiv5");
+      attr(span, "class", "tp-chip-meta svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -19743,7 +19891,36 @@ function create_if_block_242(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
       278529 && t_value !== (t_value = /*lbl*/
-      ctx2[234].meta + "")) set_data(t, t_value);
+      ctx2[242].meta + "")) set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
+function create_if_block_242(ctx) {
+  let span;
+  let t_value = (
+    /*lbl*/
+    ctx[242].notes + ""
+  );
+  let t;
+  return {
+    c() {
+      span = element("span");
+      t = text(t_value);
+      attr(span, "class", "tp-chip-notes svelte-138iau3");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
+      278529 && t_value !== (t_value = /*lbl*/
+      ctx2[242].notes + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -19756,14 +19933,14 @@ function create_if_block_232(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[234].notes + ""
+    ctx[242].classroom + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-4doiv5");
+      attr(span, "class", "tp-chip-room svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -19772,7 +19949,7 @@ function create_if_block_232(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
       278529 && t_value !== (t_value = /*lbl*/
-      ctx2[234].notes + "")) set_data(t, t_value);
+      ctx2[242].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -19782,35 +19959,6 @@ function create_if_block_232(ctx) {
   };
 }
 function create_if_block_222(ctx) {
-  let span;
-  let t_value = (
-    /*lbl*/
-    ctx[234].classroom + ""
-  );
-  let t;
-  return {
-    c() {
-      span = element("span");
-      t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-4doiv5");
-    },
-    m(target, anchor) {
-      insert(target, span, anchor);
-      append(span, t);
-    },
-    p(ctx2, dirty) {
-      if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      278529 && t_value !== (t_value = /*lbl*/
-      ctx2[234].classroom + "")) set_data(t, t_value);
-    },
-    d(detaching) {
-      if (detaching) {
-        detach(span);
-      }
-    }
-  };
-}
-function create_if_block_212(ctx) {
   let button;
   let button_title_value;
   let button_aria_pressed_value;
@@ -19822,24 +19970,24 @@ function create_if_block_212(ctx) {
       /*click_handler_18*/
       ctx[132](
         /*devEv*/
-        ctx[233]
+        ctx[241]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-prep-tick svelte-4doiv5");
+      attr(button, "class", "tp-prep-tick svelte-138iau3");
       attr(button, "title", button_title_value = /*evPrepared*/
-      ctx[236] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared");
+      ctx[244] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared");
       attr(button, "aria-label", "Toggle lesson prepared");
       attr(button, "aria-pressed", button_aria_pressed_value = /*evPrepared*/
-      ctx[236]);
+      ctx[244]);
       toggle_class(
         button,
         "tp-prep-tick--on",
         /*evPrepared*/
-        ctx[236]
+        ctx[244]
       );
     },
     m(target, anchor) {
@@ -19857,12 +20005,12 @@ function create_if_block_212(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*_preparedEventMap, _dateEventMap, renderDays, plugin*/
       1074020353 && button_title_value !== (button_title_value = /*evPrepared*/
-      ctx[236] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared")) {
+      ctx[244] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared")) {
         attr(button, "title", button_title_value);
       }
       if (dirty[0] & /*_preparedEventMap, _dateEventMap, renderDays, plugin*/
       1074020353 && button_aria_pressed_value !== (button_aria_pressed_value = /*evPrepared*/
-      ctx[236])) {
+      ctx[244])) {
         attr(button, "aria-pressed", button_aria_pressed_value);
       }
       if (dirty[0] & /*_preparedEventMap, _dateEventMap, renderDays, plugin*/
@@ -19871,7 +20019,7 @@ function create_if_block_212(ctx) {
           button,
           "tp-prep-tick--on",
           /*evPrepared*/
-          ctx[236]
+          ctx[244]
         );
       }
     },
@@ -19884,7 +20032,7 @@ function create_if_block_212(ctx) {
     }
   };
 }
-function create_if_block_202(ctx) {
+function create_if_block_212(ctx) {
   let button;
   let obsIcon_action;
   let mounted;
@@ -19894,14 +20042,14 @@ function create_if_block_202(ctx) {
       /*click_handler_19*/
       ctx[133](
         /*evPlanPath*/
-        ctx[235]
+        ctx[243]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-4doiv5");
+      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-138iau3");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -19928,7 +20076,7 @@ function create_if_block_202(ctx) {
     }
   };
 }
-function create_if_block_192(ctx) {
+function create_if_block_202(ctx) {
   let button;
   let button_title_value;
   let obsIcon_action;
@@ -19939,16 +20087,16 @@ function create_if_block_192(ctx) {
       /*click_handler_20*/
       ctx[134](
         /*evExternal*/
-        ctx[237]
+        ctx[245]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-ext-mark svelte-4doiv5");
+      attr(button, "class", "tp-ext-mark svelte-138iau3");
       attr(button, "title", button_title_value = /*evExternal*/
-      ctx[237].kind === "folder" ? "Open external folder" : "Open external file");
+      ctx[245].kind === "folder" ? "Open external folder" : "Open external file");
       attr(button, "aria-label", "Open external resource");
     },
     m(target, anchor) {
@@ -19961,7 +20109,7 @@ function create_if_block_192(ctx) {
             null,
             button,
             /*evExternal*/
-            ctx[237].kind === "folder" ? "folder" : "paperclip"
+            ctx[245].kind === "folder" ? "folder" : "paperclip"
           ))
         ];
         mounted = true;
@@ -19971,14 +20119,14 @@ function create_if_block_192(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*_eventExternalMap, _dateEventMap, renderDays, plugin*/
       268713985 && button_title_value !== (button_title_value = /*evExternal*/
-      ctx[237].kind === "folder" ? "Open external folder" : "Open external file")) {
+      ctx[245].kind === "folder" ? "Open external folder" : "Open external file")) {
         attr(button, "title", button_title_value);
       }
       if (obsIcon_action && is_function(obsIcon_action.update) && dirty[0] & /*_eventExternalMap, _dateEventMap, renderDays, plugin*/
       268713985) obsIcon_action.update.call(
         null,
         /*evExternal*/
-        ctx[237].kind === "folder" ? "folder" : "paperclip"
+        ctx[245].kind === "folder" ? "folder" : "paperclip"
       );
     },
     d(detaching) {
@@ -19994,80 +20142,74 @@ function create_each_block_52(key_2, ctx) {
   let div3;
   let span0;
   let t0_value = (
-    /*period*/
-    ctx[195].name + ""
+    /*_partial*/
+    ctx[225] ? `${/*period*/
+    ctx[195].start}\u2013${/*_occEnd*/
+    ctx[227]} \xB7 ${/*_occMins*/
+    ctx[224]} min` : `${/*period*/
+    ctx[195].name} \xB7 ${/*period*/
+    ctx[195].start}\u2013${/*period*/
+    ctx[195].end}`
   );
   let t0;
   let t1;
+  let div0;
+  let span1;
   let t2_value = (
-    /*period*/
-    ctx[195].start + ""
+    /*lbl*/
+    ctx[242].code + ""
   );
   let t2;
   let t3;
-  let t4_value = (
-    /*period*/
-    ctx[195].end + ""
-  );
   let t4;
   let t5;
-  let div0;
-  let span1;
-  let t6_value = (
-    /*lbl*/
-    ctx[234].code + ""
-  );
-  let t6;
-  let t7;
-  let t8;
-  let t9;
   let div2;
-  let t10;
+  let t6;
   let div1;
   let show_if = (
     /*_showPrepared*/
     ctx[33] && /*isClassId*/
     (ctx[71](
       /*devEv*/
-      ctx[233].classId
+      ctx[241].classId
     ) || !!/*devEv*/
-    (ctx[233].title && /*devEv*/
-    ctx[233].title.trim()))
+    (ctx[241].title && /*devEv*/
+    ctx[241].title.trim()))
   );
-  let t11;
-  let t12;
-  let t13;
+  let t7;
+  let t8;
+  let t9;
   let div3_title_value;
   let mounted;
   let dispose;
   let if_block0 = (
     /*lbl*/
-    ctx[234].meta && create_if_block_242(ctx)
+    ctx[242].meta && create_if_block_252(ctx)
   );
   let if_block1 = (
     /*lbl*/
-    ctx[234].notes && create_if_block_232(ctx)
+    ctx[242].notes && create_if_block_242(ctx)
   );
   let if_block2 = (
     /*lbl*/
-    ctx[234].classroom && create_if_block_222(ctx)
+    ctx[242].classroom && create_if_block_232(ctx)
   );
-  let if_block3 = show_if && create_if_block_212(ctx);
+  let if_block3 = show_if && create_if_block_222(ctx);
   let if_block4 = (
     /*evPlanPath*/
-    ctx[235] && create_if_block_202(ctx)
+    ctx[243] && create_if_block_212(ctx)
   );
   let if_block5 = (
     /*evExternal*/
-    ctx[237] && !/*_isMobileApp*/
-    ctx[66] && create_if_block_192(ctx)
+    ctx[245] && !/*_isMobileApp*/
+    ctx[66] && create_if_block_202(ctx)
   );
   function dragstart_handler_2(...args) {
     return (
       /*dragstart_handler_2*/
       ctx[135](
         /*devEv*/
-        ctx[233],
+        ctx[241],
         ...args
       )
     );
@@ -20081,7 +20223,7 @@ function create_each_block_52(key_2, ctx) {
         /*period*/
         ctx[195],
         /*devEv*/
-        ctx[233],
+        ctx[241],
         ...args
       )
     );
@@ -20093,52 +20235,53 @@ function create_each_block_52(key_2, ctx) {
       div3 = element("div");
       span0 = element("span");
       t0 = text(t0_value);
-      t1 = text(" \xB7 ");
-      t2 = text(t2_value);
-      t3 = text("\u2013");
-      t4 = text(t4_value);
-      t5 = space();
+      t1 = space();
       div0 = element("div");
       span1 = element("span");
-      t6 = text(t6_value);
-      t7 = space();
+      t2 = text(t2_value);
+      t3 = space();
       if (if_block0) if_block0.c();
-      t8 = space();
+      t4 = space();
       if (if_block1) if_block1.c();
-      t9 = space();
+      t5 = space();
       div2 = element("div");
       if (if_block2) if_block2.c();
-      t10 = space();
+      t6 = space();
       div1 = element("div");
       if (if_block3) if_block3.c();
-      t11 = space();
+      t7 = space();
       if (if_block4) if_block4.c();
-      t12 = space();
+      t8 = space();
       if (if_block5) if_block5.c();
-      t13 = space();
-      attr(span0, "class", "tp-chip-period-time svelte-4doiv5");
-      attr(span1, "class", "tp-chip-code svelte-4doiv5");
-      attr(div0, "class", "tp-chip-body svelte-4doiv5");
-      attr(div1, "class", "tp-chip-marks svelte-4doiv5");
-      attr(div2, "class", "tp-chip-footer svelte-4doiv5");
-      attr(div3, "class", "tp-chip tp-chip--event svelte-4doiv5");
+      t9 = space();
+      attr(span0, "class", "tp-chip-period-time svelte-138iau3");
+      attr(span1, "class", "tp-chip-code svelte-138iau3");
+      attr(div0, "class", "tp-chip-body svelte-138iau3");
+      attr(div1, "class", "tp-chip-marks svelte-138iau3");
+      attr(div2, "class", "tp-chip-footer svelte-138iau3");
+      attr(div3, "class", "tp-chip tp-chip--event svelte-138iau3");
       attr(div3, "role", "button");
       attr(div3, "tabindex", "0");
       attr(div3, "draggable", "true");
-      attr(div3, "title", div3_title_value = /*period*/
-      ctx[195].name + " \xB7 " + /*period*/
-      ctx[195].start + "\u2013" + /*period*/
-      ctx[195].end);
+      attr(div3, "title", div3_title_value = /*_partial*/
+      ctx[225] ? `${/*period*/
+      ctx[195].name} \xB7 ${/*period*/
+      ctx[195].start}\u2013${/*_occEnd*/
+      ctx[227]} \xB7 ${/*_occMins*/
+      ctx[224]} min` : `${/*period*/
+      ctx[195].name} \xB7 ${/*period*/
+      ctx[195].start}\u2013${/*period*/
+      ctx[195].end}`);
       set_style(div3, "--ctint", hexToRgba4(
         /*lbl*/
-        ctx[234].colour,
+        ctx[242].colour,
         0.22
       ));
       set_style(div3, "border-left", "3px solid " + /*lbl*/
-      ctx[234].colour);
+      ctx[242].colour);
       set_style(div3, "background", hexToRgba4(
         /*lbl*/
-        ctx[234].colour,
+        ctx[242].colour,
         0.22
       ));
       this.first = div3;
@@ -20147,29 +20290,25 @@ function create_each_block_52(key_2, ctx) {
       insert(target, div3, anchor);
       append(div3, span0);
       append(span0, t0);
-      append(span0, t1);
-      append(span0, t2);
-      append(span0, t3);
-      append(span0, t4);
-      append(div3, t5);
+      append(div3, t1);
       append(div3, div0);
       append(div0, span1);
-      append(span1, t6);
-      append(div0, t7);
+      append(span1, t2);
+      append(div0, t3);
       if (if_block0) if_block0.m(div0, null);
-      append(div0, t8);
+      append(div0, t4);
       if (if_block1) if_block1.m(div0, null);
-      append(div3, t9);
+      append(div3, t5);
       append(div3, div2);
       if (if_block2) if_block2.m(div2, null);
-      append(div2, t10);
+      append(div2, t6);
       append(div2, div1);
       if (if_block3) if_block3.m(div1, null);
-      append(div1, t11);
+      append(div1, t7);
       if (if_block4) if_block4.m(div1, null);
-      append(div1, t12);
+      append(div1, t8);
       if (if_block5) if_block5.m(div1, null);
-      append(div3, t13);
+      append(div3, t9);
       if (!mounted) {
         dispose = [
           listen(div3, "dragstart", dragstart_handler_2),
@@ -20192,28 +20331,28 @@ function create_each_block_52(key_2, ctx) {
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*plugin, renderDays*/
-      262145 && t0_value !== (t0_value = /*period*/
-      ctx[195].name + "")) set_data(t0, t0_value);
-      if (dirty[0] & /*plugin, renderDays*/
-      262145 && t2_value !== (t2_value = /*period*/
-      ctx[195].start + "")) set_data(t2, t2_value);
-      if (dirty[0] & /*plugin, renderDays*/
-      262145 && t4_value !== (t4_value = /*period*/
-      ctx[195].end + "")) set_data(t4, t4_value);
+      if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
+      311557 && t0_value !== (t0_value = /*_partial*/
+      ctx[225] ? `${/*period*/
+      ctx[195].start}\u2013${/*_occEnd*/
+      ctx[227]} \xB7 ${/*_occMins*/
+      ctx[224]} min` : `${/*period*/
+      ctx[195].name} \xB7 ${/*period*/
+      ctx[195].start}\u2013${/*period*/
+      ctx[195].end}`)) set_data(t0, t0_value);
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      278529 && t6_value !== (t6_value = /*lbl*/
-      ctx[234].code + "")) set_data(t6, t6_value);
+      278529 && t2_value !== (t2_value = /*lbl*/
+      ctx[242].code + "")) set_data(t2, t2_value);
       if (
         /*lbl*/
-        ctx[234].meta
+        ctx[242].meta
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_242(ctx);
+          if_block0 = create_if_block_252(ctx);
           if_block0.c();
-          if_block0.m(div0, t8);
+          if_block0.m(div0, t4);
         }
       } else if (if_block0) {
         if_block0.d(1);
@@ -20221,12 +20360,12 @@ function create_each_block_52(key_2, ctx) {
       }
       if (
         /*lbl*/
-        ctx[234].notes
+        ctx[242].notes
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_232(ctx);
+          if_block1 = create_if_block_242(ctx);
           if_block1.c();
           if_block1.m(div0, null);
         }
@@ -20236,14 +20375,14 @@ function create_each_block_52(key_2, ctx) {
       }
       if (
         /*lbl*/
-        ctx[234].classroom
+        ctx[242].classroom
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
         } else {
-          if_block2 = create_if_block_222(ctx);
+          if_block2 = create_if_block_232(ctx);
           if_block2.c();
-          if_block2.m(div2, t10);
+          if_block2.m(div2, t6);
         }
       } else if (if_block2) {
         if_block2.d(1);
@@ -20255,17 +20394,17 @@ function create_each_block_52(key_2, ctx) {
       ctx[33] && /*isClassId*/
       (ctx[71](
         /*devEv*/
-        ctx[233].classId
+        ctx[241].classId
       ) || !!/*devEv*/
-      (ctx[233].title && /*devEv*/
-      ctx[233].title.trim()));
+      (ctx[241].title && /*devEv*/
+      ctx[241].title.trim()));
       if (show_if) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
         } else {
-          if_block3 = create_if_block_212(ctx);
+          if_block3 = create_if_block_222(ctx);
           if_block3.c();
-          if_block3.m(div1, t11);
+          if_block3.m(div1, t7);
         }
       } else if (if_block3) {
         if_block3.d(1);
@@ -20273,14 +20412,14 @@ function create_each_block_52(key_2, ctx) {
       }
       if (
         /*evPlanPath*/
-        ctx[235]
+        ctx[243]
       ) {
         if (if_block4) {
           if_block4.p(ctx, dirty);
         } else {
-          if_block4 = create_if_block_202(ctx);
+          if_block4 = create_if_block_212(ctx);
           if_block4.c();
-          if_block4.m(div1, t12);
+          if_block4.m(div1, t8);
         }
       } else if (if_block4) {
         if_block4.d(1);
@@ -20288,13 +20427,13 @@ function create_each_block_52(key_2, ctx) {
       }
       if (
         /*evExternal*/
-        ctx[237] && !/*_isMobileApp*/
+        ctx[245] && !/*_isMobileApp*/
         ctx[66]
       ) {
         if (if_block5) {
           if_block5.p(ctx, dirty);
         } else {
-          if_block5 = create_if_block_192(ctx);
+          if_block5 = create_if_block_202(ctx);
           if_block5.c();
           if_block5.m(div1, null);
         }
@@ -20302,31 +20441,36 @@ function create_each_block_52(key_2, ctx) {
         if_block5.d(1);
         if_block5 = null;
       }
-      if (dirty[0] & /*plugin, renderDays*/
-      262145 && div3_title_value !== (div3_title_value = /*period*/
-      ctx[195].name + " \xB7 " + /*period*/
-      ctx[195].start + "\u2013" + /*period*/
-      ctx[195].end)) {
+      if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
+      311557 && div3_title_value !== (div3_title_value = /*_partial*/
+      ctx[225] ? `${/*period*/
+      ctx[195].name} \xB7 ${/*period*/
+      ctx[195].start}\u2013${/*_occEnd*/
+      ctx[227]} \xB7 ${/*_occMins*/
+      ctx[224]} min` : `${/*period*/
+      ctx[195].name} \xB7 ${/*period*/
+      ctx[195].start}\u2013${/*period*/
+      ctx[195].end}`)) {
         attr(div3, "title", div3_title_value);
       }
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
       278529) {
         set_style(div3, "--ctint", hexToRgba4(
           /*lbl*/
-          ctx[234].colour,
+          ctx[242].colour,
           0.22
         ));
       }
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
       278529) {
         set_style(div3, "border-left", "3px solid " + /*lbl*/
-        ctx[234].colour);
+        ctx[242].colour);
       }
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
       278529) {
         set_style(div3, "background", hexToRgba4(
           /*lbl*/
-          ctx[234].colour,
+          ctx[242].colour,
           0.22
         ));
       }
@@ -20346,18 +20490,97 @@ function create_each_block_52(key_2, ctx) {
     }
   };
 }
+function create_if_block_182(ctx) {
+  let div0;
+  let t0_value = (
+    /*_occMins*/
+    ctx[224] + ""
+  );
+  let t0;
+  let t1;
+  let t2;
+  let div1;
+  let t3_value = (
+    /*_occEnd*/
+    ctx[227] + ""
+  );
+  let t3;
+  let t4;
+  let t5_value = (
+    /*period*/
+    ctx[195].end + ""
+  );
+  let t5;
+  return {
+    c() {
+      div0 = element("div");
+      t0 = text(t0_value);
+      t1 = text("m");
+      t2 = space();
+      div1 = element("div");
+      t3 = text(t3_value);
+      t4 = text("\u2013");
+      t5 = text(t5_value);
+      attr(div0, "class", "tp-block-durbadge svelte-138iau3");
+      attr(div1, "class", "tp-block-free svelte-138iau3");
+      set_style(
+        div1,
+        "top",
+        /*_occPx*/
+        ctx[226] + 4 + "px"
+      );
+    },
+    m(target, anchor) {
+      insert(target, div0, anchor);
+      append(div0, t0);
+      append(div0, t1);
+      insert(target, t2, anchor);
+      insert(target, div1, anchor);
+      append(div1, t3);
+      append(div1, t4);
+      append(div1, t5);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap*/
+      311301 && t0_value !== (t0_value = /*_occMins*/
+      ctx2[224] + "")) set_data(t0, t0_value);
+      if (dirty[0] & /*plugin, renderDays, _slotMap, currentMonday, _dateEventMap*/
+      311301 && t3_value !== (t3_value = /*_occEnd*/
+      ctx2[227] + "")) set_data(t3, t3_value);
+      if (dirty[0] & /*plugin, renderDays*/
+      262145 && t5_value !== (t5_value = /*period*/
+      ctx2[195].end + "")) set_data(t5, t5_value);
+      if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
+      311557) {
+        set_style(
+          div1,
+          "top",
+          /*_occPx*/
+          ctx2[226] + 4 + "px"
+        );
+      }
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(div0);
+        detach(t2);
+        detach(div1);
+      }
+    }
+  };
+}
 function create_if_block_162(ctx) {
   let span;
   let t_value = (
     /*_mlbl*/
-    ctx[228].notes + ""
+    ctx[236].notes + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-4doiv5");
+      attr(span, "class", "tp-chip-notes svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -20366,7 +20589,7 @@ function create_if_block_162(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
       262149 && t_value !== (t_value = /*_mlbl*/
-      ctx2[228].notes + "")) set_data(t, t_value);
+      ctx2[236].notes + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -20379,14 +20602,14 @@ function create_if_block_152(ctx) {
   let span;
   let t_value = (
     /*_mlbl*/
-    ctx[228].classroom + ""
+    ctx[236].classroom + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-4doiv5");
+      attr(span, "class", "tp-chip-room svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -20395,7 +20618,7 @@ function create_if_block_152(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
       262149 && t_value !== (t_value = /*_mlbl*/
-      ctx2[228].classroom + "")) set_data(t, t_value);
+      ctx2[236].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -20416,24 +20639,24 @@ function create_if_block_142(ctx) {
       /*click_handler_10*/
       ctx[120](
         /*_mev*/
-        ctx[223]
+        ctx[231]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-prep-tick svelte-4doiv5");
+      attr(button, "class", "tp-prep-tick svelte-138iau3");
       attr(button, "title", button_title_value = /*_mPrep*/
-      ctx[230] ? "Marked prepared \u2014 click to clear" : "Mark prepared");
+      ctx[238] ? "Marked prepared \u2014 click to clear" : "Mark prepared");
       attr(button, "aria-label", "Toggle prepared");
       attr(button, "aria-pressed", button_aria_pressed_value = /*_mPrep*/
-      ctx[230]);
+      ctx[238]);
       toggle_class(
         button,
         "tp-prep-tick--on",
         /*_mPrep*/
-        ctx[230]
+        ctx[238]
       );
     },
     m(target, anchor) {
@@ -20451,12 +20674,12 @@ function create_if_block_142(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*_preparedEventMap, renderDays, currentMonday, plugin*/
       1074003973 && button_title_value !== (button_title_value = /*_mPrep*/
-      ctx[230] ? "Marked prepared \u2014 click to clear" : "Mark prepared")) {
+      ctx[238] ? "Marked prepared \u2014 click to clear" : "Mark prepared")) {
         attr(button, "title", button_title_value);
       }
       if (dirty[0] & /*_preparedEventMap, renderDays, currentMonday, plugin*/
       1074003973 && button_aria_pressed_value !== (button_aria_pressed_value = /*_mPrep*/
-      ctx[230])) {
+      ctx[238])) {
         attr(button, "aria-pressed", button_aria_pressed_value);
       }
       if (dirty[0] & /*_preparedEventMap, renderDays, currentMonday, plugin*/
@@ -20466,7 +20689,7 @@ function create_if_block_142(ctx) {
           button,
           "tp-prep-tick--on",
           /*_mPrep*/
-          ctx[230]
+          ctx[238]
         );
       }
     },
@@ -20489,14 +20712,14 @@ function create_if_block_132(ctx) {
       /*click_handler_11*/
       ctx[121](
         /*_mPlan*/
-        ctx[229]
+        ctx[237]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-4doiv5");
+      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-138iau3");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -20534,16 +20757,16 @@ function create_if_block_122(ctx) {
       /*click_handler_12*/
       ctx[122](
         /*_mExt*/
-        ctx[231]
+        ctx[239]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-ext-mark svelte-4doiv5");
+      attr(button, "class", "tp-ext-mark svelte-138iau3");
       attr(button, "title", button_title_value = /*_mExt*/
-      ctx[231].kind === "folder" ? "Open external folder" : "Open external file");
+      ctx[239].kind === "folder" ? "Open external folder" : "Open external file");
       attr(button, "aria-label", "Open external resource");
     },
     m(target, anchor) {
@@ -20556,7 +20779,7 @@ function create_if_block_122(ctx) {
             null,
             button,
             /*_mExt*/
-            ctx[231].kind === "folder" ? "folder" : "paperclip"
+            ctx[239].kind === "folder" ? "folder" : "paperclip"
           ))
         ];
         mounted = true;
@@ -20566,14 +20789,14 @@ function create_if_block_122(ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*_eventExternalMap, renderDays, currentMonday, plugin*/
       268697605 && button_title_value !== (button_title_value = /*_mExt*/
-      ctx[231].kind === "folder" ? "Open external folder" : "Open external file")) {
+      ctx[239].kind === "folder" ? "Open external folder" : "Open external file")) {
         attr(button, "title", button_title_value);
       }
       if (obsIcon_action && is_function(obsIcon_action.update) && dirty[0] & /*_eventExternalMap, renderDays, currentMonday, plugin*/
       268697605) obsIcon_action.update.call(
         null,
         /*_mExt*/
-        ctx[231].kind === "folder" ? "folder" : "paperclip"
+        ctx[239].kind === "folder" ? "folder" : "paperclip"
       );
     },
     d(detaching) {
@@ -20683,7 +20906,7 @@ function create_each_block_32(ctx) {
       t0 = space();
       if_block.c();
       t1 = space();
-      attr(div, "class", "tp-axis-col svelte-4doiv5");
+      attr(div, "class", "tp-axis-col svelte-138iau3");
       set_style(
         div,
         "height",
@@ -20790,7 +21013,7 @@ function create_if_block_92(ctx) {
     c() {
       span = element("span");
       span.textContent = "INSET";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-4doiv5");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -20808,7 +21031,7 @@ function create_if_block_82(ctx) {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-4doiv5");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -20919,7 +21142,7 @@ function create_if_block_110(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-agenda-empty svelte-4doiv5");
+      attr(div, "class", "tp-agenda-empty svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -21007,9 +21230,9 @@ function create_if_block_52(ctx) {
       if (if_block0) if_block0.c();
       t5 = space();
       if (if_block1) if_block1.c();
-      attr(span0, "class", "tp-agenda-period svelte-4doiv5");
-      attr(span1, "class", "tp-agenda-main svelte-4doiv5");
-      attr(button, "class", "tp-agenda-row svelte-4doiv5");
+      attr(span0, "class", "tp-agenda-period svelte-138iau3");
+      attr(span1, "class", "tp-agenda-main svelte-138iau3");
+      attr(button, "class", "tp-agenda-row svelte-138iau3");
       set_style(button, "border-left", "3px solid " + /*sl*/
       ctx[205].colour);
       set_style(button, "background", hexToRgba4(
@@ -21158,7 +21381,7 @@ function create_if_block_62(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-agenda-room svelte-4doiv5");
+      attr(span, "class", "tp-agenda-room svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21183,7 +21406,7 @@ function create_if_block_62(ctx) {
     }
   };
 }
-function create_if_block_43(ctx) {
+function create_if_block_44(ctx) {
   let t0;
   let t1_value = (
     /*el*/
@@ -21223,7 +21446,7 @@ function create_if_block_310(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-agenda-room svelte-4doiv5");
+      attr(span, "class", "tp-agenda-room svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21261,7 +21484,7 @@ function create_each_block_22(key_2, ctx) {
   let dispose;
   let if_block0 = (
     /*el*/
-    ctx[202].meta && create_if_block_43(ctx)
+    ctx[202].meta && create_if_block_44(ctx)
   );
   let if_block1 = (
     /*el*/
@@ -21294,9 +21517,9 @@ function create_each_block_22(key_2, ctx) {
       if (if_block0) if_block0.c();
       t3 = space();
       if (if_block1) if_block1.c();
-      attr(span0, "class", "tp-agenda-period svelte-4doiv5");
-      attr(span1, "class", "tp-agenda-main svelte-4doiv5");
-      attr(button, "class", "tp-agenda-row tp-agenda-row--event svelte-4doiv5");
+      attr(span0, "class", "tp-agenda-period svelte-138iau3");
+      attr(span1, "class", "tp-agenda-main svelte-138iau3");
+      attr(button, "class", "tp-agenda-row tp-agenda-row--event svelte-138iau3");
       set_style(button, "border-left", "3px solid " + /*el*/
       ctx[202].colour);
       set_style(button, "background", hexToRgba4(
@@ -21336,7 +21559,7 @@ function create_each_block_22(key_2, ctx) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
         } else {
-          if_block0 = create_if_block_43(ctx);
+          if_block0 = create_if_block_44(ctx);
           if_block0.c();
           if_block0.m(span1, null);
         }
@@ -21477,7 +21700,7 @@ function create_if_block_210(ctx) {
     c() {
       div = element("div");
       div.textContent = "No lessons";
-      attr(div, "class", "tp-agenda-empty svelte-4doiv5");
+      attr(div, "class", "tp-agenda-empty svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -21543,15 +21766,15 @@ function create_each_block3(ctx) {
       t4 = space();
       if_block1.c();
       t5 = space();
-      attr(span, "class", "tp-agenda-dayname svelte-4doiv5");
-      attr(div0, "class", "tp-agenda-head svelte-4doiv5");
+      attr(span, "class", "tp-agenda-dayname svelte-138iau3");
+      attr(div0, "class", "tp-agenda-head svelte-138iau3");
       toggle_class(div0, "tp-agenda-head--today", isToday(
         /*day*/
         ctx[190].offset,
         /*currentMonday*/
         ctx[2]
       ));
-      attr(div1, "class", "tp-agenda-day svelte-4doiv5");
+      attr(div1, "class", "tp-agenda-day svelte-138iau3");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -21699,19 +21922,19 @@ function create_fragment3(ctx) {
   let if_block0 = (
     /*abEnabled*/
     ctx[10] && /*abWeekType*/
-    ctx[7] && create_if_block_42(ctx)
+    ctx[7] && create_if_block_43(ctx)
   );
   let if_block1 = (
     /*jumpOpen*/
-    ctx[13] && create_if_block_41(ctx)
+    ctx[13] && create_if_block_42(ctx)
   );
   let if_block2 = (
     /*_isMobileApp*/
-    ctx[66] && create_if_block_40(ctx)
+    ctx[66] && create_if_block_41(ctx)
   );
   let if_block3 = (
     /*isDayMode*/
-    ctx[4] && create_if_block_38(ctx)
+    ctx[4] && create_if_block_39(ctx)
   );
   function select_block_type(ctx2, dirty) {
     if (
@@ -21780,18 +22003,18 @@ function create_fragment3(ctx) {
       if (if_block3) if_block3.c();
       t24 = space();
       if_block4.c();
-      attr(span0, "class", "tp-week-label svelte-4doiv5");
-      attr(span1, "class", "tp-date-range svelte-4doiv5");
-      attr(div0, "class", "tp-header-identity svelte-4doiv5");
-      attr(button0, "class", "tp-btn tp-nav-arrow svelte-4doiv5");
+      attr(span0, "class", "tp-week-label svelte-138iau3");
+      attr(span1, "class", "tp-date-range svelte-138iau3");
+      attr(div0, "class", "tp-header-identity svelte-138iau3");
+      attr(button0, "class", "tp-btn tp-nav-arrow svelte-138iau3");
       attr(button0, "aria-label", "Previous week");
       attr(button0, "title", "Previous week");
       button0.disabled = button0_disabled_value = !/*canGoPrev*/
       ctx[22];
-      attr(span2, "class", "tp-nav-centre-icon svelte-4doiv5");
-      attr(span3, "class", "tp-nav-centre-label svelte-4doiv5");
-      attr(span4, "class", "tp-nav-caret svelte-4doiv5");
-      attr(button1, "class", "tp-btn tp-nav-centre svelte-4doiv5");
+      attr(span2, "class", "tp-nav-centre-icon svelte-138iau3");
+      attr(span3, "class", "tp-nav-centre-label svelte-138iau3");
+      attr(span4, "class", "tp-nav-caret svelte-138iau3");
+      attr(button1, "class", "tp-btn tp-nav-centre svelte-138iau3");
       attr(button1, "aria-haspopup", "true");
       attr(
         button1,
@@ -21800,31 +22023,31 @@ function create_fragment3(ctx) {
         ctx[13]
       );
       attr(button1, "title", "Jump to a date");
-      attr(div1, "class", "tp-nav-jump svelte-4doiv5");
-      attr(button2, "class", "tp-btn tp-nav-arrow svelte-4doiv5");
+      attr(div1, "class", "tp-nav-jump svelte-138iau3");
+      attr(button2, "class", "tp-btn tp-nav-arrow svelte-138iau3");
       attr(button2, "aria-label", "Next week");
       attr(button2, "title", "Next week");
       button2.disabled = button2_disabled_value = !/*canGoNext*/
       ctx[21];
-      attr(nav, "class", "tp-nav svelte-4doiv5");
+      attr(nav, "class", "tp-nav svelte-138iau3");
       attr(nav, "aria-label", "Week navigation");
-      attr(span5, "class", "tp-btn-icon svelte-4doiv5");
-      attr(button3, "class", "tp-btn tp-action-btn svelte-4doiv5");
+      attr(span5, "class", "tp-btn-icon svelte-138iau3");
+      attr(button3, "class", "tp-btn tp-action-btn svelte-138iau3");
       attr(button3, "aria-label", "Add event");
-      attr(span6, "class", "tp-btn-icon svelte-4doiv5");
-      attr(button4, "class", "tp-btn tp-action-btn svelte-4doiv5");
+      attr(span6, "class", "tp-btn-icon svelte-138iau3");
+      attr(button4, "class", "tp-btn tp-action-btn svelte-138iau3");
       attr(button4, "aria-label", "Lesson overview");
       attr(button4, "title", "Lesson overview");
-      attr(span7, "class", "tp-btn-icon svelte-4doiv5");
-      attr(button5, "class", "tp-btn tp-action-btn svelte-4doiv5");
+      attr(span7, "class", "tp-btn-icon svelte-138iau3");
+      attr(button5, "class", "tp-btn tp-action-btn svelte-138iau3");
       attr(button5, "aria-label", "Edit timetable");
-      attr(button6, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-4doiv5");
+      attr(button6, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-138iau3");
       attr(button6, "aria-label", "Settings");
-      attr(button7, "class", "tp-btn tp-overflow-btn svelte-4doiv5");
+      attr(button7, "class", "tp-btn tp-overflow-btn svelte-138iau3");
       attr(button7, "aria-label", "More options");
-      attr(div2, "class", "tp-header-actions svelte-4doiv5");
-      attr(header, "class", "tp-header svelte-4doiv5");
-      attr(div3, "class", "tp-week-view svelte-4doiv5");
+      attr(div2, "class", "tp-header-actions svelte-138iau3");
+      attr(header, "class", "tp-header svelte-138iau3");
+      attr(div3, "class", "tp-week-view svelte-138iau3");
       attr(div3, "data-tp-theme", div3_data_tp_theme_value = /*plugin*/
       (_a2 = ctx[0].settings.theme) != null ? _a2 : "carbon");
       attr(div3, "data-tp-mode", div3_data_tp_mode_value = /*plugin*/
@@ -21973,7 +22196,7 @@ function create_fragment3(ctx) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_42(ctx2);
+          if_block0 = create_if_block_43(ctx2);
           if_block0.c();
           if_block0.m(span0, null);
         }
@@ -22018,7 +22241,7 @@ function create_fragment3(ctx) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
         } else {
-          if_block1 = create_if_block_41(ctx2);
+          if_block1 = create_if_block_42(ctx2);
           if_block1.c();
           if_block1.m(div1, null);
         }
@@ -22042,7 +22265,7 @@ function create_fragment3(ctx) {
         if (if_block3) {
           if_block3.p(ctx2, dirty);
         } else {
-          if_block3 = create_if_block_38(ctx2);
+          if_block3 = create_if_block_39(ctx2);
           if_block3.c();
           if_block3.m(div3, t24);
         }
@@ -22104,6 +22327,10 @@ function updateSize() {
 function timeToMinutes(t) {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
+}
+function minutesToTime(mins) {
+  const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 function fmtAxisTime(m) {
   return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
@@ -25885,7 +26112,7 @@ function create_else_block4(ctx) {
   );
   let if_block1 = (
     /*occurrences*/
-    ctx[3].length === 0 && create_if_block_44(ctx)
+    ctx[3].length === 0 && create_if_block_45(ctx)
   );
   let if_block2 = (
     /*toast*/
@@ -26037,7 +26264,7 @@ function create_else_block4(ctx) {
       ) {
         if (if_block1) {
         } else {
-          if_block1 = create_if_block_44(ctx2);
+          if_block1 = create_if_block_45(ctx2);
           if_block1.c();
           if_block1.m(div1, null);
         }
@@ -27860,7 +28087,7 @@ function create_each_block_15(key_1, ctx) {
     }
   };
 }
-function create_if_block_44(ctx) {
+function create_if_block_45(ctx) {
   let div;
   return {
     c() {

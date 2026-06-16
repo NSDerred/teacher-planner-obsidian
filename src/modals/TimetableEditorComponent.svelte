@@ -6,7 +6,7 @@
   import { setIcon } from "obsidian";
   import { ConfirmModal } from "../settings/SettingsTab";
   import { resolveColour } from "../utils/themeColours";
-  import { periodAppliesTo } from "../utils/scheduleUtils";
+  import { periodAppliesTo, periodLengthMinutes } from "../utils/scheduleUtils";
 
   function icon(node: HTMLElement, name: string) {
     setIcon(node, name);
@@ -44,7 +44,6 @@
 
   // ── Directed time ──────────────────────────────────────────────────────────
   $: directedTimeEnabled = plugin.settings.directedTime?.enabled ?? false;
-  $: defaultDuration     = plugin.settings.directedTime?.defaultLessonDurationMinutes ?? 60;
 
   // Duration badge editing state
   let durationEditKey: string | null = null;
@@ -52,9 +51,11 @@
 
   function getSlotDuration(slot: TimetableSlot): number {
     if (slot.durationMinutes) return slot.durationMinutes;
-    const act = activities.find(a => a.id === slot.classId);
-    if (act?.durationMinutes) return act.durationMinutes;
-    return defaultDuration;
+    return periodLengthMinutes(plugin.settings.academicYear, slot.periodId);
+  }
+  /** True when this slot has a manual duration that differs from its block length. */
+  function isDurationOverride(slot: TimetableSlot): boolean {
+    return slot.durationMinutes != null && slot.durationMinutes !== periodLengthMinutes(plugin.settings.academicYear, slot.periodId);
   }
 
   function isDirectedSlot(slot: TimetableSlot): boolean {
@@ -576,9 +577,12 @@
                       <!-- svelte-ignore a11y-no-static-element-interactions -->
                       <span
                         class="tp-te-duration-badge"
-                        title="Duration: {getSlotDuration(slot)} min — click to edit"
+                        class:tp-te-duration-badge--override={isDurationOverride(slot)}
+                        title={isDurationOverride(slot)
+                          ? `Custom duration ${getSlotDuration(slot)} min (block is ${periodLengthMinutes(plugin.settings.academicYear, slot.periodId)} min) — click to edit`
+                          : `Duration ${getSlotDuration(slot)} min (block length) — click to edit`}
                         on:click|stopPropagation={(e) => startDurationEdit(slot, cellKey, e)}
-                      >{getSlotDuration(slot)}m</span>
+                      >{getSlotDuration(slot)}m{#if isDurationOverride(slot)} *{/if}</span>
                     {/if}
                   {/if}
                 {:else}
@@ -802,6 +806,8 @@
   /* ── Duration badge ───────────────────────────────────────────────────────── */
   .tp-te-duration-badge { position: absolute; bottom: 3px; right: 4px; font-size: 10px; font-weight: 700; background: rgba(0,0,0,0.30); color: #fff; border-radius: 3px; padding: 1px 4px; cursor: pointer; line-height: 1.4; transition: background 0.1s; z-index: 1; pointer-events: all; }
   .tp-te-duration-badge:hover { background: rgba(0,0,0,0.50); }
+  .tp-te-duration-badge--override { background: var(--interactive-accent); color: var(--text-on-accent, #fff); }
+  .tp-te-duration-badge--override:hover { background: var(--interactive-accent-hover, var(--interactive-accent)); }
   .tp-te-duration-input { position: absolute; bottom: 3px; right: 4px; width: 46px; font-size: 10px; padding: 1px 3px; border: 1px solid var(--interactive-accent); border-radius: 3px; background: var(--background-primary); color: var(--text-normal); z-index: 2; text-align: center; }
 
   /* ── Picker ───────────────────────────────────────────────────────────────── */

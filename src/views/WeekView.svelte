@@ -239,6 +239,10 @@
     const [h, m] = t.split(":").map(Number);
     return h * 60 + m;
   }
+  function minutesToTime(mins: number): string {
+    const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  }
 
   // ── Time axis (Option B, Phase 2) ─────────────────────────────────────────
   // Time-axis scale (px per minute), driven by the per-device grid-scale setting.
@@ -1231,6 +1235,16 @@
                 {@const key       = cellKey(day.key, period.id)}
                 {@const isOver    = dragOverKey === key && !slot}
                 {@const isReject  = rejectKey   === key}
+                {@const _blockMins = timeToMinutes(period.end) - timeToMinutes(period.start)}
+                {@const _occCount = (slot ? 1 : 0) + devEvents.length}
+                {@const _soleEv = (!slot && devEvents.length === 1) ? devEvents[0] : undefined}
+                {@const _evSingleBlock = _soleEv ? (eventPeriodIds(_soleEv).length <= 1) : false}
+                {@const _occMins = slot && devEvents.length === 0
+                  ? (slot.durationMinutes ?? _blockMins)
+                  : (_soleEv && _evSingleBlock ? (_soleEv.durationMinutes ?? _blockMins) : _blockMins)}
+                {@const _partial = _occCount === 1 && _occMins > 0 && _occMins < _blockMins && (slot ? true : _evSingleBlock) && (_occMins * PX_PER_MIN) <= bHeight - 16}
+                {@const _occPx = Math.max(22, _occMins * PX_PER_MIN)}
+                {@const _occEnd = minutesToTime(timeToMinutes(period.start) + _occMins)}
                 {#if dayMerges.starts[period.id]}
                   {@const _mrun  = dayMerges.starts[period.id]}
                   {@const _mev   = _mrun.ev}
@@ -1306,7 +1320,7 @@
                   {/if}
 
                   {#if slot || devEvents.length > 0}
-                    <div class="tp-event-stack">
+                    <div class="tp-event-stack" style={_partial ? `bottom:auto; height:${_occPx}px;` : ""}>
                       {#if slot}
                         {@const lbl = getSlotLabel(slot)}
                         {@const slotPlanPath = _slotPlanMap[slot.id + "|" + dayDate]}
@@ -1322,10 +1336,10 @@
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "slot", dayDate, period.id, slot)}
                           on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
-                          title="{period.name} · {period.start}–{period.end}"
+                          title={_partial ? `${period.name} · ${period.start}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
                         >
-                          <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
+                          <span class="tp-chip-period-time">{_partial ? `${period.start}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
                           <div class="tp-chip-body">
                             <span class="tp-chip-code">{lbl.code}</span>
                             {#if lbl.year || lbl.subjectName}
@@ -1373,10 +1387,10 @@
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "event", dayDate, period.id, undefined, devEv)}
                           on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
-                          title="{period.name} · {period.start}–{period.end}"
+                          title={_partial ? `${period.name} · ${period.start}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
                         >
-                          <span class="tp-chip-period-time">{period.name} · {period.start}–{period.end}</span>
+                          <span class="tp-chip-period-time">{_partial ? `${period.start}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
                           <div class="tp-chip-body">
                             <span class="tp-chip-code">{lbl.code}</span>
                             {#if lbl.meta}
@@ -1414,6 +1428,10 @@
                       title="Add one-off event to this slot"
                       on:click={(e) => openEventPicker(e, dayDate, period.id)}
                     >＋ Event</button>
+                  {/if}
+                  {#if _partial}
+                    <div class="tp-block-durbadge">{_occMins}m</div>
+                    <div class="tp-block-free" style="top:{_occPx + 4}px;">{_occEnd}–{period.end}</div>
                   {/if}
                 </div>
                 {/if}
@@ -1617,6 +1635,8 @@
 
   /* Chip stack inside a block — below the block label */
   .tp-event-stack { position:absolute; top:3px; left:3px; right:3px; bottom:3px; display:flex; flex-direction:row; gap:2px; z-index:3; }
+  .tp-block-free { position:absolute; left:6px; right:6px; text-align:center; font-size:11px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; z-index:2; }
+  .tp-block-durbadge { position:absolute; top:4px; right:4px; font-size:10px; font-weight:700; line-height:1.5; padding:0 4px; border-radius:3px; background:var(--interactive-accent); color:var(--text-on-accent, #fff); pointer-events:none; z-index:4; }
   .tp-event-stack .tp-chip { position:relative; inset:auto; flex:1; min-width:0; }
 
   /* Narrow-screen: overflow menu replaces action buttons */

@@ -216,31 +216,10 @@ export class SetupWizardModal extends Modal {
         t.onChange(v => { const n = parseFloat(v); if (!isNaN(n) && n > 0 && n <= 100) this.state.timetablePercentage = n; });
       });
 
-    const lessonDurOptions = ["45", "50", "60"];
-    const lessonDurDropValue = lessonDurOptions.includes(String(this.state.defaultLessonDurationMinutes))
-      ? String(this.state.defaultLessonDurationMinutes) : "custom";
-
-    let customDurSetting: Setting;
-    new Setting(dtPanel)
-      .setName("Default lesson duration")
-      .setDesc("Applied to all timetable lessons unless overridden.")
-      .addDropdown(d => d
-        .addOption("45", "45 minutes").addOption("50", "50 minutes")
-        .addOption("60", "60 minutes").addOption("custom", "Custom…")
-        .setValue(lessonDurDropValue)
-        .onChange(v => {
-          if (v !== "custom") { this.state.defaultLessonDurationMinutes = parseInt(v); }
-          customDurSetting.settingEl.setCssStyles({ display: v === "custom" ? "" : "none" });
-        }));
-
-    customDurSetting = new Setting(dtPanel)
-      .setName("Custom lesson duration (minutes)")
-      .addText(t => {
-        t.setPlaceholder("e.g. 55")
-          .setValue(lessonDurDropValue === "custom" ? String(this.state.defaultLessonDurationMinutes) : "");
-        t.onChange(v => { const n = parseInt(v); if (!isNaN(n) && n > 0) this.state.defaultLessonDurationMinutes = n; });
-      });
-    customDurSetting.settingEl.setCssStyles({ display: lessonDurDropValue === "custom" ? "" : "none" });
+    dtPanel.createEl("p", {
+      text: "Each lesson, activity, and event counts the length of the block it sits in. You can set a different duration on any block later by clicking its duration badge in the timetable editor.",
+      cls: "setting-item-description",
+    });
 
     // ── Directed time activities ────────────────────────────────────────────
     dtPanel.createEl("p", { text: "Directed time activities", cls: "tp-wizard-sublabel" });
@@ -252,7 +231,6 @@ export class SetupWizardModal extends Modal {
       if (extra) h.setCssStyles(extra);
     };
     makeH("Name");
-    makeH("Duration", { flex: "0 0 54px", width: "54px" });
     activityHeaders.createDiv().setCssStyles({ width: "28px", flexShrink: "0" });
 
     const actList = dtPanel.createDiv("tp-activities-list");
@@ -277,14 +255,6 @@ export class SetupWizardModal extends Modal {
         const labelIn = row.createEl("input", { type: "text", cls: "tp-class-code-input" });
         labelIn.value = act.label; labelIn.placeholder = "Activity name";
         labelIn.addEventListener("change", () => { act.label = labelIn.value; });
-
-        const durIn = row.createEl("input", { type: "number", cls: "tp-class-code-input tp-dur-input" });
-        durIn.value = act.durationMinutes !== undefined ? String(act.durationMinutes) : "";
-        durIn.placeholder = "mins"; durIn.min = "1"; durIn.max = "480"; durIn.setCssStyles({ width: "54px" });
-        durIn.addEventListener("change", () => {
-          const n = parseInt(durIn.value);
-          act.durationMinutes = isNaN(n) || durIn.value === "" ? undefined : n;
-        });
 
         const delBtn = row.createEl("button", { cls: "tp-icon-btn" });
         setIcon(delBtn, "trash-2");
@@ -929,7 +899,7 @@ export class SetupWizardModal extends Modal {
       "",
       "The directed time tracker calculates your cumulative directed time from events recorded in your planner. It counts:",
       "",
-      "- **Timetable lessons** — every class slot on your timetable, using the lesson duration you configure (default: 60 min, adjustable per slot in the timetable editor).",
+      "- **Timetable lessons** — every class slot on your timetable, each counting the length of its block (adjustable per slot via the duration badge in the timetable editor).",
       "- **Directed time activities** — items in the *Directed time* section of Settings added to your planner (e.g. Cover, Duty, Meetings, Tutor).",
       "- **Holiday/INSET weeks** — automatically excluded from the count.",
       "- **Other events** — items in the *Other events* section of Settings are excluded from the directed time total.",
@@ -956,7 +926,7 @@ export class SetupWizardModal extends Modal {
       "",
       "- Add one-off events (cover lessons, extra meetings, parents evenings) as **date events** in your planner using the **+ Event** button.",
       "- If a timetable lesson is cancelled, use the **Exclude** option in the lesson notes panel so it isn’t counted.",
-      "- Update slot durations if your lessons aren’t exactly 60 minutes (click the duration badge in the timetable editor).",
+      "- Set a custom duration on any block whose directed time differs from its length (click the duration badge in the timetable editor).",
       "",
       "---",
       "",

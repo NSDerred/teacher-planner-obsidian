@@ -1,6 +1,6 @@
 import type { TeacherPlannerSettings, SchoolDay } from "../types";
 import { getMondayOfWeek, getAbWeekType } from "./weekUtils";
-import { periodAppliesTo } from "./scheduleUtils";
+import { periodAppliesTo, periodLengthMinutes } from "./scheduleUtils";
 
 export interface WeekBreakdown {
   weekStart: string;         // ISO "YYYY-MM-DD" Monday
@@ -38,18 +38,17 @@ function isClassId(classId: string, s: TeacherPlannerSettings): boolean {
   return !!s.classes?.find(c => c.id === classId);
 }
 
-function resolveSlotMins(slot: { durationMinutes?: number; classId: string }, s: TeacherPlannerSettings, def: number): number {
+/** A placed lesson/activity counts its per-slot override, else the length of the block it sits in. */
+function resolveSlotMins(slot: { durationMinutes?: number; periodId: string }, s: TeacherPlannerSettings): number {
   if (slot.durationMinutes) return slot.durationMinutes;
-  const act = s.activities?.find(a => a.id === slot.classId);
-  if (act?.durationMinutes) return act.durationMinutes;
-  return def;
+  return periodLengthMinutes(s.academicYear, slot.periodId);
 }
 
-function resolveEventMins(ev: { durationMinutes?: number; classId: string }, s: TeacherPlannerSettings, def: number): number {
+/** An event counts its override, else the summed length of the blocks it covers. */
+function resolveEventMins(ev: { durationMinutes?: number; periodId?: string; periodIds?: string[] }, s: TeacherPlannerSettings): number {
   if (ev.durationMinutes) return ev.durationMinutes;
-  const act = s.activities?.find(a => a.id === ev.classId);
-  if (act?.durationMinutes) return act.durationMinutes;
-  return def;
+  const ids = ev.periodIds ?? (ev.periodId ? [ev.periodId] : []);
+  return ids.reduce((sum, pid) => sum + periodLengthMinutes(s.academicYear, pid), 0);
 }
 
 /**
@@ -74,7 +73,6 @@ export function calcDirectedTime(s: TeacherPlannerSettings): DirectedTimeCalc {
   if (!dt) return { contractedMins: 0, accruedMins: 0, predictedMins: 0, weeks: [] };
 
   const contractedMins = dt.contractedHours * (dt.timetablePercentage / 100) * 60;
-  const def = dt.defaultLessonDurationMinutes;
   const todayMonday = getMondayOfWeek(new Date());
   const MS_DAY  = 24 * 60 * 60 * 1000;
   const MS_WEEK = 7 * MS_DAY;
@@ -174,7 +172,7 @@ export function calcDirectedTime(s: TeacherPlannerSettings): DirectedTimeCalc {
         if (insetDates.has(slotIso)) continue;           // INSET day — no lessons
         if (s.slotExclusions?.some(ex => ex.slotId === slot.id && ex.date === slotIso)) continue;
 
-        const mins = resolveSlotMins(slot, s, def);
+        const mins = resolveSlotMins(slot, s);
         if (isClassId(slot.classId, s)) { lessonCount++; lessonMins += mins; }
         else { activityCount++; activityMins += mins; }
       }
@@ -191,7 +189,7 @@ export function calcDirectedTime(s: TeacherPlannerSettings): DirectedTimeCalc {
       if (evMon !== wKey || !directed) continue;
       if (holidayDates.has(ev.date)) continue;
       eventCount++;
-      eventMins += resolveEventMins(ev, s, def);
+      eventMins += resolveEventMins(ev, s);
     }
 
     // Add any partial-week inset minutes (mixed week)
