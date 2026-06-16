@@ -16,6 +16,7 @@ export interface LessonOccurrence {
   start: string;
   end: string;
   slotId: string;
+  classroom: string;   // resolved room (per-slot override, else class default)
   weekType: "A" | "B" | null;
   weekKey: string;     // ISO Monday date for the week (grouping key)
 }
@@ -41,6 +42,10 @@ export function classOccurrences(s: TeacherPlannerSettings, classId: string): Le
   const endIso = ay.endDate;
   const schoolDays = new Set<SchoolDay>((s.schoolDays as SchoolDay[]) ?? ["monday", "tuesday", "wednesday", "thursday", "friday"]);
   const abEnabled = !!ay.abWeekEnabled;
+  const cls = (s.classes ?? []).find(c => c.id === classId);
+  const classDefaultRoom = cls?.classroom ?? "";
+  const blockedRanges = (s.weekOverrides ?? []).filter(o => o.type === "holiday" || o.type === "inset");
+  const isBlockedDay = (iso: string) => blockedRanges.some(o => iso >= o.startDate && iso <= (o.endDate ?? o.startDate));
 
   const out: LessonOccurrence[] = [];
   let monday = getMondayOfWeek(new Date(startIso + "T12:00:00"));
@@ -56,12 +61,15 @@ export function classOccurrences(s: TeacherPlannerSettings, classId: string): Le
       if (dateIso < startIso || dateIso > endIso) continue;
       const dayName = DOW[d.getDay()];
       if (!dayName || !schoolDays.has(dayName)) continue;
+      if (isBlockedDay(dateIso)) continue;
       for (const p of getPeriodsForDay(ay, dayName)) {
         const slot = resolvedSlotForDate(s, dateIso, p.id);
         if (slot && slot.classId === classId) {
           out.push({
             date: dateIso, dayName, periodId: p.id, periodName: p.name,
-            start: p.start, end: p.end, slotId: slot.id, weekType, weekKey,
+            start: p.start, end: p.end, slotId: slot.id,
+            classroom: slot.classroom ?? classDefaultRoom,
+            weekType, weekKey,
           });
         }
       }

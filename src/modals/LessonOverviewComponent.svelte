@@ -8,7 +8,6 @@
   import { shiftForward, shiftBackward, snapshotState, restoreState, type ShiftSnapshot } from "../utils/lessonShiftApply";
   import { applyNoteMoves, reverseNoteMoves, type NoteUndoOp, lessonNoteDefaultTitle, findLessonNoteByTitle, createLessonNoteFile } from "../utils/lessonNoteFiles";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
-  import { resolvedSlotForDate } from "../utils/clashUtils";
   import { getMondayOfWeek } from "../utils/weekUtils";
   import { openSystemPath, openOSFilePicker, openOSFolderPicker } from "../utils/exportDestination";
   import { ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
@@ -105,8 +104,7 @@
     refresh();
   }
 
-  const slotForOcc = (o: LessonOccurrence) => resolvedSlotForDate(plugin.settings, o.date, o.periodId);
-  const defaultRoom = (o: LessonOccurrence) => slotForOcc(o)?.classroom ?? "";
+  const defaultRoom = (o: LessonOccurrence) => o.classroom ?? "";
 
   function openPanel(o: LessonOccurrence) {
     menuKey = keyOf(o);
@@ -239,8 +237,9 @@
               </button>
               <span class="tp-lo-icons">
                 {#if past}<span class="tp-lo-taught" title="Taught" use:obsIcon={"circle-check"}></span>{/if}
-                <button class="tp-lo-ic" class:tp-lo-ic--on={isSlotPrepared(plugin.settings, o.slotId, o.date)}
-                  title={isSlotPrepared(plugin.settings, o.slotId, o.date) ? "Prepared — click to clear" : "Mark prepared"}
+                <button class="tp-lo-prep" class:tp-lo-prep--on={isSlotPrepared(plugin.settings, o.slotId, o.date)}
+                  title={isSlotPrepared(plugin.settings, o.slotId, o.date) ? "Marked prepared — click to clear" : "Mark prepared"}
+                  aria-label="Toggle prepared" aria-pressed={isSlotPrepared(plugin.settings, o.slotId, o.date)}
                   on:click|stopPropagation={() => togglePrep(o)} use:obsIcon={"check"}></button>
                 {#if getSlotPlan(plugin.settings, o.slotId, o.date)}
                   <button class="tp-lo-ic tp-lo-ic--plan" title="Open lesson plan" on:click|stopPropagation={() => openPlan(o)} use:obsIcon={"file-text"}></button>
@@ -368,7 +367,11 @@
   .tp-lo-ic { border:none; background:transparent; box-shadow:none; cursor:pointer; color:var(--text-faint); display:inline-flex; padding:4px; border-radius:4px; }
   .tp-lo-ic:hover { background:var(--background-modifier-hover); color:var(--text-normal); }
   .tp-lo-ic :global(svg) { width:16px; height:16px; }
-  .tp-lo-ic--on, .tp-lo-ic--plan { color:var(--color-green, #a6e3a1); }
+  .tp-lo-ic--plan { color:#43a047; }
+  .tp-lo-prep { width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1.5px solid var(--text-muted); padding:0; line-height:0; cursor:pointer; color:var(--text-muted); box-sizing:border-box; flex-shrink:0; }
+  .tp-lo-prep:hover { color:var(--text-normal); border-color:var(--text-normal); }
+  button.tp-lo-prep--on { background:#43a047; border-color:#43a047; color:#fff; }
+  .tp-lo-prep :global(svg) { width:12px; height:12px; }
 
   .tp-lo-noteedit { width:100%; box-sizing:border-box; margin-top:0; padding:9px 11px; border:1px solid var(--interactive-accent); border-radius:6px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:13px; line-height:1.4; font-family:var(--font-interface); resize:vertical; }
 

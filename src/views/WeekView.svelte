@@ -1090,7 +1090,7 @@
     </nav>
     <div class="tp-header-actions">
       <button class="tp-btn tp-action-btn" on:click={() => onAddEvent()} aria-label="Add event"><span use:obsIcon={"calendar-plus"} class="tp-btn-icon"></span>Event</button>
-      <button class="tp-btn tp-action-btn" on:click={onOpenOverview} aria-label="Lesson overview" title="Lesson overview"><span use:obsIcon={"list-details"} class="tp-btn-icon"></span>Lessons</button>
+      <button class="tp-btn tp-action-btn" on:click={onOpenOverview} aria-label="Lesson overview" title="Lesson overview"><span use:obsIcon={"list-checks"} class="tp-btn-icon"></span>Lessons</button>
       <button class="tp-btn tp-action-btn" on:click={onOpenTimetable} aria-label="Edit timetable"><span use:obsIcon={"layout-grid"} class="tp-btn-icon"></span>Timetable</button>
       <button class="tp-btn tp-action-btn tp-action-btn--icon-only" on:click={onOpenSettings} aria-label="Settings" use:obsIcon={"settings"}></button>
       <button class="tp-btn tp-overflow-btn" on:click={showOverflowMenu} aria-label="More options" use:obsIcon={"more-horizontal"}></button>

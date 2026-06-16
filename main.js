@@ -21827,7 +21827,7 @@ function create_fragment3(ctx) {
             ctx[111]
           ),
           action_destroyer(obsIcon_action_2 = /*obsIcon*/
-          ctx[39].call(null, span6, "list-details")),
+          ctx[39].call(null, span6, "list-checks")),
           listen(
             button4,
             "click",
@@ -25465,26 +25465,34 @@ function addDays(d, n) {
   return x;
 }
 function classOccurrences(s, classId) {
-  var _a2, _b2;
+  var _a2, _b2, _c, _d, _e, _f;
   const ay = s.academicYear;
   if (!(ay == null ? void 0 : ay.startDate) || !(ay == null ? void 0 : ay.endDate)) return [];
   const startIso = ay.startDate;
   const endIso = ay.endDate;
   const schoolDays = new Set((_a2 = s.schoolDays) != null ? _a2 : ["monday", "tuesday", "wednesday", "thursday", "friday"]);
   const abEnabled = !!ay.abWeekEnabled;
+  const cls = ((_b2 = s.classes) != null ? _b2 : []).find((c) => c.id === classId);
+  const classDefaultRoom = (_c = cls == null ? void 0 : cls.classroom) != null ? _c : "";
+  const blockedRanges = ((_d = s.weekOverrides) != null ? _d : []).filter((o) => o.type === "holiday" || o.type === "inset");
+  const isBlockedDay = (iso) => blockedRanges.some((o) => {
+    var _a3;
+    return iso >= o.startDate && iso <= ((_a3 = o.endDate) != null ? _a3 : o.startDate);
+  });
   const out = [];
   let monday = getMondayOfWeek(/* @__PURE__ */ new Date(startIso + "T12:00:00"));
   const endDate = /* @__PURE__ */ new Date(endIso + "T12:00:00");
   let guard = 0;
   while (monday <= endDate && guard++ < 600) {
     const weekKey2 = isoLocal(monday);
-    const weekType = abEnabled ? getAbWeekType(monday, ay, (_b2 = s.weekOverrides) != null ? _b2 : [], s.schoolDays) : null;
+    const weekType = abEnabled ? getAbWeekType(monday, ay, (_e = s.weekOverrides) != null ? _e : [], s.schoolDays) : null;
     for (let i = 0; i < 7; i++) {
       const d = addDays(monday, i);
       const dateIso = isoLocal(d);
       if (dateIso < startIso || dateIso > endIso) continue;
       const dayName = DOW2[d.getDay()];
       if (!dayName || !schoolDays.has(dayName)) continue;
+      if (isBlockedDay(dateIso)) continue;
       for (const p of getPeriodsForDay(ay, dayName)) {
         const slot = resolvedSlotForDate(s, dateIso, p.id);
         if (slot && slot.classId === classId) {
@@ -25496,6 +25504,7 @@ function classOccurrences(s, classId) {
             start: p.start,
             end: p.end,
             slotId: slot.id,
+            classroom: (_f = slot.classroom) != null ? _f : classDefaultRoom,
             weekType,
             weekKey: weekKey2
           });
@@ -25661,41 +25670,41 @@ init_exportDestination();
 init_SettingsTab();
 var { Map: Map_1 } = globals;
 function add_css5(target) {
-  append_styles(target, "svelte-uiw2hz", ".tp-lo.svelte-uiw2hz.svelte-uiw2hz{display:flex;flex-direction:column;min-height:0;height:100%;font-family:var(--font-interface);position:relative}.tp-lo-head.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:10px;margin-bottom:10px}.tp-lo-title.svelte-uiw2hz.svelte-uiw2hz{margin:0;font-size:17px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-lo-back.svelte-uiw2hz.svelte-uiw2hz{border:none;background:transparent;box-shadow:none;cursor:pointer;color:var(--text-muted);display:inline-flex;padding:4px;border-radius:5px}.tp-lo-back.svelte-uiw2hz.svelte-uiw2hz:hover{background:var(--background-modifier-hover);color:var(--text-normal)}.tp-lo-search.svelte-uiw2hz.svelte-uiw2hz{position:relative;margin-bottom:12px}.tp-lo-search-icon.svelte-uiw2hz.svelte-uiw2hz{position:absolute;left:10px;top:8px;color:var(--text-muted);display:inline-flex}.tp-lo-search-icon.svelte-uiw2hz svg{width:16px;height:16px}.tp-lo-search.svelte-uiw2hz input.svelte-uiw2hz{width:100%;box-sizing:border-box;padding:7px 10px 7px 32px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:13px}.tp-lo-cards.svelte-uiw2hz.svelte-uiw2hz{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));align-content:start;align-items:start;gap:9px;overflow-y:auto;padding:2px;min-height:0;flex:1 1 auto}.tp-lo-card.svelte-uiw2hz.svelte-uiw2hz{display:flex;flex-direction:column;gap:3px;min-width:0;text-align:left;padding:10px 12px;border:1px solid var(--background-modifier-border);border-radius:7px;background:var(--background-primary);cursor:pointer;transition:background 0.1s}.tp-lo-card.svelte-uiw2hz.svelte-uiw2hz:hover{background:var(--background-modifier-hover)}.tp-lo-card-code.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:6px;min-width:0;font-size:15px;font-weight:600;line-height:1.5;color:var(--text-normal)}.tp-lo-card-emoji.svelte-uiw2hz.svelte-uiw2hz{flex-shrink:0;font-size:14px;line-height:1}.tp-lo-card-codetext.svelte-uiw2hz.svelte-uiw2hz{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-lo-card-sub.svelte-uiw2hz.svelte-uiw2hz{display:block;font-size:12px;color:var(--text-muted);margin-top:2px}.tp-lo-card-next.svelte-uiw2hz.svelte-uiw2hz{display:block;font-size:12px;color:var(--text-faint);margin-top:4px}.tp-lo-jump.svelte-uiw2hz.svelte-uiw2hz{display:inline-flex;align-items:center;gap:5px;color:var(--text-muted)}.tp-lo-jump.svelte-uiw2hz svg{width:15px;height:15px}.tp-lo-jump.svelte-uiw2hz input.svelte-uiw2hz{font-size:12px;padding:3px 5px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-modifier-form-field);color:var(--text-normal)}.tp-lo-list.svelte-uiw2hz.svelte-uiw2hz{overflow-y:auto;min-height:0;flex:1 1 auto;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-lo-weekhead.svelte-uiw2hz.svelte-uiw2hz{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:9px 13px;background:var(--background-secondary);font-size:16px;font-weight:600;color:var(--interactive-accent);border-bottom:1px solid var(--background-modifier-border)}.tp-lo-weekhead--current.svelte-uiw2hz.svelte-uiw2hz{background:color-mix(in srgb, var(--interactive-accent) 16%, var(--background-secondary));color:var(--text-normal)}.tp-lo-ab.svelte-uiw2hz.svelte-uiw2hz{border:1px solid var(--background-modifier-border);border-radius:4px;padding:1px 9px;font-size:13px;font-weight:700}.tp-lo-ab--current.svelte-uiw2hz.svelte-uiw2hz{border-color:var(--interactive-accent)}.tp-lo-row.svelte-uiw2hz.svelte-uiw2hz{padding:11px 13px;border-bottom:1px solid var(--background-modifier-border-hover)}.tp-lo-row.svelte-uiw2hz.svelte-uiw2hz:last-child{border-bottom:none}.tp-lo-row--past.svelte-uiw2hz.svelte-uiw2hz{opacity:0.55}.tp-lo-row--current.svelte-uiw2hz.svelte-uiw2hz{background:color-mix(in srgb, var(--interactive-accent) 8%, transparent)}.tp-lo-row-main.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:10px}.tp-lo-when.svelte-uiw2hz.svelte-uiw2hz{font-size:13px;color:var(--text-muted)}.tp-lo-row--current.svelte-uiw2hz .tp-lo-when.svelte-uiw2hz{font-weight:600;color:var(--text-normal)}.tp-lo-topic.svelte-uiw2hz.svelte-uiw2hz{display:block;max-width:100%;font-size:15px;font-weight:500;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-lo-topic--faint.svelte-uiw2hz.svelte-uiw2hz{color:var(--text-faint)}.tp-lo-rowbtn.svelte-uiw2hz.svelte-uiw2hz{flex:1;min-width:0;display:flex;align-items:center;text-align:left;border:none;background:transparent;box-shadow:none;outline:none;border-radius:0;cursor:pointer;padding:0;color:inherit;font-family:var(--font-interface)}.tp-lo-rowbtn.svelte-uiw2hz:hover .tp-lo-topic.svelte-uiw2hz{color:var(--interactive-accent)}.tp-lo-rowtext.svelte-uiw2hz.svelte-uiw2hz{display:flex;flex-direction:column;gap:3px;min-width:0;width:100%}.tp-lo-chev.svelte-uiw2hz.svelte-uiw2hz{display:inline-flex;color:var(--text-faint);margin-left:2px;transition:transform 0.12s}.tp-lo-chev.svelte-uiw2hz svg{width:15px;height:15px}.tp-lo-chev--open.svelte-uiw2hz.svelte-uiw2hz{transform:rotate(180deg);color:var(--text-muted)}.tp-lo-icons.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:3px;flex-shrink:0}.tp-lo-taught.svelte-uiw2hz.svelte-uiw2hz{display:inline-flex;color:var(--color-green, #a6e3a1)}.tp-lo-taught.svelte-uiw2hz svg{width:16px;height:16px}.tp-lo-ic.svelte-uiw2hz.svelte-uiw2hz{border:none;background:transparent;box-shadow:none;cursor:pointer;color:var(--text-faint);display:inline-flex;padding:4px;border-radius:4px}.tp-lo-ic.svelte-uiw2hz.svelte-uiw2hz:hover{background:var(--background-modifier-hover);color:var(--text-normal)}.tp-lo-ic.svelte-uiw2hz svg{width:16px;height:16px}.tp-lo-ic--on.svelte-uiw2hz.svelte-uiw2hz,.tp-lo-ic--plan.svelte-uiw2hz.svelte-uiw2hz{color:var(--color-green, #a6e3a1)}.tp-lo-noteedit.svelte-uiw2hz.svelte-uiw2hz{width:100%;box-sizing:border-box;margin-top:0;padding:9px 11px;border:1px solid var(--interactive-accent);border-radius:6px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:13px;line-height:1.4;font-family:var(--font-interface);resize:vertical}.tp-lo-panel.svelte-uiw2hz.svelte-uiw2hz{margin-top:8px}.tp-lo-field.svelte-uiw2hz.svelte-uiw2hz{display:block;margin-bottom:9px}.tp-lo-field-label.svelte-uiw2hz.svelte-uiw2hz{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:4px}.tp-lo-roomedit.svelte-uiw2hz.svelte-uiw2hz{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:13px;font-family:var(--font-interface)}.tp-lo-roomedit.svelte-uiw2hz.svelte-uiw2hz:focus{border-color:var(--interactive-accent);outline:none}.tp-lo-menu-sep.svelte-uiw2hz.svelte-uiw2hz{height:1px;background:var(--background-modifier-border);margin:6px 0}.tp-lo-menu.svelte-uiw2hz.svelte-uiw2hz{margin-top:6px;border-radius:6px;background:transparent;overflow:hidden}.tp-lo-menu.svelte-uiw2hz button.svelte-uiw2hz{display:flex;align-items:center;justify-content:flex-start;gap:11px;width:100%;text-align:left;padding:12px 14px;border:none;background:transparent;box-shadow:none;outline:none;color:var(--text-normal);font-size:14px;line-height:1.35;cursor:pointer;font-family:var(--font-interface)}.tp-lo-menu.svelte-uiw2hz button.svelte-uiw2hz:hover{background:var(--background-modifier-hover)}.tp-lo-menu.svelte-uiw2hz svg{width:16px;height:16px;flex-shrink:0;color:var(--text-muted)}.tp-lo-unplaced.svelte-uiw2hz.svelte-uiw2hz{margin:10px;border:1px dashed var(--color-orange, #e0af68);border-radius:7px;padding:9px 11px}.tp-lo-unplaced-head.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--color-orange, #e0af68);margin-bottom:6px}.tp-lo-unplaced-head.svelte-uiw2hz svg{width:14px;height:14px}.tp-lo-unplaced-row.svelte-uiw2hz.svelte-uiw2hz{font-size:13px;color:var(--text-normal);padding:3px 0}.tp-lo-unplaced-hint.svelte-uiw2hz.svelte-uiw2hz{font-size:11px;color:var(--text-muted);margin-top:6px}.tp-lo-empty.svelte-uiw2hz.svelte-uiw2hz{padding:20px;text-align:center;color:var(--text-muted);font-size:13px}.tp-lo-toast.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 12px;border-radius:7px;background:var(--background-secondary);border:1px solid var(--background-modifier-border);font-size:13px}.tp-lo-toast.svelte-uiw2hz>span.svelte-uiw2hz{flex:1}.tp-lo-toast.svelte-uiw2hz button.svelte-uiw2hz{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);border-radius:5px;padding:4px 9px;cursor:pointer;color:var(--text-normal);font-size:12px}.tp-lo-toast.svelte-uiw2hz button.svelte-uiw2hz:hover{background:var(--background-modifier-hover)}.tp-lo-toast.svelte-uiw2hz svg{width:14px;height:14px}.tp-lo-toast-x.svelte-uiw2hz.svelte-uiw2hz{padding:4px !important}");
+  append_styles(target, "svelte-1x1fn24", ".tp-lo.svelte-1x1fn24.svelte-1x1fn24{display:flex;flex-direction:column;min-height:0;height:100%;font-family:var(--font-interface);position:relative}.tp-lo-head.svelte-1x1fn24.svelte-1x1fn24{display:flex;align-items:center;gap:10px;margin-bottom:10px}.tp-lo-title.svelte-1x1fn24.svelte-1x1fn24{margin:0;font-size:17px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-lo-back.svelte-1x1fn24.svelte-1x1fn24{border:none;background:transparent;box-shadow:none;cursor:pointer;color:var(--text-muted);display:inline-flex;padding:4px;border-radius:5px}.tp-lo-back.svelte-1x1fn24.svelte-1x1fn24:hover{background:var(--background-modifier-hover);color:var(--text-normal)}.tp-lo-search.svelte-1x1fn24.svelte-1x1fn24{position:relative;margin-bottom:12px}.tp-lo-search-icon.svelte-1x1fn24.svelte-1x1fn24{position:absolute;left:10px;top:8px;color:var(--text-muted);display:inline-flex}.tp-lo-search-icon.svelte-1x1fn24 svg{width:16px;height:16px}.tp-lo-search.svelte-1x1fn24 input.svelte-1x1fn24{width:100%;box-sizing:border-box;padding:7px 10px 7px 32px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:13px}.tp-lo-cards.svelte-1x1fn24.svelte-1x1fn24{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));align-content:start;align-items:start;gap:9px;overflow-y:auto;padding:2px;min-height:0;flex:1 1 auto}.tp-lo-card.svelte-1x1fn24.svelte-1x1fn24{display:flex;flex-direction:column;gap:3px;min-width:0;text-align:left;padding:10px 12px;border:1px solid var(--background-modifier-border);border-radius:7px;background:var(--background-primary);cursor:pointer;transition:background 0.1s}.tp-lo-card.svelte-1x1fn24.svelte-1x1fn24:hover{background:var(--background-modifier-hover)}.tp-lo-card-code.svelte-1x1fn24.svelte-1x1fn24{display:flex;align-items:center;gap:6px;min-width:0;font-size:15px;font-weight:600;line-height:1.5;color:var(--text-normal)}.tp-lo-card-emoji.svelte-1x1fn24.svelte-1x1fn24{flex-shrink:0;font-size:14px;line-height:1}.tp-lo-card-codetext.svelte-1x1fn24.svelte-1x1fn24{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-lo-card-sub.svelte-1x1fn24.svelte-1x1fn24{display:block;font-size:12px;color:var(--text-muted);margin-top:2px}.tp-lo-card-next.svelte-1x1fn24.svelte-1x1fn24{display:block;font-size:12px;color:var(--text-faint);margin-top:4px}.tp-lo-jump.svelte-1x1fn24.svelte-1x1fn24{display:inline-flex;align-items:center;gap:5px;color:var(--text-muted)}.tp-lo-jump.svelte-1x1fn24 svg{width:15px;height:15px}.tp-lo-jump.svelte-1x1fn24 input.svelte-1x1fn24{font-size:12px;padding:3px 5px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-modifier-form-field);color:var(--text-normal)}.tp-lo-list.svelte-1x1fn24.svelte-1x1fn24{overflow-y:auto;min-height:0;flex:1 1 auto;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-lo-weekhead.svelte-1x1fn24.svelte-1x1fn24{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:9px 13px;background:var(--background-secondary);font-size:16px;font-weight:600;color:var(--interactive-accent);border-bottom:1px solid var(--background-modifier-border)}.tp-lo-weekhead--current.svelte-1x1fn24.svelte-1x1fn24{background:color-mix(in srgb, var(--interactive-accent) 16%, var(--background-secondary));color:var(--text-normal)}.tp-lo-ab.svelte-1x1fn24.svelte-1x1fn24{border:1px solid var(--background-modifier-border);border-radius:4px;padding:1px 9px;font-size:13px;font-weight:700}.tp-lo-ab--current.svelte-1x1fn24.svelte-1x1fn24{border-color:var(--interactive-accent)}.tp-lo-row.svelte-1x1fn24.svelte-1x1fn24{padding:11px 13px;border-bottom:1px solid var(--background-modifier-border-hover)}.tp-lo-row.svelte-1x1fn24.svelte-1x1fn24:last-child{border-bottom:none}.tp-lo-row--past.svelte-1x1fn24.svelte-1x1fn24{opacity:0.55}.tp-lo-row--current.svelte-1x1fn24.svelte-1x1fn24{background:color-mix(in srgb, var(--interactive-accent) 8%, transparent)}.tp-lo-row-main.svelte-1x1fn24.svelte-1x1fn24{display:flex;align-items:center;gap:10px}.tp-lo-when.svelte-1x1fn24.svelte-1x1fn24{font-size:13px;color:var(--text-muted)}.tp-lo-row--current.svelte-1x1fn24 .tp-lo-when.svelte-1x1fn24{font-weight:600;color:var(--text-normal)}.tp-lo-topic.svelte-1x1fn24.svelte-1x1fn24{display:block;max-width:100%;font-size:15px;font-weight:500;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-lo-topic--faint.svelte-1x1fn24.svelte-1x1fn24{color:var(--text-faint)}.tp-lo-rowbtn.svelte-1x1fn24.svelte-1x1fn24{flex:1;min-width:0;display:flex;align-items:center;text-align:left;border:none;background:transparent;box-shadow:none;outline:none;border-radius:0;cursor:pointer;padding:0;color:inherit;font-family:var(--font-interface)}.tp-lo-rowbtn.svelte-1x1fn24:hover .tp-lo-topic.svelte-1x1fn24{color:var(--interactive-accent)}.tp-lo-rowtext.svelte-1x1fn24.svelte-1x1fn24{display:flex;flex-direction:column;gap:3px;min-width:0;width:100%}.tp-lo-chev.svelte-1x1fn24.svelte-1x1fn24{display:inline-flex;color:var(--text-faint);margin-left:2px;transition:transform 0.12s}.tp-lo-chev.svelte-1x1fn24 svg{width:15px;height:15px}.tp-lo-chev--open.svelte-1x1fn24.svelte-1x1fn24{transform:rotate(180deg);color:var(--text-muted)}.tp-lo-icons.svelte-1x1fn24.svelte-1x1fn24{display:flex;align-items:center;gap:3px;flex-shrink:0}.tp-lo-taught.svelte-1x1fn24.svelte-1x1fn24{display:inline-flex;color:var(--color-green, #a6e3a1)}.tp-lo-taught.svelte-1x1fn24 svg{width:16px;height:16px}.tp-lo-ic.svelte-1x1fn24.svelte-1x1fn24{border:none;background:transparent;box-shadow:none;cursor:pointer;color:var(--text-faint);display:inline-flex;padding:4px;border-radius:4px}.tp-lo-ic.svelte-1x1fn24.svelte-1x1fn24:hover{background:var(--background-modifier-hover);color:var(--text-normal)}.tp-lo-ic.svelte-1x1fn24 svg{width:16px;height:16px}.tp-lo-ic--plan.svelte-1x1fn24.svelte-1x1fn24{color:#43a047}.tp-lo-prep.svelte-1x1fn24.svelte-1x1fn24{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1.5px solid var(--text-muted);padding:0;line-height:0;cursor:pointer;color:var(--text-muted);box-sizing:border-box;flex-shrink:0}.tp-lo-prep.svelte-1x1fn24.svelte-1x1fn24:hover{color:var(--text-normal);border-color:var(--text-normal)}button.tp-lo-prep--on.svelte-1x1fn24.svelte-1x1fn24{background:#43a047;border-color:#43a047;color:#fff}.tp-lo-prep.svelte-1x1fn24 svg{width:12px;height:12px}.tp-lo-noteedit.svelte-1x1fn24.svelte-1x1fn24{width:100%;box-sizing:border-box;margin-top:0;padding:9px 11px;border:1px solid var(--interactive-accent);border-radius:6px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:13px;line-height:1.4;font-family:var(--font-interface);resize:vertical}.tp-lo-panel.svelte-1x1fn24.svelte-1x1fn24{margin-top:8px}.tp-lo-field.svelte-1x1fn24.svelte-1x1fn24{display:block;margin-bottom:9px}.tp-lo-field-label.svelte-1x1fn24.svelte-1x1fn24{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:4px}.tp-lo-roomedit.svelte-1x1fn24.svelte-1x1fn24{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:13px;font-family:var(--font-interface)}.tp-lo-roomedit.svelte-1x1fn24.svelte-1x1fn24:focus{border-color:var(--interactive-accent);outline:none}.tp-lo-menu-sep.svelte-1x1fn24.svelte-1x1fn24{height:1px;background:var(--background-modifier-border);margin:6px 0}.tp-lo-menu.svelte-1x1fn24.svelte-1x1fn24{margin-top:6px;border-radius:6px;background:transparent;overflow:hidden}.tp-lo-menu.svelte-1x1fn24 button.svelte-1x1fn24{display:flex;align-items:center;justify-content:flex-start;gap:11px;width:100%;text-align:left;padding:12px 14px;border:none;background:transparent;box-shadow:none;outline:none;color:var(--text-normal);font-size:14px;line-height:1.35;cursor:pointer;font-family:var(--font-interface)}.tp-lo-menu.svelte-1x1fn24 button.svelte-1x1fn24:hover{background:var(--background-modifier-hover)}.tp-lo-menu.svelte-1x1fn24 svg{width:16px;height:16px;flex-shrink:0;color:var(--text-muted)}.tp-lo-unplaced.svelte-1x1fn24.svelte-1x1fn24{margin:10px;border:1px dashed var(--color-orange, #e0af68);border-radius:7px;padding:9px 11px}.tp-lo-unplaced-head.svelte-1x1fn24.svelte-1x1fn24{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--color-orange, #e0af68);margin-bottom:6px}.tp-lo-unplaced-head.svelte-1x1fn24 svg{width:14px;height:14px}.tp-lo-unplaced-row.svelte-1x1fn24.svelte-1x1fn24{font-size:13px;color:var(--text-normal);padding:3px 0}.tp-lo-unplaced-hint.svelte-1x1fn24.svelte-1x1fn24{font-size:11px;color:var(--text-muted);margin-top:6px}.tp-lo-empty.svelte-1x1fn24.svelte-1x1fn24{padding:20px;text-align:center;color:var(--text-muted);font-size:13px}.tp-lo-toast.svelte-1x1fn24.svelte-1x1fn24{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 12px;border-radius:7px;background:var(--background-secondary);border:1px solid var(--background-modifier-border);font-size:13px}.tp-lo-toast.svelte-1x1fn24>span.svelte-1x1fn24{flex:1}.tp-lo-toast.svelte-1x1fn24 button.svelte-1x1fn24{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);border-radius:5px;padding:4px 9px;cursor:pointer;color:var(--text-normal);font-size:12px}.tp-lo-toast.svelte-1x1fn24 button.svelte-1x1fn24:hover{background:var(--background-modifier-hover)}.tp-lo-toast.svelte-1x1fn24 svg{width:14px;height:14px}.tp-lo-toast-x.svelte-1x1fn24.svelte-1x1fn24{padding:4px !important}");
 }
 function get_each_context_15(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[91] = list[i];
+  child_ctx[90] = list[i];
   return child_ctx;
 }
 function get_each_context_24(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[94] = list[i];
+  child_ctx[93] = list[i];
   const constants_0 = (
     /*w*/
-    child_ctx[94].weekKey === /*currentWeekKey*/
+    child_ctx[93].weekKey === /*currentWeekKey*/
     child_ctx[17]
   );
-  child_ctx[95] = constants_0;
+  child_ctx[94] = constants_0;
   return child_ctx;
 }
 function get_each_context_33(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[98] = list[i];
+  child_ctx[97] = list[i];
   const constants_0 = (
     /*o*/
-    child_ctx[98].date < /*todayIso*/
+    child_ctx[97].date < /*todayIso*/
     child_ctx[16]
   );
-  child_ctx[99] = constants_0;
+  child_ctx[98] = constants_0;
   const constants_1 = (
     /*mainLine*/
     child_ctx[25](
       /*o*/
-      child_ctx[98]
+      child_ctx[97]
     )
   );
-  child_ctx[100] = constants_1;
+  child_ctx[99] = constants_1;
   return child_ctx;
 }
 function get_if_ctx4(ctx) {
@@ -25704,16 +25713,16 @@ function get_if_ctx4(ctx) {
     /*plugin*/
     child_ctx[0].settings,
     /*o*/
-    child_ctx[98].slotId,
+    child_ctx[97].slotId,
     /*o*/
-    child_ctx[98].date
+    child_ctx[97].date
   );
-  child_ctx[103] = constants_0;
+  child_ctx[102] = constants_0;
   return child_ctx;
 }
 function get_each_context5(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[88] = list[i];
+  child_ctx[87] = list[i];
   return child_ctx;
 }
 function create_else_block4(ctx) {
@@ -25759,7 +25768,7 @@ function create_else_block4(ctx) {
   );
   const get_key = (ctx2) => (
     /*w*/
-    ctx2[94].weekKey
+    ctx2[93].weekKey
   );
   for (let i = 0; i < each_value_2.length; i += 1) {
     let child_ctx = get_each_context_24(ctx, each_value_2, i);
@@ -25804,15 +25813,15 @@ function create_else_block4(ctx) {
       t9 = space();
       if (if_block2) if_block2.c();
       if_block2_anchor = empty();
-      attr(button, "class", "tp-lo-back svelte-uiw2hz");
+      attr(button, "class", "tp-lo-back svelte-1x1fn24");
       attr(button, "aria-label", "Back to classes");
-      attr(h3, "class", "tp-lo-title svelte-uiw2hz");
+      attr(h3, "class", "tp-lo-title svelte-1x1fn24");
       attr(input, "type", "date");
-      attr(input, "class", "svelte-uiw2hz");
-      attr(label, "class", "tp-lo-jump svelte-uiw2hz");
+      attr(input, "class", "svelte-1x1fn24");
+      attr(label, "class", "tp-lo-jump svelte-1x1fn24");
       attr(label, "title", "Jump to a date");
-      attr(div0, "class", "tp-lo-head svelte-uiw2hz");
-      attr(div1, "class", "tp-lo-list svelte-uiw2hz");
+      attr(div0, "class", "tp-lo-head svelte-1x1fn24");
+      attr(div1, "class", "tp-lo-list svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -25989,7 +25998,7 @@ function create_if_block5(ctx) {
   );
   const get_key = (ctx2) => (
     /*c*/
-    ctx2[88].id
+    ctx2[87].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context5(ctx, each_value, i);
@@ -26003,7 +26012,7 @@ function create_if_block5(ctx) {
   return {
     c() {
       div0 = element("div");
-      div0.innerHTML = `<h3 class="tp-lo-title svelte-uiw2hz">Lesson overview</h3>`;
+      div0.innerHTML = `<h3 class="tp-lo-title svelte-1x1fn24">Lesson overview</h3>`;
       t1 = space();
       div1 = element("div");
       span = element("span");
@@ -26016,13 +26025,13 @@ function create_if_block5(ctx) {
       }
       t4 = space();
       if (if_block) if_block.c();
-      attr(div0, "class", "tp-lo-head svelte-uiw2hz");
-      attr(span, "class", "tp-lo-search-icon svelte-uiw2hz");
+      attr(div0, "class", "tp-lo-head svelte-1x1fn24");
+      attr(span, "class", "tp-lo-search-icon svelte-1x1fn24");
       attr(input, "type", "text");
       attr(input, "placeholder", "Search classes\u2026");
-      attr(input, "class", "svelte-uiw2hz");
-      attr(div1, "class", "tp-lo-search svelte-uiw2hz");
-      attr(div2, "class", "tp-lo-cards svelte-uiw2hz");
+      attr(input, "class", "svelte-1x1fn24");
+      attr(div1, "class", "tp-lo-search svelte-1x1fn24");
+      attr(div2, "class", "tp-lo-cards svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -26114,19 +26123,19 @@ function create_if_block_133(ctx) {
   let span;
   let t_value = (
     /*w*/
-    ctx[94].weekType + ""
+    ctx[93].weekType + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-lo-ab svelte-uiw2hz");
+      attr(span, "class", "tp-lo-ab svelte-1x1fn24");
       toggle_class(
         span,
         "tp-lo-ab--current",
         /*isCurrent*/
-        ctx[95]
+        ctx[94]
       );
     },
     m(target, anchor) {
@@ -26136,14 +26145,14 @@ function create_if_block_133(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*weeks*/
       4096 && t_value !== (t_value = /*w*/
-      ctx2[94].weekType + "")) set_data(t, t_value);
+      ctx2[93].weekType + "")) set_data(t, t_value);
       if (dirty[0] & /*weeks, currentWeekKey*/
       135168) {
         toggle_class(
           span,
           "tp-lo-ab--current",
           /*isCurrent*/
-          ctx2[95]
+          ctx2[94]
         );
       }
     },
@@ -26162,7 +26171,7 @@ function create_if_block_123(ctx) {
   return {
     c() {
       span = element("span");
-      attr(span, "class", "tp-lo-taught svelte-uiw2hz");
+      attr(span, "class", "tp-lo-taught svelte-1x1fn24");
       attr(span, "title", "Taught");
     },
     m(target, anchor) {
@@ -26192,14 +26201,14 @@ function create_if_block_113(ctx) {
       /*click_handler_3*/
       ctx[56](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-lo-ic tp-lo-ic--plan svelte-uiw2hz");
+      attr(button, "class", "tp-lo-ic tp-lo-ic--plan svelte-1x1fn24");
       attr(button, "title", "Open lesson plan");
     },
     m(target, anchor) {
@@ -26235,14 +26244,14 @@ function create_if_block_103(ctx) {
       /*click_handler_4*/
       ctx[57](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-lo-ic svelte-uiw2hz");
+      attr(button, "class", "tp-lo-ic svelte-1x1fn24");
       attr(button, "title", "Open external resource");
     },
     m(target, anchor) {
@@ -26255,9 +26264,9 @@ function create_if_block_103(ctx) {
             null,
             button,
             /*ext*/
-            ctx[103] && externalKindOf(
+            ctx[102] && externalKindOf(
               /*ext*/
-              ctx[103]
+              ctx[102]
             ) === "folder" ? "folder" : "paperclip"
           ))
         ];
@@ -26270,9 +26279,9 @@ function create_if_block_103(ctx) {
       4097) obsIcon_action.update.call(
         null,
         /*ext*/
-        ctx[103] && externalKindOf(
+        ctx[102] && externalKindOf(
           /*ext*/
-          ctx[103]
+          ctx[102]
         ) === "folder" ? "folder" : "paperclip"
       );
     },
@@ -26314,9 +26323,9 @@ function create_if_block_63(ctx) {
     /*plugin*/
     ctx[0].settings,
     /*o*/
-    ctx[98].slotId,
+    ctx[97].slotId,
     /*o*/
-    ctx[98].date
+    ctx[97].date
   ) ? "Clear prepared mark" : "Mark prepared";
   let t10;
   let t11;
@@ -26345,7 +26354,7 @@ function create_if_block_63(ctx) {
       /*blur_handler*/
       ctx[59](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26354,7 +26363,7 @@ function create_if_block_63(ctx) {
       /*blur_handler_1*/
       ctx[61](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26363,7 +26372,7 @@ function create_if_block_63(ctx) {
       /*click_handler_5*/
       ctx[62](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26374,9 +26383,9 @@ function create_if_block_63(ctx) {
       /*plugin*/
       ctx2[0].settings,
       /*o*/
-      ctx2[98].slotId,
+      ctx2[97].slotId,
       /*o*/
-      ctx2[98].date
+      ctx2[97].date
     );
     if (show_if_1) return create_if_block_93;
     return create_else_block_13;
@@ -26388,7 +26397,7 @@ function create_if_block_63(ctx) {
       /*click_handler_9*/
       ctx[66](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26399,9 +26408,9 @@ function create_if_block_63(ctx) {
       /*plugin*/
       ctx2[0].settings,
       /*o*/
-      ctx2[98].slotId,
+      ctx2[97].slotId,
       /*o*/
-      ctx2[98].date
+      ctx2[97].date
     );
     if (show_if) return create_if_block_73;
     if (!/*isMobile*/
@@ -26414,7 +26423,7 @@ function create_if_block_63(ctx) {
       /*click_handler_14*/
       ctx[71](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26423,7 +26432,7 @@ function create_if_block_63(ctx) {
       /*click_handler_15*/
       ctx[72](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26432,7 +26441,7 @@ function create_if_block_63(ctx) {
       /*click_handler_16*/
       ctx[73](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26478,28 +26487,28 @@ function create_if_block_63(ctx) {
       button4 = element("button");
       span6 = element("span");
       t18 = text(" Insert a free lesson here");
-      attr(span0, "class", "tp-lo-field-label svelte-uiw2hz");
-      attr(textarea, "class", "tp-lo-noteedit svelte-uiw2hz");
+      attr(span0, "class", "tp-lo-field-label svelte-1x1fn24");
+      attr(textarea, "class", "tp-lo-noteedit svelte-1x1fn24");
       attr(textarea, "rows", "2");
       attr(textarea, "placeholder", "Notes for this lesson\u2026");
-      attr(label0, "class", "tp-lo-field svelte-uiw2hz");
-      attr(span1, "class", "tp-lo-field-label svelte-uiw2hz");
-      attr(input, "class", "tp-lo-roomedit svelte-uiw2hz");
+      attr(label0, "class", "tp-lo-field svelte-1x1fn24");
+      attr(span1, "class", "tp-lo-field-label svelte-1x1fn24");
+      attr(input, "class", "tp-lo-roomedit svelte-1x1fn24");
       attr(input, "type", "text");
       attr(input, "placeholder", input_placeholder_value = /*defaultRoom*/
       ctx[30](
         /*o*/
-        ctx[98]
+        ctx[97]
       ) || "Room");
-      attr(label1, "class", "tp-lo-field svelte-uiw2hz");
-      attr(button0, "class", "svelte-uiw2hz");
-      attr(button1, "class", "svelte-uiw2hz");
-      attr(div0, "class", "tp-lo-menu-sep svelte-uiw2hz");
-      attr(button2, "class", "svelte-uiw2hz");
-      attr(button3, "class", "svelte-uiw2hz");
-      attr(button4, "class", "svelte-uiw2hz");
-      attr(div1, "class", "tp-lo-menu svelte-uiw2hz");
-      attr(div2, "class", "tp-lo-panel svelte-uiw2hz");
+      attr(label1, "class", "tp-lo-field svelte-1x1fn24");
+      attr(button0, "class", "svelte-1x1fn24");
+      attr(button1, "class", "svelte-1x1fn24");
+      attr(div0, "class", "tp-lo-menu-sep svelte-1x1fn24");
+      attr(button2, "class", "svelte-1x1fn24");
+      attr(button3, "class", "svelte-1x1fn24");
+      attr(button4, "class", "svelte-1x1fn24");
+      attr(div1, "class", "tp-lo-menu svelte-1x1fn24");
+      attr(div2, "class", "tp-lo-panel svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, div2, anchor);
@@ -26574,9 +26583,9 @@ function create_if_block_63(ctx) {
             /*plugin*/
             ctx[0].settings,
             /*o*/
-            ctx[98].slotId,
+            ctx[97].slotId,
             /*o*/
-            ctx[98].date
+            ctx[97].date
           ) ? "x" : "check")),
           listen(button1, "click", click_handler_9),
           action_destroyer(obsIcon_action_2 = /*obsIcon*/
@@ -26606,7 +26615,7 @@ function create_if_block_63(ctx) {
       4096 && input_placeholder_value !== (input_placeholder_value = /*defaultRoom*/
       ctx[30](
         /*o*/
-        ctx[98]
+        ctx[97]
       ) || "Room")) {
         attr(input, "placeholder", input_placeholder_value);
       }
@@ -26634,18 +26643,18 @@ function create_if_block_63(ctx) {
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[98].slotId,
+        ctx[97].slotId,
         /*o*/
-        ctx[98].date
+        ctx[97].date
       ) ? "x" : "check");
       if (dirty[0] & /*plugin, weeks*/
       4097 && t10_value !== (t10_value = isSlotPrepared(
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[98].slotId,
+        ctx[97].slotId,
         /*o*/
-        ctx[98].date
+        ctx[97].date
       ) ? "Clear prepared mark" : "Mark prepared")) set_data(t10, t10_value);
       if (current_block_type_1 === (current_block_type_1 = select_block_type_2(ctx, dirty)) && if_block1) {
         if_block1.p(ctx, dirty);
@@ -26683,7 +26692,7 @@ function create_else_block_13(ctx) {
       /*click_handler_8*/
       ctx[65](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26692,7 +26701,7 @@ function create_else_block_13(ctx) {
       button = element("button");
       span = element("span");
       t = text(" Link lesson plan\u2026");
-      attr(button, "class", "svelte-uiw2hz");
+      attr(button, "class", "svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -26736,7 +26745,7 @@ function create_if_block_93(ctx) {
       /*click_handler_6*/
       ctx[63](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26745,7 +26754,7 @@ function create_if_block_93(ctx) {
       /*click_handler_7*/
       ctx[64](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26758,8 +26767,8 @@ function create_if_block_93(ctx) {
       button1 = element("button");
       span1 = element("span");
       t2 = text(" Unlink lesson plan");
-      attr(button0, "class", "svelte-uiw2hz");
-      attr(button1, "class", "svelte-uiw2hz");
+      attr(button0, "class", "svelte-1x1fn24");
+      attr(button1, "class", "svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, button0, anchor);
@@ -26812,7 +26821,7 @@ function create_if_block_83(ctx) {
       /*click_handler_12*/
       ctx[69](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26821,7 +26830,7 @@ function create_if_block_83(ctx) {
       /*click_handler_13*/
       ctx[70](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26834,8 +26843,8 @@ function create_if_block_83(ctx) {
       button1 = element("button");
       span1 = element("span");
       t2 = text(" Link external folder\u2026");
-      attr(button0, "class", "svelte-uiw2hz");
-      attr(button1, "class", "svelte-uiw2hz");
+      attr(button0, "class", "svelte-1x1fn24");
+      attr(button1, "class", "svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, button0, anchor);
@@ -26888,7 +26897,7 @@ function create_if_block_73(ctx) {
       /*click_handler_10*/
       ctx[67](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26897,7 +26906,7 @@ function create_if_block_73(ctx) {
       /*click_handler_11*/
       ctx[68](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -26910,8 +26919,8 @@ function create_if_block_73(ctx) {
       button1 = element("button");
       span1 = element("span");
       t2 = text(" Unlink external resource");
-      attr(button0, "class", "svelte-uiw2hz");
-      attr(button1, "class", "svelte-uiw2hz");
+      attr(button0, "class", "svelte-1x1fn24");
+      attr(button1, "class", "svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, button0, anchor);
@@ -26955,7 +26964,7 @@ function create_each_block_33(key_1, ctx) {
   let span0;
   let t0_value = (
     /*ml*/
-    ctx[100].text + ""
+    ctx[99].text + ""
   );
   let t0;
   let t1;
@@ -26964,7 +26973,7 @@ function create_each_block_33(key_1, ctx) {
     /*fmtDay*/
     ctx[24](
       /*o*/
-      ctx[98]
+      ctx[97]
     ) + ""
   );
   let t2;
@@ -26973,7 +26982,7 @@ function create_each_block_33(key_1, ctx) {
     /*shortPeriod*/
     ctx[22](
       /*o*/
-      ctx[98].periodName
+      ctx[97].periodName
     ) + ""
   );
   let t4;
@@ -26983,24 +26992,25 @@ function create_each_block_33(key_1, ctx) {
   let t6;
   let button1;
   let button1_title_value;
+  let button1_aria_pressed_value;
   let obsIcon_action;
   let t7;
   let show_if_2 = getSlotPlan(
     /*plugin*/
     ctx[0].settings,
     /*o*/
-    ctx[98].slotId,
+    ctx[97].slotId,
     /*o*/
-    ctx[98].date
+    ctx[97].date
   );
   let t8;
   let show_if_1 = getSlotExternal(
     /*plugin*/
     ctx[0].settings,
     /*o*/
-    ctx[98].slotId,
+    ctx[97].slotId,
     /*o*/
-    ctx[98].date
+    ctx[97].date
   );
   let t9;
   let span3;
@@ -27011,7 +27021,7 @@ function create_each_block_33(key_1, ctx) {
     ctx[6] === /*keyOf*/
     ctx[19](
       /*o*/
-      ctx[98]
+      ctx[97]
     )
   );
   let mounted;
@@ -27021,20 +27031,20 @@ function create_each_block_33(key_1, ctx) {
       /*click_handler_1*/
       ctx[54](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
   let if_block0 = (
     /*past*/
-    ctx[99] && create_if_block_123(ctx)
+    ctx[98] && create_if_block_123(ctx)
   );
   function click_handler_2() {
     return (
       /*click_handler_2*/
       ctx[55](
         /*o*/
-        ctx[98]
+        ctx[97]
       )
     );
   }
@@ -27069,40 +27079,49 @@ function create_each_block_33(key_1, ctx) {
       span3 = element("span");
       t10 = space();
       if (if_block3) if_block3.c();
-      attr(span0, "class", "tp-lo-topic svelte-uiw2hz");
+      attr(span0, "class", "tp-lo-topic svelte-1x1fn24");
       toggle_class(
         span0,
         "tp-lo-topic--faint",
         /*ml*/
-        ctx[100].faint
+        ctx[99].faint
       );
-      attr(span1, "class", "tp-lo-when svelte-uiw2hz");
-      attr(span2, "class", "tp-lo-rowtext svelte-uiw2hz");
-      attr(button0, "class", "tp-lo-rowbtn svelte-uiw2hz");
+      attr(span1, "class", "tp-lo-when svelte-1x1fn24");
+      attr(span2, "class", "tp-lo-rowtext svelte-1x1fn24");
+      attr(button0, "class", "tp-lo-rowbtn svelte-1x1fn24");
       attr(button0, "aria-expanded", button0_aria_expanded_value = /*menuKey*/
       ctx[6] === /*keyOf*/
       ctx[19](
         /*o*/
-        ctx[98]
+        ctx[97]
       ));
-      attr(button1, "class", "tp-lo-ic svelte-uiw2hz");
+      attr(button1, "class", "tp-lo-prep svelte-1x1fn24");
       attr(button1, "title", button1_title_value = isSlotPrepared(
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[98].slotId,
+        ctx[97].slotId,
         /*o*/
-        ctx[98].date
-      ) ? "Prepared \u2014 click to clear" : "Mark prepared");
-      toggle_class(button1, "tp-lo-ic--on", isSlotPrepared(
+        ctx[97].date
+      ) ? "Marked prepared \u2014 click to clear" : "Mark prepared");
+      attr(button1, "aria-label", "Toggle prepared");
+      attr(button1, "aria-pressed", button1_aria_pressed_value = isSlotPrepared(
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[98].slotId,
+        ctx[97].slotId,
         /*o*/
-        ctx[98].date
+        ctx[97].date
       ));
-      attr(span3, "class", "tp-lo-chev svelte-uiw2hz");
+      toggle_class(button1, "tp-lo-prep--on", isSlotPrepared(
+        /*plugin*/
+        ctx[0].settings,
+        /*o*/
+        ctx[97].slotId,
+        /*o*/
+        ctx[97].date
+      ));
+      attr(span3, "class", "tp-lo-chev svelte-1x1fn24");
       toggle_class(
         span3,
         "tp-lo-chev--open",
@@ -27110,24 +27129,24 @@ function create_each_block_33(key_1, ctx) {
         ctx[6] === /*keyOf*/
         ctx[19](
           /*o*/
-          ctx[98]
+          ctx[97]
         )
       );
-      attr(span4, "class", "tp-lo-icons svelte-uiw2hz");
-      attr(div0, "class", "tp-lo-row-main svelte-uiw2hz");
-      attr(div1, "class", "tp-lo-row svelte-uiw2hz");
+      attr(span4, "class", "tp-lo-icons svelte-1x1fn24");
+      attr(div0, "class", "tp-lo-row-main svelte-1x1fn24");
+      attr(div1, "class", "tp-lo-row svelte-1x1fn24");
       toggle_class(
         div1,
         "tp-lo-row--past",
         /*past*/
-        ctx[99]
+        ctx[98]
       );
       toggle_class(
         div1,
         "tp-lo-row--current",
         /*isCurrent*/
-        ctx[95] && !/*past*/
-        ctx[99]
+        ctx[94] && !/*past*/
+        ctx[98]
       );
       this.first = div1;
     },
@@ -27172,40 +27191,40 @@ function create_each_block_33(key_1, ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*weeks*/
       4096 && t0_value !== (t0_value = /*ml*/
-      ctx[100].text + "")) set_data(t0, t0_value);
+      ctx[99].text + "")) set_data(t0, t0_value);
       if (dirty[0] & /*mainLine, weeks*/
       33558528) {
         toggle_class(
           span0,
           "tp-lo-topic--faint",
           /*ml*/
-          ctx[100].faint
+          ctx[99].faint
         );
       }
       if (dirty[0] & /*weeks*/
       4096 && t2_value !== (t2_value = /*fmtDay*/
       ctx[24](
         /*o*/
-        ctx[98]
+        ctx[97]
       ) + "")) set_data(t2, t2_value);
       if (dirty[0] & /*weeks*/
       4096 && t4_value !== (t4_value = /*shortPeriod*/
       ctx[22](
         /*o*/
-        ctx[98].periodName
+        ctx[97].periodName
       ) + "")) set_data(t4, t4_value);
       if (dirty[0] & /*menuKey, weeks*/
       4160 && button0_aria_expanded_value !== (button0_aria_expanded_value = /*menuKey*/
       ctx[6] === /*keyOf*/
       ctx[19](
         /*o*/
-        ctx[98]
+        ctx[97]
       ))) {
         attr(button0, "aria-expanded", button0_aria_expanded_value);
       }
       if (
         /*past*/
-        ctx[99]
+        ctx[98]
       ) {
         if (if_block0) {
         } else {
@@ -27222,21 +27241,32 @@ function create_each_block_33(key_1, ctx) {
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[98].slotId,
+        ctx[97].slotId,
         /*o*/
-        ctx[98].date
-      ) ? "Prepared \u2014 click to clear" : "Mark prepared")) {
+        ctx[97].date
+      ) ? "Marked prepared \u2014 click to clear" : "Mark prepared")) {
         attr(button1, "title", button1_title_value);
       }
       if (dirty[0] & /*plugin, weeks*/
+      4097 && button1_aria_pressed_value !== (button1_aria_pressed_value = isSlotPrepared(
+        /*plugin*/
+        ctx[0].settings,
+        /*o*/
+        ctx[97].slotId,
+        /*o*/
+        ctx[97].date
+      ))) {
+        attr(button1, "aria-pressed", button1_aria_pressed_value);
+      }
+      if (dirty[0] & /*plugin, weeks*/
       4097) {
-        toggle_class(button1, "tp-lo-ic--on", isSlotPrepared(
+        toggle_class(button1, "tp-lo-prep--on", isSlotPrepared(
           /*plugin*/
           ctx[0].settings,
           /*o*/
-          ctx[98].slotId,
+          ctx[97].slotId,
           /*o*/
-          ctx[98].date
+          ctx[97].date
         ));
       }
       if (dirty[0] & /*plugin, weeks*/
@@ -27244,9 +27274,9 @@ function create_each_block_33(key_1, ctx) {
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[98].slotId,
+        ctx[97].slotId,
         /*o*/
-        ctx[98].date
+        ctx[97].date
       );
       if (show_if_2) {
         if (if_block1) {
@@ -27265,9 +27295,9 @@ function create_each_block_33(key_1, ctx) {
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[98].slotId,
+        ctx[97].slotId,
         /*o*/
-        ctx[98].date
+        ctx[97].date
       );
       if (show_if_1) {
         if (if_block2) {
@@ -27290,7 +27320,7 @@ function create_each_block_33(key_1, ctx) {
           ctx[6] === /*keyOf*/
           ctx[19](
             /*o*/
-            ctx[98]
+            ctx[97]
           )
         );
       }
@@ -27299,7 +27329,7 @@ function create_each_block_33(key_1, ctx) {
       ctx[6] === /*keyOf*/
       ctx[19](
         /*o*/
-        ctx[98]
+        ctx[97]
       );
       if (show_if) {
         if (if_block3) {
@@ -27319,7 +27349,7 @@ function create_each_block_33(key_1, ctx) {
           div1,
           "tp-lo-row--past",
           /*past*/
-          ctx[99]
+          ctx[98]
         );
       }
       if (dirty[0] & /*weeks, currentWeekKey, todayIso*/
@@ -27328,8 +27358,8 @@ function create_each_block_33(key_1, ctx) {
           div1,
           "tp-lo-row--current",
           /*isCurrent*/
-          ctx[95] && !/*past*/
-          ctx[99]
+          ctx[94] && !/*past*/
+          ctx[98]
         );
       }
     },
@@ -27351,7 +27381,7 @@ function create_each_block_24(key_1, ctx) {
   let span;
   let t0_value = (
     /*isCurrent*/
-    ctx[95] ? "This week \xB7" : "Week of"
+    ctx[94] ? "This week \xB7" : "Week of"
   );
   let t0;
   let t1;
@@ -27359,7 +27389,7 @@ function create_each_block_24(key_1, ctx) {
     /*fmtWeek*/
     ctx[23](
       /*w*/
-      ctx[94].weekKey
+      ctx[93].weekKey
     ) + ""
   );
   let t2;
@@ -27371,17 +27401,17 @@ function create_each_block_24(key_1, ctx) {
   let each_1_anchor;
   let if_block = (
     /*w*/
-    ctx[94].weekType && create_if_block_133(ctx)
+    ctx[93].weekType && create_if_block_133(ctx)
   );
   let each_value_3 = ensure_array_like(
     /*w*/
-    ctx[94].lessons
+    ctx[93].lessons
   );
   const get_key = (ctx2) => (
     /*keyOf*/
     ctx2[19](
       /*o*/
-      ctx2[98]
+      ctx2[97]
     )
   );
   for (let i = 0; i < each_value_3.length; i += 1) {
@@ -27405,14 +27435,14 @@ function create_each_block_24(key_1, ctx) {
         each_blocks[i].c();
       }
       each_1_anchor = empty();
-      attr(div, "class", "tp-lo-weekhead svelte-uiw2hz");
+      attr(div, "class", "tp-lo-weekhead svelte-1x1fn24");
       attr(div, "data-week", div_data_week_value = /*w*/
-      ctx[94].weekKey);
+      ctx[93].weekKey);
       toggle_class(
         div,
         "tp-lo-weekhead--current",
         /*isCurrent*/
-        ctx[95]
+        ctx[94]
       );
       this.first = div;
     },
@@ -27436,16 +27466,16 @@ function create_each_block_24(key_1, ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*weeks*/
       4096 && t0_value !== (t0_value = /*isCurrent*/
-      ctx[95] ? "This week \xB7" : "Week of")) set_data(t0, t0_value);
+      ctx[94] ? "This week \xB7" : "Week of")) set_data(t0, t0_value);
       if (dirty[0] & /*weeks*/
       4096 && t2_value !== (t2_value = /*fmtWeek*/
       ctx[23](
         /*w*/
-        ctx[94].weekKey
+        ctx[93].weekKey
       ) + "")) set_data(t2, t2_value);
       if (
         /*w*/
-        ctx[94].weekType
+        ctx[93].weekType
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
@@ -27460,7 +27490,7 @@ function create_each_block_24(key_1, ctx) {
       }
       if (dirty[0] & /*weeks*/
       4096 && div_data_week_value !== (div_data_week_value = /*w*/
-      ctx[94].weekKey)) {
+      ctx[93].weekKey)) {
         attr(div, "data-week", div_data_week_value);
       }
       if (dirty[0] & /*weeks, currentWeekKey*/
@@ -27469,7 +27499,7 @@ function create_each_block_24(key_1, ctx) {
           div,
           "tp-lo-weekhead--current",
           /*isCurrent*/
-          ctx[95]
+          ctx[94]
         );
       }
       if (dirty[0] & /*weeks, todayIso, currentWeekKey, openExternal, plugin, isMobile, togglePrep, openPlan, defaultRoom, panelRoom, panelNote, menuKey, keyOf, toggleMenu, shortPeriod, fmtDay, mainLine*/
@@ -27477,7 +27507,7 @@ function create_each_block_24(key_1, ctx) {
       511) {
         each_value_3 = ensure_array_like(
           /*w*/
-          ctx[94].lessons
+          ctx[93].lessons
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_3, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block_33, each_1_anchor, get_each_context_33);
       }
@@ -27520,7 +27550,7 @@ function create_if_block_53(ctx) {
   );
   const get_key = (ctx2) => (
     /*u*/
-    ctx2[91].id
+    ctx2[90].id
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
     let child_ctx = get_each_context_15(ctx, each_value_1, i);
@@ -27542,9 +27572,9 @@ function create_if_block_53(ctx) {
       t4 = space();
       div1 = element("div");
       div1.textContent = "Pushed off the end of the year. Pull a run back, or free up a slot, to drop these back in.";
-      attr(div0, "class", "tp-lo-unplaced-head svelte-uiw2hz");
-      attr(div1, "class", "tp-lo-unplaced-hint svelte-uiw2hz");
-      attr(div2, "class", "tp-lo-unplaced svelte-uiw2hz");
+      attr(div0, "class", "tp-lo-unplaced-head svelte-1x1fn24");
+      attr(div1, "class", "tp-lo-unplaced-hint svelte-1x1fn24");
+      attr(div2, "class", "tp-lo-unplaced svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, div2, anchor);
@@ -27597,7 +27627,7 @@ function create_each_block_15(key_1, ctx) {
   let div;
   let t_value = (
     /*u*/
-    ((_a2 = ctx[91].label) != null ? _a2 : "Lesson") + ""
+    ((_a2 = ctx[90].label) != null ? _a2 : "Lesson") + ""
   );
   let t;
   return {
@@ -27606,7 +27636,7 @@ function create_each_block_15(key_1, ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-lo-unplaced-row svelte-uiw2hz");
+      attr(div, "class", "tp-lo-unplaced-row svelte-1x1fn24");
       this.first = div;
     },
     m(target, anchor) {
@@ -27618,7 +27648,7 @@ function create_each_block_15(key_1, ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*unplacedForClass*/
       2048 && t_value !== (t_value = /*u*/
-      ((_a3 = ctx[91].label) != null ? _a3 : "Lesson") + "")) set_data(t, t_value);
+      ((_a3 = ctx[90].label) != null ? _a3 : "Lesson") + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -27633,7 +27663,7 @@ function create_if_block_44(ctx) {
     c() {
       div = element("div");
       div.textContent = "No lessons for this class this year.";
-      attr(div, "class", "tp-lo-empty svelte-uiw2hz");
+      attr(div, "class", "tp-lo-empty svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -27673,11 +27703,11 @@ function create_if_block_312(ctx) {
       t2 = text(" Undo");
       t3 = space();
       button1 = element("button");
-      attr(span0, "class", "svelte-uiw2hz");
-      attr(button0, "class", "svelte-uiw2hz");
-      attr(button1, "class", "tp-lo-toast-x svelte-uiw2hz");
+      attr(span0, "class", "svelte-1x1fn24");
+      attr(button0, "class", "svelte-1x1fn24");
+      attr(button1, "class", "tp-lo-toast-x svelte-1x1fn24");
       attr(button1, "aria-label", "Dismiss");
-      attr(div, "class", "tp-lo-toast svelte-uiw2hz");
+      attr(div, "class", "tp-lo-toast svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -27734,7 +27764,7 @@ function create_if_block_213(ctx) {
     /*emojiFor*/
     ctx[21](
       /*c*/
-      ctx[88]
+      ctx[87]
     ) + ""
   );
   let t;
@@ -27742,7 +27772,7 @@ function create_if_block_213(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-lo-card-emoji svelte-uiw2hz");
+      attr(span, "class", "tp-lo-card-emoji svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -27753,7 +27783,7 @@ function create_if_block_213(ctx) {
       16384 && t_value !== (t_value = /*emojiFor*/
       ctx2[21](
         /*c*/
-        ctx2[88]
+        ctx2[87]
       ) + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -27771,13 +27801,13 @@ function create_each_block5(key_1, ctx) {
     /*emojiFor*/
     ctx[21](
       /*c*/
-      ctx[88]
+      ctx[87]
     )
   );
   let span0;
   let t0_value = (
     /*c*/
-    ctx[88].code + ""
+    ctx[87].code + ""
   );
   let t0;
   let t1;
@@ -27786,11 +27816,11 @@ function create_each_block5(key_1, ctx) {
     /*subjectFor*/
     (_a2 = ctx[20](
       /*c*/
-      ctx[88]
+      ctx[87]
     )) == null ? void 0 : _a2.name,
     /*c*/
-    ctx[88].year ? "Yr" + /*c*/
-    ctx[88].year : ""
+    ctx[87].year ? "Yr" + /*c*/
+    ctx[87].year : ""
   ].filter(Boolean).join(" \xB7 ") + "";
   let t2;
   let t3;
@@ -27800,7 +27830,7 @@ function create_each_block5(key_1, ctx) {
     /*nextLabels*/
     ((_b2 = ctx[13].get(
       /*c*/
-      ctx[88].id
+      ctx[87].id
     )) != null ? _b2 : "\u2014") + ""
   );
   let t5;
@@ -27812,7 +27842,7 @@ function create_each_block5(key_1, ctx) {
       /*click_handler*/
       ctx[51](
         /*c*/
-        ctx[88]
+        ctx[87]
       )
     );
   }
@@ -27821,7 +27851,7 @@ function create_each_block5(key_1, ctx) {
       /*keydown_handler*/
       ctx[52](
         /*c*/
-        ctx[88],
+        ctx[87],
         ...args
       )
     );
@@ -27842,15 +27872,15 @@ function create_each_block5(key_1, ctx) {
       span3 = element("span");
       t4 = text("Next: ");
       t5 = text(t5_value);
-      attr(span0, "class", "tp-lo-card-codetext svelte-uiw2hz");
-      attr(span1, "class", "tp-lo-card-code svelte-uiw2hz");
-      attr(span2, "class", "tp-lo-card-sub svelte-uiw2hz");
-      attr(span3, "class", "tp-lo-card-next svelte-uiw2hz");
-      attr(div, "class", "tp-lo-card svelte-uiw2hz");
+      attr(span0, "class", "tp-lo-card-codetext svelte-1x1fn24");
+      attr(span1, "class", "tp-lo-card-code svelte-1x1fn24");
+      attr(span2, "class", "tp-lo-card-sub svelte-1x1fn24");
+      attr(span3, "class", "tp-lo-card-next svelte-1x1fn24");
+      attr(div, "class", "tp-lo-card svelte-1x1fn24");
       attr(div, "role", "button");
       attr(div, "tabindex", "0");
       set_style(div, "border-left", "3px solid " + /*c*/
-      ctx[88].colour);
+      ctx[87].colour);
       this.first = div;
     },
     m(target, anchor) {
@@ -27881,7 +27911,7 @@ function create_each_block5(key_1, ctx) {
       16384) show_if = /*emojiFor*/
       ctx[21](
         /*c*/
-        ctx[88]
+        ctx[87]
       );
       if (show_if) {
         if (if_block) {
@@ -27897,28 +27927,28 @@ function create_each_block5(key_1, ctx) {
       }
       if (dirty[0] & /*filteredClasses*/
       16384 && t0_value !== (t0_value = /*c*/
-      ctx[88].code + "")) set_data(t0, t0_value);
+      ctx[87].code + "")) set_data(t0, t0_value);
       if (dirty[0] & /*filteredClasses*/
       16384 && t2_value !== (t2_value = [
         /*subjectFor*/
         (_a3 = ctx[20](
           /*c*/
-          ctx[88]
+          ctx[87]
         )) == null ? void 0 : _a3.name,
         /*c*/
-        ctx[88].year ? "Yr" + /*c*/
-        ctx[88].year : ""
+        ctx[87].year ? "Yr" + /*c*/
+        ctx[87].year : ""
       ].filter(Boolean).join(" \xB7 ") + "")) set_data(t2, t2_value);
       if (dirty[0] & /*nextLabels, filteredClasses*/
       24576 && t5_value !== (t5_value = /*nextLabels*/
       ((_b3 = ctx[13].get(
         /*c*/
-        ctx[88].id
+        ctx[87].id
       )) != null ? _b3 : "\u2014") + "")) set_data(t5, t5_value);
       if (dirty[0] & /*filteredClasses*/
       16384) {
         set_style(div, "border-left", "3px solid " + /*c*/
-        ctx[88].colour);
+        ctx[87].colour);
       }
     },
     d(detaching) {
@@ -27937,7 +27967,7 @@ function create_if_block_114(ctx) {
     c() {
       div = element("div");
       div.textContent = "No classes";
-      attr(div, "class", "tp-lo-empty svelte-uiw2hz");
+      attr(div, "class", "tp-lo-empty svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -27962,7 +27992,7 @@ function create_fragment5(ctx) {
     c() {
       div = element("div");
       if_block.c();
-      attr(div, "class", "tp-lo svelte-uiw2hz");
+      attr(div, "class", "tp-lo svelte-1x1fn24");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -28079,10 +28109,9 @@ function instance5($$self, $$props, $$invalidate) {
     await plugin.saveSettings();
     refresh();
   }
-  const slotForOcc = (o) => resolvedSlotForDate(plugin.settings, o.date, o.periodId);
   const defaultRoom = (o) => {
-    var _a3, _b3;
-    return (_b3 = (_a3 = slotForOcc(o)) === null || _a3 === void 0 ? void 0 : _a3.classroom) !== null && _b3 !== void 0 ? _b3 : "";
+    var _a3;
+    return (_a3 = o.classroom) !== null && _a3 !== void 0 ? _a3 : "";
   };
   function openPanel(o) {
     $$invalidate(6, menuKey = keyOf(o));
@@ -28432,7 +28461,7 @@ var LessonOverviewView = class extends import_obsidian22.ItemView {
     return "Lessons";
   }
   getIcon() {
-    return "list-details";
+    return "list-checks";
   }
   async onOpen() {
     const container = this.containerEl.children[1];

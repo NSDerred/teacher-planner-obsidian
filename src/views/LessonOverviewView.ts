@@ -17,7 +17,7 @@ export class LessonOverviewView extends ItemView {
 
   getViewType(): string { return LESSON_OVERVIEW_VIEW_TYPE; }
   getDisplayText(): string { return "Lessons"; }
-  getIcon(): string { return "list-details"; }
+  getIcon(): string { return "list-checks"; }
 
   async onOpen() {
     const container = this.containerEl.children[1] as HTMLElement;
