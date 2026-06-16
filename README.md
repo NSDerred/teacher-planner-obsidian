@@ -46,6 +46,14 @@ Link a reusable lesson-plan note to any lesson and open it straight from the chi
 
 ![Linking a lesson plan](docs/screenshots/linking-lesson-plan.gif)
 
+## Plan a class across the whole year
+
+The Lessons button opens a dockable overview of a single class from the first week of the year to the last. Pick a class and every one of its lessons is laid out in order, grouped into weeks with the A or B label in the header, centred on the current week, with a date search to jump anywhere in the year. Holidays and INSET days are left out automatically, so what you see is your real teaching schedule.
+
+Click any lesson to open it as a highlighted card and edit it in place. Type its note and room straight into the row, link or open a lesson plan, mark it prepared, attach a file or folder, or open its note, all without leaving the list. Whatever you change here shows on the week grid for that lesson too, because it is the same lesson. And when a lesson does not happen, you can shift the whole sequence along: push your lessons forward a slot, pull them back, or insert a free lesson, and anything that runs off the end is parked safely rather than lost. The note, room, plan, and prepared mark all travel with the lesson when it moves.
+
+![Editing lessons in the overview](docs/screenshots/lesson-overview-editing.gif)
+
 ## Track your directed time properly
 
 Turn on the directed-time tracker to keep a running total of your hours against the STPCD 1,265 hour limit. It counts your timetabled lessons, your directed activities, and your one-off events, projects a year-end figure, and leaves out holidays and INSET days for you. Part-time fractions are supported, and a detailed Excel report is one click away for union or management use.

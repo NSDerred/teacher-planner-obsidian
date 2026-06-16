@@ -27584,7 +27584,7 @@ function create_each_block_24(key_1, ctx) {
   let span;
   let t0_value = (
     /*isCurrent*/
-    ctx[94] ? "This week \xB7" : "Week of"
+    ctx[94] ? "This week \xB7" : "Week:"
   );
   let t0;
   let t1;
@@ -27669,7 +27669,7 @@ function create_each_block_24(key_1, ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*weeks*/
       4096 && t0_value !== (t0_value = /*isCurrent*/
-      ctx[94] ? "This week \xB7" : "Week of")) set_data(t0, t0_value);
+      ctx[94] ? "This week \xB7" : "Week:")) set_data(t0, t0_value);
       if (dirty[0] & /*weeks*/
       4096 && t2_value !== (t2_value = /*fmtWeek*/
       ctx[23](
@@ -28270,7 +28270,10 @@ function instance5($$self, $$props, $$invalidate) {
     return c ? (_b3 = (_a3 = subjectFor(c)) === null || _a3 === void 0 ? void 0 : _a3.emoji) !== null && _b3 !== void 0 ? _b3 : "" : "";
   };
   const shortPeriod = (name) => name.replace(/^Period\s+/i, "P");
-  const fmtWeek = (k) => (/* @__PURE__ */ new Date(k + "T12:00:00")).toLocaleDateString(void 0, { day: "numeric", month: "short" });
+  const fmtWeek = (k) => {
+    const [y, m, d] = k.split("-");
+    return `${d}/${m}/${y}`;
+  };
   const fmtDay = (o) => (/* @__PURE__ */ new Date(o.date + "T12:00:00")).toLocaleDateString(void 0, { weekday: "short", day: "numeric" });
   function planTitle(o) {
     var _a3;

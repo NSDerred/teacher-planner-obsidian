@@ -43,7 +43,7 @@
   const subjectFor = (c: ClassGroup) => subjects.find(s => s.id === c.subjectId);
   const emojiFor = (c: ClassGroup | undefined) => (c ? subjectFor(c)?.emoji ?? "" : "");
   const shortPeriod = (name: string) => name.replace(/^Period\s+/i, "P");
-  const fmtWeek = (k: string) => new Date(k + "T12:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  const fmtWeek = (k: string) => { const [y, m, d] = k.split("-"); return `${d}/${m}/${y}`; };
   const fmtDay = (o: LessonOccurrence) => new Date(o.date + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric" });
 
   $: filteredClasses = classes.filter(c => {
@@ -222,7 +222,7 @@
       {#each weeks as w (w.weekKey)}
         {@const isCurrent = w.weekKey === currentWeekKey}
         <div class="tp-lo-weekhead" class:tp-lo-weekhead--current={isCurrent} data-week={w.weekKey}>
-          <span>{isCurrent ? "This week ·" : "Week of"} {fmtWeek(w.weekKey)}</span>
+          <span>{isCurrent ? "This week ·" : "Week:"} {fmtWeek(w.weekKey)}</span>
           {#if w.weekType}<span class="tp-lo-ab" class:tp-lo-ab--current={isCurrent}>{w.weekType}</span>{/if}
         </div>
         {#each w.lessons as o (keyOf(o))}
