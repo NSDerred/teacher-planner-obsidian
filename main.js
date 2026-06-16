@@ -9884,7 +9884,13 @@ var init_SettingsTab = __esm({
         if (!snapshot || JSON.stringify(this.plugin.settings) === snapshot) return;
         new SettingsAppliedModal(this.app, this.plugin, snapshot).open();
       }
+      // PluginSettingTab requires display(); the new getSettingDefinitions() API
+      // is 1.13.0+ while our minAppVersion is 1.7.2, so we keep an imperative
+      // render() and have display() delegate to it.
       display() {
+        this.render();
+      }
+      render() {
         var _a2, _b2, _c, _d, _e, _f, _g;
         const { containerEl } = this;
         containerEl.empty();
@@ -10393,7 +10399,7 @@ var init_SettingsTab = __esm({
           this.plugin.settings.gridLineWeight = 1;
           await this.plugin.saveSettings();
           new import_obsidian11.Notice("Grid visuals reset to theme defaults.");
-          this.display();
+          this.render();
         }));
         new import_obsidian11.Setting(containerEl).setName("Lesson plans").setHeading();
         new import_obsidian11.Setting(containerEl).setName("Plans folder").setDesc('Where new lesson plans are created and listed first in the picker. Leave empty for "<planner folder>/Plans".').addText((t) => {
@@ -10432,7 +10438,7 @@ var init_SettingsTab = __esm({
             } else {
               await this.plugin.saveSettings();
             }
-            this.display();
+            this.render();
           });
         });
         if (this.plugin.settings.weekNoteFiles) {
@@ -10499,18 +10505,18 @@ var init_SettingsTab = __esm({
             switchBtn.addEventListener("click", () => {
               void (async () => {
                 await this.plugin.switchPlanner(p.id);
-                this.display();
+                this.render();
               })();
             });
             const delBtn = actions.createEl("button", { text: "Delete", cls: "tp-btn tp-btn--danger" });
             delBtn.addEventListener("click", () => {
               const isLast = planners.length === 1;
-              new DeletePlannerModal(this.app, this.plugin, p.id, p.name, isLast, () => this.display()).open();
+              new DeletePlannerModal(this.app, this.plugin, p.id, p.name, isLast, () => this.render()).open();
             });
           } else {
             const editBtn = actions.createEl("button", { text: "Edit", cls: "tp-btn tp-btn--primary" });
             editBtn.addEventListener("click", () => {
-              new EditPlannerModal(this.app, this.plugin, () => this.display()).open();
+              new EditPlannerModal(this.app, this.plugin, () => this.render()).open();
             });
             const disabledDel = actions.createEl("button", {
               text: "Delete",
@@ -10526,7 +10532,7 @@ var init_SettingsTab = __esm({
           new SetupWizardModal(this.app, this.plugin, true).open();
           (_a2 = this.app.setting) == null ? void 0 : _a2.close();
         }));
-        const backupSetting = new import_obsidian11.Setting(container).setName("Backups").setDesc("Saved as .json in the plugin folder (hidden, no vault clutter); the auto-backup taken before deleting a planner goes here too. Export lets you also save a copy to a vault folder or your computer.").addButton((btn) => btn.setButtonText("Export\u2026").onClick(() => new BackupExportModal(this.app, this.plugin, () => this.display()).open())).addButton((btn) => btn.setButtonText("Import from library\u2026").onClick(() => this.importBackupFromLibrary()));
+        const backupSetting = new import_obsidian11.Setting(container).setName("Backups").setDesc("Saved as .json in the plugin folder (hidden, no vault clutter); the auto-backup taken before deleting a planner goes here too. Export lets you also save a copy to a vault folder or your computer.").addButton((btn) => btn.setButtonText("Export\u2026").onClick(() => new BackupExportModal(this.app, this.plugin, () => this.render()).open())).addButton((btn) => btn.setButtonText("Import from library\u2026").onClick(() => this.importBackupFromLibrary()));
         if (!import_obsidian11.Platform.isMobile) {
           backupSetting.addButton((btn) => btn.setButtonText("Import from file\u2026").onClick(() => this.importBackupFromFile()));
         }
@@ -10869,7 +10875,7 @@ var init_SettingsTab = __esm({
                     try {
                       await applyStructureTemplate(this.plugin, structure);
                       new import_obsidian11.Notice("School structure applied.");
-                      this.display();
+                      this.render();
                     } catch (e) {
                       console.error("Teacher Planner: apply structure failed.", e);
                       new import_obsidian11.Notice("Could not apply template \u2014 see console.");
@@ -10910,7 +10916,7 @@ var init_SettingsTab = __esm({
                   const overrides = d !== 0 ? shiftOverrideDates(holidays.overrides, d) : holidays.overrides;
                   const n = await applyHolidayTemplate(this.plugin, { overrides });
                   new import_obsidian11.Notice(`Added ${n} holiday/INSET ${n === 1 ? "entry" : "entries"}. Fine-tune dates in the Academic year settings.`);
-                  this.display();
+                  this.render();
                 })();
               }).open();
             })();
@@ -10924,7 +10930,7 @@ var init_SettingsTab = __esm({
             new import_obsidian11.Notice("No saved backups in the plugin library yet.");
             return;
           }
-          new BackupPickModal(this.app, this.plugin, files2, () => this.display()).open();
+          new BackupPickModal(this.app, this.plugin, files2, () => this.render()).open();
         })();
       }
       importBackupFromFile() {
@@ -10937,7 +10943,7 @@ var init_SettingsTab = __esm({
             const ids = await importPlanners(this.plugin, planners);
             new import_obsidian11.Notice(`Imported ${planners.length} planner${planners.length === 1 ? "" : "s"}.`);
             if (ids[0]) await this.plugin.switchPlanner(ids[0]);
-            this.display();
+            this.render();
           } catch (e) {
             new import_obsidian11.Notice(`Import failed: ${(_a2 = e.message) != null ? _a2 : "see console"}`);
           }

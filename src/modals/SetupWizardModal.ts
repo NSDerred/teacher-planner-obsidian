@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Setting, setIcon, FuzzySuggestModal, TFile } from "obsidian";
+import { App, Modal, Notice, Setting, setIcon, FuzzySuggestModal } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type {
   PlannerRecord, Subject, ClassGroup, SchoolDay,

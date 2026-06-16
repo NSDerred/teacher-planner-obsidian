@@ -190,7 +190,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     new SettingsAppliedModal(this.app, this.plugin, snapshot).open();
   }
 
-  display(): void {
+  // PluginSettingTab requires display(); the new getSettingDefinitions() API
+  // is 1.13.0+ while our minAppVersion is 1.7.2, so we keep an imperative
+  // render() and have display() delegate to it.
+  display(): void { this.render(); }
+
+  private render(): void {
     const { containerEl } = this;
     containerEl.empty();
     // Capture snapshot of current settings so hide() can detect changes
@@ -762,7 +767,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           this.plugin.settings.gridLineWeight = 1;
           await this.plugin.saveSettings();
           new Notice("Grid visuals reset to theme defaults.");
-          this.display();
+          this.render();
         }));
 
     // ── Export ────────────────────────────────────────────────────────────
@@ -810,7 +815,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           } else {
             await this.plugin.saveSettings();
           }
-          this.display();
+          this.render();
         }));
     if (this.plugin.settings.weekNoteFiles) {
       new Setting(containerEl)
@@ -889,17 +894,17 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         const switchBtn = actions.createEl("button", { text: "Switch", cls: "tp-btn tp-btn--primary" });
         switchBtn.addEventListener("click", () => { void (async () => {
           await this.plugin.switchPlanner(p.id);
-          this.display();
+          this.render();
         })(); });
         const delBtn = actions.createEl("button", { text: "Delete", cls: "tp-btn tp-btn--danger" });
         delBtn.addEventListener("click", () => {
           const isLast = planners.length === 1;
-          new DeletePlannerModal(this.app, this.plugin, p.id, p.name, isLast, () => this.display()).open();
+          new DeletePlannerModal(this.app, this.plugin, p.id, p.name, isLast, () => this.render()).open();
         });
       } else {
         const editBtn = actions.createEl("button", { text: "Edit", cls: "tp-btn tp-btn--primary" });
         editBtn.addEventListener("click", () => {
-          new EditPlannerModal(this.app, this.plugin, () => this.display()).open();
+          new EditPlannerModal(this.app, this.plugin, () => this.render()).open();
         });
         // Active planner — delete disabled with tooltip
         const disabledDel = actions.createEl("button", {
@@ -923,7 +928,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const backupSetting = new Setting(container)
       .setName("Backups")
       .setDesc("Saved as .json in the plugin folder (hidden, no vault clutter); the auto-backup taken before deleting a planner goes here too. Export lets you also save a copy to a vault folder or your computer.")
-      .addButton(btn => btn.setButtonText("Export…").onClick(() => new BackupExportModal(this.app, this.plugin, () => this.display()).open()))
+      .addButton(btn => btn.setButtonText("Export…").onClick(() => new BackupExportModal(this.app, this.plugin, () => this.render()).open()))
       .addButton(btn => btn.setButtonText("Import from library…").onClick(() => this.importBackupFromLibrary()));
     if (!Platform.isMobile) {
       backupSetting.addButton(btn => btn.setButtonText("Import from file…").onClick(() => this.importBackupFromFile()));
@@ -1220,7 +1225,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       new ConfirmModal(this.app,
         "Apply this school structure to the current planner? It replaces your periods, block types, A/B pattern and school days. It also sets the year start/end dates from the template (nudge them afterwards). Any classes already placed on the timetable will be detached, since their slots point at the old periods. Your classes and notes are kept.",
         () => { void (async () => {
-          try { await applyStructureTemplate(this.plugin, structure); new Notice("School structure applied."); this.display(); }
+          try { await applyStructureTemplate(this.plugin, structure); new Notice("School structure applied."); this.render(); }
           catch (e) { console.error("Teacher Planner: apply structure failed.", e); new Notice("Could not apply template — see console."); }
         })(); },
         "Apply structure").open();
@@ -1243,7 +1248,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         const overrides = d !== 0 ? shiftOverrideDates(holidays.overrides, d) : holidays.overrides;
         const n = await applyHolidayTemplate(this.plugin, { overrides });
         new Notice(`Added ${n} holiday/INSET ${n === 1 ? "entry" : "entries"}. Fine-tune dates in the Academic year settings.`);
-        this.display();
+        this.render();
       })(); }).open();
     })(); }).open();
     })();
@@ -1253,7 +1258,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     void (async () => {
       const files = await listLibraryBackups(this.plugin);
       if (files.length === 0) { new Notice("No saved backups in the plugin library yet."); return; }
-      new BackupPickModal(this.app, this.plugin, files, () => this.display()).open();
+      new BackupPickModal(this.app, this.plugin, files, () => this.render()).open();
     })();
   }
 
@@ -1266,7 +1271,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         const ids = await importPlanners(this.plugin, planners);
         new Notice(`Imported ${planners.length} planner${planners.length === 1 ? "" : "s"}.`);
         if (ids[0]) await this.plugin.switchPlanner(ids[0]);
-        this.display();
+        this.render();
       } catch (e) { new Notice(`Import failed: ${(e as Error).message ?? "see console"}`); }
     })();
   }

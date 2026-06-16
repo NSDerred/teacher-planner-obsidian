@@ -1,6 +1,5 @@
 import { App, TFile, normalizePath } from "obsidian";
 import type { TeacherPlannerSettings } from "../types";
-import type { LessonOccurrence } from "./lessonOccurrences";
 import type { NoteMove } from "./lessonShiftApply";
 import { buildNoteTitle } from "./noteTitleUtils";
 import { getMondayOfWeek } from "./weekUtils";
