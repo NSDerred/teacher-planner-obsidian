@@ -1320,7 +1320,7 @@
                   {/if}
 
                   {#if slot || devEvents.length > 0}
-                    <div class="tp-event-stack" style={_partial ? `bottom:auto; height:${_occPx}px;` : ""}>
+                    <div class="tp-event-stack" class:tp-event-stack--partial={_partial} style={_partial ? `--stack-h:${_occPx}px;` : ""}>
                       {#if slot}
                         {@const lbl = getSlotLabel(slot)}
                         {@const slotPlanPath = _slotPlanMap[slot.id + "|" + dayDate]}
@@ -1431,7 +1431,7 @@
                   {/if}
                   {#if _partial}
                     <div class="tp-block-durbadge">{_occMins}m</div>
-                    <div class="tp-block-free" style="top:{_occPx + 4}px;">{_occEnd}–{period.end}</div>
+                    <div class="tp-block-free" style="top:{_occPx}px;">{_occEnd}–{period.end}</div>
                   {/if}
                 </div>
                 {/if}
@@ -1635,8 +1635,10 @@
 
   /* Chip stack inside a block — below the block label */
   .tp-event-stack { position:absolute; top:3px; left:3px; right:3px; bottom:3px; display:flex; flex-direction:row; gap:2px; z-index:3; }
-  .tp-block-free { position:absolute; left:6px; right:6px; text-align:center; font-size:11px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; z-index:2; }
+  .tp-event-stack--partial { bottom:auto; height:var(--stack-h, auto); }
+  .tp-block-free { position:absolute; left:6px; right:6px; bottom:3px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:11px; color:var(--text-faint); white-space:nowrap; overflow:hidden; pointer-events:none; z-index:2; }
   .tp-block-durbadge { position:absolute; top:4px; right:4px; font-size:10px; font-weight:700; line-height:1.5; padding:0 4px; border-radius:3px; background:var(--interactive-accent); color:var(--text-on-accent, #fff); pointer-events:none; z-index:4; }
+  .tp-block:hover .tp-block-free, .tp-block:hover .tp-block-durbadge { display:none; }
   .tp-event-stack .tp-chip { position:relative; inset:auto; flex:1; min-width:0; }
 
   /* Narrow-screen: overflow menu replaces action buttons */
