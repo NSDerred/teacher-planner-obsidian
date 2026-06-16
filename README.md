@@ -18,7 +18,7 @@ If you have ever kept your timetable in one place, your lesson notes in another,
 
 ## Build your timetable once
 
-Lay out your week visually in the timetable editor. Define your periods and the blocks that make up a school day, whether that is a lesson, a break, registration, or anything you name yourself, then drop classes and activities into place. Each class carries its own colour, year group, code, and default room.
+Lay out your week visually in the timetable editor. Define your periods and the blocks that make up a school day, whether that is a lesson, a break, registration, or anything you name yourself, then drop classes and activities into place. Each class carries its own colour, year group, code, and default room. Drag a class to a different cell to move it, drag it onto another to swap the two, or hold Ctrl or Cmd to drop a copy, so fixing or filling out a timetable is quick.
 
 If your school runs a two-week timetable, turn on A and B week rotation and the planner tracks which week you are on automatically. It counts teaching weeks and skips full holiday weeks, so it never drifts out of step across a half term, and a single click on the week badge sets a one-off swap when a term starts on the opposite week.
 
@@ -56,13 +56,13 @@ Click any lesson to open it as a highlighted card and edit it in place. Type its
 
 ## Track your directed time properly
 
-Turn on the directed-time tracker to keep a running total of your hours against the STPCD 1,265 hour limit. It counts your timetabled lessons, your directed activities, and your one-off events, projects a year-end figure, and leaves out holidays and INSET days for you. Part-time fractions are supported, and a detailed Excel report is one click away for union or management use.
+Turn on the directed-time tracker to keep a running total of your hours against the STPCD 1,265 hour limit. It counts your timetabled lessons, your directed activities, and your one-off events, each for the length of the block it sits in — so registration counts its few minutes and a full period counts the hour — with a per-placement override when something runs short or long. It projects a year-end figure and leaves out holidays and INSET days for you. Part-time fractions are supported, and a detailed Excel report is one click away for union or management use.
 
 ![The directed-time tracker](docs/screenshots/directed-time-tracker.png)
 
 ## Run more than one planner, and keep it safe
 
-Teaching across two schools, or want a clean record of last year? Run several planners in one vault, each with its own timetable, classes, and notes, and switch between them instantly. You can export any planner, or all of them, to a backup file in your vault, and import one back as a new planner. Deleting a planner saves a backup first, so it is always recoverable.
+Teaching across two schools, or want a clean record of last year? Run several planners in one vault, each with its own timetable, classes, and notes, and switch between them instantly. You can export any planner, or all of them, to a backup file — kept tidily inside the plugin's own folder by default, or sent to a vault folder or anywhere on your computer — and import one back as a new planner. Deleting a planner saves a backup first, so it is always recoverable. You can also save your school's shape as a reusable template — its periods and day structure, or its holiday and INSET dates — to share with a colleague or to start next year's planner in seconds.
 
 ## Get your planner out
 

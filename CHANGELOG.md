@@ -5,6 +5,29 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-06-16
+
+### Added
+
+- **Lesson overview — plan a class across the whole year.** A new **Lessons** button in the week-view header opens a dockable view (keep it left, right, or in the main area). Pick a class from a searchable card grid and see every lesson for the year in date order, grouped by week with the A/B label, auto-scrolled to the current week. Past lessons read as taught, the current week is highlighted, and a jump-to-date control moves you anywhere. Click a lesson to open an inline editor with **Notes** and **Room** boxes plus the same action menu as the week grid: link/open/unlink a lesson plan, mark or clear prepared, and link/open/unlink an external file or folder.
+- **Reschedule a class's lessons.** From a lesson's menu you can say a lesson "did not happen, shift the rest forward", "pull later lessons back into this slot", or "insert a free lesson here". The whole bundle travels — plan link, prepared mark, external links, the per-lesson note and room — and the matching **markdown lesson-note files are renamed to their new dates** (found by frontmatter, so Obsidian keeps your backlinks). A lesson pushed off the end of the year parks safely in an Unplaced list and its note in an "Unplaced lessons" folder, returning when re-slotted. Every shift has an undo.
+- **Savable school templates.** Two kinds of reusable, shareable `.json` template: a **School structure** template (periods, block types, A/B pattern, school days, year dates) and a **Holiday calendar** template (holiday and INSET dates). Templates hold the school shell only — never your classes, timetable, notes, links or directed-time hours. Save and apply them from **Settings → Templates**, or start a new planner from one in the setup wizard (with an optional date-shift when loading next year's holidays). The wizard can also save a freshly built planner back out as a template.
+- **Drag-and-drop in the timetable editor.** Class chips are now draggable, matching the week planner. Drag a chip to an empty cell to move it, drag onto an occupied cell to swap the two classes, or hold Ctrl/Cmd while dragging to duplicate instead of move. Drags respect the current A/B week tab, carry any duration override, and reject cells where the period isn't in that day's schedule. Edits stay local until you Save.
+
+### Changed
+
+- **Directed time follows the block length.** A lesson, activity or event now counts the length of the block it sits in by default — registration counts 30 minutes, a normal period 60, and so on — instead of a fixed global default. A per-placement override still wins (click the duration badge on a block in the timetable editor) and an overridden block is tinted and marked with a `*`. On the time-axis grid a single item shorter than its block now sizes to its real length, with the free time shown beneath and the exact range on hover. The global "default lesson duration" and the per-activity Duration column are removed.
+- **Backups and templates live out of the vault.** Both are now kept inside the plugin's own folder (hidden from the file explorer, surviving plugin updates like your data). Backup export gained a modal to tick which planners to save and choose where they land — the hidden library, a vault folder, or a folder on your computer — and you can import a backup from the library or from any file via an OS picker. Existing vault backups are left in place and can be imported from file.
+- **Removed bulk plan apply.** "Apply plan to future lessons" and "Undo last bulk plan apply" are gone from the week-view cell menu; the new lesson overview is the place to manage a class across the year.
+- **Settings tidy-up.** Collapsible section headers use a crisp SVG chevron with a separator line beneath, and the "Events: Directed time" / "Events: Other" headings use a colon instead of an em dash.
+
+### Fixed
+
+- **A/B week toggle refreshes the planner live.** Turning A/B rotation on or off (and changing the start week or holiday-aware option) now updates the week view immediately instead of staying stale until the plugin was reloaded.
+- **One note and room per lesson, shared everywhere.** Notes and room are now a single per-lesson value edited and shown in both the overview and the week grid. The grid chip and the overview show a per-lesson override when set and fall back to the recurring slot's note/room otherwise, so an existing recurring note keeps showing every week until a specific lesson is changed. Room now pre-fills from the block's actual room rather than only a per-slot override.
+- **Holidays and INSET days excluded from the overview.** The whole-year list now skips any date covered by a holiday or INSET, matching the week grid and the directed-time tracker, so taught/to-teach counts and shift positions stay correct across breaks.
+- **Pull-back never deletes a lesson.** Pulling lessons back used to overwrite the clicked slot and could drop content that doesn't show as text (a prepared mark, plan link or external link). A non-empty slot is now parked in Unplaced instead, while a genuinely empty gap still cascades and refills; undo reverses it either way.
+
 ## [0.2.9] — 2026-06-15
 
 ### Added
