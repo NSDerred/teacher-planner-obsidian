@@ -3,6 +3,7 @@ import type { TeacherPlannerSettings, TimetableSlot, GlobalPluginData, PlannerRe
 import { DEFAULT_SETTINGS, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA } from "./settings";
 import { WeekView, WEEK_VIEW_TYPE } from "./views/WeekView";
 import { CalendarSidebarView, CALENDAR_SIDEBAR_VIEW_TYPE } from "./views/CalendarSidebarView";
+import { LessonOverviewView, LESSON_OVERVIEW_VIEW_TYPE } from "./views/LessonOverviewView";
 import { TeacherPlannerSettingTab } from "./settings/SettingsTab";
 import { isValidIsoDate, normalizeLegacyWeekKey } from "./utils/weekUtils";
 import { backupPlanner } from "./utils/plannerBackup";
@@ -53,6 +54,7 @@ export default class TeacherPlannerPlugin extends Plugin {
 
     this.registerView(WEEK_VIEW_TYPE, (leaf) => new WeekView(leaf, this));
     this.registerView(CALENDAR_SIDEBAR_VIEW_TYPE, (leaf) => new CalendarSidebarView(leaf, this));
+    this.registerView(LESSON_OVERVIEW_VIEW_TYPE, (leaf) => new LessonOverviewView(leaf, this));
 
     this.addRibbonIcon("calendar-days", "Open Teacher Planner", () => { void this.activateView(); });
 
@@ -130,6 +132,15 @@ export default class TeacherPlannerPlugin extends Plugin {
     }
   }
 
+  async activateLessonOverview() {
+    const { workspace } = this.app;
+    const existing = workspace.getLeavesOfType(LESSON_OVERVIEW_VIEW_TYPE);
+    if (existing.length > 0) { await workspace.revealLeaf(existing[0]); return; }
+    const leaf = workspace.getLeaf("tab");
+    await leaf.setViewState({ type: LESSON_OVERVIEW_VIEW_TYPE, active: true });
+    await workspace.revealLeaf(leaf);
+  }
+
   notifySidebar(monday: Date) {
     const leaves = this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE);
     if (leaves.length === 0) return;
@@ -164,6 +175,9 @@ export default class TeacherPlannerPlugin extends Plugin {
     });
     this.app.workspace.getLeavesOfType(CALENDAR_SIDEBAR_VIEW_TYPE).forEach(leaf => {
       if (leaf.view instanceof CalendarSidebarView) leaf.view.onSettingsChange();
+    });
+    this.app.workspace.getLeavesOfType(LESSON_OVERVIEW_VIEW_TYPE).forEach(leaf => {
+      if (leaf.view instanceof LessonOverviewView) leaf.view.onSettingsChange();
     });
   }
 
@@ -203,7 +217,7 @@ export default class TeacherPlannerPlugin extends Plugin {
     "directedTime", "schoolDays", "plannerFolder",
     "lessonPlanLinks", "lessonPlansFolder", "lessonPlanTemplate", "showUnplannedDot",
     "preparedMarks", "showPreparedMark", "mobileViewMode",
-    "externalLinks", "lessonNotes", "unplacedLessons", "lastBulkApply", "weeklyNoteFolders",
+    "externalLinks", "lessonNotes", "unplacedLessons", "lessonOverviewMainLine", "lastBulkApply", "weeklyNoteFolders",
     "weekNoteFiles", "weekNotesFolder",
   ];
 

@@ -73,6 +73,22 @@
   }
   const lessonNote = (o: LessonOccurrence) => getLessonNote(plugin.settings, o.slotId, o.date);
 
+  function mainLine(o: LessonOccurrence): { text: string; faint: boolean } {
+    const mode = plugin.settings.lessonOverviewMainLine ?? "notes-plan";
+    const notes = (lessonNote(o) || "").replace(/\s+/g, " ").trim();
+    const plan = planTitle(o);
+    if (mode === "notes") return notes ? { text: notes, faint: false } : { text: "No notes", faint: true };
+    if (mode === "plan") return plan ? { text: plan, faint: false } : { text: "—", faint: true };
+    if (notes) return { text: notes, faint: false };
+    if (plan) return { text: "No notes  -  " + plan, faint: true };
+    return { text: "No notes", faint: true };
+  }
+  function toggleMenu(o: LessonOccurrence) {
+    const k = keyOf(o);
+    menuKey = menuKey === k ? null : k;
+    editingKey = null;
+  }
+
   function openPlan(o: LessonOccurrence) {
     const link = getSlotPlan(plugin.settings, o.slotId, o.date);
     if (link?.path) void plugin.app.workspace.openLinkText(link.path, "", false);
@@ -178,10 +194,15 @@
         </div>
         {#each w.lessons as o (keyOf(o))}
           {@const past = o.date < todayIso}
+          {@const ml = mainLine(o)}
           <div class="tp-lo-row" class:tp-lo-row--past={past} class:tp-lo-row--current={isCurrent && !past}>
             <div class="tp-lo-row-main">
-              <span class="tp-lo-when">{fmtDay(o)} · {shortPeriod(o.periodName)}</span>
-              <span class="tp-lo-topic">{planTitle(o) || "—"}</span>
+              <button class="tp-lo-rowbtn" on:click={() => toggleMenu(o)} aria-expanded={menuKey === keyOf(o)} aria-label="Lesson actions">
+                <span class="tp-lo-rowtext">
+                  <span class="tp-lo-topic" class:tp-lo-topic--faint={ml.faint}>{ml.text}</span>
+                  <span class="tp-lo-when">{fmtDay(o)} · {shortPeriod(o.periodName)}</span>
+                </span>
+              </button>
               <span class="tp-lo-icons">
                 {#if past}<span class="tp-lo-taught" title="Taught" use:obsIcon={"circle-check"}></span>{/if}
                 <button class="tp-lo-ic" class:tp-lo-ic--on={isSlotPrepared(plugin.settings, o.slotId, o.date)}
@@ -195,7 +216,7 @@
                   <button class="tp-lo-ic" title="Open external resource" on:click|stopPropagation={() => openExternal(o)}
                     use:obsIcon={ext && externalKindOf(ext) === "folder" ? "folder" : "paperclip"}></button>
                 {/if}
-                <button class="tp-lo-ic" title="Lesson actions" on:click|stopPropagation={() => menuKey = menuKey === keyOf(o) ? null : keyOf(o)} use:obsIcon={"dots"}></button>
+                <span class="tp-lo-chev" class:tp-lo-chev--open={menuKey === keyOf(o)} use:obsIcon={"chevron-down"}></span>
               </span>
             </div>
 
@@ -203,8 +224,6 @@
               <!-- svelte-ignore a11y-autofocus -->
               <textarea class="tp-lo-noteedit" bind:value={editingText} rows="2" autofocus
                 placeholder="Notes for this lesson…" on:blur={() => saveNote(o)}></textarea>
-            {:else if lessonNote(o)}
-              <button class="tp-lo-note" on:click={() => startEditNote(o)}>{lessonNote(o)}</button>
             {/if}
 
             {#if menuKey === keyOf(o)}
@@ -243,7 +262,7 @@
 </div>
 
 <style>
-  .tp-lo { display:flex; flex-direction:column; min-height:0; max-height:72vh; font-family:var(--font-interface); position:relative; }
+  .tp-lo { display:flex; flex-direction:column; min-height:0; height:100%; font-family:var(--font-interface); position:relative; }
   .tp-lo-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   .tp-lo-title { margin:0; font-size:17px; font-weight:600; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-lo-back { border:none; background:transparent; cursor:pointer; color:var(--text-muted); display:inline-flex; padding:4px; border-radius:5px; }
@@ -254,7 +273,7 @@
   .tp-lo-search-icon :global(svg) { width:16px; height:16px; }
   .tp-lo-search input { width:100%; box-sizing:border-box; padding:7px 10px 7px 32px; border:1px solid var(--background-modifier-border); border-radius:6px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:13px; }
 
-  .tp-lo-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:9px; overflow-y:auto; padding:2px; min-height:0; }
+  .tp-lo-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); grid-auto-rows:min-content; align-content:start; gap:9px; overflow-y:auto; padding:2px; min-height:0; flex:1 1 auto; }
   .tp-lo-card { display:flex; flex-direction:column; gap:2px; text-align:left; padding:9px 11px; border:1px solid var(--background-modifier-border); border-radius:7px; background:var(--background-primary); cursor:pointer; transition:background 0.1s; }
   .tp-lo-card:hover { background:var(--background-modifier-hover); }
   .tp-lo-card-code { font-size:14px; font-weight:600; color:var(--text-normal); }
@@ -265,10 +284,10 @@
   .tp-lo-jump :global(svg) { width:15px; height:15px; }
   .tp-lo-jump input { font-size:12px; padding:3px 5px; border:1px solid var(--background-modifier-border); border-radius:5px; background:var(--background-modifier-form-field); color:var(--text-normal); }
 
-  .tp-lo-list { overflow-y:auto; min-height:0; border:1px solid var(--background-modifier-border); border-radius:8px; }
-  .tp-lo-weekhead { position:sticky; top:0; z-index:1; display:flex; align-items:center; gap:8px; padding:5px 12px; background:var(--background-secondary); font-size:11px; font-weight:600; color:var(--text-muted); border-bottom:1px solid var(--background-modifier-border); }
+  .tp-lo-list { overflow-y:auto; min-height:0; flex:1 1 auto; border:1px solid var(--background-modifier-border); border-radius:8px; }
+  .tp-lo-weekhead { position:sticky; top:0; z-index:1; display:flex; align-items:center; gap:8px; padding:7px 12px; background:var(--background-secondary); font-size:14px; font-weight:600; color:var(--text-normal); border-bottom:1px solid var(--background-modifier-border); }
   .tp-lo-weekhead--current { background:color-mix(in srgb, var(--interactive-accent) 16%, var(--background-secondary)); color:var(--text-normal); }
-  .tp-lo-ab { border:1px solid var(--background-modifier-border); border-radius:4px; padding:0 6px; font-weight:700; }
+  .tp-lo-ab { border:1px solid var(--background-modifier-border); border-radius:4px; padding:1px 9px; font-size:13px; font-weight:700; }
   .tp-lo-ab--current { border-color:var(--interactive-accent); }
 
   .tp-lo-row { padding:7px 12px; border-bottom:1px solid var(--background-modifier-border-hover); }
@@ -276,9 +295,16 @@
   .tp-lo-row--past { opacity:0.55; }
   .tp-lo-row--current { background:color-mix(in srgb, var(--interactive-accent) 8%, transparent); }
   .tp-lo-row-main { display:flex; align-items:center; gap:10px; }
-  .tp-lo-when { font-size:12px; color:var(--text-muted); min-width:92px; flex-shrink:0; }
+  .tp-lo-when { font-size:11px; color:var(--text-muted); }
   .tp-lo-row--current .tp-lo-when { font-weight:600; color:var(--text-normal); }
-  .tp-lo-topic { flex:1; min-width:0; font-size:13px; color:var(--text-normal); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-lo-topic { display:block; max-width:100%; font-size:13px; color:var(--text-normal); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-lo-topic--faint { color:var(--text-faint); }
+  .tp-lo-rowbtn { flex:1; min-width:0; display:flex; align-items:center; text-align:left; border:none; background:transparent; cursor:pointer; padding:0; color:inherit; font-family:var(--font-interface); }
+  .tp-lo-rowbtn:hover .tp-lo-topic { color:var(--interactive-accent); }
+  .tp-lo-rowtext { display:flex; flex-direction:column; gap:1px; min-width:0; width:100%; }
+  .tp-lo-chev { display:inline-flex; color:var(--text-faint); margin-left:2px; transition:transform 0.12s; }
+  .tp-lo-chev :global(svg) { width:15px; height:15px; }
+  .tp-lo-chev--open { transform:rotate(180deg); color:var(--text-muted); }
   .tp-lo-icons { display:flex; align-items:center; gap:3px; flex-shrink:0; }
   .tp-lo-taught { display:inline-flex; color:var(--color-green, #a6e3a1); }
   .tp-lo-taught :global(svg) { width:15px; height:15px; }
@@ -287,8 +313,6 @@
   .tp-lo-ic :global(svg) { width:14px; height:14px; }
   .tp-lo-ic--on, .tp-lo-ic--plan { color:var(--color-green, #a6e3a1); }
 
-  .tp-lo-note { display:block; width:100%; text-align:left; margin-top:4px; padding:3px 6px; border:none; border-radius:4px; background:transparent; color:var(--text-muted); font-size:12px; cursor:text; white-space:pre-wrap; }
-  .tp-lo-note:hover { background:var(--background-modifier-hover); }
   .tp-lo-noteedit { width:100%; box-sizing:border-box; margin-top:4px; padding:5px 7px; border:1px solid var(--interactive-accent); border-radius:5px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:12px; font-family:var(--font-interface); resize:vertical; }
 
   .tp-lo-menu { margin-top:5px; border:1px solid var(--background-modifier-border); border-radius:6px; background:var(--background-primary); box-shadow:0 4px 14px rgba(0,0,0,0.25); overflow:hidden; }

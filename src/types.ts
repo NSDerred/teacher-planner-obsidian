@@ -283,6 +283,8 @@ export interface TeacherPlannerSettings {
   externalLinks?: ExternalResourceLink[];
   lessonNotes?: LessonNote[];
   unplacedLessons?: UnplacedLesson[];
+  /** Lesson overview main line source: notes then plan title (default) | notes only | plan title. */
+  lessonOverviewMainLine?: "notes-plan" | "notes" | "plan";
   /** Undo journal for the last bulk plan apply. */
   lastBulkApply?: BulkApplyJournal;
   /** Create dated notes inside "WC - <Monday>" weekly folders. Default true. */
@@ -343,6 +345,8 @@ export interface PlannerRecord {
   externalLinks?: ExternalResourceLink[];
   lessonNotes?: LessonNote[];
   unplacedLessons?: UnplacedLesson[];
+  /** Lesson overview main line source: notes then plan title (default) | notes only | plan title. */
+  lessonOverviewMainLine?: "notes-plan" | "notes" | "plan";
   lastBulkApply?: BulkApplyJournal;
   weeklyNoteFolders?: boolean;
   directedTime: DirectedTimeSettings;

@@ -640,6 +640,21 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     eventTitlePreview = eventTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
     eventTitlePreview.setText("Preview:  " + renderEventTitle(this.plugin.settings.eventNoteTitleTemplate ?? DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
 
+    // ── Lesson overview ────────────────────────────────────────────────────
+    new Setting(containerEl).setName("Lesson overview").setHeading();
+    new Setting(containerEl)
+      .setName("Main line shows")
+      .setDesc("What to show on each lesson row in the overview. Notes are the per-lesson note field; plan title is the linked lesson-plan filename.")
+      .addDropdown(d => d
+        .addOption("notes-plan", "Notes, then plan title")
+        .addOption("notes", "Notes only")
+        .addOption("plan", "Plan title")
+        .setValue(this.plugin.settings.lessonOverviewMainLine ?? "notes-plan")
+        .onChange(async (v: string) => {
+          this.plugin.settings.lessonOverviewMainLine = v as "notes-plan" | "notes" | "plan";
+          await this.plugin.saveSettings();
+        }));
+
     // ── Grid Visuals ───────────────────────────────────────────────────────
     new Setting(containerEl).setName("Grid visuals").setHeading();
     const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
