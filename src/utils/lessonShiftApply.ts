@@ -6,6 +6,7 @@ import {
   isSlotPrepared, setSlotPrepared,
   getSlotExternal, setSlotExternal, clearSlotExternal,
   getLessonNote, setLessonNote, clearLessonNote,
+  getLessonRoom, setLessonRoom, clearLessonRoom,
 } from "./planLinkUtils";
 
 export interface Bundle {
@@ -13,10 +14,11 @@ export interface Bundle {
   prepared: boolean;
   external?: { path: string; kind?: "file" | "folder" };
   note: string;
+  room: string;
 }
 
 export function bundleEmpty(b: Bundle): boolean {
-  return !b.plan && !b.prepared && !b.external && !b.note;
+  return !b.plan && !b.prepared && !b.external && !b.note && !b.room;
 }
 
 function readBundle(s: TeacherPlannerSettings, o: LessonOccurrence): Bundle {
@@ -26,6 +28,7 @@ function readBundle(s: TeacherPlannerSettings, o: LessonOccurrence): Bundle {
     prepared: isSlotPrepared(s, o.slotId, o.date),
     external: ext ? { path: ext.path, kind: ext.kind } : undefined,
     note: getLessonNote(s, o.slotId, o.date),
+    room: getLessonRoom(s, o.slotId, o.date),
   };
 }
 function clearBundle(s: TeacherPlannerSettings, o: LessonOccurrence): void {
@@ -33,12 +36,14 @@ function clearBundle(s: TeacherPlannerSettings, o: LessonOccurrence): void {
   setSlotPrepared(s, o.slotId, o.date, false);
   clearSlotExternal(s, o.slotId, o.date);
   clearLessonNote(s, o.slotId, o.date);
+  clearLessonRoom(s, o.slotId, o.date);
 }
 function writeBundle(s: TeacherPlannerSettings, o: LessonOccurrence, b: Bundle): void {
   if (b.plan) setSlotPlan(s, o.slotId, o.date, b.plan);
   if (b.prepared) setSlotPrepared(s, o.slotId, o.date, true);
   if (b.external) setSlotExternal(s, o.slotId, o.date, b.external.path, b.external.kind);
   if (b.note) setLessonNote(s, o.slotId, o.date, b.note);
+  if (b.room) setLessonRoom(s, o.slotId, o.date, b.room);
 }
 
 function labelFromBundle(b: Bundle): string {
@@ -50,11 +55,11 @@ function toUnplaced(classId: string, b: Bundle, fromDate: string): UnplacedLesso
   return {
     id: "unpl-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6),
     classId, plan: b.plan, prepared: b.prepared || undefined, external: b.external,
-    note: b.note || undefined, label: labelFromBundle(b), pushedFromDate: fromDate,
+    note: b.note || undefined, room: b.room || undefined, label: labelFromBundle(b), pushedFromDate: fromDate,
   };
 }
 function fromUnplaced(u: UnplacedLesson): Bundle {
-  return { plan: u.plan, prepared: !!u.prepared, external: u.external, note: u.note ?? "" };
+  return { plan: u.plan, prepared: !!u.prepared, external: u.external, note: u.note ?? "", room: u.room ?? "" };
 }
 
 export type NoteMove =
@@ -67,13 +72,13 @@ export interface ShiftResult { moved: number; overflowed: boolean; filled: boole
 /** Snapshot the stores a shift touches, for undo. */
 export interface ShiftSnapshot {
   lessonPlanLinks: unknown; preparedMarks: unknown; externalLinks: unknown;
-  lessonNotes: unknown; unplacedLessons: unknown;
+  lessonNotes: unknown; lessonRooms: unknown; unplacedLessons: unknown;
 }
 export function snapshotState(s: TeacherPlannerSettings): ShiftSnapshot {
   const c = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null));
   return {
     lessonPlanLinks: c(s.lessonPlanLinks), preparedMarks: c(s.preparedMarks),
-    externalLinks: c(s.externalLinks), lessonNotes: c(s.lessonNotes), unplacedLessons: c(s.unplacedLessons),
+    externalLinks: c(s.externalLinks), lessonNotes: c(s.lessonNotes), lessonRooms: c(s.lessonRooms), unplacedLessons: c(s.unplacedLessons),
   };
 }
 export function restoreState(s: TeacherPlannerSettings, snap: ShiftSnapshot): void {
@@ -82,6 +87,7 @@ export function restoreState(s: TeacherPlannerSettings, snap: ShiftSnapshot): vo
   s.preparedMarks = c(snap.preparedMarks);
   s.externalLinks = c(snap.externalLinks);
   s.lessonNotes = c(snap.lessonNotes);
+  s.lessonRooms = c(snap.lessonRooms);
   s.unplacedLessons = c(snap.unplacedLessons);
 }
 

@@ -158,3 +158,38 @@ export async function reverseNoteMoves(app: App, ops: NoteUndoOp[]): Promise<voi
     } catch (err) { console.error("Teacher Planner: undo restore rename failed.", err); }
   }
 }
+
+const LESSON_BODY_FALLBACK = "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
+
+/** Default generated title for a lesson note (same template the week grid uses). */
+export function lessonNoteDefaultTitle(s: TeacherPlannerSettings, classId: string, periodName: string, dateIso: string): string {
+  const meta = classMeta(s, classId) ?? { code: "Lesson" };
+  return noteFileName(s, meta, dateIso, periodName);
+}
+
+/** Existing lesson note path matching a title for a date, or null. */
+export function findLessonNoteByTitle(app: App, s: TeacherPlannerSettings, dateIso: string, fileName: string): string | null {
+  const base = plannerFolder(s);
+  for (const p of [`${noteFolder(s, dateIso)}/${fileName}.md`, `${base}/${fileName}.md`]) {
+    if (app.vault.getAbstractFileByPath(p) instanceof TFile) return p;
+  }
+  return null;
+}
+
+/** Create (or open an existing) lesson note with tracking frontmatter, then open it. */
+export async function createLessonNoteFile(app: App, s: TeacherPlannerSettings, classId: string, periodName: string, dateIso: string, rawName: string): Promise<void> {
+  const meta = classMeta(s, classId) ?? { code: "Lesson" };
+  const fallback = noteFileName(s, meta, dateIso, periodName);
+  const fileName = rawName.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim() || fallback;
+  const existing = findLessonNoteByTitle(app, s, dateIso, fileName);
+  if (existing) { void app.workspace.openLinkText(existing, "", false); return; }
+  const base = plannerFolder(s);
+  const folder = noteFolder(s, dateIso);
+  await ensureFolder(app, base);
+  if (folder !== base) await ensureFolder(app, folder);
+  const body = lessonNoteFrontmatter(meta, periodName, dateIso) + (s.lessonNoteTemplate ?? LESSON_BODY_FALLBACK);
+  try {
+    await app.vault.create(`${folder}/${fileName}.md`, body);
+    void app.workspace.openLinkText(`${folder}/${fileName}.md`, "", false);
+  } catch (e) { console.error("Teacher Planner: lesson note create failed", e); }
+}

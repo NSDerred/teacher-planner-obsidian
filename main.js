@@ -16117,6 +16117,41 @@ async function reverseNoteMoves(app, ops) {
     }
   }
 }
+var LESSON_BODY_FALLBACK = "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
+function lessonNoteDefaultTitle(s, classId, periodName, dateIso) {
+  var _a2;
+  const meta = (_a2 = classMeta(s, classId)) != null ? _a2 : { code: "Lesson" };
+  return noteFileName(s, meta, dateIso, periodName);
+}
+function findLessonNoteByTitle(app, s, dateIso, fileName) {
+  const base = plannerFolder(s);
+  for (const p of [`${noteFolder(s, dateIso)}/${fileName}.md`, `${base}/${fileName}.md`]) {
+    if (app.vault.getAbstractFileByPath(p) instanceof import_obsidian15.TFile) return p;
+  }
+  return null;
+}
+async function createLessonNoteFile(app, s, classId, periodName, dateIso, rawName) {
+  var _a2, _b2;
+  const meta = (_a2 = classMeta(s, classId)) != null ? _a2 : { code: "Lesson" };
+  const fallback = noteFileName(s, meta, dateIso, periodName);
+  const fileName = rawName.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim() || fallback;
+  const existing = findLessonNoteByTitle(app, s, dateIso, fileName);
+  if (existing) {
+    void app.workspace.openLinkText(existing, "", false);
+    return;
+  }
+  const base = plannerFolder(s);
+  const folder = noteFolder(s, dateIso);
+  await ensureFolder(app, base);
+  if (folder !== base) await ensureFolder(app, folder);
+  const body = lessonNoteFrontmatter(meta, periodName, dateIso) + ((_b2 = s.lessonNoteTemplate) != null ? _b2 : LESSON_BODY_FALLBACK);
+  try {
+    await app.vault.create(`${folder}/${fileName}.md`, body);
+    void app.workspace.openLinkText(`${folder}/${fileName}.md`, "", false);
+  } catch (e) {
+    console.error("Teacher Planner: lesson note create failed", e);
+  }
+}
 
 // src/views/WeekView.svelte
 init_themeColours();
@@ -16126,23 +16161,6 @@ init_eventUtils();
 // src/utils/planLinkUtils.ts
 init_weekUtils();
 init_scheduleUtils();
-var DAY_INDEX_MAP3 = {
-  0: "sunday",
-  1: "monday",
-  2: "tuesday",
-  3: "wednesday",
-  4: "thursday",
-  5: "friday",
-  6: "saturday"
-};
-function shiftIso2(iso, days) {
-  const d = /* @__PURE__ */ new Date(iso + "T12:00:00");
-  d.setDate(d.getDate() + days);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
 function links(s) {
   if (!s.lessonPlanLinks) s.lessonPlanLinks = [];
   return s.lessonPlanLinks;
@@ -16213,39 +16231,6 @@ function migrateSlotPreparedToEvent(s, slotId, date, eventId) {
   if (!isSlotPrepared(s, slotId, date)) return;
   setSlotPrepared(s, slotId, date, false);
   setEventPrepared(s, eventId, true);
-}
-function bulkApplyPlan(s, classId, fromIso, path, dryRun = false) {
-  var _a2, _b2, _c, _d, _e, _f, _g;
-  const result = { count: 0, entries: [] };
-  const ay = s.academicYear;
-  if (!(ay == null ? void 0 : ay.endDate)) return result;
-  const schoolDays = (_a2 = s.schoolDays) != null ? _a2 : ["monday", "tuesday", "wednesday", "thursday", "friday"];
-  const overrideDates = /* @__PURE__ */ new Set();
-  for (const o of (_b2 = s.weekOverrides) != null ? _b2 : []) {
-    const end = (_c = o.endDate) != null ? _c : o.startDate;
-    for (let iso = o.startDate; iso <= end; iso = shiftIso2(iso, 1)) overrideDates.add(iso);
-  }
-  for (let iso = fromIso; iso <= ay.endDate; iso = shiftIso2(iso, 1)) {
-    const d = /* @__PURE__ */ new Date(iso + "T12:00:00");
-    const dayName = DAY_INDEX_MAP3[d.getDay()];
-    if (!schoolDays.includes(dayName)) continue;
-    if (overrideDates.has(iso)) continue;
-    const mondayKey = getMondayOfWeek(d).toISOString().slice(0, 10);
-    const template = (_d = s.timetableTemplates) == null ? void 0 : _d.find((t) => t.startDate <= mondayKey && t.endDate >= mondayKey);
-    if (!template) continue;
-    const abType = ay.abWeekEnabled ? getAbWeekType(d, ay, (_e = s.weekOverrides) != null ? _e : [], schoolDays) : null;
-    for (const slot of template.slots) {
-      if (slot.classId !== classId || slot.day !== dayName) continue;
-      if (abType && slot.weekType && slot.weekType !== "both" && slot.weekType !== abType) continue;
-      if (!periodAppliesTo(ay, slot.periodId, dayName)) continue;
-      if ((_f = s.slotExclusions) == null ? void 0 : _f.some((ex) => ex.slotId === slot.id && ex.date === iso)) continue;
-      const prev = (_g = getSlotPlan(s, slot.id, iso)) == null ? void 0 : _g.path;
-      result.entries.push({ slotId: slot.id, date: iso, ...prev ? { prevPath: prev } : {} });
-      result.count++;
-      if (!dryRun) setSlotPlan(s, slot.id, iso, path);
-    }
-  }
-  return result;
 }
 function undoBulkApply(s) {
   const journal = s.lastBulkApply;
@@ -16345,6 +16330,24 @@ function setLessonNote(s, slotId, date, text2) {
 }
 function clearLessonNote(s, slotId, date) {
   if (s.lessonNotes) s.lessonNotes = s.lessonNotes.filter((n) => !(n.slotId === slotId && n.date === date));
+}
+function getLessonRoom(s, slotId, date) {
+  var _a2, _b2, _c;
+  return (_c = (_b2 = ((_a2 = s.lessonRooms) != null ? _a2 : []).find((r) => r.slotId === slotId && r.date === date)) == null ? void 0 : _b2.room) != null ? _c : "";
+}
+function setLessonRoom(s, slotId, date, room) {
+  const t = room.trim();
+  if (!s.lessonRooms) s.lessonRooms = [];
+  if (!t) {
+    s.lessonRooms = s.lessonRooms.filter((r) => !(r.slotId === slotId && r.date === date));
+    return;
+  }
+  const existing = s.lessonRooms.find((r) => r.slotId === slotId && r.date === date);
+  if (existing) existing.room = t;
+  else s.lessonRooms.push({ slotId, date, room: t });
+}
+function clearLessonRoom(s, slotId, date) {
+  if (s.lessonRooms) s.lessonRooms = s.lessonRooms.filter((r) => !(r.slotId === slotId && r.date === date));
 }
 
 // src/views/WeekView.svelte
@@ -22001,7 +22004,7 @@ function create_fragment3(ctx) {
     }
   };
 }
-var LESSON_BODY_FALLBACK = "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
+var LESSON_BODY_FALLBACK2 = "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
 function _dep2(_t, value) {
   return value;
 }
@@ -22421,25 +22424,6 @@ function instance3($$self, $$props, $$invalidate) {
         const itemLabel = getSlotLabel(slot).code;
         if (planPath) {
           menu.addItem((i) => i.setTitle("Open lesson plan").setIcon("file-text").onClick(() => openPlan(planPath)));
-          menu.addItem((i) => i.setTitle("Apply plan to future lessons").setIcon("copy-plus").onClick(() => {
-            const dry = bulkApplyPlan(plugin.settings, slot.classId, date, planPath, true);
-            if (dry.count === 0) {
-              new import_obsidian17.Notice("No future lessons of this item found.");
-              return;
-            }
-            new ConfirmModal(
-              plugin.app,
-              `Link this plan to ${dry.count} future lesson${dry.count === 1 ? "" : "s"} of ${itemLabel} (until the end of the academic year)?`,
-              async () => {
-                const res = bulkApplyPlan(plugin.settings, slot.classId, date, planPath);
-                $$invalidate(0, plugin.settings.lastBulkApply = { path: planPath, entries: res.entries }, plugin);
-                await plugin.saveSettings();
-                invalidate();
-                showBulkUndoNotice(res.count);
-              },
-              "Apply"
-            ).open();
-          }));
           menu.addItem((i) => i.setTitle("Unlink lesson plan").setIcon("unlink").onClick(async () => {
             clearSlotPlan(plugin.settings, slot.id, date);
             await plugin.saveSettings();
@@ -22455,9 +22439,6 @@ function instance3($$self, $$props, $$invalidate) {
             await plugin.saveSettings();
             invalidate();
           }));
-        }
-        if (plugin.settings.lastBulkApply) {
-          menu.addItem((i) => i.setTitle("Undo last bulk plan apply").setIcon("undo-2").onClick(() => doUndoBulkApply()));
         }
         if (!_isMobileApp) {
           const ext = (_b3 = getSlotExternal(plugin.settings, slot.id, date)) === null || _b3 === void 0 ? void 0 : _b3.path;
@@ -23006,7 +22987,7 @@ function instance3($$self, $$props, $$invalidate) {
       periodName,
       dayDate
     );
-    const body = fm + ((_f2 = plugin.settings.lessonNoteTemplate) !== null && _f2 !== void 0 ? _f2 : LESSON_BODY_FALLBACK);
+    const body = fm + ((_f2 = plugin.settings.lessonNoteTemplate) !== null && _f2 !== void 0 ? _f2 : LESSON_BODY_FALLBACK2);
     promptAndCreateNote({
       dayDate,
       defaultTitle,
@@ -23029,7 +23010,7 @@ function instance3($$self, $$props, $$invalidate) {
       subjectName: subj === null || subj === void 0 ? void 0 : subj.name,
       emoji: subj === null || subj === void 0 ? void 0 : subj.emoji
     }) || `${dayDate} ${cls.code}`;
-    const body = (_d2 = plugin.settings.lessonNoteTemplate) !== null && _d2 !== void 0 ? _d2 : LESSON_BODY_FALLBACK;
+    const body = (_d2 = plugin.settings.lessonNoteTemplate) !== null && _d2 !== void 0 ? _d2 : LESSON_BODY_FALLBACK2;
     promptAndCreateNote({
       dayDate,
       defaultTitle,
@@ -25558,7 +25539,7 @@ function planBackward(n, from) {
 
 // src/utils/lessonShiftApply.ts
 function bundleEmpty(b) {
-  return !b.plan && !b.prepared && !b.external && !b.note;
+  return !b.plan && !b.prepared && !b.external && !b.note && !b.room;
 }
 function readBundle(s, o) {
   var _a2;
@@ -25567,7 +25548,8 @@ function readBundle(s, o) {
     plan: (_a2 = getSlotPlan(s, o.slotId, o.date)) == null ? void 0 : _a2.path,
     prepared: isSlotPrepared(s, o.slotId, o.date),
     external: ext ? { path: ext.path, kind: ext.kind } : void 0,
-    note: getLessonNote(s, o.slotId, o.date)
+    note: getLessonNote(s, o.slotId, o.date),
+    room: getLessonRoom(s, o.slotId, o.date)
   };
 }
 function clearBundle(s, o) {
@@ -25575,12 +25557,14 @@ function clearBundle(s, o) {
   setSlotPrepared(s, o.slotId, o.date, false);
   clearSlotExternal(s, o.slotId, o.date);
   clearLessonNote(s, o.slotId, o.date);
+  clearLessonRoom(s, o.slotId, o.date);
 }
 function writeBundle(s, o, b) {
   if (b.plan) setSlotPlan(s, o.slotId, o.date, b.plan);
   if (b.prepared) setSlotPrepared(s, o.slotId, o.date, true);
   if (b.external) setSlotExternal(s, o.slotId, o.date, b.external.path, b.external.kind);
   if (b.note) setLessonNote(s, o.slotId, o.date, b.note);
+  if (b.room) setLessonRoom(s, o.slotId, o.date, b.room);
 }
 function labelFromBundle(b) {
   var _a2;
@@ -25596,13 +25580,14 @@ function toUnplaced(classId, b, fromDate) {
     prepared: b.prepared || void 0,
     external: b.external,
     note: b.note || void 0,
+    room: b.room || void 0,
     label: labelFromBundle(b),
     pushedFromDate: fromDate
   };
 }
 function fromUnplaced(u) {
-  var _a2;
-  return { plan: u.plan, prepared: !!u.prepared, external: u.external, note: (_a2 = u.note) != null ? _a2 : "" };
+  var _a2, _b2;
+  return { plan: u.plan, prepared: !!u.prepared, external: u.external, note: (_a2 = u.note) != null ? _a2 : "", room: (_b2 = u.room) != null ? _b2 : "" };
 }
 function snapshotState(s) {
   const c = (v) => JSON.parse(JSON.stringify(v != null ? v : null));
@@ -25611,6 +25596,7 @@ function snapshotState(s) {
     preparedMarks: c(s.preparedMarks),
     externalLinks: c(s.externalLinks),
     lessonNotes: c(s.lessonNotes),
+    lessonRooms: c(s.lessonRooms),
     unplacedLessons: c(s.unplacedLessons)
   };
 }
@@ -25620,6 +25606,7 @@ function restoreState(s, snap) {
   s.preparedMarks = c(snap.preparedMarks);
   s.externalLinks = c(snap.externalLinks);
   s.lessonNotes = c(snap.lessonNotes);
+  s.lessonRooms = c(snap.lessonRooms);
   s.unplacedLessons = c(snap.unplacedLessons);
 }
 function shiftForward(s, classId, fromIndex) {
@@ -25674,41 +25661,41 @@ init_exportDestination();
 init_SettingsTab();
 var { Map: Map_1 } = globals;
 function add_css5(target) {
-  append_styles(target, "svelte-s15jj1", ".tp-lo.svelte-s15jj1.svelte-s15jj1{display:flex;flex-direction:column;min-height:0;height:100%;font-family:var(--font-interface);position:relative}.tp-lo-head.svelte-s15jj1.svelte-s15jj1{display:flex;align-items:center;gap:10px;margin-bottom:10px}.tp-lo-title.svelte-s15jj1.svelte-s15jj1{margin:0;font-size:17px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-lo-back.svelte-s15jj1.svelte-s15jj1{border:none;background:transparent;cursor:pointer;color:var(--text-muted);display:inline-flex;padding:4px;border-radius:5px}.tp-lo-back.svelte-s15jj1.svelte-s15jj1:hover{background:var(--background-modifier-hover);color:var(--text-normal)}.tp-lo-search.svelte-s15jj1.svelte-s15jj1{position:relative;margin-bottom:12px}.tp-lo-search-icon.svelte-s15jj1.svelte-s15jj1{position:absolute;left:10px;top:8px;color:var(--text-muted);display:inline-flex}.tp-lo-search-icon.svelte-s15jj1 svg{width:16px;height:16px}.tp-lo-search.svelte-s15jj1 input.svelte-s15jj1{width:100%;box-sizing:border-box;padding:7px 10px 7px 32px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:13px}.tp-lo-cards.svelte-s15jj1.svelte-s15jj1{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-rows:min-content;align-content:start;gap:9px;overflow-y:auto;padding:2px;min-height:0;flex:1 1 auto}.tp-lo-card.svelte-s15jj1.svelte-s15jj1{display:flex;flex-direction:column;gap:2px;text-align:left;padding:9px 11px;border:1px solid var(--background-modifier-border);border-radius:7px;background:var(--background-primary);cursor:pointer;transition:background 0.1s}.tp-lo-card.svelte-s15jj1.svelte-s15jj1:hover{background:var(--background-modifier-hover)}.tp-lo-card-code.svelte-s15jj1.svelte-s15jj1{font-size:14px;font-weight:600;color:var(--text-normal)}.tp-lo-card-sub.svelte-s15jj1.svelte-s15jj1{font-size:11px;color:var(--text-muted)}.tp-lo-card-next.svelte-s15jj1.svelte-s15jj1{font-size:11px;color:var(--text-faint);margin-top:4px}.tp-lo-jump.svelte-s15jj1.svelte-s15jj1{display:inline-flex;align-items:center;gap:5px;color:var(--text-muted)}.tp-lo-jump.svelte-s15jj1 svg{width:15px;height:15px}.tp-lo-jump.svelte-s15jj1 input.svelte-s15jj1{font-size:12px;padding:3px 5px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-modifier-form-field);color:var(--text-normal)}.tp-lo-list.svelte-s15jj1.svelte-s15jj1{overflow-y:auto;min-height:0;flex:1 1 auto;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-lo-weekhead.svelte-s15jj1.svelte-s15jj1{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--background-secondary);font-size:14px;font-weight:600;color:var(--text-normal);border-bottom:1px solid var(--background-modifier-border)}.tp-lo-weekhead--current.svelte-s15jj1.svelte-s15jj1{background:color-mix(in srgb, var(--interactive-accent) 16%, var(--background-secondary));color:var(--text-normal)}.tp-lo-ab.svelte-s15jj1.svelte-s15jj1{border:1px solid var(--background-modifier-border);border-radius:4px;padding:1px 9px;font-size:13px;font-weight:700}.tp-lo-ab--current.svelte-s15jj1.svelte-s15jj1{border-color:var(--interactive-accent)}.tp-lo-row.svelte-s15jj1.svelte-s15jj1{padding:7px 12px;border-bottom:1px solid var(--background-modifier-border-hover)}.tp-lo-row.svelte-s15jj1.svelte-s15jj1:last-child{border-bottom:none}.tp-lo-row--past.svelte-s15jj1.svelte-s15jj1{opacity:0.55}.tp-lo-row--current.svelte-s15jj1.svelte-s15jj1{background:color-mix(in srgb, var(--interactive-accent) 8%, transparent)}.tp-lo-row-main.svelte-s15jj1.svelte-s15jj1{display:flex;align-items:center;gap:10px}.tp-lo-when.svelte-s15jj1.svelte-s15jj1{font-size:11px;color:var(--text-muted)}.tp-lo-row--current.svelte-s15jj1 .tp-lo-when.svelte-s15jj1{font-weight:600;color:var(--text-normal)}.tp-lo-topic.svelte-s15jj1.svelte-s15jj1{display:block;max-width:100%;font-size:13px;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-lo-topic--faint.svelte-s15jj1.svelte-s15jj1{color:var(--text-faint)}.tp-lo-rowbtn.svelte-s15jj1.svelte-s15jj1{flex:1;min-width:0;display:flex;align-items:center;text-align:left;border:none;background:transparent;cursor:pointer;padding:0;color:inherit;font-family:var(--font-interface)}.tp-lo-rowbtn.svelte-s15jj1:hover .tp-lo-topic.svelte-s15jj1{color:var(--interactive-accent)}.tp-lo-rowtext.svelte-s15jj1.svelte-s15jj1{display:flex;flex-direction:column;gap:1px;min-width:0;width:100%}.tp-lo-chev.svelte-s15jj1.svelte-s15jj1{display:inline-flex;color:var(--text-faint);margin-left:2px;transition:transform 0.12s}.tp-lo-chev.svelte-s15jj1 svg{width:15px;height:15px}.tp-lo-chev--open.svelte-s15jj1.svelte-s15jj1{transform:rotate(180deg);color:var(--text-muted)}.tp-lo-icons.svelte-s15jj1.svelte-s15jj1{display:flex;align-items:center;gap:3px;flex-shrink:0}.tp-lo-taught.svelte-s15jj1.svelte-s15jj1{display:inline-flex;color:var(--color-green, #a6e3a1)}.tp-lo-taught.svelte-s15jj1 svg{width:15px;height:15px}.tp-lo-ic.svelte-s15jj1.svelte-s15jj1{border:none;background:transparent;cursor:pointer;color:var(--text-faint);display:inline-flex;padding:3px;border-radius:4px}.tp-lo-ic.svelte-s15jj1.svelte-s15jj1:hover{background:var(--background-modifier-hover);color:var(--text-normal)}.tp-lo-ic.svelte-s15jj1 svg{width:14px;height:14px}.tp-lo-ic--on.svelte-s15jj1.svelte-s15jj1,.tp-lo-ic--plan.svelte-s15jj1.svelte-s15jj1{color:var(--color-green, #a6e3a1)}.tp-lo-noteedit.svelte-s15jj1.svelte-s15jj1{width:100%;box-sizing:border-box;margin-top:4px;padding:5px 7px;border:1px solid var(--interactive-accent);border-radius:5px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:12px;font-family:var(--font-interface);resize:vertical}.tp-lo-menu.svelte-s15jj1.svelte-s15jj1{margin-top:5px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-primary);box-shadow:0 4px 14px rgba(0,0,0,0.25);overflow:hidden}.tp-lo-menu.svelte-s15jj1 button.svelte-s15jj1{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:8px 11px;border:none;background:transparent;color:var(--text-normal);font-size:13px;cursor:pointer;font-family:var(--font-interface)}.tp-lo-menu.svelte-s15jj1 button.svelte-s15jj1:hover{background:var(--background-modifier-hover)}.tp-lo-menu.svelte-s15jj1 svg{width:15px;height:15px;flex-shrink:0;color:var(--text-muted)}.tp-lo-unplaced.svelte-s15jj1.svelte-s15jj1{margin:10px;border:1px dashed var(--color-orange, #e0af68);border-radius:7px;padding:9px 11px}.tp-lo-unplaced-head.svelte-s15jj1.svelte-s15jj1{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--color-orange, #e0af68);margin-bottom:6px}.tp-lo-unplaced-head.svelte-s15jj1 svg{width:14px;height:14px}.tp-lo-unplaced-row.svelte-s15jj1.svelte-s15jj1{font-size:13px;color:var(--text-normal);padding:3px 0}.tp-lo-unplaced-hint.svelte-s15jj1.svelte-s15jj1{font-size:11px;color:var(--text-muted);margin-top:6px}.tp-lo-empty.svelte-s15jj1.svelte-s15jj1{padding:20px;text-align:center;color:var(--text-muted);font-size:13px}.tp-lo-toast.svelte-s15jj1.svelte-s15jj1{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 12px;border-radius:7px;background:var(--background-secondary);border:1px solid var(--background-modifier-border);font-size:13px}.tp-lo-toast.svelte-s15jj1>span.svelte-s15jj1{flex:1}.tp-lo-toast.svelte-s15jj1 button.svelte-s15jj1{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);border-radius:5px;padding:4px 9px;cursor:pointer;color:var(--text-normal);font-size:12px}.tp-lo-toast.svelte-s15jj1 button.svelte-s15jj1:hover{background:var(--background-modifier-hover)}.tp-lo-toast.svelte-s15jj1 svg{width:14px;height:14px}.tp-lo-toast-x.svelte-s15jj1.svelte-s15jj1{padding:4px !important}");
+  append_styles(target, "svelte-uiw2hz", ".tp-lo.svelte-uiw2hz.svelte-uiw2hz{display:flex;flex-direction:column;min-height:0;height:100%;font-family:var(--font-interface);position:relative}.tp-lo-head.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:10px;margin-bottom:10px}.tp-lo-title.svelte-uiw2hz.svelte-uiw2hz{margin:0;font-size:17px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-lo-back.svelte-uiw2hz.svelte-uiw2hz{border:none;background:transparent;box-shadow:none;cursor:pointer;color:var(--text-muted);display:inline-flex;padding:4px;border-radius:5px}.tp-lo-back.svelte-uiw2hz.svelte-uiw2hz:hover{background:var(--background-modifier-hover);color:var(--text-normal)}.tp-lo-search.svelte-uiw2hz.svelte-uiw2hz{position:relative;margin-bottom:12px}.tp-lo-search-icon.svelte-uiw2hz.svelte-uiw2hz{position:absolute;left:10px;top:8px;color:var(--text-muted);display:inline-flex}.tp-lo-search-icon.svelte-uiw2hz svg{width:16px;height:16px}.tp-lo-search.svelte-uiw2hz input.svelte-uiw2hz{width:100%;box-sizing:border-box;padding:7px 10px 7px 32px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:13px}.tp-lo-cards.svelte-uiw2hz.svelte-uiw2hz{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));align-content:start;align-items:start;gap:9px;overflow-y:auto;padding:2px;min-height:0;flex:1 1 auto}.tp-lo-card.svelte-uiw2hz.svelte-uiw2hz{display:flex;flex-direction:column;gap:3px;min-width:0;text-align:left;padding:10px 12px;border:1px solid var(--background-modifier-border);border-radius:7px;background:var(--background-primary);cursor:pointer;transition:background 0.1s}.tp-lo-card.svelte-uiw2hz.svelte-uiw2hz:hover{background:var(--background-modifier-hover)}.tp-lo-card-code.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:6px;min-width:0;font-size:15px;font-weight:600;line-height:1.5;color:var(--text-normal)}.tp-lo-card-emoji.svelte-uiw2hz.svelte-uiw2hz{flex-shrink:0;font-size:14px;line-height:1}.tp-lo-card-codetext.svelte-uiw2hz.svelte-uiw2hz{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-lo-card-sub.svelte-uiw2hz.svelte-uiw2hz{display:block;font-size:12px;color:var(--text-muted);margin-top:2px}.tp-lo-card-next.svelte-uiw2hz.svelte-uiw2hz{display:block;font-size:12px;color:var(--text-faint);margin-top:4px}.tp-lo-jump.svelte-uiw2hz.svelte-uiw2hz{display:inline-flex;align-items:center;gap:5px;color:var(--text-muted)}.tp-lo-jump.svelte-uiw2hz svg{width:15px;height:15px}.tp-lo-jump.svelte-uiw2hz input.svelte-uiw2hz{font-size:12px;padding:3px 5px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-modifier-form-field);color:var(--text-normal)}.tp-lo-list.svelte-uiw2hz.svelte-uiw2hz{overflow-y:auto;min-height:0;flex:1 1 auto;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-lo-weekhead.svelte-uiw2hz.svelte-uiw2hz{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:9px 13px;background:var(--background-secondary);font-size:16px;font-weight:600;color:var(--interactive-accent);border-bottom:1px solid var(--background-modifier-border)}.tp-lo-weekhead--current.svelte-uiw2hz.svelte-uiw2hz{background:color-mix(in srgb, var(--interactive-accent) 16%, var(--background-secondary));color:var(--text-normal)}.tp-lo-ab.svelte-uiw2hz.svelte-uiw2hz{border:1px solid var(--background-modifier-border);border-radius:4px;padding:1px 9px;font-size:13px;font-weight:700}.tp-lo-ab--current.svelte-uiw2hz.svelte-uiw2hz{border-color:var(--interactive-accent)}.tp-lo-row.svelte-uiw2hz.svelte-uiw2hz{padding:11px 13px;border-bottom:1px solid var(--background-modifier-border-hover)}.tp-lo-row.svelte-uiw2hz.svelte-uiw2hz:last-child{border-bottom:none}.tp-lo-row--past.svelte-uiw2hz.svelte-uiw2hz{opacity:0.55}.tp-lo-row--current.svelte-uiw2hz.svelte-uiw2hz{background:color-mix(in srgb, var(--interactive-accent) 8%, transparent)}.tp-lo-row-main.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:10px}.tp-lo-when.svelte-uiw2hz.svelte-uiw2hz{font-size:13px;color:var(--text-muted)}.tp-lo-row--current.svelte-uiw2hz .tp-lo-when.svelte-uiw2hz{font-weight:600;color:var(--text-normal)}.tp-lo-topic.svelte-uiw2hz.svelte-uiw2hz{display:block;max-width:100%;font-size:15px;font-weight:500;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-lo-topic--faint.svelte-uiw2hz.svelte-uiw2hz{color:var(--text-faint)}.tp-lo-rowbtn.svelte-uiw2hz.svelte-uiw2hz{flex:1;min-width:0;display:flex;align-items:center;text-align:left;border:none;background:transparent;box-shadow:none;outline:none;border-radius:0;cursor:pointer;padding:0;color:inherit;font-family:var(--font-interface)}.tp-lo-rowbtn.svelte-uiw2hz:hover .tp-lo-topic.svelte-uiw2hz{color:var(--interactive-accent)}.tp-lo-rowtext.svelte-uiw2hz.svelte-uiw2hz{display:flex;flex-direction:column;gap:3px;min-width:0;width:100%}.tp-lo-chev.svelte-uiw2hz.svelte-uiw2hz{display:inline-flex;color:var(--text-faint);margin-left:2px;transition:transform 0.12s}.tp-lo-chev.svelte-uiw2hz svg{width:15px;height:15px}.tp-lo-chev--open.svelte-uiw2hz.svelte-uiw2hz{transform:rotate(180deg);color:var(--text-muted)}.tp-lo-icons.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:3px;flex-shrink:0}.tp-lo-taught.svelte-uiw2hz.svelte-uiw2hz{display:inline-flex;color:var(--color-green, #a6e3a1)}.tp-lo-taught.svelte-uiw2hz svg{width:16px;height:16px}.tp-lo-ic.svelte-uiw2hz.svelte-uiw2hz{border:none;background:transparent;box-shadow:none;cursor:pointer;color:var(--text-faint);display:inline-flex;padding:4px;border-radius:4px}.tp-lo-ic.svelte-uiw2hz.svelte-uiw2hz:hover{background:var(--background-modifier-hover);color:var(--text-normal)}.tp-lo-ic.svelte-uiw2hz svg{width:16px;height:16px}.tp-lo-ic--on.svelte-uiw2hz.svelte-uiw2hz,.tp-lo-ic--plan.svelte-uiw2hz.svelte-uiw2hz{color:var(--color-green, #a6e3a1)}.tp-lo-noteedit.svelte-uiw2hz.svelte-uiw2hz{width:100%;box-sizing:border-box;margin-top:0;padding:9px 11px;border:1px solid var(--interactive-accent);border-radius:6px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:13px;line-height:1.4;font-family:var(--font-interface);resize:vertical}.tp-lo-panel.svelte-uiw2hz.svelte-uiw2hz{margin-top:8px}.tp-lo-field.svelte-uiw2hz.svelte-uiw2hz{display:block;margin-bottom:9px}.tp-lo-field-label.svelte-uiw2hz.svelte-uiw2hz{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:4px}.tp-lo-roomedit.svelte-uiw2hz.svelte-uiw2hz{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:13px;font-family:var(--font-interface)}.tp-lo-roomedit.svelte-uiw2hz.svelte-uiw2hz:focus{border-color:var(--interactive-accent);outline:none}.tp-lo-menu-sep.svelte-uiw2hz.svelte-uiw2hz{height:1px;background:var(--background-modifier-border);margin:6px 0}.tp-lo-menu.svelte-uiw2hz.svelte-uiw2hz{margin-top:6px;border-radius:6px;background:transparent;overflow:hidden}.tp-lo-menu.svelte-uiw2hz button.svelte-uiw2hz{display:flex;align-items:center;justify-content:flex-start;gap:11px;width:100%;text-align:left;padding:12px 14px;border:none;background:transparent;box-shadow:none;outline:none;color:var(--text-normal);font-size:14px;line-height:1.35;cursor:pointer;font-family:var(--font-interface)}.tp-lo-menu.svelte-uiw2hz button.svelte-uiw2hz:hover{background:var(--background-modifier-hover)}.tp-lo-menu.svelte-uiw2hz svg{width:16px;height:16px;flex-shrink:0;color:var(--text-muted)}.tp-lo-unplaced.svelte-uiw2hz.svelte-uiw2hz{margin:10px;border:1px dashed var(--color-orange, #e0af68);border-radius:7px;padding:9px 11px}.tp-lo-unplaced-head.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--color-orange, #e0af68);margin-bottom:6px}.tp-lo-unplaced-head.svelte-uiw2hz svg{width:14px;height:14px}.tp-lo-unplaced-row.svelte-uiw2hz.svelte-uiw2hz{font-size:13px;color:var(--text-normal);padding:3px 0}.tp-lo-unplaced-hint.svelte-uiw2hz.svelte-uiw2hz{font-size:11px;color:var(--text-muted);margin-top:6px}.tp-lo-empty.svelte-uiw2hz.svelte-uiw2hz{padding:20px;text-align:center;color:var(--text-muted);font-size:13px}.tp-lo-toast.svelte-uiw2hz.svelte-uiw2hz{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 12px;border-radius:7px;background:var(--background-secondary);border:1px solid var(--background-modifier-border);font-size:13px}.tp-lo-toast.svelte-uiw2hz>span.svelte-uiw2hz{flex:1}.tp-lo-toast.svelte-uiw2hz button.svelte-uiw2hz{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);border-radius:5px;padding:4px 9px;cursor:pointer;color:var(--text-normal);font-size:12px}.tp-lo-toast.svelte-uiw2hz button.svelte-uiw2hz:hover{background:var(--background-modifier-hover)}.tp-lo-toast.svelte-uiw2hz svg{width:14px;height:14px}.tp-lo-toast-x.svelte-uiw2hz.svelte-uiw2hz{padding:4px !important}");
 }
 function get_each_context_15(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[70] = list[i];
+  child_ctx[91] = list[i];
   return child_ctx;
 }
 function get_each_context_24(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[73] = list[i];
+  child_ctx[94] = list[i];
   const constants_0 = (
     /*w*/
-    child_ctx[73].weekKey === /*currentWeekKey*/
+    child_ctx[94].weekKey === /*currentWeekKey*/
     child_ctx[17]
   );
-  child_ctx[74] = constants_0;
+  child_ctx[95] = constants_0;
   return child_ctx;
 }
 function get_each_context_33(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[77] = list[i];
+  child_ctx[98] = list[i];
   const constants_0 = (
     /*o*/
-    child_ctx[77].date < /*todayIso*/
+    child_ctx[98].date < /*todayIso*/
     child_ctx[16]
   );
-  child_ctx[78] = constants_0;
+  child_ctx[99] = constants_0;
   const constants_1 = (
     /*mainLine*/
     child_ctx[25](
       /*o*/
-      child_ctx[77]
+      child_ctx[98]
     )
   );
-  child_ctx[79] = constants_1;
+  child_ctx[100] = constants_1;
   return child_ctx;
 }
 function get_if_ctx4(ctx) {
@@ -25717,16 +25704,16 @@ function get_if_ctx4(ctx) {
     /*plugin*/
     child_ctx[0].settings,
     /*o*/
-    child_ctx[77].slotId,
+    child_ctx[98].slotId,
     /*o*/
-    child_ctx[77].date
+    child_ctx[98].date
   );
-  child_ctx[82] = constants_0;
+  child_ctx[103] = constants_0;
   return child_ctx;
 }
 function get_each_context5(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[67] = list[i];
+  child_ctx[88] = list[i];
   return child_ctx;
 }
 function create_else_block4(ctx) {
@@ -25738,16 +25725,16 @@ function create_else_block4(ctx) {
   let h3;
   let t1_value = (
     /*emojiFor*/
-    ctx[20](
+    ctx[21](
       /*selectedClass*/
-      ctx[11]
+      ctx[10]
     ) + ""
   );
   let t1;
   let t2;
   let t3_value = (
     /*selectedClass*/
-    ((_b2 = (_a2 = ctx[11]) == null ? void 0 : _a2.code) != null ? _b2 : "") + ""
+    ((_b2 = (_a2 = ctx[10]) == null ? void 0 : _a2.code) != null ? _b2 : "") + ""
   );
   let t3;
   let t4;
@@ -25772,7 +25759,7 @@ function create_else_block4(ctx) {
   );
   const get_key = (ctx2) => (
     /*w*/
-    ctx2[73].weekKey
+    ctx2[94].weekKey
   );
   for (let i = 0; i < each_value_2.length; i += 1) {
     let child_ctx = get_each_context_24(ctx, each_value_2, i);
@@ -25781,15 +25768,15 @@ function create_else_block4(ctx) {
   }
   let if_block0 = (
     /*unplacedForClass*/
-    ctx[10].length && create_if_block_44(ctx)
+    ctx[11].length && create_if_block_53(ctx)
   );
   let if_block1 = (
     /*occurrences*/
-    ctx[3].length === 0 && create_if_block_312(ctx)
+    ctx[3].length === 0 && create_if_block_44(ctx)
   );
   let if_block2 = (
     /*toast*/
-    ctx[9] && create_if_block_213(ctx)
+    ctx[9] && create_if_block_312(ctx)
   );
   return {
     c() {
@@ -25817,15 +25804,15 @@ function create_else_block4(ctx) {
       t9 = space();
       if (if_block2) if_block2.c();
       if_block2_anchor = empty();
-      attr(button, "class", "tp-lo-back svelte-s15jj1");
+      attr(button, "class", "tp-lo-back svelte-uiw2hz");
       attr(button, "aria-label", "Back to classes");
-      attr(h3, "class", "tp-lo-title svelte-s15jj1");
+      attr(h3, "class", "tp-lo-title svelte-uiw2hz");
       attr(input, "type", "date");
-      attr(input, "class", "svelte-s15jj1");
-      attr(label, "class", "tp-lo-jump svelte-s15jj1");
+      attr(input, "class", "svelte-uiw2hz");
+      attr(label, "class", "tp-lo-jump svelte-uiw2hz");
       attr(label, "title", "Jump to a date");
-      attr(div0, "class", "tp-lo-head svelte-s15jj1");
-      attr(div1, "class", "tp-lo-list svelte-s15jj1");
+      attr(div0, "class", "tp-lo-head svelte-uiw2hz");
+      attr(div1, "class", "tp-lo-list svelte-uiw2hz");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -25856,7 +25843,7 @@ function create_else_block4(ctx) {
       if (if_block0) if_block0.m(div1, null);
       append(div1, t8);
       if (if_block1) if_block1.m(div1, null);
-      ctx[56](div1);
+      ctx[74](div1);
       insert(target, t9, anchor);
       if (if_block2) if_block2.m(target, anchor);
       insert(target, if_block2_anchor, anchor);
@@ -25866,7 +25853,7 @@ function create_else_block4(ctx) {
             button,
             "click",
             /*back*/
-            ctx[36]
+            ctx[43]
           ),
           action_destroyer(obsIcon_action = /*obsIcon*/
           ctx[15].call(null, button, "arrow-left")),
@@ -25876,13 +25863,13 @@ function create_else_block4(ctx) {
             input,
             "input",
             /*input_input_handler_1*/
-            ctx[45]
+            ctx[53]
           ),
           listen(
             input,
             "change",
             /*jumpTo*/
-            ctx[37]
+            ctx[44]
           )
         ];
         mounted = true;
@@ -25891,14 +25878,14 @@ function create_else_block4(ctx) {
     p(ctx2, dirty) {
       var _a3, _b3;
       if (dirty[0] & /*selectedClass*/
-      2048 && t1_value !== (t1_value = /*emojiFor*/
-      ctx2[20](
+      1024 && t1_value !== (t1_value = /*emojiFor*/
+      ctx2[21](
         /*selectedClass*/
-        ctx2[11]
+        ctx2[10]
       ) + "")) set_data(t1, t1_value);
       if (dirty[0] & /*selectedClass*/
-      2048 && t3_value !== (t3_value = /*selectedClass*/
-      ((_b3 = (_a3 = ctx2[11]) == null ? void 0 : _a3.code) != null ? _b3 : "") + "")) set_data(t3, t3_value);
+      1024 && t3_value !== (t3_value = /*selectedClass*/
+      ((_b3 = (_a3 = ctx2[10]) == null ? void 0 : _a3.code) != null ? _b3 : "") + "")) set_data(t3, t3_value);
       if (dirty[0] & /*jump*/
       16) {
         set_input_value(
@@ -25907,9 +25894,9 @@ function create_else_block4(ctx) {
           ctx2[4]
         );
       }
-      if (dirty[0] & /*weeks, todayIso, currentWeekKey, startEditNote, lessonNote, menuKey, keyOf, editingText, editingKey, plugin, openExternal, openPlan, togglePrep, toggleMenu, shortPeriod, fmtDay, mainLine, fmtWeek*/
-      2145849793 | dirty[1] & /*shiftFwd, shiftBack, saveNote*/
-      7) {
+      if (dirty[0] & /*weeks, todayIso, currentWeekKey, openExternal, plugin, isMobile, togglePrep, openPlan, defaultRoom, panelRoom, panelNote, menuKey, keyOf, toggleMenu, shortPeriod, fmtDay, mainLine, fmtWeek*/
+      2144276929 | dirty[1] & /*shiftFwd, shiftBack, unlinkExternal, linkExtFolder, linkExtFile, unlinkPlan, linkPlan, doLessonNote, savePanel*/
+      511) {
         each_value_2 = ensure_array_like(
           /*weeks*/
           ctx2[12]
@@ -25918,12 +25905,12 @@ function create_else_block4(ctx) {
       }
       if (
         /*unplacedForClass*/
-        ctx2[10].length
+        ctx2[11].length
       ) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
         } else {
-          if_block0 = create_if_block_44(ctx2);
+          if_block0 = create_if_block_53(ctx2);
           if_block0.c();
           if_block0.m(div1, t8);
         }
@@ -25937,7 +25924,7 @@ function create_else_block4(ctx) {
       ) {
         if (if_block1) {
         } else {
-          if_block1 = create_if_block_312(ctx2);
+          if_block1 = create_if_block_44(ctx2);
           if_block1.c();
           if_block1.m(div1, null);
         }
@@ -25952,7 +25939,7 @@ function create_else_block4(ctx) {
         if (if_block2) {
           if_block2.p(ctx2, dirty);
         } else {
-          if_block2 = create_if_block_213(ctx2);
+          if_block2 = create_if_block_312(ctx2);
           if_block2.c();
           if_block2.m(if_block2_anchor.parentNode, if_block2_anchor);
         }
@@ -25974,7 +25961,7 @@ function create_else_block4(ctx) {
       }
       if (if_block0) if_block0.d();
       if (if_block1) if_block1.d();
-      ctx[56](null);
+      ctx[74](null);
       if (if_block2) if_block2.d(detaching);
       mounted = false;
       run_all(dispose);
@@ -26002,7 +25989,7 @@ function create_if_block5(ctx) {
   );
   const get_key = (ctx2) => (
     /*c*/
-    ctx2[67].id
+    ctx2[88].id
   );
   for (let i = 0; i < each_value.length; i += 1) {
     let child_ctx = get_each_context5(ctx, each_value, i);
@@ -26011,12 +25998,12 @@ function create_if_block5(ctx) {
   }
   let if_block = (
     /*filteredClasses*/
-    ctx[14].length === 0 && create_if_block_113(ctx)
+    ctx[14].length === 0 && create_if_block_114(ctx)
   );
   return {
     c() {
       div0 = element("div");
-      div0.innerHTML = `<h3 class="tp-lo-title svelte-s15jj1">Lesson overview</h3>`;
+      div0.innerHTML = `<h3 class="tp-lo-title svelte-uiw2hz">Lesson overview</h3>`;
       t1 = space();
       div1 = element("div");
       span = element("span");
@@ -26029,13 +26016,13 @@ function create_if_block5(ctx) {
       }
       t4 = space();
       if (if_block) if_block.c();
-      attr(div0, "class", "tp-lo-head svelte-s15jj1");
-      attr(span, "class", "tp-lo-search-icon svelte-s15jj1");
+      attr(div0, "class", "tp-lo-head svelte-uiw2hz");
+      attr(span, "class", "tp-lo-search-icon svelte-uiw2hz");
       attr(input, "type", "text");
       attr(input, "placeholder", "Search classes\u2026");
-      attr(input, "class", "svelte-s15jj1");
-      attr(div1, "class", "tp-lo-search svelte-s15jj1");
-      attr(div2, "class", "tp-lo-cards svelte-s15jj1");
+      attr(input, "class", "svelte-uiw2hz");
+      attr(div1, "class", "tp-lo-search svelte-uiw2hz");
+      attr(div2, "class", "tp-lo-cards svelte-uiw2hz");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -26066,7 +26053,7 @@ function create_if_block5(ctx) {
             input,
             "input",
             /*input_input_handler*/
-            ctx[43]
+            ctx[50]
           )
         ];
         mounted = true;
@@ -26083,8 +26070,8 @@ function create_if_block5(ctx) {
         );
       }
       if (dirty[0] & /*filteredClasses, nextLabels, subjectFor, emojiFor*/
-      1597440 | dirty[1] & /*selectClass*/
-      16) {
+      3170304 | dirty[1] & /*selectClass, onCardKey*/
+      3072) {
         each_value = ensure_array_like(
           /*filteredClasses*/
           ctx2[14]
@@ -26097,7 +26084,7 @@ function create_if_block5(ctx) {
       ) {
         if (if_block) {
         } else {
-          if_block = create_if_block_113(ctx2);
+          if_block = create_if_block_114(ctx2);
           if_block.c();
           if_block.m(div2, null);
         }
@@ -26123,23 +26110,23 @@ function create_if_block5(ctx) {
     }
   };
 }
-function create_if_block_103(ctx) {
+function create_if_block_133(ctx) {
   let span;
   let t_value = (
     /*w*/
-    ctx[73].weekType + ""
+    ctx[94].weekType + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-lo-ab svelte-s15jj1");
+      attr(span, "class", "tp-lo-ab svelte-uiw2hz");
       toggle_class(
         span,
         "tp-lo-ab--current",
         /*isCurrent*/
-        ctx[74]
+        ctx[95]
       );
     },
     m(target, anchor) {
@@ -26149,14 +26136,14 @@ function create_if_block_103(ctx) {
     p(ctx2, dirty) {
       if (dirty[0] & /*weeks*/
       4096 && t_value !== (t_value = /*w*/
-      ctx2[73].weekType + "")) set_data(t, t_value);
+      ctx2[94].weekType + "")) set_data(t, t_value);
       if (dirty[0] & /*weeks, currentWeekKey*/
       135168) {
         toggle_class(
           span,
           "tp-lo-ab--current",
           /*isCurrent*/
-          ctx2[74]
+          ctx2[95]
         );
       }
     },
@@ -26167,7 +26154,7 @@ function create_if_block_103(ctx) {
     }
   };
 }
-function create_if_block_93(ctx) {
+function create_if_block_123(ctx) {
   let span;
   let obsIcon_action;
   let mounted;
@@ -26175,7 +26162,7 @@ function create_if_block_93(ctx) {
   return {
     c() {
       span = element("span");
-      attr(span, "class", "tp-lo-taught svelte-s15jj1");
+      attr(span, "class", "tp-lo-taught svelte-uiw2hz");
       attr(span, "title", "Taught");
     },
     m(target, anchor) {
@@ -26195,7 +26182,7 @@ function create_if_block_93(ctx) {
     }
   };
 }
-function create_if_block_83(ctx) {
+function create_if_block_113(ctx) {
   let button;
   let obsIcon_action;
   let mounted;
@@ -26203,16 +26190,16 @@ function create_if_block_83(ctx) {
   function click_handler_3() {
     return (
       /*click_handler_3*/
-      ctx[48](
+      ctx[56](
         /*o*/
-        ctx[77]
+        ctx[98]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-lo-ic tp-lo-ic--plan svelte-s15jj1");
+      attr(button, "class", "tp-lo-ic tp-lo-ic--plan svelte-uiw2hz");
       attr(button, "title", "Open lesson plan");
     },
     m(target, anchor) {
@@ -26238,7 +26225,7 @@ function create_if_block_83(ctx) {
     }
   };
 }
-function create_if_block_73(ctx) {
+function create_if_block_103(ctx) {
   let button;
   let obsIcon_action;
   let mounted;
@@ -26246,16 +26233,16 @@ function create_if_block_73(ctx) {
   function click_handler_4() {
     return (
       /*click_handler_4*/
-      ctx[49](
+      ctx[57](
         /*o*/
-        ctx[77]
+        ctx[98]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-lo-ic svelte-s15jj1");
+      attr(button, "class", "tp-lo-ic svelte-uiw2hz");
       attr(button, "title", "Open external resource");
     },
     m(target, anchor) {
@@ -26268,9 +26255,9 @@ function create_if_block_73(ctx) {
             null,
             button,
             /*ext*/
-            ctx[82] && externalKindOf(
+            ctx[103] && externalKindOf(
               /*ext*/
-              ctx[82]
+              ctx[103]
             ) === "folder" ? "folder" : "paperclip"
           ))
         ];
@@ -26283,9 +26270,9 @@ function create_if_block_73(ctx) {
       4097) obsIcon_action.update.call(
         null,
         /*ext*/
-        ctx[82] && externalKindOf(
+        ctx[103] && externalKindOf(
           /*ext*/
-          ctx[82]
+          ctx[103]
         ) === "folder" ? "folder" : "paperclip"
       );
     },
@@ -26299,69 +26286,440 @@ function create_if_block_73(ctx) {
   };
 }
 function create_if_block_63(ctx) {
+  let div2;
+  let label0;
+  let span0;
+  let t1;
   let textarea;
+  let t2;
+  let label1;
+  let span1;
+  let t4;
+  let input;
+  let input_placeholder_value;
+  let t5;
+  let div1;
+  let button0;
+  let span2;
+  let obsIcon_action;
+  let t6;
+  let t7;
+  let show_if_1;
+  let t8;
+  let button1;
+  let span3;
+  let obsIcon_action_1;
+  let t9;
+  let t10_value = isSlotPrepared(
+    /*plugin*/
+    ctx[0].settings,
+    /*o*/
+    ctx[98].slotId,
+    /*o*/
+    ctx[98].date
+  ) ? "Clear prepared mark" : "Mark prepared";
+  let t10;
+  let t11;
+  let show_if;
+  let t12;
+  let div0;
+  let t13;
+  let button2;
+  let span4;
+  let obsIcon_action_2;
+  let t14;
+  let t15;
+  let button3;
+  let span5;
+  let obsIcon_action_3;
+  let t16;
+  let t17;
+  let button4;
+  let span6;
+  let obsIcon_action_4;
+  let t18;
   let mounted;
   let dispose;
   function blur_handler() {
     return (
       /*blur_handler*/
-      ctx[51](
+      ctx[59](
         /*o*/
-        ctx[77]
+        ctx[98]
+      )
+    );
+  }
+  function blur_handler_1() {
+    return (
+      /*blur_handler_1*/
+      ctx[61](
+        /*o*/
+        ctx[98]
+      )
+    );
+  }
+  function click_handler_5() {
+    return (
+      /*click_handler_5*/
+      ctx[62](
+        /*o*/
+        ctx[98]
+      )
+    );
+  }
+  function select_block_type_1(ctx2, dirty) {
+    if (dirty[0] & /*plugin, weeks*/
+    4097) show_if_1 = null;
+    if (show_if_1 == null) show_if_1 = !!getSlotPlan(
+      /*plugin*/
+      ctx2[0].settings,
+      /*o*/
+      ctx2[98].slotId,
+      /*o*/
+      ctx2[98].date
+    );
+    if (show_if_1) return create_if_block_93;
+    return create_else_block_13;
+  }
+  let current_block_type = select_block_type_1(ctx, [-1, -1, -1, -1]);
+  let if_block0 = current_block_type(ctx);
+  function click_handler_9() {
+    return (
+      /*click_handler_9*/
+      ctx[66](
+        /*o*/
+        ctx[98]
+      )
+    );
+  }
+  function select_block_type_2(ctx2, dirty) {
+    if (dirty[0] & /*plugin, weeks*/
+    4097) show_if = null;
+    if (show_if == null) show_if = !!getSlotExternal(
+      /*plugin*/
+      ctx2[0].settings,
+      /*o*/
+      ctx2[98].slotId,
+      /*o*/
+      ctx2[98].date
+    );
+    if (show_if) return create_if_block_73;
+    if (!/*isMobile*/
+    ctx2[18]) return create_if_block_83;
+  }
+  let current_block_type_1 = select_block_type_2(ctx, [-1, -1, -1, -1]);
+  let if_block1 = current_block_type_1 && current_block_type_1(ctx);
+  function click_handler_14() {
+    return (
+      /*click_handler_14*/
+      ctx[71](
+        /*o*/
+        ctx[98]
+      )
+    );
+  }
+  function click_handler_15() {
+    return (
+      /*click_handler_15*/
+      ctx[72](
+        /*o*/
+        ctx[98]
+      )
+    );
+  }
+  function click_handler_16() {
+    return (
+      /*click_handler_16*/
+      ctx[73](
+        /*o*/
+        ctx[98]
       )
     );
   }
   return {
     c() {
+      div2 = element("div");
+      label0 = element("label");
+      span0 = element("span");
+      span0.textContent = "Notes";
+      t1 = space();
       textarea = element("textarea");
-      attr(textarea, "class", "tp-lo-noteedit svelte-s15jj1");
+      t2 = space();
+      label1 = element("label");
+      span1 = element("span");
+      span1.textContent = "Room";
+      t4 = space();
+      input = element("input");
+      t5 = space();
+      div1 = element("div");
+      button0 = element("button");
+      span2 = element("span");
+      t6 = text(" Lesson note");
+      t7 = space();
+      if_block0.c();
+      t8 = space();
+      button1 = element("button");
+      span3 = element("span");
+      t9 = space();
+      t10 = text(t10_value);
+      t11 = space();
+      if (if_block1) if_block1.c();
+      t12 = space();
+      div0 = element("div");
+      t13 = space();
+      button2 = element("button");
+      span4 = element("span");
+      t14 = text(" Push lessons forward");
+      t15 = space();
+      button3 = element("button");
+      span5 = element("span");
+      t16 = text(" Pull lessons back");
+      t17 = space();
+      button4 = element("button");
+      span6 = element("span");
+      t18 = text(" Insert a free lesson here");
+      attr(span0, "class", "tp-lo-field-label svelte-uiw2hz");
+      attr(textarea, "class", "tp-lo-noteedit svelte-uiw2hz");
       attr(textarea, "rows", "2");
-      textarea.autofocus = true;
       attr(textarea, "placeholder", "Notes for this lesson\u2026");
+      attr(label0, "class", "tp-lo-field svelte-uiw2hz");
+      attr(span1, "class", "tp-lo-field-label svelte-uiw2hz");
+      attr(input, "class", "tp-lo-roomedit svelte-uiw2hz");
+      attr(input, "type", "text");
+      attr(input, "placeholder", input_placeholder_value = /*defaultRoom*/
+      ctx[30](
+        /*o*/
+        ctx[98]
+      ) || "Room");
+      attr(label1, "class", "tp-lo-field svelte-uiw2hz");
+      attr(button0, "class", "svelte-uiw2hz");
+      attr(button1, "class", "svelte-uiw2hz");
+      attr(div0, "class", "tp-lo-menu-sep svelte-uiw2hz");
+      attr(button2, "class", "svelte-uiw2hz");
+      attr(button3, "class", "svelte-uiw2hz");
+      attr(button4, "class", "svelte-uiw2hz");
+      attr(div1, "class", "tp-lo-menu svelte-uiw2hz");
+      attr(div2, "class", "tp-lo-panel svelte-uiw2hz");
     },
     m(target, anchor) {
-      insert(target, textarea, anchor);
+      insert(target, div2, anchor);
+      append(div2, label0);
+      append(label0, span0);
+      append(label0, t1);
+      append(label0, textarea);
       set_input_value(
         textarea,
-        /*editingText*/
+        /*panelNote*/
+        ctx[7]
+      );
+      append(div2, t2);
+      append(div2, label1);
+      append(label1, span1);
+      append(label1, t4);
+      append(label1, input);
+      set_input_value(
+        input,
+        /*panelRoom*/
         ctx[8]
       );
-      textarea.focus();
+      append(div2, t5);
+      append(div2, div1);
+      append(div1, button0);
+      append(button0, span2);
+      append(button0, t6);
+      append(div1, t7);
+      if_block0.m(div1, null);
+      append(div1, t8);
+      append(div1, button1);
+      append(button1, span3);
+      append(button1, t9);
+      append(button1, t10);
+      append(div1, t11);
+      if (if_block1) if_block1.m(div1, null);
+      append(div1, t12);
+      append(div1, div0);
+      append(div1, t13);
+      append(div1, button2);
+      append(button2, span4);
+      append(button2, t14);
+      append(div1, t15);
+      append(div1, button3);
+      append(button3, span5);
+      append(button3, t16);
+      append(div1, t17);
+      append(div1, button4);
+      append(button4, span6);
+      append(button4, t18);
       if (!mounted) {
         dispose = [
           listen(
             textarea,
             "input",
             /*textarea_input_handler*/
-            ctx[50]
+            ctx[58]
           ),
-          listen(textarea, "blur", blur_handler)
+          listen(textarea, "blur", blur_handler),
+          listen(
+            input,
+            "input",
+            /*input_input_handler_2*/
+            ctx[60]
+          ),
+          listen(input, "blur", blur_handler_1),
+          action_destroyer(obsIcon_action = /*obsIcon*/
+          ctx[15].call(null, span2, "book-open")),
+          listen(button0, "click", click_handler_5),
+          action_destroyer(obsIcon_action_1 = /*obsIcon*/
+          ctx[15].call(null, span3, isSlotPrepared(
+            /*plugin*/
+            ctx[0].settings,
+            /*o*/
+            ctx[98].slotId,
+            /*o*/
+            ctx[98].date
+          ) ? "x" : "check")),
+          listen(button1, "click", click_handler_9),
+          action_destroyer(obsIcon_action_2 = /*obsIcon*/
+          ctx[15].call(null, span4, "chevrons-right")),
+          listen(button2, "click", click_handler_14),
+          action_destroyer(obsIcon_action_3 = /*obsIcon*/
+          ctx[15].call(null, span5, "chevrons-left")),
+          listen(button3, "click", click_handler_15),
+          action_destroyer(obsIcon_action_4 = /*obsIcon*/
+          ctx[15].call(null, span6, "square-plus")),
+          listen(button4, "click", click_handler_16)
         ];
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*editingText*/
-      256) {
+      if (dirty[0] & /*panelNote*/
+      128) {
         set_input_value(
           textarea,
-          /*editingText*/
+          /*panelNote*/
+          ctx[7]
+        );
+      }
+      if (dirty[0] & /*weeks*/
+      4096 && input_placeholder_value !== (input_placeholder_value = /*defaultRoom*/
+      ctx[30](
+        /*o*/
+        ctx[98]
+      ) || "Room")) {
+        attr(input, "placeholder", input_placeholder_value);
+      }
+      if (dirty[0] & /*panelRoom*/
+      256 && input.value !== /*panelRoom*/
+      ctx[8]) {
+        set_input_value(
+          input,
+          /*panelRoom*/
           ctx[8]
         );
+      }
+      if (current_block_type === (current_block_type = select_block_type_1(ctx, dirty)) && if_block0) {
+        if_block0.p(ctx, dirty);
+      } else {
+        if_block0.d(1);
+        if_block0 = current_block_type(ctx);
+        if (if_block0) {
+          if_block0.c();
+          if_block0.m(div1, t8);
+        }
+      }
+      if (obsIcon_action_1 && is_function(obsIcon_action_1.update) && dirty[0] & /*plugin, weeks*/
+      4097) obsIcon_action_1.update.call(null, isSlotPrepared(
+        /*plugin*/
+        ctx[0].settings,
+        /*o*/
+        ctx[98].slotId,
+        /*o*/
+        ctx[98].date
+      ) ? "x" : "check");
+      if (dirty[0] & /*plugin, weeks*/
+      4097 && t10_value !== (t10_value = isSlotPrepared(
+        /*plugin*/
+        ctx[0].settings,
+        /*o*/
+        ctx[98].slotId,
+        /*o*/
+        ctx[98].date
+      ) ? "Clear prepared mark" : "Mark prepared")) set_data(t10, t10_value);
+      if (current_block_type_1 === (current_block_type_1 = select_block_type_2(ctx, dirty)) && if_block1) {
+        if_block1.p(ctx, dirty);
+      } else {
+        if (if_block1) if_block1.d(1);
+        if_block1 = current_block_type_1 && current_block_type_1(ctx);
+        if (if_block1) {
+          if_block1.c();
+          if_block1.m(div1, t12);
+        }
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(textarea);
+        detach(div2);
+      }
+      if_block0.d();
+      if (if_block1) {
+        if_block1.d();
       }
       mounted = false;
       run_all(dispose);
     }
   };
 }
-function create_if_block_53(ctx) {
-  let div;
+function create_else_block_13(ctx) {
+  let button;
+  let span;
+  let obsIcon_action;
+  let t;
+  let mounted;
+  let dispose;
+  function click_handler_8() {
+    return (
+      /*click_handler_8*/
+      ctx[65](
+        /*o*/
+        ctx[98]
+      )
+    );
+  }
+  return {
+    c() {
+      button = element("button");
+      span = element("span");
+      t = text(" Link lesson plan\u2026");
+      attr(button, "class", "svelte-uiw2hz");
+    },
+    m(target, anchor) {
+      insert(target, button, anchor);
+      append(button, span);
+      append(button, t);
+      if (!mounted) {
+        dispose = [
+          action_destroyer(obsIcon_action = /*obsIcon*/
+          ctx[15].call(null, span, "file-plus")),
+          listen(button, "click", click_handler_8)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_93(ctx) {
   let button0;
   let span0;
   let obsIcon_action;
@@ -26371,138 +26729,218 @@ function create_if_block_53(ctx) {
   let span1;
   let obsIcon_action_1;
   let t2;
-  let t3;
-  let button2;
-  let span2;
-  let obsIcon_action_2;
-  let t4;
-  let t5;
-  let button3;
-  let span3;
-  let obsIcon_action_3;
-  let t6;
-  let t7_value = (
-    /*lessonNote*/
-    ctx[24](
-      /*o*/
-      ctx[77]
-    ) ? "Edit" : "Add"
-  );
-  let t7;
-  let t8;
   let mounted;
   let dispose;
-  function click_handler_5() {
-    return (
-      /*click_handler_5*/
-      ctx[52](
-        /*o*/
-        ctx[77]
-      )
-    );
-  }
   function click_handler_6() {
     return (
       /*click_handler_6*/
-      ctx[53](
+      ctx[63](
         /*o*/
-        ctx[77]
+        ctx[98]
       )
     );
   }
   function click_handler_7() {
     return (
       /*click_handler_7*/
-      ctx[54](
+      ctx[64](
         /*o*/
-        ctx[77]
-      )
-    );
-  }
-  function click_handler_8() {
-    return (
-      /*click_handler_8*/
-      ctx[55](
-        /*o*/
-        ctx[77]
+        ctx[98]
       )
     );
   }
   return {
     c() {
-      div = element("div");
       button0 = element("button");
       span0 = element("span");
-      t0 = text(" Lesson didn't happen, shift the rest forward");
+      t0 = text(" Open lesson plan");
       t1 = space();
       button1 = element("button");
       span1 = element("span");
-      t2 = text(" Pull later lessons back into this slot");
-      t3 = space();
-      button2 = element("button");
-      span2 = element("span");
-      t4 = text(" Insert a free lesson here");
-      t5 = space();
-      button3 = element("button");
-      span3 = element("span");
-      t6 = space();
-      t7 = text(t7_value);
-      t8 = text(" notes");
-      attr(button0, "class", "svelte-s15jj1");
-      attr(button1, "class", "svelte-s15jj1");
-      attr(button2, "class", "svelte-s15jj1");
-      attr(button3, "class", "svelte-s15jj1");
-      attr(div, "class", "tp-lo-menu svelte-s15jj1");
+      t2 = text(" Unlink lesson plan");
+      attr(button0, "class", "svelte-uiw2hz");
+      attr(button1, "class", "svelte-uiw2hz");
     },
     m(target, anchor) {
-      insert(target, div, anchor);
-      append(div, button0);
+      insert(target, button0, anchor);
       append(button0, span0);
       append(button0, t0);
-      append(div, t1);
-      append(div, button1);
+      insert(target, t1, anchor);
+      insert(target, button1, anchor);
       append(button1, span1);
       append(button1, t2);
-      append(div, t3);
-      append(div, button2);
-      append(button2, span2);
-      append(button2, t4);
-      append(div, t5);
-      append(div, button3);
-      append(button3, span3);
-      append(button3, t6);
-      append(button3, t7);
-      append(button3, t8);
       if (!mounted) {
         dispose = [
           action_destroyer(obsIcon_action = /*obsIcon*/
-          ctx[15].call(null, span0, "player-track-next")),
-          listen(button0, "click", click_handler_5),
+          ctx[15].call(null, span0, "file-text")),
+          listen(button0, "click", click_handler_6),
           action_destroyer(obsIcon_action_1 = /*obsIcon*/
-          ctx[15].call(null, span1, "player-track-prev")),
-          listen(button1, "click", click_handler_6),
-          action_destroyer(obsIcon_action_2 = /*obsIcon*/
-          ctx[15].call(null, span2, "square-plus")),
-          listen(button2, "click", click_handler_7),
-          action_destroyer(obsIcon_action_3 = /*obsIcon*/
-          ctx[15].call(null, span3, "pencil")),
-          listen(button3, "click", click_handler_8)
+          ctx[15].call(null, span1, "unlink")),
+          listen(button1, "click", click_handler_7)
         ];
         mounted = true;
       }
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*weeks*/
-      4096 && t7_value !== (t7_value = /*lessonNote*/
-      ctx[24](
-        /*o*/
-        ctx[77]
-      ) ? "Edit" : "Add")) set_data(t7, t7_value);
     },
     d(detaching) {
       if (detaching) {
-        detach(div);
+        detach(button0);
+        detach(t1);
+        detach(button1);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_83(ctx) {
+  let button0;
+  let span0;
+  let obsIcon_action;
+  let t0;
+  let t1;
+  let button1;
+  let span1;
+  let obsIcon_action_1;
+  let t2;
+  let mounted;
+  let dispose;
+  function click_handler_12() {
+    return (
+      /*click_handler_12*/
+      ctx[69](
+        /*o*/
+        ctx[98]
+      )
+    );
+  }
+  function click_handler_13() {
+    return (
+      /*click_handler_13*/
+      ctx[70](
+        /*o*/
+        ctx[98]
+      )
+    );
+  }
+  return {
+    c() {
+      button0 = element("button");
+      span0 = element("span");
+      t0 = text(" Link external file\u2026");
+      t1 = space();
+      button1 = element("button");
+      span1 = element("span");
+      t2 = text(" Link external folder\u2026");
+      attr(button0, "class", "svelte-uiw2hz");
+      attr(button1, "class", "svelte-uiw2hz");
+    },
+    m(target, anchor) {
+      insert(target, button0, anchor);
+      append(button0, span0);
+      append(button0, t0);
+      insert(target, t1, anchor);
+      insert(target, button1, anchor);
+      append(button1, span1);
+      append(button1, t2);
+      if (!mounted) {
+        dispose = [
+          action_destroyer(obsIcon_action = /*obsIcon*/
+          ctx[15].call(null, span0, "paperclip")),
+          listen(button0, "click", click_handler_12),
+          action_destroyer(obsIcon_action_1 = /*obsIcon*/
+          ctx[15].call(null, span1, "folder-open")),
+          listen(button1, "click", click_handler_13)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button0);
+        detach(t1);
+        detach(button1);
+      }
+      mounted = false;
+      run_all(dispose);
+    }
+  };
+}
+function create_if_block_73(ctx) {
+  let button0;
+  let span0;
+  let obsIcon_action;
+  let t0;
+  let t1;
+  let button1;
+  let span1;
+  let obsIcon_action_1;
+  let t2;
+  let mounted;
+  let dispose;
+  function click_handler_10() {
+    return (
+      /*click_handler_10*/
+      ctx[67](
+        /*o*/
+        ctx[98]
+      )
+    );
+  }
+  function click_handler_11() {
+    return (
+      /*click_handler_11*/
+      ctx[68](
+        /*o*/
+        ctx[98]
+      )
+    );
+  }
+  return {
+    c() {
+      button0 = element("button");
+      span0 = element("span");
+      t0 = text(" Open external resource");
+      t1 = space();
+      button1 = element("button");
+      span1 = element("span");
+      t2 = text(" Unlink external resource");
+      attr(button0, "class", "svelte-uiw2hz");
+      attr(button1, "class", "svelte-uiw2hz");
+    },
+    m(target, anchor) {
+      insert(target, button0, anchor);
+      append(button0, span0);
+      append(button0, t0);
+      insert(target, t1, anchor);
+      insert(target, button1, anchor);
+      append(button1, span1);
+      append(button1, t2);
+      if (!mounted) {
+        dispose = [
+          action_destroyer(obsIcon_action = /*obsIcon*/
+          ctx[15].call(null, span0, "external-link")),
+          listen(button0, "click", click_handler_10),
+          action_destroyer(obsIcon_action_1 = /*obsIcon*/
+          ctx[15].call(null, span1, "unlink")),
+          listen(button1, "click", click_handler_11)
+        ];
+        mounted = true;
+      }
+    },
+    p(new_ctx, dirty) {
+      ctx = new_ctx;
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(button0);
+        detach(t1);
+        detach(button1);
       }
       mounted = false;
       run_all(dispose);
@@ -26517,25 +26955,25 @@ function create_each_block_33(key_1, ctx) {
   let span0;
   let t0_value = (
     /*ml*/
-    ctx[79].text + ""
+    ctx[100].text + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = (
     /*fmtDay*/
-    ctx[23](
+    ctx[24](
       /*o*/
-      ctx[77]
+      ctx[98]
     ) + ""
   );
   let t2;
   let t3;
   let t4_value = (
     /*shortPeriod*/
-    ctx[21](
+    ctx[22](
       /*o*/
-      ctx[77].periodName
+      ctx[98].periodName
     ) + ""
   );
   let t4;
@@ -26547,42 +26985,33 @@ function create_each_block_33(key_1, ctx) {
   let button1_title_value;
   let obsIcon_action;
   let t7;
-  let show_if_3 = getSlotPlan(
+  let show_if_2 = getSlotPlan(
     /*plugin*/
     ctx[0].settings,
     /*o*/
-    ctx[77].slotId,
+    ctx[98].slotId,
     /*o*/
-    ctx[77].date
+    ctx[98].date
   );
   let t8;
-  let show_if_2 = getSlotExternal(
+  let show_if_1 = getSlotExternal(
     /*plugin*/
     ctx[0].settings,
     /*o*/
-    ctx[77].slotId,
+    ctx[98].slotId,
     /*o*/
-    ctx[77].date
+    ctx[98].date
   );
   let t9;
   let span3;
   let obsIcon_action_1;
   let t10;
-  let show_if_1 = (
-    /*editingKey*/
-    ctx[7] === /*keyOf*/
-    ctx[18](
-      /*o*/
-      ctx[77]
-    )
-  );
-  let t11;
   let show_if = (
     /*menuKey*/
     ctx[6] === /*keyOf*/
-    ctx[18](
+    ctx[19](
       /*o*/
-      ctx[77]
+      ctx[98]
     )
   );
   let mounted;
@@ -26590,29 +27019,28 @@ function create_each_block_33(key_1, ctx) {
   function click_handler_1() {
     return (
       /*click_handler_1*/
-      ctx[46](
+      ctx[54](
         /*o*/
-        ctx[77]
+        ctx[98]
       )
     );
   }
   let if_block0 = (
     /*past*/
-    ctx[78] && create_if_block_93(ctx)
+    ctx[99] && create_if_block_123(ctx)
   );
   function click_handler_2() {
     return (
       /*click_handler_2*/
-      ctx[47](
+      ctx[55](
         /*o*/
-        ctx[77]
+        ctx[98]
       )
     );
   }
-  let if_block1 = show_if_3 && create_if_block_83(ctx);
-  let if_block2 = show_if_2 && create_if_block_73(get_if_ctx4(ctx));
-  let if_block3 = show_if_1 && create_if_block_63(ctx);
-  let if_block4 = show_if && create_if_block_53(ctx);
+  let if_block1 = show_if_2 && create_if_block_113(ctx);
+  let if_block2 = show_if_1 && create_if_block_103(get_if_ctx4(ctx));
+  let if_block3 = show_if && create_if_block_63(ctx);
   return {
     key: key_1,
     first: null,
@@ -26641,68 +27069,65 @@ function create_each_block_33(key_1, ctx) {
       span3 = element("span");
       t10 = space();
       if (if_block3) if_block3.c();
-      t11 = space();
-      if (if_block4) if_block4.c();
-      attr(span0, "class", "tp-lo-topic svelte-s15jj1");
+      attr(span0, "class", "tp-lo-topic svelte-uiw2hz");
       toggle_class(
         span0,
         "tp-lo-topic--faint",
         /*ml*/
-        ctx[79].faint
+        ctx[100].faint
       );
-      attr(span1, "class", "tp-lo-when svelte-s15jj1");
-      attr(span2, "class", "tp-lo-rowtext svelte-s15jj1");
-      attr(button0, "class", "tp-lo-rowbtn svelte-s15jj1");
+      attr(span1, "class", "tp-lo-when svelte-uiw2hz");
+      attr(span2, "class", "tp-lo-rowtext svelte-uiw2hz");
+      attr(button0, "class", "tp-lo-rowbtn svelte-uiw2hz");
       attr(button0, "aria-expanded", button0_aria_expanded_value = /*menuKey*/
       ctx[6] === /*keyOf*/
-      ctx[18](
+      ctx[19](
         /*o*/
-        ctx[77]
+        ctx[98]
       ));
-      attr(button0, "aria-label", "Lesson actions");
-      attr(button1, "class", "tp-lo-ic svelte-s15jj1");
+      attr(button1, "class", "tp-lo-ic svelte-uiw2hz");
       attr(button1, "title", button1_title_value = isSlotPrepared(
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[77].slotId,
+        ctx[98].slotId,
         /*o*/
-        ctx[77].date
+        ctx[98].date
       ) ? "Prepared \u2014 click to clear" : "Mark prepared");
       toggle_class(button1, "tp-lo-ic--on", isSlotPrepared(
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[77].slotId,
+        ctx[98].slotId,
         /*o*/
-        ctx[77].date
+        ctx[98].date
       ));
-      attr(span3, "class", "tp-lo-chev svelte-s15jj1");
+      attr(span3, "class", "tp-lo-chev svelte-uiw2hz");
       toggle_class(
         span3,
         "tp-lo-chev--open",
         /*menuKey*/
         ctx[6] === /*keyOf*/
-        ctx[18](
+        ctx[19](
           /*o*/
-          ctx[77]
+          ctx[98]
         )
       );
-      attr(span4, "class", "tp-lo-icons svelte-s15jj1");
-      attr(div0, "class", "tp-lo-row-main svelte-s15jj1");
-      attr(div1, "class", "tp-lo-row svelte-s15jj1");
+      attr(span4, "class", "tp-lo-icons svelte-uiw2hz");
+      attr(div0, "class", "tp-lo-row-main svelte-uiw2hz");
+      attr(div1, "class", "tp-lo-row svelte-uiw2hz");
       toggle_class(
         div1,
         "tp-lo-row--past",
         /*past*/
-        ctx[78]
+        ctx[99]
       );
       toggle_class(
         div1,
         "tp-lo-row--current",
         /*isCurrent*/
-        ctx[74] && !/*past*/
-        ctx[78]
+        ctx[95] && !/*past*/
+        ctx[99]
       );
       this.first = div1;
     },
@@ -26731,8 +27156,6 @@ function create_each_block_33(key_1, ctx) {
       append(span4, span3);
       append(div1, t10);
       if (if_block3) if_block3.m(div1, null);
-      append(div1, t11);
-      if (if_block4) if_block4.m(div1, null);
       if (!mounted) {
         dispose = [
           listen(button0, "click", click_handler_1),
@@ -26749,44 +27172,44 @@ function create_each_block_33(key_1, ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*weeks*/
       4096 && t0_value !== (t0_value = /*ml*/
-      ctx[79].text + "")) set_data(t0, t0_value);
+      ctx[100].text + "")) set_data(t0, t0_value);
       if (dirty[0] & /*mainLine, weeks*/
       33558528) {
         toggle_class(
           span0,
           "tp-lo-topic--faint",
           /*ml*/
-          ctx[79].faint
+          ctx[100].faint
         );
       }
       if (dirty[0] & /*weeks*/
       4096 && t2_value !== (t2_value = /*fmtDay*/
-      ctx[23](
+      ctx[24](
         /*o*/
-        ctx[77]
+        ctx[98]
       ) + "")) set_data(t2, t2_value);
       if (dirty[0] & /*weeks*/
       4096 && t4_value !== (t4_value = /*shortPeriod*/
-      ctx[21](
+      ctx[22](
         /*o*/
-        ctx[77].periodName
+        ctx[98].periodName
       ) + "")) set_data(t4, t4_value);
       if (dirty[0] & /*menuKey, weeks*/
       4160 && button0_aria_expanded_value !== (button0_aria_expanded_value = /*menuKey*/
       ctx[6] === /*keyOf*/
-      ctx[18](
+      ctx[19](
         /*o*/
-        ctx[77]
+        ctx[98]
       ))) {
         attr(button0, "aria-expanded", button0_aria_expanded_value);
       }
       if (
         /*past*/
-        ctx[78]
+        ctx[99]
       ) {
         if (if_block0) {
         } else {
-          if_block0 = create_if_block_93(ctx);
+          if_block0 = create_if_block_123(ctx);
           if_block0.c();
           if_block0.m(span4, t6);
         }
@@ -26799,9 +27222,9 @@ function create_each_block_33(key_1, ctx) {
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[77].slotId,
+        ctx[98].slotId,
         /*o*/
-        ctx[77].date
+        ctx[98].date
       ) ? "Prepared \u2014 click to clear" : "Mark prepared")) {
         attr(button1, "title", button1_title_value);
       }
@@ -26811,25 +27234,25 @@ function create_each_block_33(key_1, ctx) {
           /*plugin*/
           ctx[0].settings,
           /*o*/
-          ctx[77].slotId,
+          ctx[98].slotId,
           /*o*/
-          ctx[77].date
+          ctx[98].date
         ));
       }
       if (dirty[0] & /*plugin, weeks*/
-      4097) show_if_3 = getSlotPlan(
+      4097) show_if_2 = getSlotPlan(
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[77].slotId,
+        ctx[98].slotId,
         /*o*/
-        ctx[77].date
+        ctx[98].date
       );
-      if (show_if_3) {
+      if (show_if_2) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
-          if_block1 = create_if_block_83(ctx);
+          if_block1 = create_if_block_113(ctx);
           if_block1.c();
           if_block1.m(span4, t8);
         }
@@ -26838,19 +27261,19 @@ function create_each_block_33(key_1, ctx) {
         if_block1 = null;
       }
       if (dirty[0] & /*plugin, weeks*/
-      4097) show_if_2 = getSlotExternal(
+      4097) show_if_1 = getSlotExternal(
         /*plugin*/
         ctx[0].settings,
         /*o*/
-        ctx[77].slotId,
+        ctx[98].slotId,
         /*o*/
-        ctx[77].date
+        ctx[98].date
       );
-      if (show_if_2) {
+      if (show_if_1) {
         if (if_block2) {
           if_block2.p(get_if_ctx4(ctx), dirty);
         } else {
-          if_block2 = create_if_block_73(get_if_ctx4(ctx));
+          if_block2 = create_if_block_103(get_if_ctx4(ctx));
           if_block2.c();
           if_block2.m(span4, t9);
         }
@@ -26859,55 +27282,36 @@ function create_each_block_33(key_1, ctx) {
         if_block2 = null;
       }
       if (dirty[0] & /*menuKey, keyOf, weeks*/
-      266304) {
+      528448) {
         toggle_class(
           span3,
           "tp-lo-chev--open",
           /*menuKey*/
           ctx[6] === /*keyOf*/
-          ctx[18](
+          ctx[19](
             /*o*/
-            ctx[77]
+            ctx[98]
           )
         );
       }
-      if (dirty[0] & /*editingKey, weeks*/
-      4224) show_if_1 = /*editingKey*/
-      ctx[7] === /*keyOf*/
-      ctx[18](
+      if (dirty[0] & /*menuKey, weeks*/
+      4160) show_if = /*menuKey*/
+      ctx[6] === /*keyOf*/
+      ctx[19](
         /*o*/
-        ctx[77]
+        ctx[98]
       );
-      if (show_if_1) {
+      if (show_if) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
         } else {
           if_block3 = create_if_block_63(ctx);
           if_block3.c();
-          if_block3.m(div1, t11);
+          if_block3.m(div1, null);
         }
       } else if (if_block3) {
         if_block3.d(1);
         if_block3 = null;
-      }
-      if (dirty[0] & /*menuKey, weeks*/
-      4160) show_if = /*menuKey*/
-      ctx[6] === /*keyOf*/
-      ctx[18](
-        /*o*/
-        ctx[77]
-      );
-      if (show_if) {
-        if (if_block4) {
-          if_block4.p(ctx, dirty);
-        } else {
-          if_block4 = create_if_block_53(ctx);
-          if_block4.c();
-          if_block4.m(div1, null);
-        }
-      } else if (if_block4) {
-        if_block4.d(1);
-        if_block4 = null;
       }
       if (dirty[0] & /*weeks, todayIso*/
       69632) {
@@ -26915,7 +27319,7 @@ function create_each_block_33(key_1, ctx) {
           div1,
           "tp-lo-row--past",
           /*past*/
-          ctx[78]
+          ctx[99]
         );
       }
       if (dirty[0] & /*weeks, currentWeekKey, todayIso*/
@@ -26924,8 +27328,8 @@ function create_each_block_33(key_1, ctx) {
           div1,
           "tp-lo-row--current",
           /*isCurrent*/
-          ctx[74] && !/*past*/
-          ctx[78]
+          ctx[95] && !/*past*/
+          ctx[99]
         );
       }
     },
@@ -26937,7 +27341,6 @@ function create_each_block_33(key_1, ctx) {
       if (if_block1) if_block1.d();
       if (if_block2) if_block2.d();
       if (if_block3) if_block3.d();
-      if (if_block4) if_block4.d();
       mounted = false;
       run_all(dispose);
     }
@@ -26948,15 +27351,15 @@ function create_each_block_24(key_1, ctx) {
   let span;
   let t0_value = (
     /*isCurrent*/
-    ctx[74] ? "This week \xB7" : "Week of"
+    ctx[95] ? "This week \xB7" : "Week of"
   );
   let t0;
   let t1;
   let t2_value = (
     /*fmtWeek*/
-    ctx[22](
+    ctx[23](
       /*w*/
-      ctx[73].weekKey
+      ctx[94].weekKey
     ) + ""
   );
   let t2;
@@ -26968,17 +27371,17 @@ function create_each_block_24(key_1, ctx) {
   let each_1_anchor;
   let if_block = (
     /*w*/
-    ctx[73].weekType && create_if_block_103(ctx)
+    ctx[94].weekType && create_if_block_133(ctx)
   );
   let each_value_3 = ensure_array_like(
     /*w*/
-    ctx[73].lessons
+    ctx[94].lessons
   );
   const get_key = (ctx2) => (
     /*keyOf*/
-    ctx2[18](
+    ctx2[19](
       /*o*/
-      ctx2[77]
+      ctx2[98]
     )
   );
   for (let i = 0; i < each_value_3.length; i += 1) {
@@ -27002,14 +27405,14 @@ function create_each_block_24(key_1, ctx) {
         each_blocks[i].c();
       }
       each_1_anchor = empty();
-      attr(div, "class", "tp-lo-weekhead svelte-s15jj1");
+      attr(div, "class", "tp-lo-weekhead svelte-uiw2hz");
       attr(div, "data-week", div_data_week_value = /*w*/
-      ctx[73].weekKey);
+      ctx[94].weekKey);
       toggle_class(
         div,
         "tp-lo-weekhead--current",
         /*isCurrent*/
-        ctx[74]
+        ctx[95]
       );
       this.first = div;
     },
@@ -27033,21 +27436,21 @@ function create_each_block_24(key_1, ctx) {
       ctx = new_ctx;
       if (dirty[0] & /*weeks*/
       4096 && t0_value !== (t0_value = /*isCurrent*/
-      ctx[74] ? "This week \xB7" : "Week of")) set_data(t0, t0_value);
+      ctx[95] ? "This week \xB7" : "Week of")) set_data(t0, t0_value);
       if (dirty[0] & /*weeks*/
       4096 && t2_value !== (t2_value = /*fmtWeek*/
-      ctx[22](
+      ctx[23](
         /*w*/
-        ctx[73].weekKey
+        ctx[94].weekKey
       ) + "")) set_data(t2, t2_value);
       if (
         /*w*/
-        ctx[73].weekType
+        ctx[94].weekType
       ) {
         if (if_block) {
           if_block.p(ctx, dirty);
         } else {
-          if_block = create_if_block_103(ctx);
+          if_block = create_if_block_133(ctx);
           if_block.c();
           if_block.m(div, null);
         }
@@ -27057,7 +27460,7 @@ function create_each_block_24(key_1, ctx) {
       }
       if (dirty[0] & /*weeks*/
       4096 && div_data_week_value !== (div_data_week_value = /*w*/
-      ctx[73].weekKey)) {
+      ctx[94].weekKey)) {
         attr(div, "data-week", div_data_week_value);
       }
       if (dirty[0] & /*weeks, currentWeekKey*/
@@ -27066,15 +27469,15 @@ function create_each_block_24(key_1, ctx) {
           div,
           "tp-lo-weekhead--current",
           /*isCurrent*/
-          ctx[74]
+          ctx[95]
         );
       }
-      if (dirty[0] & /*weeks, todayIso, currentWeekKey, startEditNote, lessonNote, menuKey, keyOf, editingText, editingKey, plugin, openExternal, openPlan, togglePrep, toggleMenu, shortPeriod, fmtDay, mainLine*/
-      2141655489 | dirty[1] & /*shiftFwd, shiftBack, saveNote*/
-      7) {
+      if (dirty[0] & /*weeks, todayIso, currentWeekKey, openExternal, plugin, isMobile, togglePrep, openPlan, defaultRoom, panelRoom, panelNote, menuKey, keyOf, toggleMenu, shortPeriod, fmtDay, mainLine*/
+      2135888321 | dirty[1] & /*shiftFwd, shiftBack, unlinkExternal, linkExtFolder, linkExtFile, unlinkPlan, linkPlan, doLessonNote, savePanel*/
+      511) {
         each_value_3 = ensure_array_like(
           /*w*/
-          ctx[73].lessons
+          ctx[94].lessons
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_3, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block_33, each_1_anchor, get_each_context_33);
       }
@@ -27092,7 +27495,7 @@ function create_each_block_24(key_1, ctx) {
     }
   };
 }
-function create_if_block_44(ctx) {
+function create_if_block_53(ctx) {
   let div2;
   let div0;
   let span;
@@ -27100,7 +27503,7 @@ function create_if_block_44(ctx) {
   let t0;
   let t1_value = (
     /*unplacedForClass*/
-    ctx[10].length + ""
+    ctx[11].length + ""
   );
   let t1;
   let t2;
@@ -27113,11 +27516,11 @@ function create_if_block_44(ctx) {
   let dispose;
   let each_value_1 = ensure_array_like(
     /*unplacedForClass*/
-    ctx[10]
+    ctx[11]
   );
   const get_key = (ctx2) => (
     /*u*/
-    ctx2[70].id
+    ctx2[91].id
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
     let child_ctx = get_each_context_15(ctx, each_value_1, i);
@@ -27139,9 +27542,9 @@ function create_if_block_44(ctx) {
       t4 = space();
       div1 = element("div");
       div1.textContent = "Pushed off the end of the year. Pull a run back, or free up a slot, to drop these back in.";
-      attr(div0, "class", "tp-lo-unplaced-head svelte-s15jj1");
-      attr(div1, "class", "tp-lo-unplaced-hint svelte-s15jj1");
-      attr(div2, "class", "tp-lo-unplaced svelte-s15jj1");
+      attr(div0, "class", "tp-lo-unplaced-head svelte-uiw2hz");
+      attr(div1, "class", "tp-lo-unplaced-hint svelte-uiw2hz");
+      attr(div2, "class", "tp-lo-unplaced svelte-uiw2hz");
     },
     m(target, anchor) {
       insert(target, div2, anchor);
@@ -27166,13 +27569,13 @@ function create_if_block_44(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*unplacedForClass*/
-      1024 && t1_value !== (t1_value = /*unplacedForClass*/
-      ctx2[10].length + "")) set_data(t1, t1_value);
+      2048 && t1_value !== (t1_value = /*unplacedForClass*/
+      ctx2[11].length + "")) set_data(t1, t1_value);
       if (dirty[0] & /*unplacedForClass*/
-      1024) {
+      2048) {
         each_value_1 = ensure_array_like(
           /*unplacedForClass*/
-          ctx2[10]
+          ctx2[11]
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_1, each_1_lookup, div2, destroy_block, create_each_block_15, t4, get_each_context_15);
       }
@@ -27194,7 +27597,7 @@ function create_each_block_15(key_1, ctx) {
   let div;
   let t_value = (
     /*u*/
-    ((_a2 = ctx[70].label) != null ? _a2 : "Lesson") + ""
+    ((_a2 = ctx[91].label) != null ? _a2 : "Lesson") + ""
   );
   let t;
   return {
@@ -27203,7 +27606,7 @@ function create_each_block_15(key_1, ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-lo-unplaced-row svelte-s15jj1");
+      attr(div, "class", "tp-lo-unplaced-row svelte-uiw2hz");
       this.first = div;
     },
     m(target, anchor) {
@@ -27214,8 +27617,8 @@ function create_each_block_15(key_1, ctx) {
       var _a3;
       ctx = new_ctx;
       if (dirty[0] & /*unplacedForClass*/
-      1024 && t_value !== (t_value = /*u*/
-      ((_a3 = ctx[70].label) != null ? _a3 : "Lesson") + "")) set_data(t, t_value);
+      2048 && t_value !== (t_value = /*u*/
+      ((_a3 = ctx[91].label) != null ? _a3 : "Lesson") + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -27224,13 +27627,13 @@ function create_each_block_15(key_1, ctx) {
     }
   };
 }
-function create_if_block_312(ctx) {
+function create_if_block_44(ctx) {
   let div;
   return {
     c() {
       div = element("div");
       div.textContent = "No lessons for this class this year.";
-      attr(div, "class", "tp-lo-empty svelte-s15jj1");
+      attr(div, "class", "tp-lo-empty svelte-uiw2hz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -27242,7 +27645,7 @@ function create_if_block_312(ctx) {
     }
   };
 }
-function create_if_block_213(ctx) {
+function create_if_block_312(ctx) {
   let div;
   let span0;
   let t0;
@@ -27270,11 +27673,11 @@ function create_if_block_213(ctx) {
       t2 = text(" Undo");
       t3 = space();
       button1 = element("button");
-      attr(span0, "class", "svelte-s15jj1");
-      attr(button0, "class", "svelte-s15jj1");
-      attr(button1, "class", "tp-lo-toast-x svelte-s15jj1");
+      attr(span0, "class", "svelte-uiw2hz");
+      attr(button0, "class", "svelte-uiw2hz");
+      attr(button1, "class", "tp-lo-toast-x svelte-uiw2hz");
       attr(button1, "aria-label", "Dismiss");
-      attr(div, "class", "tp-lo-toast svelte-s15jj1");
+      attr(div, "class", "tp-lo-toast svelte-uiw2hz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -27294,13 +27697,13 @@ function create_if_block_213(ctx) {
             button0,
             "click",
             /*undoShift*/
-            ctx[34]
+            ctx[40]
           ),
           listen(
             button1,
             "click",
-            /*click_handler_9*/
-            ctx[57]
+            /*click_handler_17*/
+            ctx[75]
           ),
           action_destroyer(obsIcon_action_1 = /*obsIcon*/
           ctx[15].call(null, button1, "x"))
@@ -27325,56 +27728,101 @@ function create_if_block_213(ctx) {
     }
   };
 }
+function create_if_block_213(ctx) {
+  let span;
+  let t_value = (
+    /*emojiFor*/
+    ctx[21](
+      /*c*/
+      ctx[88]
+    ) + ""
+  );
+  let t;
+  return {
+    c() {
+      span = element("span");
+      t = text(t_value);
+      attr(span, "class", "tp-lo-card-emoji svelte-uiw2hz");
+    },
+    m(target, anchor) {
+      insert(target, span, anchor);
+      append(span, t);
+    },
+    p(ctx2, dirty) {
+      if (dirty[0] & /*filteredClasses*/
+      16384 && t_value !== (t_value = /*emojiFor*/
+      ctx2[21](
+        /*c*/
+        ctx2[88]
+      ) + "")) set_data(t, t_value);
+    },
+    d(detaching) {
+      if (detaching) {
+        detach(span);
+      }
+    }
+  };
+}
 function create_each_block5(key_1, ctx) {
   var _a2, _b2;
-  let button;
+  let div;
+  let span1;
+  let show_if = (
+    /*emojiFor*/
+    ctx[21](
+      /*c*/
+      ctx[88]
+    )
+  );
   let span0;
   let t0_value = (
-    /*emojiFor*/
-    ctx[20](
-      /*c*/
-      ctx[67]
-    ) + ""
+    /*c*/
+    ctx[88].code + ""
   );
   let t0;
   let t1;
-  let t2_value = (
-    /*c*/
-    ctx[67].code + ""
-  );
-  let t2;
-  let t3;
-  let span1;
-  let t4_value = [
+  let span2;
+  let t2_value = [
     /*subjectFor*/
-    (_a2 = ctx[19](
+    (_a2 = ctx[20](
       /*c*/
-      ctx[67]
+      ctx[88]
     )) == null ? void 0 : _a2.name,
     /*c*/
-    ctx[67].year ? "Yr" + /*c*/
-    ctx[67].year : ""
+    ctx[88].year ? "Yr" + /*c*/
+    ctx[88].year : ""
   ].filter(Boolean).join(" \xB7 ") + "";
+  let t2;
+  let t3;
+  let span3;
   let t4;
-  let t5;
-  let span2;
-  let t6;
-  let t7_value = (
+  let t5_value = (
     /*nextLabels*/
     ((_b2 = ctx[13].get(
       /*c*/
-      ctx[67].id
+      ctx[88].id
     )) != null ? _b2 : "\u2014") + ""
   );
-  let t7;
+  let t5;
   let mounted;
   let dispose;
+  let if_block = show_if && create_if_block_213(ctx);
   function click_handler() {
     return (
       /*click_handler*/
-      ctx[44](
+      ctx[51](
         /*c*/
-        ctx[67]
+        ctx[88]
+      )
+    );
+  }
+  function keydown_handler(...args) {
+    return (
+      /*keydown_handler*/
+      ctx[52](
+        /*c*/
+        ctx[88],
+        ...args
       )
     );
   }
@@ -27382,41 +27830,47 @@ function create_each_block5(key_1, ctx) {
     key: key_1,
     first: null,
     c() {
-      button = element("button");
+      div = element("div");
+      span1 = element("span");
+      if (if_block) if_block.c();
       span0 = element("span");
       t0 = text(t0_value);
       t1 = space();
+      span2 = element("span");
       t2 = text(t2_value);
       t3 = space();
-      span1 = element("span");
-      t4 = text(t4_value);
-      t5 = space();
-      span2 = element("span");
-      t6 = text("Next: ");
-      t7 = text(t7_value);
-      attr(span0, "class", "tp-lo-card-code svelte-s15jj1");
-      attr(span1, "class", "tp-lo-card-sub svelte-s15jj1");
-      attr(span2, "class", "tp-lo-card-next svelte-s15jj1");
-      attr(button, "class", "tp-lo-card svelte-s15jj1");
-      set_style(button, "border-left", "3px solid " + /*c*/
-      ctx[67].colour);
-      this.first = button;
+      span3 = element("span");
+      t4 = text("Next: ");
+      t5 = text(t5_value);
+      attr(span0, "class", "tp-lo-card-codetext svelte-uiw2hz");
+      attr(span1, "class", "tp-lo-card-code svelte-uiw2hz");
+      attr(span2, "class", "tp-lo-card-sub svelte-uiw2hz");
+      attr(span3, "class", "tp-lo-card-next svelte-uiw2hz");
+      attr(div, "class", "tp-lo-card svelte-uiw2hz");
+      attr(div, "role", "button");
+      attr(div, "tabindex", "0");
+      set_style(div, "border-left", "3px solid " + /*c*/
+      ctx[88].colour);
+      this.first = div;
     },
     m(target, anchor) {
-      insert(target, button, anchor);
-      append(button, span0);
+      insert(target, div, anchor);
+      append(div, span1);
+      if (if_block) if_block.m(span1, null);
+      append(span1, span0);
       append(span0, t0);
-      append(span0, t1);
-      append(span0, t2);
-      append(button, t3);
-      append(button, span1);
-      append(span1, t4);
-      append(button, t5);
-      append(button, span2);
-      append(span2, t6);
-      append(span2, t7);
+      append(div, t1);
+      append(div, span2);
+      append(span2, t2);
+      append(div, t3);
+      append(div, span3);
+      append(span3, t4);
+      append(span3, t5);
       if (!mounted) {
-        dispose = listen(button, "click", click_handler);
+        dispose = [
+          listen(div, "click", click_handler),
+          listen(div, "keydown", keydown_handler)
+        ];
         mounted = true;
       }
     },
@@ -27424,53 +27878,66 @@ function create_each_block5(key_1, ctx) {
       var _a3, _b3;
       ctx = new_ctx;
       if (dirty[0] & /*filteredClasses*/
-      16384 && t0_value !== (t0_value = /*emojiFor*/
-      ctx[20](
+      16384) show_if = /*emojiFor*/
+      ctx[21](
         /*c*/
-        ctx[67]
-      ) + "")) set_data(t0, t0_value);
+        ctx[88]
+      );
+      if (show_if) {
+        if (if_block) {
+          if_block.p(ctx, dirty);
+        } else {
+          if_block = create_if_block_213(ctx);
+          if_block.c();
+          if_block.m(span1, span0);
+        }
+      } else if (if_block) {
+        if_block.d(1);
+        if_block = null;
+      }
       if (dirty[0] & /*filteredClasses*/
-      16384 && t2_value !== (t2_value = /*c*/
-      ctx[67].code + "")) set_data(t2, t2_value);
+      16384 && t0_value !== (t0_value = /*c*/
+      ctx[88].code + "")) set_data(t0, t0_value);
       if (dirty[0] & /*filteredClasses*/
-      16384 && t4_value !== (t4_value = [
+      16384 && t2_value !== (t2_value = [
         /*subjectFor*/
-        (_a3 = ctx[19](
+        (_a3 = ctx[20](
           /*c*/
-          ctx[67]
+          ctx[88]
         )) == null ? void 0 : _a3.name,
         /*c*/
-        ctx[67].year ? "Yr" + /*c*/
-        ctx[67].year : ""
-      ].filter(Boolean).join(" \xB7 ") + "")) set_data(t4, t4_value);
+        ctx[88].year ? "Yr" + /*c*/
+        ctx[88].year : ""
+      ].filter(Boolean).join(" \xB7 ") + "")) set_data(t2, t2_value);
       if (dirty[0] & /*nextLabels, filteredClasses*/
-      24576 && t7_value !== (t7_value = /*nextLabels*/
+      24576 && t5_value !== (t5_value = /*nextLabels*/
       ((_b3 = ctx[13].get(
         /*c*/
-        ctx[67].id
-      )) != null ? _b3 : "\u2014") + "")) set_data(t7, t7_value);
+        ctx[88].id
+      )) != null ? _b3 : "\u2014") + "")) set_data(t5, t5_value);
       if (dirty[0] & /*filteredClasses*/
       16384) {
-        set_style(button, "border-left", "3px solid " + /*c*/
-        ctx[67].colour);
+        set_style(div, "border-left", "3px solid " + /*c*/
+        ctx[88].colour);
       }
     },
     d(detaching) {
       if (detaching) {
-        detach(button);
+        detach(div);
       }
+      if (if_block) if_block.d();
       mounted = false;
-      dispose();
+      run_all(dispose);
     }
   };
 }
-function create_if_block_113(ctx) {
+function create_if_block_114(ctx) {
   let div;
   return {
     c() {
       div = element("div");
       div.textContent = "No classes";
-      attr(div, "class", "tp-lo-empty svelte-s15jj1");
+      attr(div, "class", "tp-lo-empty svelte-uiw2hz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -27489,13 +27956,13 @@ function create_fragment5(ctx) {
     ctx2[1]) return create_if_block5;
     return create_else_block4;
   }
-  let current_block_type = select_block_type(ctx, [-1, -1, -1]);
+  let current_block_type = select_block_type(ctx, [-1, -1, -1, -1]);
   let if_block = current_block_type(ctx);
   return {
     c() {
       div = element("div");
       if_block.c();
-      attr(div, "class", "tp-lo svelte-s15jj1");
+      attr(div, "class", "tp-lo svelte-uiw2hz");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -27547,7 +28014,7 @@ function instance5($$self, $$props, $$invalidate) {
   }
   let _tick = 0;
   const refresh = () => {
-    $$invalidate(41, _tick++, _tick);
+    $$invalidate(48, _tick++, _tick);
   };
   const isoLocal2 = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const todayIso = isoLocal2(/* @__PURE__ */ new Date());
@@ -27557,8 +28024,9 @@ function instance5($$self, $$props, $$invalidate) {
   let jump = "";
   let listEl;
   let menuKey = null;
-  let editingKey = null;
-  let editingText = "";
+  let panelNote = "";
+  let panelRoom = "";
+  const isMobile = import_obsidian21.Platform.isMobileApp;
   let lastSnap = null;
   let lastNoteUndo = [];
   let toast = "";
@@ -27593,9 +28061,10 @@ function instance5($$self, $$props, $$invalidate) {
     return { text: "No notes", faint: true };
   }
   function toggleMenu(o) {
-    const k = keyOf(o);
-    $$invalidate(6, menuKey = menuKey === k ? null : k);
-    $$invalidate(7, editingKey = null);
+    if (menuKey === keyOf(o)) {
+      void savePanel(o);
+      $$invalidate(6, menuKey = null);
+    } else openPanel(o);
   }
   function openPlan(o) {
     const link = getSlotPlan(plugin.settings, o.slotId, o.date);
@@ -27610,16 +28079,83 @@ function instance5($$self, $$props, $$invalidate) {
     await plugin.saveSettings();
     refresh();
   }
-  function startEditNote(o) {
-    $$invalidate(7, editingKey = keyOf(o));
-    $$invalidate(8, editingText = lessonNote(o));
-    $$invalidate(6, menuKey = null);
+  const slotForOcc = (o) => resolvedSlotForDate(plugin.settings, o.date, o.periodId);
+  const defaultRoom = (o) => {
+    var _a3, _b3;
+    return (_b3 = (_a3 = slotForOcc(o)) === null || _a3 === void 0 ? void 0 : _a3.classroom) !== null && _b3 !== void 0 ? _b3 : "";
+  };
+  function openPanel(o) {
+    $$invalidate(6, menuKey = keyOf(o));
+    $$invalidate(7, panelNote = lessonNote(o));
+    $$invalidate(8, panelRoom = getLessonRoom(plugin.settings, o.slotId, o.date) || defaultRoom(o));
   }
-  async function saveNote(o) {
-    setLessonNote(plugin.settings, o.slotId, o.date, editingText);
+  async function savePanel(o) {
+    setLessonNote(plugin.settings, o.slotId, o.date, panelNote);
+    if (panelRoom.trim() === defaultRoom(o).trim()) clearLessonRoom(plugin.settings, o.slotId, o.date);
+    else setLessonRoom(plugin.settings, o.slotId, o.date, panelRoom);
     await plugin.saveSettings();
-    $$invalidate(7, editingKey = null);
     refresh();
+  }
+  function linkPlan(o) {
+    var _a3, _b3, _c2;
+    const code = (_a3 = selectedClass === null || selectedClass === void 0 ? void 0 : selectedClass.code) !== null && _a3 !== void 0 ? _a3 : "";
+    const subject = selectedClass ? (_c2 = (_b3 = subjectFor(selectedClass)) === null || _b3 === void 0 ? void 0 : _b3.name) !== null && _c2 !== void 0 ? _c2 : "" : "";
+    new LessonPlanSuggestModal(
+      plugin.app,
+      plugin,
+      code,
+      subject,
+      async (path) => {
+        setSlotPlan(plugin.settings, o.slotId, o.date, path);
+        await plugin.saveSettings();
+        refresh();
+      }
+    ).open();
+  }
+  async function unlinkPlan(o) {
+    clearSlotPlan(plugin.settings, o.slotId, o.date);
+    await plugin.saveSettings();
+    refresh();
+  }
+  async function linkExtFile(o) {
+    const path = await openOSFilePicker("Link a file to this lesson");
+    if (path) {
+      setSlotExternal(plugin.settings, o.slotId, o.date, path, "file");
+      await plugin.saveSettings();
+      refresh();
+    }
+  }
+  async function linkExtFolder(o) {
+    const path = await openOSFolderPicker();
+    if (path) {
+      setSlotExternal(plugin.settings, o.slotId, o.date, path, "folder");
+      await plugin.saveSettings();
+      refresh();
+    }
+  }
+  async function unlinkExternal(o) {
+    clearSlotExternal(plugin.settings, o.slotId, o.date);
+    await plugin.saveSettings();
+    refresh();
+  }
+  function doLessonNote(o) {
+    const cid = selectedClassId;
+    if (!cid) return;
+    const title = lessonNoteDefaultTitle(plugin.settings, cid, o.periodName, o.date);
+    const existing = findLessonNoteByTitle(plugin.app, plugin.settings, o.date, title);
+    if (existing) {
+      void plugin.app.workspace.openLinkText(existing, "", false);
+      return;
+    }
+    new TextPromptModal(
+      plugin.app,
+      "New lesson note",
+      title,
+      "Note title",
+      (name) => {
+        void createLessonNoteFile(plugin.app, plugin.settings, cid, o.periodName, o.date, name);
+      }
+    ).open();
   }
   const idxOf = (o) => occurrences.findIndex((x) => x.slotId === o.slotId && x.date === o.date);
   async function runShift(idx, dir) {
@@ -27632,7 +28168,8 @@ function instance5($$self, $$props, $$invalidate) {
     refresh();
     $$invalidate(9, toast = dir === "forward" ? res.overflowed ? "Shifted forward \u2014 last lesson moved to Unplaced." : "Lessons shifted forward." : res.filled ? "Pulled back \u2014 an Unplaced lesson dropped in." : "Lessons pulled back.");
   }
-  function shiftFwd(o) {
+  async function shiftFwd(o) {
+    await savePanel(o);
     const i = idxOf(o);
     if (i < 0) return;
     $$invalidate(6, menuKey = null);
@@ -27641,7 +28178,8 @@ function instance5($$self, $$props, $$invalidate) {
       new ConfirmModal(plugin.app, `This moves ${aff} lessons forward from ${fmtDay(o)}. The last lesson moves to Unplaced. Continue?`, () => void runShift(i, "forward"), "Shift forward").open();
     } else void runShift(i, "forward");
   }
-  function shiftBack(o) {
+  async function shiftBack(o) {
+    await savePanel(o);
     const i = idxOf(o);
     if (i < 0) return;
     $$invalidate(6, menuKey = null);
@@ -27661,10 +28199,15 @@ function instance5($$self, $$props, $$invalidate) {
     $$invalidate(1, selectedClassId = id);
     void tick().then(scrollToCurrent);
   }
+  function onCardKey(e, id) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      selectClass(id);
+    }
+  }
   function back() {
     $$invalidate(1, selectedClassId = null);
     $$invalidate(6, menuKey = null);
-    $$invalidate(7, editingKey = null);
     $$invalidate(9, toast = "");
   }
   function scrollToCurrent() {
@@ -27682,6 +28225,7 @@ function instance5($$self, $$props, $$invalidate) {
     $$invalidate(2, classSearch);
   }
   const click_handler = (c) => selectClass(c.id);
+  const keydown_handler = (c, e) => onCardKey(e, c.id);
   function input_input_handler_1() {
     jump = this.value;
     $$invalidate(4, jump);
@@ -27691,38 +28235,51 @@ function instance5($$self, $$props, $$invalidate) {
   const click_handler_3 = (o) => openPlan(o);
   const click_handler_4 = (o) => openExternal(o);
   function textarea_input_handler() {
-    editingText = this.value;
-    $$invalidate(8, editingText);
+    panelNote = this.value;
+    $$invalidate(7, panelNote);
   }
-  const blur_handler = (o) => saveNote(o);
-  const click_handler_5 = (o) => shiftFwd(o);
-  const click_handler_6 = (o) => shiftBack(o);
-  const click_handler_7 = (o) => shiftFwd(o);
-  const click_handler_8 = (o) => startEditNote(o);
+  const blur_handler = (o) => savePanel(o);
+  function input_input_handler_2() {
+    panelRoom = this.value;
+    $$invalidate(8, panelRoom);
+  }
+  const blur_handler_1 = (o) => savePanel(o);
+  const click_handler_5 = (o) => doLessonNote(o);
+  const click_handler_6 = (o) => openPlan(o);
+  const click_handler_7 = (o) => unlinkPlan(o);
+  const click_handler_8 = (o) => linkPlan(o);
+  const click_handler_9 = (o) => togglePrep(o);
+  const click_handler_10 = (o) => openExternal(o);
+  const click_handler_11 = (o) => unlinkExternal(o);
+  const click_handler_12 = (o) => linkExtFile(o);
+  const click_handler_13 = (o) => linkExtFolder(o);
+  const click_handler_14 = (o) => shiftFwd(o);
+  const click_handler_15 = (o) => shiftBack(o);
+  const click_handler_16 = (o) => shiftFwd(o);
   function div1_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
       listEl = $$value;
       $$invalidate(5, listEl);
     });
   }
-  const click_handler_9 = () => $$invalidate(9, toast = "");
+  const click_handler_17 = () => $$invalidate(9, toast = "");
   $$self.$$set = ($$props2) => {
     if ("plugin" in $$props2) $$invalidate(0, plugin = $$props2.plugin);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick, _a*/
-    1152) {
-      $: subjects = dep(_tick, $$invalidate(38, _a2 = plugin.settings.subjects) !== null && _a2 !== void 0 ? _a2 : []);
+    147456) {
+      $: subjects = dep(_tick, $$invalidate(45, _a2 = plugin.settings.subjects) !== null && _a2 !== void 0 ? _a2 : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*_tick, _b*/
-    1280) {
-      $: $$invalidate(42, classes = dep(_tick, ($$invalidate(39, _b2 = plugin.settings.classes) !== null && _b2 !== void 0 ? _b2 : []).filter((c) => !c.archived)));
+    163840) {
+      $: $$invalidate(49, classes = dep(_tick, ($$invalidate(46, _b2 = plugin.settings.classes) !== null && _b2 !== void 0 ? _b2 : []).filter((c) => !c.archived)));
     }
     if ($$self.$$.dirty[0] & /*classSearch*/
     4 | $$self.$$.dirty[1] & /*classes*/
-    2048) {
+    262144) {
       $: $$invalidate(14, filteredClasses = classes.filter((c) => {
         var _a3, _b3;
         const q = classSearch.trim().toLowerCase();
@@ -27732,7 +28289,7 @@ function instance5($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[1] & /*classes*/
-    2048) {
+    262144) {
       $: $$invalidate(13, nextLabels = (() => {
         const m = /* @__PURE__ */ new Map();
         for (const c of classes) {
@@ -27753,7 +28310,7 @@ function instance5($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*selectedClassId, plugin*/
     3 | $$self.$$.dirty[1] & /*_tick*/
-    1024) {
+    131072) {
       $: $$invalidate(3, occurrences = dep(_tick, selectedClassId ? classOccurrences(plugin.settings, selectedClassId) : []));
     }
     if ($$self.$$.dirty[0] & /*occurrences*/
@@ -27762,13 +28319,13 @@ function instance5($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*selectedClassId*/
     2 | $$self.$$.dirty[1] & /*classes*/
-    2048) {
-      $: $$invalidate(11, selectedClass = classes.find((c) => c.id === selectedClassId));
+    262144) {
+      $: $$invalidate(10, selectedClass = classes.find((c) => c.id === selectedClassId));
     }
     if ($$self.$$.dirty[0] & /*plugin, selectedClassId*/
     3 | $$self.$$.dirty[1] & /*_tick, _c*/
-    1536) {
-      $: $$invalidate(10, unplacedForClass = dep(_tick, ($$invalidate(40, _c = plugin.settings.unplacedLessons) !== null && _c !== void 0 ? _c : []).filter((u) => u.classId === selectedClassId)));
+    196608) {
+      $: $$invalidate(11, unplacedForClass = dep(_tick, ($$invalidate(47, _c = plugin.settings.unplacedLessons) !== null && _c !== void 0 ? _c : []).filter((u) => u.classId === selectedClassId)));
     }
   };
   return [
@@ -27779,35 +28336,42 @@ function instance5($$self, $$props, $$invalidate) {
     jump,
     listEl,
     menuKey,
-    editingKey,
-    editingText,
+    panelNote,
+    panelRoom,
     toast,
-    unplacedForClass,
     selectedClass,
+    unplacedForClass,
     weeks,
     nextLabels,
     filteredClasses,
     obsIcon,
     todayIso,
     currentWeekKey,
+    isMobile,
     keyOf,
     subjectFor,
     emojiFor,
     shortPeriod,
     fmtWeek,
     fmtDay,
-    lessonNote,
     mainLine,
     toggleMenu,
     openPlan,
     openExternal,
     togglePrep,
-    startEditNote,
-    saveNote,
+    defaultRoom,
+    savePanel,
+    linkPlan,
+    unlinkPlan,
+    linkExtFile,
+    linkExtFolder,
+    unlinkExternal,
+    doLessonNote,
     shiftFwd,
     shiftBack,
     undoShift,
     selectClass,
+    onCardKey,
     back,
     jumpTo,
     _a2,
@@ -27817,6 +28381,7 @@ function instance5($$self, $$props, $$invalidate) {
     classes,
     input_input_handler,
     click_handler,
+    keydown_handler,
     input_input_handler_1,
     click_handler_1,
     click_handler_2,
@@ -27824,18 +28389,28 @@ function instance5($$self, $$props, $$invalidate) {
     click_handler_4,
     textarea_input_handler,
     blur_handler,
+    input_input_handler_2,
+    blur_handler_1,
     click_handler_5,
     click_handler_6,
     click_handler_7,
     click_handler_8,
+    click_handler_9,
+    click_handler_10,
+    click_handler_11,
+    click_handler_12,
+    click_handler_13,
+    click_handler_14,
+    click_handler_15,
+    click_handler_16,
     div1_binding,
-    click_handler_9
+    click_handler_17
   ];
 }
 var LessonOverviewComponent = class extends SvelteComponent {
   constructor(options) {
     super();
-    init(this, options, instance5, create_fragment5, safe_not_equal, { plugin: 0 }, add_css5, [-1, -1, -1]);
+    init(this, options, instance5, create_fragment5, safe_not_equal, { plugin: 0 }, add_css5, [-1, -1, -1, -1]);
   }
 };
 var LessonOverviewComponent_default = LessonOverviewComponent;
@@ -28420,6 +28995,7 @@ _TeacherPlannerPlugin.PLANNER_FIELDS = [
   "mobileViewMode",
   "externalLinks",
   "lessonNotes",
+  "lessonRooms",
   "unplacedLessons",
   "lessonOverviewMainLine",
   "lastBulkApply",

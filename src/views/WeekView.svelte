@@ -529,17 +529,6 @@
         const itemLabel = getSlotLabel(slot).code;
         if (planPath) {
           menu.addItem(i => i.setTitle("Open lesson plan").setIcon("file-text").onClick(() => openPlan(planPath)));
-          menu.addItem(i => i.setTitle("Apply plan to future lessons").setIcon("copy-plus").onClick(() => {
-            const dry = bulkApplyPlan(plugin.settings, slot.classId, date, planPath, true);
-            if (dry.count === 0) { new Notice("No future lessons of this item found."); return; }
-            new ConfirmModal(plugin.app, `Link this plan to ${dry.count} future lesson${dry.count === 1 ? "" : "s"} of ${itemLabel} (until the end of the academic year)?`, async () => {
-              const res = bulkApplyPlan(plugin.settings, slot.classId, date, planPath);
-              plugin.settings.lastBulkApply = { path: planPath, entries: res.entries };
-              await plugin.saveSettings();
-              invalidate();
-              showBulkUndoNotice(res.count);
-            }, "Apply").open();
-          }));
           menu.addItem(i => i.setTitle("Unlink lesson plan").setIcon("unlink").onClick(async () => {
             clearSlotPlan(plugin.settings, slot.id, date);
             await plugin.saveSettings();
@@ -554,9 +543,6 @@
             toggleSlotPrepared(plugin.settings, slot.id, date);
             await plugin.saveSettings(); invalidate();
           }));
-        }
-        if (plugin.settings.lastBulkApply) {
-          menu.addItem(i => i.setTitle("Undo last bulk plan apply").setIcon("undo-2").onClick(() => doUndoBulkApply()));
         }
         if (!_isMobileApp) {
           const ext = getSlotExternal(plugin.settings, slot.id, date)?.path;

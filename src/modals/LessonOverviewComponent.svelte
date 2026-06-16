@@ -1,15 +1,17 @@
 <script lang="ts">
   import type TeacherPlannerPlugin from "../main";
   import type { ClassGroup } from "../types";
-  import { setIcon } from "obsidian";
+  import { setIcon, Platform } from "obsidian";
   import { tick as svelteTick } from "svelte";
   import { classOccurrences, groupByWeek, nextOccurrence, type LessonOccurrence } from "../utils/lessonOccurrences";
-  import { getSlotPlan, isSlotPrepared, toggleSlotPrepared, getSlotExternal, externalKindOf, getLessonNote, setLessonNote } from "../utils/planLinkUtils";
+  import { getSlotPlan, setSlotPlan, clearSlotPlan, isSlotPrepared, toggleSlotPrepared, getSlotExternal, setSlotExternal, clearSlotExternal, externalKindOf, getLessonNote, setLessonNote, getLessonRoom, setLessonRoom, clearLessonRoom } from "../utils/planLinkUtils";
   import { shiftForward, shiftBackward, snapshotState, restoreState, type ShiftSnapshot } from "../utils/lessonShiftApply";
-  import { applyNoteMoves, reverseNoteMoves, type NoteUndoOp } from "../utils/lessonNoteFiles";
+  import { applyNoteMoves, reverseNoteMoves, type NoteUndoOp, lessonNoteDefaultTitle, findLessonNoteByTitle, createLessonNoteFile } from "../utils/lessonNoteFiles";
+  import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
+  import { resolvedSlotForDate } from "../utils/clashUtils";
   import { getMondayOfWeek } from "../utils/weekUtils";
-  import { openSystemPath } from "../utils/exportDestination";
-  import { ConfirmModal } from "../settings/SettingsTab";
+  import { openSystemPath, openOSFilePicker, openOSFolderPicker } from "../utils/exportDestination";
+  import { ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
 
   export let plugin: TeacherPlannerPlugin;
 
@@ -31,8 +33,9 @@
   let jump = "";
   let listEl: HTMLElement | undefined;
   let menuKey: string | null = null;
-  let editingKey: string | null = null;
-  let editingText = "";
+  let panelNote = "";
+  let panelRoom = "";
+  const isMobile = Platform.isMobileApp;
   let lastSnap: ShiftSnapshot | null = null;
   let lastNoteUndo: NoteUndoOp[] = [];
   let toast = "";
@@ -84,9 +87,8 @@
     return { text: "No notes", faint: true };
   }
   function toggleMenu(o: LessonOccurrence) {
-    const k = keyOf(o);
-    menuKey = menuKey === k ? null : k;
-    editingKey = null;
+    if (menuKey === keyOf(o)) { void savePanel(o); menuKey = null; }
+    else openPanel(o);
   }
 
   function openPlan(o: LessonOccurrence) {
@@ -103,12 +105,42 @@
     refresh();
   }
 
-  function startEditNote(o: LessonOccurrence) { editingKey = keyOf(o); editingText = lessonNote(o); menuKey = null; }
-  async function saveNote(o: LessonOccurrence) {
-    setLessonNote(plugin.settings, o.slotId, o.date, editingText);
+  const slotForOcc = (o: LessonOccurrence) => resolvedSlotForDate(plugin.settings, o.date, o.periodId);
+  const defaultRoom = (o: LessonOccurrence) => slotForOcc(o)?.classroom ?? "";
+
+  function openPanel(o: LessonOccurrence) {
+    menuKey = keyOf(o);
+    panelNote = lessonNote(o);
+    panelRoom = getLessonRoom(plugin.settings, o.slotId, o.date) || defaultRoom(o);
+  }
+  async function savePanel(o: LessonOccurrence) {
+    setLessonNote(plugin.settings, o.slotId, o.date, panelNote);
+    if (panelRoom.trim() === defaultRoom(o).trim()) clearLessonRoom(plugin.settings, o.slotId, o.date);
+    else setLessonRoom(plugin.settings, o.slotId, o.date, panelRoom);
     await plugin.saveSettings();
-    editingKey = null;
     refresh();
+  }
+
+  function linkPlan(o: LessonOccurrence) {
+    const code = selectedClass?.code ?? "";
+    const subject = selectedClass ? subjectFor(selectedClass)?.name ?? "" : "";
+    new LessonPlanSuggestModal(plugin.app, plugin, code, subject, async (path) => {
+      setSlotPlan(plugin.settings, o.slotId, o.date, path);
+      await plugin.saveSettings(); refresh();
+    }).open();
+  }
+  async function unlinkPlan(o: LessonOccurrence) { clearSlotPlan(plugin.settings, o.slotId, o.date); await plugin.saveSettings(); refresh(); }
+  async function linkExtFile(o: LessonOccurrence) { const path = await openOSFilePicker("Link a file to this lesson"); if (path) { setSlotExternal(plugin.settings, o.slotId, o.date, path, "file"); await plugin.saveSettings(); refresh(); } }
+  async function linkExtFolder(o: LessonOccurrence) { const path = await openOSFolderPicker(); if (path) { setSlotExternal(plugin.settings, o.slotId, o.date, path, "folder"); await plugin.saveSettings(); refresh(); } }
+  async function unlinkExternal(o: LessonOccurrence) { clearSlotExternal(plugin.settings, o.slotId, o.date); await plugin.saveSettings(); refresh(); }
+  function doLessonNote(o: LessonOccurrence) {
+    const cid = selectedClassId; if (!cid) return;
+    const title = lessonNoteDefaultTitle(plugin.settings, cid, o.periodName, o.date);
+    const existing = findLessonNoteByTitle(plugin.app, plugin.settings, o.date, title);
+    if (existing) { void plugin.app.workspace.openLinkText(existing, "", false); return; }
+    new TextPromptModal(plugin.app, "New lesson note", title, "Note title", (name) => {
+      void createLessonNoteFile(plugin.app, plugin.settings, cid, o.periodName, o.date, name);
+    }).open();
   }
 
   const idxOf = (o: LessonOccurrence) => occurrences.findIndex(x => x.slotId === o.slotId && x.date === o.date);
@@ -124,7 +156,8 @@
       ? (res.overflowed ? "Shifted forward — last lesson moved to Unplaced." : "Lessons shifted forward.")
       : (res.filled ? "Pulled back — an Unplaced lesson dropped in." : "Lessons pulled back.");
   }
-  function shiftFwd(o: LessonOccurrence) {
+  async function shiftFwd(o: LessonOccurrence) {
+    await savePanel(o);
     const i = idxOf(o); if (i < 0) return; menuKey = null;
     const aff = occurrences.length - i;
     if (aff > 5) {
@@ -133,7 +166,7 @@
         () => void runShift(i, "forward"), "Shift forward").open();
     } else void runShift(i, "forward");
   }
-  function shiftBack(o: LessonOccurrence) { const i = idxOf(o); if (i < 0) return; menuKey = null; void runShift(i, "backward"); }
+  async function shiftBack(o: LessonOccurrence) { await savePanel(o); const i = idxOf(o); if (i < 0) return; menuKey = null; void runShift(i, "backward"); }
   async function undoShift() {
     if (!lastSnap) return;
     restoreState(plugin.settings, lastSnap);
@@ -146,7 +179,8 @@
   }
 
   function selectClass(id: string) { selectedClassId = id; void svelteTick().then(scrollToCurrent); }
-  function back() { selectedClassId = null; menuKey = null; editingKey = null; toast = ""; }
+  function onCardKey(e: KeyboardEvent, id: string) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectClass(id); } }
+  function back() { selectedClassId = null; menuKey = null; toast = ""; }
   function scrollToCurrent() {
     const el = listEl?.querySelector<HTMLElement>(`[data-week="${currentWeekKey}"]`);
     if (el) el.scrollIntoView({ block: "start" });
@@ -168,11 +202,11 @@
     </div>
     <div class="tp-lo-cards">
       {#each filteredClasses as c (c.id)}
-        <button class="tp-lo-card" style="border-left:3px solid {c.colour};" on:click={() => selectClass(c.id)}>
-          <span class="tp-lo-card-code">{emojiFor(c)} {c.code}</span>
+        <div class="tp-lo-card" role="button" tabindex="0" style="border-left:3px solid {c.colour};" on:click={() => selectClass(c.id)} on:keydown={(e) => onCardKey(e, c.id)}>
+          <span class="tp-lo-card-code">{#if emojiFor(c)}<span class="tp-lo-card-emoji">{emojiFor(c)}</span>{/if}<span class="tp-lo-card-codetext">{c.code}</span></span>
           <span class="tp-lo-card-sub">{[subjectFor(c)?.name, c.year ? "Yr" + c.year : ""].filter(Boolean).join(" · ")}</span>
           <span class="tp-lo-card-next">Next: {nextLabels.get(c.id) ?? "—"}</span>
-        </button>
+        </div>
       {/each}
       {#if filteredClasses.length === 0}<div class="tp-lo-empty">No classes</div>{/if}
     </div>
@@ -197,7 +231,7 @@
           {@const ml = mainLine(o)}
           <div class="tp-lo-row" class:tp-lo-row--past={past} class:tp-lo-row--current={isCurrent && !past}>
             <div class="tp-lo-row-main">
-              <button class="tp-lo-rowbtn" on:click={() => toggleMenu(o)} aria-expanded={menuKey === keyOf(o)} aria-label="Lesson actions">
+              <button class="tp-lo-rowbtn" on:click={() => toggleMenu(o)} aria-expanded={menuKey === keyOf(o)}>
                 <span class="tp-lo-rowtext">
                   <span class="tp-lo-topic" class:tp-lo-topic--faint={ml.faint}>{ml.text}</span>
                   <span class="tp-lo-when">{fmtDay(o)} · {shortPeriod(o.periodName)}</span>
@@ -220,18 +254,39 @@
               </span>
             </div>
 
-            {#if editingKey === keyOf(o)}
-              <!-- svelte-ignore a11y-autofocus -->
-              <textarea class="tp-lo-noteedit" bind:value={editingText} rows="2" autofocus
-                placeholder="Notes for this lesson…" on:blur={() => saveNote(o)}></textarea>
-            {/if}
-
             {#if menuKey === keyOf(o)}
-              <div class="tp-lo-menu">
-                <button on:click={() => shiftFwd(o)}><span use:obsIcon={"player-track-next"}></span> Lesson didn't happen, shift the rest forward</button>
-                <button on:click={() => shiftBack(o)}><span use:obsIcon={"player-track-prev"}></span> Pull later lessons back into this slot</button>
-                <button on:click={() => shiftFwd(o)}><span use:obsIcon={"square-plus"}></span> Insert a free lesson here</button>
-                <button on:click={() => startEditNote(o)}><span use:obsIcon={"pencil"}></span> {lessonNote(o) ? "Edit" : "Add"} notes</button>
+              <div class="tp-lo-panel">
+                <label class="tp-lo-field">
+                  <span class="tp-lo-field-label">Notes</span>
+                  <textarea class="tp-lo-noteedit" rows="2" placeholder="Notes for this lesson…"
+                    bind:value={panelNote} on:blur={() => savePanel(o)}></textarea>
+                </label>
+                <label class="tp-lo-field">
+                  <span class="tp-lo-field-label">Room</span>
+                  <input class="tp-lo-roomedit" type="text" placeholder={defaultRoom(o) || "Room"}
+                    bind:value={panelRoom} on:blur={() => savePanel(o)} />
+                </label>
+                <div class="tp-lo-menu">
+                  <button on:click={() => doLessonNote(o)}><span use:obsIcon={"book-open"}></span> Lesson note</button>
+                  {#if getSlotPlan(plugin.settings, o.slotId, o.date)}
+                    <button on:click={() => openPlan(o)}><span use:obsIcon={"file-text"}></span> Open lesson plan</button>
+                    <button on:click={() => unlinkPlan(o)}><span use:obsIcon={"unlink"}></span> Unlink lesson plan</button>
+                  {:else}
+                    <button on:click={() => linkPlan(o)}><span use:obsIcon={"file-plus"}></span> Link lesson plan…</button>
+                  {/if}
+                  <button on:click={() => togglePrep(o)}><span use:obsIcon={isSlotPrepared(plugin.settings, o.slotId, o.date) ? "x" : "check"}></span> {isSlotPrepared(plugin.settings, o.slotId, o.date) ? "Clear prepared mark" : "Mark prepared"}</button>
+                  {#if getSlotExternal(plugin.settings, o.slotId, o.date)}
+                    <button on:click={() => openExternal(o)}><span use:obsIcon={"external-link"}></span> Open external resource</button>
+                    <button on:click={() => unlinkExternal(o)}><span use:obsIcon={"unlink"}></span> Unlink external resource</button>
+                  {:else if !isMobile}
+                    <button on:click={() => linkExtFile(o)}><span use:obsIcon={"paperclip"}></span> Link external file…</button>
+                    <button on:click={() => linkExtFolder(o)}><span use:obsIcon={"folder-open"}></span> Link external folder…</button>
+                  {/if}
+                  <div class="tp-lo-menu-sep"></div>
+                  <button on:click={() => shiftFwd(o)}><span use:obsIcon={"chevrons-right"}></span> Push lessons forward</button>
+                  <button on:click={() => shiftBack(o)}><span use:obsIcon={"chevrons-left"}></span> Pull lessons back</button>
+                  <button on:click={() => shiftFwd(o)}><span use:obsIcon={"square-plus"}></span> Insert a free lesson here</button>
+                </div>
               </div>
             {/if}
           </div>
@@ -265,7 +320,7 @@
   .tp-lo { display:flex; flex-direction:column; min-height:0; height:100%; font-family:var(--font-interface); position:relative; }
   .tp-lo-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   .tp-lo-title { margin:0; font-size:17px; font-weight:600; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .tp-lo-back { border:none; background:transparent; cursor:pointer; color:var(--text-muted); display:inline-flex; padding:4px; border-radius:5px; }
+  .tp-lo-back { border:none; background:transparent; box-shadow:none; cursor:pointer; color:var(--text-muted); display:inline-flex; padding:4px; border-radius:5px; }
   .tp-lo-back:hover { background:var(--background-modifier-hover); color:var(--text-normal); }
 
   .tp-lo-search { position:relative; margin-bottom:12px; }
@@ -273,52 +328,60 @@
   .tp-lo-search-icon :global(svg) { width:16px; height:16px; }
   .tp-lo-search input { width:100%; box-sizing:border-box; padding:7px 10px 7px 32px; border:1px solid var(--background-modifier-border); border-radius:6px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:13px; }
 
-  .tp-lo-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); grid-auto-rows:min-content; align-content:start; gap:9px; overflow-y:auto; padding:2px; min-height:0; flex:1 1 auto; }
-  .tp-lo-card { display:flex; flex-direction:column; gap:2px; text-align:left; padding:9px 11px; border:1px solid var(--background-modifier-border); border-radius:7px; background:var(--background-primary); cursor:pointer; transition:background 0.1s; }
+  .tp-lo-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); align-content:start; align-items:start; gap:9px; overflow-y:auto; padding:2px; min-height:0; flex:1 1 auto; }
+  .tp-lo-card { display:flex; flex-direction:column; gap:3px; min-width:0; text-align:left; padding:10px 12px; border:1px solid var(--background-modifier-border); border-radius:7px; background:var(--background-primary); cursor:pointer; transition:background 0.1s; }
   .tp-lo-card:hover { background:var(--background-modifier-hover); }
-  .tp-lo-card-code { font-size:14px; font-weight:600; color:var(--text-normal); }
-  .tp-lo-card-sub { font-size:11px; color:var(--text-muted); }
-  .tp-lo-card-next { font-size:11px; color:var(--text-faint); margin-top:4px; }
+  .tp-lo-card-code { display:flex; align-items:center; gap:6px; min-width:0; font-size:15px; font-weight:600; line-height:1.5; color:var(--text-normal); }
+  .tp-lo-card-emoji { flex-shrink:0; font-size:14px; line-height:1; }
+  .tp-lo-card-codetext { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-lo-card-sub { display:block; font-size:12px; color:var(--text-muted); margin-top:2px; }
+  .tp-lo-card-next { display:block; font-size:12px; color:var(--text-faint); margin-top:4px; }
 
   .tp-lo-jump { display:inline-flex; align-items:center; gap:5px; color:var(--text-muted); }
   .tp-lo-jump :global(svg) { width:15px; height:15px; }
   .tp-lo-jump input { font-size:12px; padding:3px 5px; border:1px solid var(--background-modifier-border); border-radius:5px; background:var(--background-modifier-form-field); color:var(--text-normal); }
 
   .tp-lo-list { overflow-y:auto; min-height:0; flex:1 1 auto; border:1px solid var(--background-modifier-border); border-radius:8px; }
-  .tp-lo-weekhead { position:sticky; top:0; z-index:1; display:flex; align-items:center; gap:8px; padding:7px 12px; background:var(--background-secondary); font-size:14px; font-weight:600; color:var(--text-normal); border-bottom:1px solid var(--background-modifier-border); }
+  .tp-lo-weekhead { position:sticky; top:0; z-index:1; display:flex; align-items:center; gap:8px; padding:9px 13px; background:var(--background-secondary); font-size:16px; font-weight:600; color:var(--interactive-accent); border-bottom:1px solid var(--background-modifier-border); }
   .tp-lo-weekhead--current { background:color-mix(in srgb, var(--interactive-accent) 16%, var(--background-secondary)); color:var(--text-normal); }
   .tp-lo-ab { border:1px solid var(--background-modifier-border); border-radius:4px; padding:1px 9px; font-size:13px; font-weight:700; }
   .tp-lo-ab--current { border-color:var(--interactive-accent); }
 
-  .tp-lo-row { padding:7px 12px; border-bottom:1px solid var(--background-modifier-border-hover); }
+  .tp-lo-row { padding:11px 13px; border-bottom:1px solid var(--background-modifier-border-hover); }
   .tp-lo-row:last-child { border-bottom:none; }
   .tp-lo-row--past { opacity:0.55; }
   .tp-lo-row--current { background:color-mix(in srgb, var(--interactive-accent) 8%, transparent); }
   .tp-lo-row-main { display:flex; align-items:center; gap:10px; }
-  .tp-lo-when { font-size:11px; color:var(--text-muted); }
+  .tp-lo-when { font-size:13px; color:var(--text-muted); }
   .tp-lo-row--current .tp-lo-when { font-weight:600; color:var(--text-normal); }
-  .tp-lo-topic { display:block; max-width:100%; font-size:13px; color:var(--text-normal); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-lo-topic { display:block; max-width:100%; font-size:15px; font-weight:500; color:var(--text-normal); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-lo-topic--faint { color:var(--text-faint); }
-  .tp-lo-rowbtn { flex:1; min-width:0; display:flex; align-items:center; text-align:left; border:none; background:transparent; cursor:pointer; padding:0; color:inherit; font-family:var(--font-interface); }
+  .tp-lo-rowbtn { flex:1; min-width:0; display:flex; align-items:center; text-align:left; border:none; background:transparent; box-shadow:none; outline:none; border-radius:0; cursor:pointer; padding:0; color:inherit; font-family:var(--font-interface); }
   .tp-lo-rowbtn:hover .tp-lo-topic { color:var(--interactive-accent); }
-  .tp-lo-rowtext { display:flex; flex-direction:column; gap:1px; min-width:0; width:100%; }
+  .tp-lo-rowtext { display:flex; flex-direction:column; gap:3px; min-width:0; width:100%; }
   .tp-lo-chev { display:inline-flex; color:var(--text-faint); margin-left:2px; transition:transform 0.12s; }
   .tp-lo-chev :global(svg) { width:15px; height:15px; }
   .tp-lo-chev--open { transform:rotate(180deg); color:var(--text-muted); }
   .tp-lo-icons { display:flex; align-items:center; gap:3px; flex-shrink:0; }
   .tp-lo-taught { display:inline-flex; color:var(--color-green, #a6e3a1); }
-  .tp-lo-taught :global(svg) { width:15px; height:15px; }
-  .tp-lo-ic { border:none; background:transparent; cursor:pointer; color:var(--text-faint); display:inline-flex; padding:3px; border-radius:4px; }
+  .tp-lo-taught :global(svg) { width:16px; height:16px; }
+  .tp-lo-ic { border:none; background:transparent; box-shadow:none; cursor:pointer; color:var(--text-faint); display:inline-flex; padding:4px; border-radius:4px; }
   .tp-lo-ic:hover { background:var(--background-modifier-hover); color:var(--text-normal); }
-  .tp-lo-ic :global(svg) { width:14px; height:14px; }
+  .tp-lo-ic :global(svg) { width:16px; height:16px; }
   .tp-lo-ic--on, .tp-lo-ic--plan { color:var(--color-green, #a6e3a1); }
 
-  .tp-lo-noteedit { width:100%; box-sizing:border-box; margin-top:4px; padding:5px 7px; border:1px solid var(--interactive-accent); border-radius:5px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:12px; font-family:var(--font-interface); resize:vertical; }
+  .tp-lo-noteedit { width:100%; box-sizing:border-box; margin-top:0; padding:9px 11px; border:1px solid var(--interactive-accent); border-radius:6px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:13px; line-height:1.4; font-family:var(--font-interface); resize:vertical; }
 
-  .tp-lo-menu { margin-top:5px; border:1px solid var(--background-modifier-border); border-radius:6px; background:var(--background-primary); box-shadow:0 4px 14px rgba(0,0,0,0.25); overflow:hidden; }
-  .tp-lo-menu button { display:flex; align-items:center; gap:8px; width:100%; text-align:left; padding:8px 11px; border:none; background:transparent; color:var(--text-normal); font-size:13px; cursor:pointer; font-family:var(--font-interface); }
+  .tp-lo-panel { margin-top:8px; }
+  .tp-lo-field { display:block; margin-bottom:9px; }
+  .tp-lo-field-label { display:block; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:4px; }
+  .tp-lo-roomedit { width:100%; box-sizing:border-box; padding:9px 11px; border:1px solid var(--background-modifier-border); border-radius:6px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:13px; font-family:var(--font-interface); }
+  .tp-lo-roomedit:focus { border-color:var(--interactive-accent); outline:none; }
+  .tp-lo-menu-sep { height:1px; background:var(--background-modifier-border); margin:6px 0; }
+  .tp-lo-menu { margin-top:6px; border-radius:6px; background:transparent; overflow:hidden; }
+  .tp-lo-menu button { display:flex; align-items:center; justify-content:flex-start; gap:11px; width:100%; text-align:left; padding:12px 14px; border:none; background:transparent; box-shadow:none; outline:none; color:var(--text-normal); font-size:14px; line-height:1.35; cursor:pointer; font-family:var(--font-interface); }
   .tp-lo-menu button:hover { background:var(--background-modifier-hover); }
-  .tp-lo-menu :global(svg) { width:15px; height:15px; flex-shrink:0; color:var(--text-muted); }
+  .tp-lo-menu :global(svg) { width:16px; height:16px; flex-shrink:0; color:var(--text-muted); }
 
   .tp-lo-unplaced { margin:10px; border:1px dashed var(--color-orange, #e0af68); border-radius:7px; padding:9px 11px; }
   .tp-lo-unplaced-head { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--color-orange, #e0af68); margin-bottom:6px; }

@@ -267,3 +267,18 @@ export function setLessonNote(s: TeacherPlannerSettings, slotId: string, date: s
 export function clearLessonNote(s: TeacherPlannerSettings, slotId: string, date: string): void {
   if (s.lessonNotes) s.lessonNotes = s.lessonNotes.filter(n => !(n.slotId === slotId && n.date === date));
 }
+
+// ── Per-lesson room field (keyed to slot+date; travels with shifts) ──
+export function getLessonRoom(s: TeacherPlannerSettings, slotId: string, date: string): string {
+  return (s.lessonRooms ?? []).find(r => r.slotId === slotId && r.date === date)?.room ?? "";
+}
+export function setLessonRoom(s: TeacherPlannerSettings, slotId: string, date: string, room: string): void {
+  const t = room.trim();
+  if (!s.lessonRooms) s.lessonRooms = [];
+  if (!t) { s.lessonRooms = s.lessonRooms.filter(r => !(r.slotId === slotId && r.date === date)); return; }
+  const existing = s.lessonRooms.find(r => r.slotId === slotId && r.date === date);
+  if (existing) existing.room = t; else s.lessonRooms.push({ slotId, date, room: t });
+}
+export function clearLessonRoom(s: TeacherPlannerSettings, slotId: string, date: string): void {
+  if (s.lessonRooms) s.lessonRooms = s.lessonRooms.filter(r => !(r.slotId === slotId && r.date === date));
+}

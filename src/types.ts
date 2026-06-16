@@ -184,6 +184,13 @@ export interface PreparedMark {
   eventId?: string;
 }
 
+/** Small per-lesson room field, keyed to the lesson (slot + date). Travels with shifts. */
+export interface LessonRoom {
+  slotId: string;
+  date: string;
+  room: string;
+}
+
 /** Small per-lesson notes field, keyed to the lesson (slot + date). Travels with shifts. */
 export interface LessonNote {
   slotId: string;
@@ -200,6 +207,7 @@ export interface UnplacedLesson {
   prepared?: boolean;
   external?: { path: string; kind?: "file" | "folder" };
   note?: string;         // per-lesson notes text
+  room?: string;         // per-lesson room
   notePath?: string;     // parked MD note file path (set when the note file is moved)
   pushedFromDate?: string;
 }
@@ -282,6 +290,7 @@ export interface TeacherPlannerSettings {
   /** External (outside-the-vault) file/folder attachments. Desktop only. */
   externalLinks?: ExternalResourceLink[];
   lessonNotes?: LessonNote[];
+  lessonRooms?: LessonRoom[];
   unplacedLessons?: UnplacedLesson[];
   /** Lesson overview main line source: notes then plan title (default) | notes only | plan title. */
   lessonOverviewMainLine?: "notes-plan" | "notes" | "plan";
@@ -344,6 +353,7 @@ export interface PlannerRecord {
   mobileViewMode?: "day" | "agenda" | "grid";
   externalLinks?: ExternalResourceLink[];
   lessonNotes?: LessonNote[];
+  lessonRooms?: LessonRoom[];
   unplacedLessons?: UnplacedLesson[];
   /** Lesson overview main line source: notes then plan title (default) | notes only | plan title. */
   lessonOverviewMainLine?: "notes-plan" | "notes" | "plan";
