@@ -228,12 +228,12 @@
         {#each w.lessons as o (keyOf(o))}
           {@const past = o.date < todayIso}
           {@const ml = mainLine(o)}
-          <div class="tp-lo-row" class:tp-lo-row--past={past} class:tp-lo-row--current={isCurrent && !past}>
+          <div class="tp-lo-row" class:tp-lo-row--past={past} class:tp-lo-row--current={isCurrent && !past} class:tp-lo-row--open={menuKey === keyOf(o)} class:tp-lo-row--dim={menuKey !== null && menuKey !== keyOf(o)}>
             <div class="tp-lo-row-main">
               <button class="tp-lo-rowbtn" on:click={() => toggleMenu(o)} aria-expanded={menuKey === keyOf(o)}>
                 <span class="tp-lo-rowtext">
-                  <span class="tp-lo-topic" class:tp-lo-topic--faint={ml.faint}>{ml.text}</span>
                   <span class="tp-lo-when">{fmtDay(o)} · {shortPeriod(o.periodName)}</span>
+                  <span class="tp-lo-topic" class:tp-lo-topic--faint={ml.faint}>{ml.text}</span>
                 </span>
               </button>
               <span class="tp-lo-icons">
@@ -250,6 +250,7 @@
                   <button class="tp-lo-ic" title="Open external resource" on:click|stopPropagation={() => openExternal(o)}
                     use:obsIcon={ext && externalKindOf(ext) === "folder" ? "folder" : "paperclip"}></button>
                 {/if}
+                {#if menuKey === keyOf(o)}<span class="tp-lo-editing">editing</span>{/if}
                 <span class="tp-lo-chev" class:tp-lo-chev--open={menuKey === keyOf(o)} use:obsIcon={"chevron-down"}></span>
               </span>
             </div>
@@ -347,17 +348,22 @@
   .tp-lo-ab { border:1px solid var(--background-modifier-border); border-radius:4px; padding:1px 9px; font-size:13px; font-weight:700; }
   .tp-lo-ab--current { border-color:var(--interactive-accent); }
 
-  .tp-lo-row { padding:11px 13px; border-bottom:1px solid var(--background-modifier-border-hover); }
+  .tp-lo-row { padding:11px 13px; border-bottom:1px solid var(--background-modifier-border-hover); transition:opacity 0.12s, background 0.12s; }
   .tp-lo-row:last-child { border-bottom:none; }
   .tp-lo-row--past { opacity:0.55; }
   .tp-lo-row--current { background:color-mix(in srgb, var(--interactive-accent) 8%, transparent); }
+  .tp-lo-row--dim { opacity:0.5; }
+  .tp-lo-row--open { border-left:3px solid var(--interactive-accent); padding-left:10px; background:color-mix(in srgb, var(--interactive-accent) 12%, transparent); }
+  .tp-lo-row--open .tp-lo-when { font-size:16px; color:var(--interactive-accent); }
+  .tp-lo-row--open .tp-lo-topic { color:var(--interactive-accent); opacity:0.85; }
+  .tp-lo-editing { align-self:center; flex-shrink:0; margin-right:2px; font-size:11px; font-weight:600; color:var(--interactive-accent); border:1px solid var(--interactive-accent); border-radius:5px; padding:1px 7px; }
   .tp-lo-row-main { display:flex; align-items:center; gap:10px; }
-  .tp-lo-when { font-size:13px; color:var(--text-muted); }
+  .tp-lo-when { font-size:15px; font-weight:500; color:var(--text-normal); }
   .tp-lo-row--current .tp-lo-when { font-weight:600; color:var(--text-normal); }
-  .tp-lo-topic { display:block; max-width:100%; font-size:15px; font-weight:500; color:var(--text-normal); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-lo-topic { display:block; max-width:100%; font-size:13px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-lo-topic--faint { color:var(--text-faint); }
   .tp-lo-rowbtn { flex:1; min-width:0; display:flex; align-items:center; text-align:left; border:none; background:transparent; box-shadow:none; outline:none; border-radius:0; cursor:pointer; padding:0; color:inherit; font-family:var(--font-interface); }
-  .tp-lo-rowbtn:hover .tp-lo-topic { color:var(--interactive-accent); }
+  .tp-lo-rowbtn:hover .tp-lo-when { color:var(--interactive-accent); }
   .tp-lo-rowtext { display:flex; flex-direction:column; gap:3px; min-width:0; width:100%; }
   .tp-lo-chev { display:inline-flex; color:var(--text-faint); margin-left:2px; transition:transform 0.12s; }
   .tp-lo-chev :global(svg) { width:15px; height:15px; }
