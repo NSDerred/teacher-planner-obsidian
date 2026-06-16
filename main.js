@@ -1981,6 +1981,8 @@ function buildStructureTemplate(plugin, name) {
   const s = plugin.settings;
   const ay = s.academicYear;
   const structure = {
+    startDate: ay.startDate,
+    endDate: ay.endDate,
     periods: clone((_a2 = ay.periods) != null ? _a2 : []),
     daySchedules: clone(ay.daySchedules),
     dayScheduleMap: clone(ay.dayScheduleMap),
@@ -2038,6 +2040,8 @@ async function applyStructureTemplate(plugin, structure) {
   var _a2, _b2;
   const s = plugin.settings;
   const ay = s.academicYear;
+  if (structure.startDate) ay.startDate = structure.startDate;
+  if (structure.endDate) ay.endDate = structure.endDate;
   ay.periods = clone(structure.periods);
   ay.daySchedules = clone(structure.daySchedules);
   ay.dayScheduleMap = clone(structure.dayScheduleMap);
@@ -8528,7 +8532,7 @@ var init_SetupWizardModal = __esm({
         this.isNewPlanner = isNewPlanner;
         const ay = DEFAULT_PLANNER.academicYear;
         this.state = {
-          name: ay.name,
+          name: "",
           directedTimeEnabled: false,
           contractedHours: 1265,
           timetablePercentage: 100,
@@ -8644,6 +8648,36 @@ var init_SetupWizardModal = __esm({
         hdr.createEl("p", { text: desc, cls: "tp-wizard-desc" });
       }
       // ── Step 1: Planner name ────────────────────────────────────────────────────
+      loadHolidayTemplate() {
+        void (async () => {
+          const files2 = await listTemplateFiles(this.plugin, "holidays");
+          if (files2.length === 0) {
+            new import_obsidian9.Notice(`No holiday templates in "${holidayTemplatesFolder(this.plugin)}".`);
+            return;
+          }
+          new WizardTemplatePickModal(this.app, files2, "Pick a holiday calendar template\u2026", (file) => {
+            void (async () => {
+              let tpl;
+              try {
+                tpl = parseTemplate(await readTemplateText(this.plugin, file.path));
+              } catch (e) {
+                new import_obsidian9.Notice(e instanceof Error ? e.message : "Could not read template.");
+                return;
+              }
+              if (tpl.kind !== "holidays" || !tpl.holidays) {
+                new import_obsidian9.Notice("That file is not a holiday calendar template.");
+                return;
+              }
+              const cl = (v) => JSON.parse(JSON.stringify(v != null ? v : null));
+              const tplOverrides = cl(tpl.holidays.overrides).filter((o) => o.type === "holiday" || o.type === "inset");
+              const keep = this.state.weekOverrides.filter((o) => o.type !== "holiday" && o.type !== "inset");
+              this.state.weekOverrides = [...keep, ...tplOverrides];
+              new import_obsidian9.Notice(`Loaded ${tplOverrides.length} holiday/INSET ${tplOverrides.length === 1 ? "entry" : "entries"} from "${tpl.name}".`);
+              this.render();
+            })();
+          }).open();
+        })();
+      }
       loadStructureTemplate() {
         void (async () => {
           const files2 = await listTemplateFiles(this.plugin, "structure");
@@ -8651,7 +8685,7 @@ var init_SetupWizardModal = __esm({
             new import_obsidian9.Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`);
             return;
           }
-          new WizardTemplatePickModal(this.app, files2, (file) => {
+          new WizardTemplatePickModal(this.app, files2, "Pick a school structure template\u2026", (file) => {
             void (async () => {
               var _a2, _b2, _c, _d, _e, _f;
               let tpl;
@@ -8677,6 +8711,8 @@ var init_SetupWizardModal = __esm({
               if (st.schoolDays) this.state.schoolDays = clone2(st.schoolDays);
               this.state.abWeekEnabled = !!st.abWeekEnabled;
               this.state.abWeekStartsOn = (_f = st.abWeekStartsOn) != null ? _f : "A";
+              if (st.startDate) this.state.startDate = st.startDate;
+              if (st.endDate) this.state.endDate = st.endDate;
               new import_obsidian9.Notice(`Loaded structure from "${tpl.name}".`);
               this.render();
             })();
@@ -8695,9 +8731,13 @@ var init_SetupWizardModal = __esm({
           t.setPlaceholder("2025-26").setValue(this.state.name);
           t.inputEl.maxLength = 60;
           nameInput = t.inputEl;
+          t.onChange((v) => {
+            this.state.name = v;
+          });
           window.setTimeout(() => t.inputEl.focus(), 50);
         });
-        new import_obsidian9.Setting(body).setName("Start from a school structure template").setDesc("Optional. Load a saved school shell (periods, blocks, A/B pattern, school days) so the next steps come pre-filled.").addButton((btn) => btn.setButtonText("Choose template\u2026").onClick(() => this.loadStructureTemplate()));
+        new import_obsidian9.Setting(body).setName("Start from a school structure template").setDesc("Optional. Load a saved school shell (periods, blocks, A/B pattern, school days, year dates) so the next steps come pre-filled.").addButton((btn) => btn.setButtonText("Choose template\u2026").onClick(() => this.loadStructureTemplate()));
+        new import_obsidian9.Setting(body).setName("Start from a holiday calendar template").setDesc("Optional. Load saved holiday and INSET dates so step 4 comes pre-filled (nudge them there).").addButton((btn) => btn.setButtonText("Choose template\u2026").onClick(() => this.loadHolidayTemplate()));
         this.footer(body, () => {
           const v = nameInput.value.trim();
           if (!v) {
@@ -8843,7 +8883,7 @@ var init_SetupWizardModal = __esm({
           if (this.state.weekOverrides.length === 0) {
             listEl.createEl("p", { text: "No holidays or INSET days added yet.", cls: "tp-wizard-empty-note" });
           }
-          for (const ov of this.state.weekOverrides) {
+          for (const ov of [...this.state.weekOverrides].sort((a, b) => a.startDate.localeCompare(b.startDate))) {
             const wrapper = listEl.createDiv("tp-override-entry");
             const row = new import_obsidian9.Setting(wrapper).setName("").setDesc("");
             row.settingEl.addClass("tp-override-row");
@@ -9334,6 +9374,12 @@ var init_SetupWizardModal = __esm({
         row("Subjects", `${s.subjects.length} subject${s.subjects.length !== 1 ? "s" : ""}`);
         row("Classes", `${s.classes.length} class group${s.classes.length !== 1 ? "s" : ""}`);
         row("Planner folder", s.plannerFolder);
+        const tplSection = body.createDiv();
+        tplSection.createEl("p", {
+          text: "Want to reuse this setup next year, or share it? Save it as a template (kept in the plugin folder, no personal data).",
+          cls: "setting-item-description"
+        });
+        new import_obsidian9.Setting(tplSection).setName("Save as a template").addButton((b) => b.setButtonText("School structure\u2026").onClick(() => this.saveStructureTemplateFromWizard())).addButton((b) => b.setButtonText("Holiday calendar\u2026").onClick(() => this.saveHolidayTemplateFromWizard()));
         const footer = body.createDiv("tp-wizard-footer");
         footer.createDiv();
         const openBtn = footer.createEl("button", { text: "Open planner \u2192", cls: "tp-btn tp-btn--primary" });
@@ -9343,6 +9389,40 @@ var init_SetupWizardModal = __esm({
             await this.plugin.activateView();
           })();
         });
+      }
+      saveStructureTemplateFromWizard() {
+        new TextPromptModal(this.app, "Save school structure template", this.state.name, "Template name", (name) => {
+          void (async () => {
+            const n = name.trim();
+            if (!n) return;
+            try {
+              const path = await writeTemplateFile(this.plugin, "structure", n, buildStructureTemplate(this.plugin, n));
+              new import_obsidian9.Notice(`Saved structure template to ${path}`);
+            } catch (e) {
+              console.error("Teacher Planner: save structure template failed.", e);
+              new import_obsidian9.Notice("Could not save template \u2014 see console.");
+            }
+          })();
+        }).open();
+      }
+      saveHolidayTemplateFromWizard() {
+        if (holidayCount(this.plugin) === 0) {
+          new import_obsidian9.Notice("No holidays or INSET days to save.");
+          return;
+        }
+        new TextPromptModal(this.app, "Save holiday calendar template", `${this.state.name} holidays`, "Template name", (name) => {
+          void (async () => {
+            const n = name.trim();
+            if (!n) return;
+            try {
+              const path = await writeTemplateFile(this.plugin, "holidays", n, buildHolidayTemplate(this.plugin, n));
+              new import_obsidian9.Notice(`Saved holiday template to ${path}`);
+            } catch (e) {
+              console.error("Teacher Planner: save holiday template failed.", e);
+              new import_obsidian9.Notice("Could not save template \u2014 see console.");
+            }
+          })();
+        }).open();
       }
       // ── Commit the planner to plugin data ───────────────────────────────────────
       async commitPlanner() {
@@ -9496,11 +9576,11 @@ var init_SetupWizardModal = __esm({
       }
     };
     WizardTemplatePickModal = class extends import_obsidian9.FuzzySuggestModal {
-      constructor(app, files2, onPick) {
+      constructor(app, files2, placeholder, onPick) {
         super(app);
         this.files = files2;
         this.onPick = onPick;
-        this.setPlaceholder("Pick a school structure template\u2026");
+        this.setPlaceholder(placeholder);
       }
       getItems() {
         return this.files;
@@ -10441,22 +10521,22 @@ var init_SettingsTab = __esm({
             disabledDel.setCssStyles({ cursor: "not-allowed" });
           }
         }
+        new import_obsidian11.Setting(container).addButton((btn) => btn.setButtonText("+ New planner").setCta().onClick(() => {
+          var _a2;
+          new SetupWizardModal(this.app, this.plugin, true).open();
+          (_a2 = this.app.setting) == null ? void 0 : _a2.close();
+        }));
         const backupSetting = new import_obsidian11.Setting(container).setName("Backups").setDesc("Saved as .json in the plugin folder (hidden, no vault clutter); the auto-backup taken before deleting a planner goes here too. Export lets you also save a copy to a vault folder or your computer.").addButton((btn) => btn.setButtonText("Export\u2026").onClick(() => new BackupExportModal(this.app, this.plugin, () => this.display()).open())).addButton((btn) => btn.setButtonText("Import from library\u2026").onClick(() => this.importBackupFromLibrary()));
         if (!import_obsidian11.Platform.isMobile) {
           backupSetting.addButton((btn) => btn.setButtonText("Import from file\u2026").onClick(() => this.importBackupFromFile()));
         }
         new import_obsidian11.Setting(container).setName("Templates").setHeading();
         container.createEl("p", {
-          text: `Reusable setups saved as .json under "${this.plugin.plannerData.rootPlannerFolder || "Teacher Planner"}/Templates". A template holds the school shell only, never your classes, timetable, notes, or dates. Share one by dropping its file into the matching folder.`,
+          text: `Reusable setups saved as .json under "${this.plugin.plannerData.rootPlannerFolder || "Teacher Planner"}/Templates". A template holds the school shell only (including the year start/end dates as a starting point), never your classes, timetable, or notes. Share one by dropping its file into the matching folder.`,
           cls: "setting-item-description"
         });
-        new import_obsidian11.Setting(container).setName("School structure").setDesc("Periods, block types, A/B pattern and school days.").addButton((btn) => btn.setButtonText("Save current\u2026").onClick(() => this.saveStructureTemplate())).addButton((btn) => btn.setButtonText("Apply template\u2026").onClick(() => this.applyStructureTemplateFlow()));
+        new import_obsidian11.Setting(container).setName("School structure").setDesc("Periods, block types, A/B pattern, school days and year dates.").addButton((btn) => btn.setButtonText("Save current\u2026").onClick(() => this.saveStructureTemplate())).addButton((btn) => btn.setButtonText("Apply template\u2026").onClick(() => this.applyStructureTemplateFlow()));
         new import_obsidian11.Setting(container).setName("Holiday calendar").setDesc("Holiday and INSET dates to drop in and nudge each year.").addButton((btn) => btn.setButtonText("Save current\u2026").onClick(() => this.saveHolidayTemplate())).addButton((btn) => btn.setButtonText("Load template\u2026").onClick(() => this.loadHolidayTemplateFlow()));
-        new import_obsidian11.Setting(container).addButton((btn) => btn.setButtonText("+ New planner").setCta().onClick(() => {
-          var _a2;
-          new SetupWizardModal(this.app, this.plugin, true).open();
-          (_a2 = this.app.setting) == null ? void 0 : _a2.close();
-        }));
       }
       wrapSectionsCollapsible(container) {
         var _a2;
@@ -10785,7 +10865,7 @@ var init_SettingsTab = __esm({
               const structure = tpl.structure;
               new ConfirmModal(
                 this.app,
-                "Apply this school structure to the current planner? It replaces your periods, block types, A/B pattern and school days. Any classes already placed on the timetable will be detached, since their slots point at the old periods. Your classes, notes and year dates are kept.",
+                "Apply this school structure to the current planner? It replaces your periods, block types, A/B pattern and school days. It also sets the year start/end dates from the template (nudge them afterwards). Any classes already placed on the timetable will be detached, since their slots point at the old periods. Your classes and notes are kept.",
                 () => {
                   void (async () => {
                     try {

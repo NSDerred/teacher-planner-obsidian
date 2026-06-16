@@ -8,7 +8,7 @@ import { DEFAULT_PLANNER, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, FALLBACK_PERIO
 import { resolveColour } from "../utils/themeColours";
 import { isValidIsoDate, findOverlappingOverrides } from "../utils/weekUtils";
 import { syncPeriodsUnion } from "../utils/scheduleUtils";
-import { listTemplateFiles, readTemplateText, parseTemplate, structureTemplatesFolder } from "../utils/schoolTemplates";
+import { listTemplateFiles, readTemplateText, parseTemplate, structureTemplatesFolder, holidayTemplatesFolder, buildStructureTemplate, buildHolidayTemplate, writeTemplateFile, holidayCount } from "../utils/schoolTemplates";
 import type { LibFile } from "../utils/pluginLibrary";
 import { TimetableEditorModal } from "./TimetableEditorModal";
 import { openEmojiPicker, closeEmojiPicker, TextPromptModal, ConfirmModal } from "../settings/SettingsTab";
@@ -59,7 +59,7 @@ export class SetupWizardModal extends Modal {
     this.isNewPlanner = isNewPlanner;
     const ay = DEFAULT_PLANNER.academicYear;
     this.state = {
-      name:                         ay.name,
+      name:                         "",
       directedTimeEnabled:          false,
       contractedHours:              1265,
       timetablePercentage:          100,
@@ -157,11 +157,30 @@ export class SetupWizardModal extends Modal {
 
   // ── Step 1: Planner name ────────────────────────────────────────────────────
 
+  private loadHolidayTemplate() {
+    void (async () => {
+    const files = await listTemplateFiles(this.plugin, "holidays");
+    if (files.length === 0) { new Notice(`No holiday templates in "${holidayTemplatesFolder(this.plugin)}".`); return; }
+    new WizardTemplatePickModal(this.app, files, "Pick a holiday calendar template…", (file) => { void (async () => {
+      let tpl;
+      try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
+      catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
+      if (tpl.kind !== "holidays" || !tpl.holidays) { new Notice("That file is not a holiday calendar template."); return; }
+      const cl = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null));
+      const tplOverrides = (cl(tpl.holidays.overrides) as WeekOverride[]).filter(o => o.type === "holiday" || o.type === "inset");
+      const keep = this.state.weekOverrides.filter(o => o.type !== "holiday" && o.type !== "inset");
+      this.state.weekOverrides = [...keep, ...tplOverrides];
+      new Notice(`Loaded ${tplOverrides.length} holiday/INSET ${tplOverrides.length === 1 ? "entry" : "entries"} from "${tpl.name}".`);
+      this.render();
+    })(); }).open();
+    })();
+  }
+
   private loadStructureTemplate() {
     void (async () => {
     const files = await listTemplateFiles(this.plugin, "structure");
     if (files.length === 0) { new Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`); return; }
-    new WizardTemplatePickModal(this.app, files, (file) => { void (async () => {
+    new WizardTemplatePickModal(this.app, files, "Pick a school structure template…", (file) => { void (async () => {
       let tpl;
       try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
       catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
@@ -178,6 +197,8 @@ export class SetupWizardModal extends Modal {
       if (st.schoolDays) this.state.schoolDays = clone(st.schoolDays);
       this.state.abWeekEnabled = !!st.abWeekEnabled;
       this.state.abWeekStartsOn = st.abWeekStartsOn ?? "A";
+      if (st.startDate) this.state.startDate = st.startDate;
+      if (st.endDate) this.state.endDate = st.endDate;
       new Notice(`Loaded structure from "${tpl.name}".`);
       this.render();
     })(); }).open();
@@ -196,13 +217,19 @@ export class SetupWizardModal extends Modal {
         t.setPlaceholder("2025-26").setValue(this.state.name);
         t.inputEl.maxLength = 60;
         nameInput = t.inputEl;
+        t.onChange(v => { this.state.name = v; });
         window.setTimeout(() => t.inputEl.focus(), 50);
       });
 
     new Setting(body)
       .setName("Start from a school structure template")
-      .setDesc("Optional. Load a saved school shell (periods, blocks, A/B pattern, school days) so the next steps come pre-filled.")
+      .setDesc("Optional. Load a saved school shell (periods, blocks, A/B pattern, school days, year dates) so the next steps come pre-filled.")
       .addButton(btn => btn.setButtonText("Choose template…").onClick(() => this.loadStructureTemplate()));
+
+    new Setting(body)
+      .setName("Start from a holiday calendar template")
+      .setDesc("Optional. Load saved holiday and INSET dates so step 4 comes pre-filled (nudge them there).")
+      .addButton(btn => btn.setButtonText("Choose template…").onClick(() => this.loadHolidayTemplate()));
 
     this.footer(body, () => {
       const v = nameInput!.value.trim();
@@ -353,7 +380,7 @@ export class SetupWizardModal extends Modal {
         listEl.createEl("p", { text: "No holidays or INSET days added yet.", cls: "tp-wizard-empty-note" });
       }
 
-      for (const ov of this.state.weekOverrides) {
+      for (const ov of [...this.state.weekOverrides].sort((a, b) => a.startDate.localeCompare(b.startDate))) {
         // Wrapper stacks Setting row + optional INSET sub-row — mirrors SettingsTab.renderWeekOverrideRow
         const wrapper = listEl.createDiv("tp-override-entry");
         const row = new Setting(wrapper).setName("").setDesc("");
@@ -847,6 +874,16 @@ export class SetupWizardModal extends Modal {
     row("Classes",          `${s.classes.length} class group${s.classes.length !== 1 ? "s" : ""}`);
     row("Planner folder",   s.plannerFolder);
 
+    const tplSection = body.createDiv();
+    tplSection.createEl("p", {
+      text: "Want to reuse this setup next year, or share it? Save it as a template (kept in the plugin folder, no personal data).",
+      cls: "setting-item-description",
+    });
+    new Setting(tplSection)
+      .setName("Save as a template")
+      .addButton(b => b.setButtonText("School structure…").onClick(() => this.saveStructureTemplateFromWizard()))
+      .addButton(b => b.setButtonText("Holiday calendar…").onClick(() => this.saveHolidayTemplateFromWizard()));
+
     const footer = body.createDiv("tp-wizard-footer");
     footer.createDiv();
     const openBtn = footer.createEl("button", { text: "Open planner →", cls: "tp-btn tp-btn--primary" });
@@ -854,6 +891,23 @@ export class SetupWizardModal extends Modal {
       this.close();
       await this.plugin.activateView();
     })(); });
+  }
+
+  private saveStructureTemplateFromWizard() {
+    new TextPromptModal(this.app, "Save school structure template", this.state.name, "Template name", (name) => { void (async () => {
+      const n = name.trim(); if (!n) return;
+      try { const path = await writeTemplateFile(this.plugin, "structure", n, buildStructureTemplate(this.plugin, n)); new Notice(`Saved structure template to ${path}`); }
+      catch (e) { console.error("Teacher Planner: save structure template failed.", e); new Notice("Could not save template — see console."); }
+    })(); }).open();
+  }
+
+  private saveHolidayTemplateFromWizard() {
+    if (holidayCount(this.plugin) === 0) { new Notice("No holidays or INSET days to save."); return; }
+    new TextPromptModal(this.app, "Save holiday calendar template", `${this.state.name} holidays`, "Template name", (name) => { void (async () => {
+      const n = name.trim(); if (!n) return;
+      try { const path = await writeTemplateFile(this.plugin, "holidays", n, buildHolidayTemplate(this.plugin, n)); new Notice(`Saved holiday template to ${path}`); }
+      catch (e) { console.error("Teacher Planner: save holiday template failed.", e); new Notice("Could not save template — see console."); }
+    })(); }).open();
   }
 
   // ── Commit the planner to plugin data ───────────────────────────────────────
@@ -1032,11 +1086,11 @@ class WizardCloseConfirmModal extends Modal {
 class WizardTemplatePickModal extends FuzzySuggestModal<LibFile> {
   private files: LibFile[];
   private onPick: (file: LibFile) => void;
-  constructor(app: App, files: LibFile[], onPick: (file: LibFile) => void) {
+  constructor(app: App, files: LibFile[], placeholder: string, onPick: (file: LibFile) => void) {
     super(app);
     this.files = files;
     this.onPick = onPick;
-    this.setPlaceholder("Pick a school structure template…");
+    this.setPlaceholder(placeholder);
   }
   getItems(): LibFile[] { return this.files; }
   getItemText(f: LibFile): string { return f.basename; }

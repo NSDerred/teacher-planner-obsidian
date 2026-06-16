@@ -912,6 +912,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }
     }
 
+    // "+ New planner" button — primary action, directly under the planner list
+    new Setting(container).addButton(btn => btn.setButtonText("+ New planner").setCta()
+      .onClick(() => {
+        new SetupWizardModal(this.app, this.plugin, true).open();
+        (this.app as unknown as { setting?: { close(): void } }).setting?.close();
+      }));
+
     // Backups: export (select + destination) / import (library or file)
     const backupSetting = new Setting(container)
       .setName("Backups")
@@ -925,12 +932,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // School templates: reusable shell + holiday calendar (shareable .json files)
     new Setting(container).setName("Templates").setHeading();
     container.createEl("p", {
-      text: `Reusable setups saved as .json under "${this.plugin.plannerData.rootPlannerFolder || "Teacher Planner"}/Templates". A template holds the school shell only, never your classes, timetable, notes, or dates. Share one by dropping its file into the matching folder.`,
+      text: `Reusable setups saved as .json under "${this.plugin.plannerData.rootPlannerFolder || "Teacher Planner"}/Templates". A template holds the school shell only (including the year start/end dates as a starting point), never your classes, timetable, or notes. Share one by dropping its file into the matching folder.`,
       cls: "setting-item-description",
     });
     new Setting(container)
       .setName("School structure")
-      .setDesc("Periods, block types, A/B pattern and school days.")
+      .setDesc("Periods, block types, A/B pattern, school days and year dates.")
       .addButton(btn => btn.setButtonText("Save current…").onClick(() => this.saveStructureTemplate()))
       .addButton(btn => btn.setButtonText("Apply template…").onClick(() => this.applyStructureTemplateFlow()));
     new Setting(container)
@@ -939,12 +946,6 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addButton(btn => btn.setButtonText("Save current…").onClick(() => this.saveHolidayTemplate()))
       .addButton(btn => btn.setButtonText("Load template…").onClick(() => this.loadHolidayTemplateFlow()));
 
-    // "+ New planner" button
-    new Setting(container).addButton(btn => btn.setButtonText("+ New planner").setCta()
-      .onClick(() => {
-        new SetupWizardModal(this.app, this.plugin, true).open();
-        (this.app as unknown as { setting?: { close(): void } }).setting?.close();
-      }));
   }
 
   private wrapSectionsCollapsible(container: HTMLElement): void {
@@ -1218,7 +1219,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       if (tpl.kind !== "structure" || !tpl.structure) { new Notice("That file is not a school structure template."); return; }
       const structure = tpl.structure;
       new ConfirmModal(this.app,
-        "Apply this school structure to the current planner? It replaces your periods, block types, A/B pattern and school days. Any classes already placed on the timetable will be detached, since their slots point at the old periods. Your classes, notes and year dates are kept.",
+        "Apply this school structure to the current planner? It replaces your periods, block types, A/B pattern and school days. It also sets the year start/end dates from the template (nudge them afterwards). Any classes already placed on the timetable will be detached, since their slots point at the old periods. Your classes and notes are kept.",
         () => { void (async () => {
           try { await applyStructureTemplate(this.plugin, structure); new Notice("School structure applied."); this.display(); }
           catch (e) { console.error("Teacher Planner: apply structure failed.", e); new Notice("Could not apply template — see console."); }

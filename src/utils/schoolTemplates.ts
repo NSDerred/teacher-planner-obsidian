@@ -10,7 +10,8 @@ import { ensureDaySchedules, syncPeriodsUnion } from "./scheduleUtils";
  * vault "Templates" folder (so they sync and can be shared by dropping the file
  * in):
  *   - structure: the school shell (periods, block types, A/B pattern, school
- *     days). NO personal data — classes, timetable, notes, dates are excluded.
+ *     days) plus the year start/end dates as a starting point. NO classes,
+ *     timetable, or notes.
  *   - holidays: the holiday / inset entries, to drop in and re-date each year.
  */
 
@@ -19,6 +20,8 @@ const TEMPLATE_TYPE = "teacher-planner-template";
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null));
 
 export interface SchoolStructureTemplate {
+  startDate?: string;
+  endDate?: string;
   periods: SchoolPeriod[];
   daySchedules?: DaySchedule[];
   dayScheduleMap?: Partial<Record<SchoolDay, string>>;
@@ -62,6 +65,8 @@ export function buildStructureTemplate(plugin: TeacherPlannerPlugin, name: strin
   const s = plugin.settings;
   const ay = s.academicYear;
   const structure: SchoolStructureTemplate = {
+    startDate: ay.startDate,
+    endDate: ay.endDate,
     periods: clone(ay.periods ?? []),
     daySchedules: clone(ay.daySchedules),
     dayScheduleMap: clone(ay.dayScheduleMap),
@@ -131,6 +136,8 @@ export function parseTemplate(text: string): ParsedTemplate {
 export async function applyStructureTemplate(plugin: TeacherPlannerPlugin, structure: SchoolStructureTemplate): Promise<void> {
   const s = plugin.settings;
   const ay = s.academicYear;
+  if (structure.startDate) ay.startDate = structure.startDate;
+  if (structure.endDate) ay.endDate = structure.endDate;
   ay.periods = clone(structure.periods);
   ay.daySchedules = clone(structure.daySchedules);
   ay.dayScheduleMap = clone(structure.dayScheduleMap);
