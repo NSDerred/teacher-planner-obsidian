@@ -1738,6 +1738,143 @@ var init_plannerBackup = __esm({
   }
 });
 
+// src/utils/schoolTemplates.ts
+function templatesRoot(plugin) {
+  const root = plugin.plannerData.rootPlannerFolder || "Teacher Planner";
+  return `${root}/Templates`;
+}
+function structureTemplatesFolder(plugin) {
+  return `${templatesRoot(plugin)}/School structure`;
+}
+function holidayTemplatesFolder(plugin) {
+  return `${templatesRoot(plugin)}/Holiday calendars`;
+}
+function folderFor(plugin, kind) {
+  return kind === "structure" ? structureTemplatesFolder(plugin) : holidayTemplatesFolder(plugin);
+}
+function safeName2(s) {
+  return s.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim() || "Template";
+}
+function buildStructureTemplate(plugin, name) {
+  var _a2, _b2, _c;
+  const s = plugin.settings;
+  const ay = s.academicYear;
+  const structure = {
+    periods: clone((_a2 = ay.periods) != null ? _a2 : []),
+    daySchedules: clone(ay.daySchedules),
+    dayScheduleMap: clone(ay.dayScheduleMap),
+    abWeekEnabled: !!ay.abWeekEnabled,
+    abWeekStartsOn: (_b2 = ay.abWeekStartsOn) != null ? _b2 : "A",
+    abWeekHolidayAware: ay.abWeekHolidayAware,
+    periodTypes: clone((_c = s.periodTypes) != null ? _c : []),
+    schoolDays: clone(s.schoolDays)
+  };
+  return JSON.stringify({ type: TEMPLATE_TYPE, version: 1, kind: "structure", name, exportedAt: (/* @__PURE__ */ new Date()).toISOString(), structure }, null, 2);
+}
+function buildHolidayTemplate(plugin, name) {
+  var _a2;
+  const overrides = ((_a2 = plugin.settings.weekOverrides) != null ? _a2 : []).filter((o) => o.type === "holiday" || o.type === "inset");
+  const holidays = { overrides: clone(overrides) };
+  return JSON.stringify({ type: TEMPLATE_TYPE, version: 1, kind: "holidays", name, exportedAt: (/* @__PURE__ */ new Date()).toISOString(), holidays }, null, 2);
+}
+function holidayCount(plugin) {
+  var _a2;
+  return ((_a2 = plugin.settings.weekOverrides) != null ? _a2 : []).filter((o) => o.type === "holiday" || o.type === "inset").length;
+}
+async function writeTemplateFile(plugin, kind, name, json) {
+  const app = plugin.app;
+  const root = templatesRoot(plugin);
+  const folder = folderFor(plugin, kind);
+  for (const f of [root, folder]) {
+    if (!app.vault.getAbstractFileByPath(f)) {
+      try {
+        await app.vault.createFolder(f);
+      } catch (e) {
+      }
+    }
+  }
+  const base = safeName2(name);
+  let path = `${folder}/${base}.json`;
+  let i = 2;
+  while (app.vault.getAbstractFileByPath(path)) path = `${folder}/${base} (${i++}).json`;
+  await app.vault.create(path, json);
+  return path;
+}
+function listTemplateFiles(plugin, kind) {
+  const folder = plugin.app.vault.getAbstractFileByPath(folderFor(plugin, kind));
+  if (!(folder instanceof import_obsidian4.TFolder)) return [];
+  return folder.children.filter((c) => c instanceof import_obsidian4.TFile && c.extension === "json").sort((a, b) => b.stat.mtime - a.stat.mtime);
+}
+function parseTemplate(text2) {
+  let parsed;
+  try {
+    parsed = JSON.parse(text2);
+  } catch (e) {
+    throw new Error("Not valid JSON.");
+  }
+  if (typeof parsed !== "object" || parsed === null) throw new Error("Not a Teacher Planner template file.");
+  const o = parsed;
+  if (o.type !== TEMPLATE_TYPE) throw new Error("Not a Teacher Planner template file.");
+  const name = typeof o.name === "string" ? o.name : "Template";
+  if (o.kind === "structure") {
+    const st = o.structure;
+    if (!st || typeof st !== "object" || !Array.isArray(st.periods)) throw new Error("School structure template is malformed.");
+    return { kind: "structure", name, structure: st };
+  }
+  if (o.kind === "holidays") {
+    const h = o.holidays;
+    if (!h || typeof h !== "object" || !Array.isArray(h.overrides)) throw new Error("Holiday calendar template is malformed.");
+    return { kind: "holidays", name, holidays: h };
+  }
+  throw new Error("Unknown template kind.");
+}
+async function applyStructureTemplate(plugin, structure) {
+  var _a2, _b2;
+  const s = plugin.settings;
+  const ay = s.academicYear;
+  ay.periods = clone(structure.periods);
+  ay.daySchedules = clone(structure.daySchedules);
+  ay.dayScheduleMap = clone(structure.dayScheduleMap);
+  ay.abWeekEnabled = !!structure.abWeekEnabled;
+  ay.abWeekStartsOn = (_a2 = structure.abWeekStartsOn) != null ? _a2 : "A";
+  ay.abWeekHolidayAware = structure.abWeekHolidayAware;
+  s.periodTypes = clone((_b2 = structure.periodTypes) != null ? _b2 : []);
+  if (structure.schoolDays) s.schoolDays = clone(structure.schoolDays);
+  ensureDaySchedules(ay);
+  syncPeriodsUnion(ay);
+  await plugin.saveSettings();
+}
+async function applyHolidayTemplate(plugin, holidays) {
+  var _a2;
+  const s = plugin.settings;
+  if (!s.weekOverrides) s.weekOverrides = [];
+  const add = clone((_a2 = holidays.overrides) != null ? _a2 : []).filter((o) => o && (o.type === "holiday" || o.type === "inset"));
+  s.weekOverrides.push(...add);
+  await plugin.saveSettings();
+  return add.length;
+}
+function shiftOverrideDates(overrides, days) {
+  const shift = (iso) => {
+    const d = /* @__PURE__ */ new Date(iso + "T12:00:00");
+    d.setDate(d.getDate() + days);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  return overrides.map((o) => ({
+    ...o,
+    startDate: shift(o.startDate),
+    endDate: o.endDate ? shift(o.endDate) : o.endDate
+  }));
+}
+var import_obsidian4, TEMPLATE_TYPE, clone;
+var init_schoolTemplates = __esm({
+  "src/utils/schoolTemplates.ts"() {
+    import_obsidian4 = require("obsidian");
+    init_scheduleUtils();
+    TEMPLATE_TYPE = "teacher-planner-template";
+    clone = (v) => JSON.parse(JSON.stringify(v != null ? v : null));
+  }
+});
+
 // src/utils/themeColours.ts
 function findToken(token) {
   var _a2;
@@ -2699,11 +2836,11 @@ var init_ColourPickerComponent = __esm({
 });
 
 // src/modals/AddPeriodModal.ts
-var import_obsidian4, AddPeriodModal;
+var import_obsidian5, AddPeriodModal;
 var init_AddPeriodModal = __esm({
   "src/modals/AddPeriodModal.ts"() {
-    import_obsidian4 = require("obsidian");
-    AddPeriodModal = class extends import_obsidian4.Modal {
+    import_obsidian5 = require("obsidian");
+    AddPeriodModal = class extends import_obsidian5.Modal {
       constructor(app, onAdd) {
         super(app);
         this.onAdd = onAdd;
@@ -2717,26 +2854,26 @@ var init_AddPeriodModal = __esm({
         let start = "";
         let end = "";
         let type = "lesson";
-        new import_obsidian4.Setting(contentEl).setName("Period name").setDesc("e.g. Period 1, Break, Lunch").addText((t) => {
+        new import_obsidian5.Setting(contentEl).setName("Period name").setDesc("e.g. Period 1, Break, Lunch").addText((t) => {
           t.setPlaceholder("Period 1");
           t.inputEl.addEventListener("input", () => {
             name = t.inputEl.value;
           });
           window.setTimeout(() => t.inputEl.focus(), 50);
         });
-        new import_obsidian4.Setting(contentEl).setName("Start time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
+        new import_obsidian5.Setting(contentEl).setName("Start time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
           t.setPlaceholder("08:50");
           t.inputEl.addEventListener("input", () => {
             start = t.inputEl.value;
           });
         });
-        new import_obsidian4.Setting(contentEl).setName("End time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
+        new import_obsidian5.Setting(contentEl).setName("End time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
           t.setPlaceholder("10:05");
           t.inputEl.addEventListener("input", () => {
             end = t.inputEl.value;
           });
         });
-        new import_obsidian4.Setting(contentEl).setName("Type").addDropdown((d) => {
+        new import_obsidian5.Setting(contentEl).setName("Type").addDropdown((d) => {
           d.addOption("lesson", "Lesson").addOption("break", "Break").addOption("registration", "Registration").addOption("free", "Free");
           d.setValue("lesson");
           d.onChange((v) => {
@@ -2753,20 +2890,20 @@ var init_AddPeriodModal = __esm({
             const trimmedStart = start.trim();
             const trimmedEnd = end.trim();
             if (!trimmedName) {
-              new import_obsidian4.Notice("Please enter a period name.");
+              new import_obsidian5.Notice("Please enter a period name.");
               return;
             }
             const timeRe = /^([01]\d|2[0-3]):[0-5]\d$/;
             if (!timeRe.test(trimmedStart)) {
-              new import_obsidian4.Notice("Start time must be HH:MM (e.g. 08:50).");
+              new import_obsidian5.Notice("Start time must be HH:MM (e.g. 08:50).");
               return;
             }
             if (!timeRe.test(trimmedEnd)) {
-              new import_obsidian4.Notice("End time must be HH:MM (e.g. 10:05).");
+              new import_obsidian5.Notice("End time must be HH:MM (e.g. 10:05).");
               return;
             }
             if (trimmedEnd <= trimmedStart) {
-              new import_obsidian4.Notice("End time must be after the start time.");
+              new import_obsidian5.Notice("End time must be after the start time.");
               return;
             }
             await this.onAdd({ id: `period-${Date.now()}`, name: trimmedName, start: trimmedStart, end: trimmedEnd, type });
@@ -7210,7 +7347,7 @@ function getRequire() {
 function getElectronRemote(noticeText) {
   const req = getRequire();
   if (!req) {
-    new import_obsidian5.Notice(noticeText);
+    new import_obsidian6.Notice(noticeText);
     return null;
   }
   const electron = req("electron");
@@ -7218,7 +7355,7 @@ function getElectronRemote(noticeText) {
   try {
     return req("@electron/remote");
   } catch (e) {
-    new import_obsidian5.Notice(noticeText);
+    new import_obsidian6.Notice(noticeText);
     return null;
   }
 }
@@ -7275,7 +7412,7 @@ async function openOSFolderPicker() {
     return result.filePaths[0];
   } catch (err2) {
     console.error("OS folder picker failed:", err2);
-    new import_obsidian5.Notice("Could not open folder picker \u2014 please use a vault path.");
+    new import_obsidian6.Notice("Could not open folder picker \u2014 please use a vault path.");
     return null;
   }
 }
@@ -7288,7 +7425,7 @@ async function openOSFilePicker(title = "Choose a file") {
     return result.filePaths[0];
   } catch (err2) {
     console.error("OS file picker failed:", err2);
-    new import_obsidian5.Notice("Could not open the file picker.");
+    new import_obsidian6.Notice("Could not open the file picker.");
     return null;
   }
 }
@@ -7305,14 +7442,14 @@ async function openSystemPath(absolutePath) {
       }
     }
     if (!shell) {
-      new import_obsidian5.Notice("Opening external paths is only available on desktop.");
+      new import_obsidian6.Notice("Opening external paths is only available on desktop.");
       return;
     }
     const err2 = await shell.openPath(absolutePath);
-    if (err2) new import_obsidian5.Notice(`Could not open: ${err2}`);
+    if (err2) new import_obsidian6.Notice(`Could not open: ${err2}`);
   } catch (e) {
     console.error("openSystemPath failed:", e);
-    new import_obsidian5.Notice("Could not open the external resource.");
+    new import_obsidian6.Notice("Could not open the external resource.");
   }
 }
 async function writeSystemFile(absolutePath, data) {
@@ -7334,10 +7471,10 @@ function joinSystemPath(...parts) {
   }
   return parts.filter(Boolean).join("/");
 }
-var import_obsidian5;
+var import_obsidian6;
 var init_exportDestination = __esm({
   "src/utils/exportDestination.ts"() {
-    import_obsidian5 = require("obsidian");
+    import_obsidian6 = require("obsidian");
   }
 });
 
@@ -7584,15 +7721,15 @@ var init_icalUtils = __esm({
 });
 
 // src/modals/ExportModal.ts
-var import_obsidian6, ExportModal;
+var import_obsidian7, ExportModal;
 var init_ExportModal = __esm({
   "src/modals/ExportModal.ts"() {
-    import_obsidian6 = require("obsidian");
+    import_obsidian7 = require("obsidian");
     init_xlsxWriter();
     init_exportDestination();
     init_icalUtils();
     init_weekUtils();
-    ExportModal = class extends import_obsidian6.Modal {
+    ExportModal = class extends import_obsidian7.Modal {
       constructor(app, plugin) {
         super(app);
         this.dataset = "both";
@@ -7729,7 +7866,7 @@ var init_ExportModal = __esm({
         };
         updateSections();
         this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
-        renderDestinationPicker(form, this.destination, import_obsidian6.Platform.isMobile);
+        renderDestinationPicker(form, this.destination, import_obsidian7.Platform.isMobile);
         const footer = contentEl.createDiv("tp-modal-footer");
         footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
         const exportBtn = footer.createEl("button", { text: "Export", cls: "tp-btn tp-btn--primary" });
@@ -7749,7 +7886,7 @@ var init_ExportModal = __esm({
               this.close();
             } catch (err2) {
               console.error("Export error:", err2);
-              new import_obsidian6.Notice("Export failed - see console for details.");
+              new import_obsidian7.Notice("Export failed - see console for details.");
               exportBtn.disabled = false;
               exportBtn.textContent = "Export";
             }
@@ -7844,7 +7981,7 @@ var init_ExportModal = __esm({
       }
       async writeText(path, content) {
         const existing = this.app.vault.getAbstractFileByPath(path);
-        if (existing instanceof import_obsidian6.TFile) {
+        if (existing instanceof import_obsidian7.TFile) {
           await this.app.vault.modify(existing, content);
         } else {
           await this.app.vault.create(path, content);
@@ -7865,14 +8002,14 @@ var init_ExportModal = __esm({
           for (const [name, content] of targets) {
             await writeSystemFile(joinSystemPath(this.destination.systemPath, name), content);
           }
-          new import_obsidian6.Notice(`Exported ${targets.length} file(s) to ${this.destination.systemPath}`);
+          new import_obsidian7.Notice(`Exported ${targets.length} file(s) to ${this.destination.systemPath}`);
         } else {
           const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
           await this.ensureFolder(folder);
           for (const [name, content] of targets) {
             await this.writeText(`${folder}/${name}`, content);
           }
-          new import_obsidian6.Notice(`Exported ${targets.length} file(s) to ${folder}`);
+          new import_obsidian7.Notice(`Exported ${targets.length} file(s) to ${folder}`);
         }
       }
       async exportXLSX() {
@@ -7888,34 +8025,34 @@ var init_ExportModal = __esm({
         if (this.destination.mode === "system" && this.destination.systemPath) {
           const absPath = joinSystemPath(this.destination.systemPath, filename);
           await writeSystemFile(absPath, buf);
-          new import_obsidian6.Notice(`Exported to ${absPath}`);
+          new import_obsidian7.Notice(`Exported to ${absPath}`);
         } else {
           const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
           await this.ensureFolder(folder);
           const path = `${folder}/${filename}`;
           const existing = this.app.vault.getAbstractFileByPath(path);
-          if (existing instanceof import_obsidian6.TFile) await this.app.vault.modifyBinary(existing, buf);
+          if (existing instanceof import_obsidian7.TFile) await this.app.vault.modifyBinary(existing, buf);
           else await this.app.vault.createBinary(path, buf);
-          new import_obsidian6.Notice(`Exported to ${path}`);
+          new import_obsidian7.Notice(`Exported to ${path}`);
         }
       }
       /** Returns false on validation failure (modal stays open). */
       async exportICal() {
         var _a2;
         if (!isValidIsoDate(this.icalFrom) || !isValidIsoDate(this.icalTo)) {
-          new import_obsidian6.Notice("Please enter valid from/to dates.");
+          new import_obsidian7.Notice("Please enter valid from/to dates.");
           return false;
         }
         if (this.icalTo < this.icalFrom) {
-          new import_obsidian6.Notice("The 'to' date must not be before the 'from' date.");
+          new import_obsidian7.Notice("The 'to' date must not be before the 'from' date.");
           return false;
         }
         if (!this.icalLessons && !this.icalDateEvents && !this.icalOverrides && !this.icalNonLessons) {
-          new import_obsidian6.Notice("Select at least one thing to include.");
+          new import_obsidian7.Notice("Select at least one thing to include.");
           return false;
         }
         if (this.icalDays && this.icalDays.length === 0) {
-          new import_obsidian6.Notice("Select at least one day to include.");
+          new import_obsidian7.Notice("Select at least one day to include.");
           return false;
         }
         const s = this.plugin.settings;
@@ -7929,17 +8066,17 @@ var init_ExportModal = __esm({
           calendarName: s.academicYear.name || "Teacher Planner",
           days: (_a2 = this.icalDays) != null ? _a2 : void 0
         });
-        const safeName2 = (s.academicYear.name || "planner").replace(/[^a-z0-9]/gi, "-").toLowerCase();
-        const filename = `calendar-${safeName2}.ics`;
+        const safeName3 = (s.academicYear.name || "planner").replace(/[^a-z0-9]/gi, "-").toLowerCase();
+        const filename = `calendar-${safeName3}.ics`;
         if (this.destination.mode === "system" && this.destination.systemPath) {
           const absPath = joinSystemPath(this.destination.systemPath, filename);
           await writeSystemFile(absPath, content);
-          new import_obsidian6.Notice(`Exported to ${absPath}`);
+          new import_obsidian7.Notice(`Exported to ${absPath}`);
         } else {
           const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
           await this.ensureFolder(folder);
           await this.writeText(`${folder}/${filename}`, content);
-          new import_obsidian6.Notice(`Exported to ${folder}/${filename}`);
+          new import_obsidian7.Notice(`Exported to ${folder}/${filename}`);
         }
         return true;
       }
@@ -8145,14 +8282,14 @@ var init_directedTimeUtils = __esm({
 });
 
 // src/modals/DirectedTimeExportModal.ts
-var import_obsidian7, DirectedTimeExportModal;
+var import_obsidian8, DirectedTimeExportModal;
 var init_DirectedTimeExportModal = __esm({
   "src/modals/DirectedTimeExportModal.ts"() {
-    import_obsidian7 = require("obsidian");
+    import_obsidian8 = require("obsidian");
     init_xlsxWriter();
     init_exportDestination();
     init_directedTimeUtils();
-    DirectedTimeExportModal = class extends import_obsidian7.Modal {
+    DirectedTimeExportModal = class extends import_obsidian8.Modal {
       constructor(app, plugin) {
         super(app);
         this.destination = { mode: "vault", vaultPath: "", systemPath: null };
@@ -8174,7 +8311,7 @@ var init_DirectedTimeExportModal = __esm({
           cls: "tp-modal-label"
         });
         this.destination.vaultPath = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
-        renderDestinationPicker(body, this.destination, import_obsidian7.Platform.isMobile);
+        renderDestinationPicker(body, this.destination, import_obsidian8.Platform.isMobile);
         const footer = contentEl.createDiv("tp-modal-footer");
         footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
         const exportBtn = footer.createEl("button", { text: "Export XLSX\u2026", cls: "tp-btn tp-btn--primary" });
@@ -8187,7 +8324,7 @@ var init_DirectedTimeExportModal = __esm({
               this.close();
             } catch (err2) {
               console.error("Directed time export error:", err2);
-              new import_obsidian7.Notice("Export failed \u2014 see console for details.");
+              new import_obsidian8.Notice("Export failed \u2014 see console for details.");
               exportBtn.disabled = false;
               exportBtn.textContent = "Export XLSX\u2026";
             }
@@ -8256,12 +8393,12 @@ var init_DirectedTimeExportModal = __esm({
           { name: "Summary", rows: summaryData },
           { name: "Weekly Breakdown", rows: breakdownData }
         ]);
-        const safeName2 = ayName.replace(/[^a-z0-9]/gi, "-");
-        const filename = `directed-time-${safeName2}.xlsx`;
+        const safeName3 = ayName.replace(/[^a-z0-9]/gi, "-");
+        const filename = `directed-time-${safeName3}.xlsx`;
         if (this.destination.mode === "system" && this.destination.systemPath) {
           const absPath = joinSystemPath(this.destination.systemPath, filename);
           await writeSystemFile(absPath, buf);
-          new import_obsidian7.Notice(`Directed time exported to ${absPath}`);
+          new import_obsidian8.Notice(`Directed time exported to ${absPath}`);
         } else {
           const vaultFolder = this.destination.vaultPath || folder;
           if (!this.app.vault.getAbstractFileByPath(vaultFolder)) {
@@ -8272,9 +8409,9 @@ var init_DirectedTimeExportModal = __esm({
           }
           const path = `${vaultFolder}/${filename}`;
           const existing = this.app.vault.getAbstractFileByPath(path);
-          if (existing instanceof import_obsidian7.TFile) await this.app.vault.modifyBinary(existing, buf);
+          if (existing instanceof import_obsidian8.TFile) await this.app.vault.modifyBinary(existing, buf);
           else await this.app.vault.createBinary(path, buf);
-          new import_obsidian7.Notice(`Directed time exported to ${path}`);
+          new import_obsidian8.Notice(`Directed time exported to ${path}`);
         }
       }
       onClose() {
@@ -8289,14 +8426,15 @@ var SetupWizardModal_exports = {};
 __export(SetupWizardModal_exports, {
   SetupWizardModal: () => SetupWizardModal
 });
-var import_obsidian8, DAYS, TOTAL_STEPS, SetupWizardModal, WizardCloseConfirmModal;
+var import_obsidian9, DAYS, TOTAL_STEPS, SetupWizardModal, WizardCloseConfirmModal, WizardTemplatePickModal;
 var init_SetupWizardModal = __esm({
   "src/modals/SetupWizardModal.ts"() {
-    import_obsidian8 = require("obsidian");
+    import_obsidian9 = require("obsidian");
     init_settings();
     init_themeColours();
     init_weekUtils();
     init_scheduleUtils();
+    init_schoolTemplates();
     init_TimetableEditorModal();
     init_SettingsTab();
     DAYS = [
@@ -8309,7 +8447,7 @@ var init_SetupWizardModal = __esm({
       { key: "sunday", label: "Sun" }
     ];
     TOTAL_STEPS = 10;
-    SetupWizardModal = class extends import_obsidian8.Modal {
+    SetupWizardModal = class extends import_obsidian9.Modal {
       constructor(app, plugin, isNewPlanner = false) {
         super(app);
         this.step = 1;
@@ -8436,6 +8574,43 @@ var init_SetupWizardModal = __esm({
         hdr.createEl("p", { text: desc, cls: "tp-wizard-desc" });
       }
       // ── Step 1: Planner name ────────────────────────────────────────────────────
+      loadStructureTemplate() {
+        const files2 = listTemplateFiles(this.plugin, "structure");
+        if (files2.length === 0) {
+          new import_obsidian9.Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`);
+          return;
+        }
+        new WizardTemplatePickModal(this.app, files2, (file) => {
+          void (async () => {
+            var _a2, _b2, _c, _d, _e, _f;
+            let tpl;
+            try {
+              tpl = parseTemplate(await this.app.vault.read(file));
+            } catch (e) {
+              new import_obsidian9.Notice(e instanceof Error ? e.message : "Could not read template.");
+              return;
+            }
+            if (tpl.kind !== "structure" || !tpl.structure) {
+              new import_obsidian9.Notice("That file is not a school structure template.");
+              return;
+            }
+            const st = tpl.structure;
+            const clone2 = (v) => JSON.parse(JSON.stringify(v != null ? v : null));
+            let daySchedules = (_a2 = clone2(st.daySchedules)) != null ? _a2 : [];
+            if (daySchedules.length === 0 && ((_c = (_b2 = st.periods) == null ? void 0 : _b2.length) != null ? _c : 0) > 0) {
+              daySchedules = [{ id: "sched-default", name: "Standard day", periods: clone2(st.periods) }];
+            }
+            this.state.periodTypes = (_d = clone2(st.periodTypes)) != null ? _d : [];
+            this.state.daySchedules = daySchedules;
+            this.state.dayScheduleMap = (_e = clone2(st.dayScheduleMap)) != null ? _e : {};
+            if (st.schoolDays) this.state.schoolDays = clone2(st.schoolDays);
+            this.state.abWeekEnabled = !!st.abWeekEnabled;
+            this.state.abWeekStartsOn = (_f = st.abWeekStartsOn) != null ? _f : "A";
+            new import_obsidian9.Notice(`Loaded structure from "${tpl.name}".`);
+            this.render();
+          })();
+        }).open();
+      }
       renderStep1(body) {
         this.stepHeading(
           body,
@@ -8444,16 +8619,17 @@ var init_SetupWizardModal = __esm({
           "Give this planner a name \u2014 usually the academic year. It will also be used as the vault subfolder."
         );
         let nameInput;
-        new import_obsidian8.Setting(body).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => {
+        new import_obsidian9.Setting(body).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => {
           t.setPlaceholder("2025-26").setValue(this.state.name);
           t.inputEl.maxLength = 60;
           nameInput = t.inputEl;
           window.setTimeout(() => t.inputEl.focus(), 50);
         });
+        new import_obsidian9.Setting(body).setName("Start from a school structure template").setDesc("Optional. Load a saved school shell (periods, blocks, A/B pattern, school days) so the next steps come pre-filled.").addButton((btn) => btn.setButtonText("Choose template\u2026").onClick(() => this.loadStructureTemplate()));
         this.footer(body, () => {
           const v = nameInput.value.trim();
           if (!v) {
-            new import_obsidian8.Notice("Please enter a planner name.");
+            new import_obsidian9.Notice("Please enter a planner name.");
             return false;
           }
           this.state.name = v;
@@ -8468,7 +8644,7 @@ var init_SetupWizardModal = __esm({
           "Track your statutory directed time (STPCD). Enable this to configure your contract details and add directed time activity types."
         );
         let dtPanel;
-        new import_obsidian8.Setting(body).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(this.state.directedTimeEnabled).onChange((v) => {
+        new import_obsidian9.Setting(body).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(this.state.directedTimeEnabled).onChange((v) => {
           this.state.directedTimeEnabled = v;
           dtPanel.setCssStyles({ display: v ? "" : "none" });
         }));
@@ -8477,14 +8653,14 @@ var init_SetupWizardModal = __esm({
         const dtCallout = dtPanel.createDiv("tp-dt-callout");
         dtCallout.createEl("p", { text: "\u2139\uFE0F  How it works: Directed time is counted only from items placed in your planner. The tracker shows hours accrued to today and a projection based on future planned events. Keep your planner up to date for accurate figures." });
         dtCallout.createEl("p", { text: "\u26A0\uFE0F  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice \u2014 always consult your union representative for formal disputes." });
-        new import_obsidian8.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD).").addText((t) => {
+        new import_obsidian9.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD).").addText((t) => {
           t.setPlaceholder("1265").setValue(String(this.state.contractedHours));
           t.onChange((v) => {
             const n = parseFloat(v);
             if (!isNaN(n) && n > 0) this.state.contractedHours = n;
           });
         });
-        new import_obsidian8.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Default: 100 (full-time).").addText((t) => {
+        new import_obsidian9.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Default: 100 (full-time).").addText((t) => {
           t.setPlaceholder("100").setValue(String(this.state.timetablePercentage));
           t.onChange((v) => {
             const n = parseFloat(v);
@@ -8530,13 +8706,13 @@ var init_SetupWizardModal = __esm({
               act.label = labelIn.value;
             });
             const delBtn = row.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian8.setIcon)(delBtn, "trash-2");
+            (0, import_obsidian9.setIcon)(delBtn, "trash-2");
             delBtn.addEventListener("click", () => {
               this.state.activities = this.state.activities.filter((a) => a.id !== act.id);
               renderActs();
             });
           }
-          new import_obsidian8.Setting(actList).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(() => {
+          new import_obsidian9.Setting(actList).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(() => {
             const colour = CLASS_COLOUR_PALETTE[this.state.activities.length % CLASS_COLOUR_PALETTE.length];
             this.state.activities.push({ id: "act-" + Date.now(), label: "New Activity", colour, activityType: "directed" });
             renderActs();
@@ -8556,24 +8732,24 @@ var init_SetupWizardModal = __esm({
         );
         let startInput;
         let endInput;
-        const startSetting = new import_obsidian8.Setting(body).setName("Start date").setDesc("YYYY-MM-DD");
+        const startSetting = new import_obsidian9.Setting(body).setName("Start date").setDesc("YYYY-MM-DD");
         startInput = startSetting.controlEl.createEl("input", { type: "date" });
         startInput.value = this.state.startDate;
-        const endSetting = new import_obsidian8.Setting(body).setName("End date").setDesc("YYYY-MM-DD");
+        const endSetting = new import_obsidian9.Setting(body).setName("End date").setDesc("YYYY-MM-DD");
         endInput = endSetting.controlEl.createEl("input", { type: "date" });
         endInput.value = this.state.endDate;
         this.footer(body, () => {
           const s = startInput.value, e = endInput.value;
           if (!s || !e) {
-            new import_obsidian8.Notice("Please enter both dates.");
+            new import_obsidian9.Notice("Please enter both dates.");
             return false;
           }
           if (!isValidIsoDate(s) || !isValidIsoDate(e)) {
-            new import_obsidian8.Notice("Please enter valid dates in YYYY-MM-DD format.");
+            new import_obsidian9.Notice("Please enter valid dates in YYYY-MM-DD format.");
             return false;
           }
           if (s >= e) {
-            new import_obsidian8.Notice("End date must be after start date.");
+            new import_obsidian9.Notice("End date must be after start date.");
             return false;
           }
           this.state.startDate = s;
@@ -8597,7 +8773,7 @@ var init_SetupWizardModal = __esm({
           }
           for (const ov of this.state.weekOverrides) {
             const wrapper = listEl.createDiv("tp-override-entry");
-            const row = new import_obsidian8.Setting(wrapper).setName("").setDesc("");
+            const row = new import_obsidian9.Setting(wrapper).setName("").setDesc("");
             row.settingEl.addClass("tp-override-row");
             const fromInput = row.controlEl.createEl("input", { type: "date", cls: "tp-override-date-input" });
             fromInput.value = ov.startDate;
@@ -8626,7 +8802,7 @@ var init_SetupWizardModal = __esm({
               ov.label = labelInput.value || void 0;
             });
             const delBtn = row.controlEl.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian8.setIcon)(delBtn, "trash");
+            (0, import_obsidian9.setIcon)(delBtn, "trash");
             delBtn.addEventListener("click", () => {
               this.state.weekOverrides = this.state.weekOverrides.filter((w) => w !== ov);
               renderOverrides();
@@ -8651,7 +8827,7 @@ var init_SetupWizardModal = __esm({
               insetRow.setCssStyles({ display: ov.type === "inset" && this.state.directedTimeEnabled ? "flex" : "none" });
             });
           }
-          new import_obsidian8.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET").setCta().onClick(() => {
+          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET").setCta().onClick(() => {
             const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
             this.state.weekOverrides.push({ startDate: today, type: "holiday" });
             renderOverrides();
@@ -8668,7 +8844,7 @@ var init_SetupWizardModal = __esm({
           const overlap = findOverlappingOverrides(this.state.weekOverrides);
           if (overlap) {
             const name = (o) => o.label || (o.type === "inset" ? "INSET" : "Holiday");
-            new import_obsidian8.Notice(
+            new import_obsidian9.Notice(
               `"${name(overlap[0])}" (from ${overlap[0].startDate}) and "${name(overlap[1])}" (from ${overlap[1].startDate}) overlap \u2014 please adjust the dates.`,
               6e3
             );
@@ -8700,18 +8876,18 @@ var init_SetupWizardModal = __esm({
           });
         }
         let abPanel;
-        new import_obsidian8.Setting(body).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.state.abWeekEnabled).onChange((v) => {
+        new import_obsidian9.Setting(body).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.state.abWeekEnabled).onChange((v) => {
           this.state.abWeekEnabled = v;
           abPanel.setCssStyles({ display: v ? "" : "none" });
         }));
         abPanel = body.createDiv();
         abPanel.setCssStyles({ display: this.state.abWeekEnabled ? "" : "none" });
-        new import_obsidian8.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.state.abWeekStartsOn).onChange((v) => {
+        new import_obsidian9.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.state.abWeekStartsOn).onChange((v) => {
           this.state.abWeekStartsOn = v;
         }));
         this.footer(body, () => {
           if (this.state.schoolDays.length === 0) {
-            new import_obsidian8.Notice("Please select at least one school day.");
+            new import_obsidian9.Notice("Please select at least one school day.");
             return false;
           }
         });
@@ -8750,13 +8926,13 @@ var init_SetupWizardModal = __esm({
               pt.label = labelIn.value;
             });
             const delBtn = row.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian8.setIcon)(delBtn, "trash-2");
+            (0, import_obsidian9.setIcon)(delBtn, "trash-2");
             delBtn.addEventListener("click", () => {
               this.state.periodTypes = this.state.periodTypes.filter((t) => t.id !== pt.id);
               renderList();
             });
           }
-          new import_obsidian8.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(() => {
+          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(() => {
             this.state.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: FALLBACK_PERIOD_TYPE_COLOUR });
             renderList();
           }));
@@ -8784,7 +8960,7 @@ var init_SetupWizardModal = __esm({
           var _a2, _b2;
           barEl.empty();
           const sel = this.wizSelectedSchedule();
-          const bar = new import_obsidian8.Setting(barEl).setName("Day schedule").setDesc("Choose a schedule to edit. Click a day below to make it use the selected schedule.");
+          const bar = new import_obsidian9.Setting(barEl).setName("Day schedule").setDesc("Choose a schedule to edit. Click a day below to make it use the selected schedule.");
           bar.addDropdown((d) => {
             for (const sch of this.state.daySchedules) d.addOption(sch.id, sch.name);
             d.setValue(sel.id);
@@ -8811,7 +8987,7 @@ var init_SetupWizardModal = __esm({
           }));
           bar.addExtraButton((b) => b.setIcon("trash").setTooltip("Delete schedule").onClick(() => {
             if (this.state.daySchedules.length <= 1) {
-              new import_obsidian8.Notice("At least one day schedule is required.");
+              new import_obsidian9.Notice("At least one day schedule is required.");
               return;
             }
             new ConfirmModal(this.app, `Delete schedule "${sel.name}"? Days using it fall back to the first schedule.`, () => {
@@ -8835,11 +9011,11 @@ var init_SetupWizardModal = __esm({
             pill.title = active ? `${label} uses "${sel.name}"` : `Click to use "${sel.name}" on ${label}`;
             pill.addEventListener("click", () => {
               if (this.state.daySchedules.length < 2) {
-                new import_obsidian8.Notice("All days use the only schedule. Click + to create a second schedule first.");
+                new import_obsidian9.Notice("All days use the only schedule. Click + to create a second schedule first.");
                 return;
               }
               if (active) {
-                new import_obsidian8.Notice(`${label} already uses "${sel.name}". Select a different schedule to move it.`);
+                new import_obsidian9.Notice(`${label} already uses "${sel.name}". Select a different schedule to move it.`);
                 return;
               }
               this.state.dayScheduleMap[key] = sel.id;
@@ -8857,7 +9033,7 @@ var init_SetupWizardModal = __esm({
           listEl.empty();
           const sched = this.wizSelectedSchedule();
           for (const p of sched.periods) {
-            const s = new import_obsidian8.Setting(listEl).setName(p.name).setDesc(`${p.start} \u2013 ${p.end}`);
+            const s = new import_obsidian9.Setting(listEl).setName(p.name).setDesc(`${p.start} \u2013 ${p.end}`);
             s.addText((t) => {
               t.setPlaceholder("Name").setValue(p.name);
               t.inputEl.addEventListener("change", () => {
@@ -8898,7 +9074,7 @@ var init_SetupWizardModal = __esm({
               renderList();
             }));
           }
-          new import_obsidian8.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
+          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
             var _a2, _b2, _c;
             const defaultType = (_c = (_b2 = (_a2 = this.state.periodTypes) == null ? void 0 : _a2[0]) == null ? void 0 : _b2.id) != null ? _c : "lesson";
             sched.periods.push({ id: "p-" + Date.now(), name: "New Period", start: "09:00", end: "10:00", type: defaultType });
@@ -8916,7 +9092,7 @@ var init_SetupWizardModal = __esm({
         this.footer(body, () => {
           const empty2 = this.state.daySchedules.find((s) => s.periods.length === 0);
           if (empty2) {
-            new import_obsidian8.Notice(`Schedule "${empty2.name}" has no periods \u2014 add at least one or delete the schedule.`);
+            new import_obsidian9.Notice(`Schedule "${empty2.name}" has no periods \u2014 add at least one or delete the schedule.`);
             return false;
           }
         });
@@ -8967,7 +9143,7 @@ var init_SetupWizardModal = __esm({
               renderList();
             });
             const delSubj = hdr.createEl("button", { cls: "tp-icon-btn" });
-            (0, import_obsidian8.setIcon)(delSubj, "trash-2");
+            (0, import_obsidian9.setIcon)(delSubj, "trash-2");
             delSubj.addEventListener("click", () => {
               this.state.subjects = this.state.subjects.filter((s) => s.id !== subj.id);
               this.state.classes = this.state.classes.filter((c) => c.subjectId !== subj.id);
@@ -9010,7 +9186,7 @@ var init_SetupWizardModal = __esm({
                   cls.classroom = roomIn.value;
                 });
                 const delCls = row.createEl("button", { cls: "tp-icon-btn" });
-                (0, import_obsidian8.setIcon)(delCls, "trash-2");
+                (0, import_obsidian9.setIcon)(delCls, "trash-2");
                 delCls.addEventListener("click", () => {
                   this.state.classes = this.state.classes.filter((c) => c.id !== cls.id);
                   renderList();
@@ -9018,7 +9194,7 @@ var init_SetupWizardModal = __esm({
               }
             }
           }
-          new import_obsidian8.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(() => {
+          new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(() => {
             const colour = CLASS_COLOUR_PALETTE[this.state.subjects.length % CLASS_COLOUR_PALETTE.length];
             this.state.subjects.push({ id: "subj-" + Date.now(), name: "New Subject", colour, emoji: "\u{1F4DA}" });
             renderList();
@@ -9226,7 +9402,7 @@ var init_SetupWizardModal = __esm({
         }
       }
     };
-    WizardCloseConfirmModal = class extends import_obsidian8.Modal {
+    WizardCloseConfirmModal = class extends import_obsidian9.Modal {
       constructor(app, onConfirm) {
         super(app);
         this.onConfirm = onConfirm;
@@ -9238,13 +9414,30 @@ var init_SetupWizardModal = __esm({
           text: "Your planner has not been saved yet. If you exit now, all progress will be lost and you will need to start the setup again.",
           cls: "setting-item-description"
         });
-        new import_obsidian8.Setting(contentEl).addButton((btn) => btn.setButtonText("Continue setup").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Exit without saving").setClass("mod-warning").onClick(() => {
+        new import_obsidian9.Setting(contentEl).addButton((btn) => btn.setButtonText("Continue setup").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Exit without saving").setClass("mod-warning").onClick(() => {
           this.close();
           this.onConfirm();
         }));
       }
       onClose() {
         this.contentEl.empty();
+      }
+    };
+    WizardTemplatePickModal = class extends import_obsidian9.FuzzySuggestModal {
+      constructor(app, files2, onPick) {
+        super(app);
+        this.files = files2;
+        this.onPick = onPick;
+        this.setPlaceholder("Pick a school structure template\u2026");
+      }
+      getItems() {
+        return this.files;
+      }
+      getItemText(f) {
+        return f.basename;
+      }
+      onChooseItem(f) {
+        this.onPick(f);
       }
     };
   }
@@ -9264,13 +9457,13 @@ function dayDiff(a, b) {
   const db = (/* @__PURE__ */ new Date(b + "T12:00:00")).getTime();
   return Math.round((db - da) / 864e5);
 }
-var import_obsidian9, ISO_RE, EditPlannerModal;
+var import_obsidian10, ISO_RE, EditPlannerModal;
 var init_EditPlannerModal = __esm({
   "src/modals/EditPlannerModal.ts"() {
-    import_obsidian9 = require("obsidian");
+    import_obsidian10 = require("obsidian");
     init_weekUtils();
     ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
-    EditPlannerModal = class extends import_obsidian9.Modal {
+    EditPlannerModal = class extends import_obsidian10.Modal {
       constructor(app, plugin, onSaved) {
         super(app);
         this.plugin = plugin;
@@ -9287,39 +9480,39 @@ var init_EditPlannerModal = __esm({
           text: "Update this planner's name and date range. Holidays, INSET days, events and notes keep their own dates \u2014 only the planner window moves. The timetable and its A/B weeks realign to the new range.",
           cls: "setting-item-description"
         });
-        new import_obsidian9.Setting(contentEl).setName("Planner name").addText((t) => {
+        new import_obsidian10.Setting(contentEl).setName("Planner name").addText((t) => {
           t.setValue(name);
           t.inputEl.addEventListener("input", () => {
             name = t.inputEl.value;
           });
         });
-        new import_obsidian9.Setting(contentEl).setName("Start date").addText((t) => {
+        new import_obsidian10.Setting(contentEl).setName("Start date").addText((t) => {
           t.inputEl.type = "date";
           t.setValue(startDate);
           t.inputEl.addEventListener("change", () => {
             startDate = t.inputEl.value;
           });
         });
-        new import_obsidian9.Setting(contentEl).setName("End date").addText((t) => {
+        new import_obsidian10.Setting(contentEl).setName("End date").addText((t) => {
           t.inputEl.type = "date";
           t.setValue(endDate);
           t.inputEl.addEventListener("change", () => {
             endDate = t.inputEl.value;
           });
         });
-        new import_obsidian9.Setting(contentEl).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close())).addButton((btn) => btn.setButtonText("Save changes").setCta().onClick(async () => {
+        new import_obsidian10.Setting(contentEl).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close())).addButton((btn) => btn.setButtonText("Save changes").setCta().onClick(async () => {
           var _a2;
           const trimmedName = name.trim();
           if (!trimmedName) {
-            new import_obsidian9.Notice("Please enter a planner name.");
+            new import_obsidian10.Notice("Please enter a planner name.");
             return;
           }
           if (!isValidIsoDate(startDate) || !isValidIsoDate(endDate)) {
-            new import_obsidian9.Notice("Please enter valid dates in YYYY-MM-DD format.");
+            new import_obsidian10.Notice("Please enter valid dates in YYYY-MM-DD format.");
             return;
           }
           if (endDate <= startDate) {
-            new import_obsidian9.Notice("End date must be after the start date.");
+            new import_obsidian10.Notice("End date must be after the start date.");
             return;
           }
           const oldStart = this.plugin.settings.academicYear.startDate;
@@ -9334,7 +9527,7 @@ var init_EditPlannerModal = __esm({
             }
           }
           await this.plugin.saveSettings();
-          new import_obsidian9.Notice("Planner updated.");
+          new import_obsidian10.Notice("Planner updated.");
           this.close();
           this.onSaved();
         }));
@@ -9399,15 +9592,16 @@ function openEmojiPicker(anchor, current, onSelect) {
   }, 0);
   _activeEmojiCleanup = cleanup;
 }
-var import_obsidian10, SUBJECT_EMOJIS, _activeEmojiCleanup, TextPromptModal, ConfirmModal, TeacherPlannerSettingTab, SettingsAppliedModal, ColourPickerModal, DeletePlannerModal, ImportPlannerModal;
+var import_obsidian11, SUBJECT_EMOJIS, _activeEmojiCleanup, TextPromptModal, ConfirmModal, TeacherPlannerSettingTab, SettingsAppliedModal, ColourPickerModal, DeletePlannerModal, ImportPlannerModal, TemplatePickModal;
 var init_SettingsTab = __esm({
   "src/settings/SettingsTab.ts"() {
-    import_obsidian10 = require("obsidian");
+    import_obsidian11 = require("obsidian");
     init_scheduleUtils();
     init_settings();
     init_noteTitleUtils();
     init_weekNoteFiles();
     init_plannerBackup();
+    init_schoolTemplates();
     init_themeColours();
     init_weekUtils();
     init_ColourPickerComponent();
@@ -9449,7 +9643,7 @@ var init_SettingsTab = __esm({
       "\u{1F9EC}"
     ];
     _activeEmojiCleanup = null;
-    TextPromptModal = class extends import_obsidian10.Modal {
+    TextPromptModal = class extends import_obsidian11.Modal {
       constructor(app, title, initial, placeholder, onSubmit) {
         super(app);
         this.title = title;
@@ -9466,7 +9660,7 @@ var init_SettingsTab = __esm({
         const submit = () => {
           const v = input.value.trim();
           if (!v) {
-            new import_obsidian10.Notice("Please enter a name.");
+            new import_obsidian11.Notice("Please enter a name.");
             return;
           }
           this.close();
@@ -9487,7 +9681,7 @@ var init_SettingsTab = __esm({
         this.contentEl.empty();
       }
     };
-    ConfirmModal = class extends import_obsidian10.Modal {
+    ConfirmModal = class extends import_obsidian11.Modal {
       constructor(app, message, onConfirm, confirmLabel = "Confirm") {
         super(app);
         this.message = message;
@@ -9509,7 +9703,7 @@ var init_SettingsTab = __esm({
         this.contentEl.empty();
       }
     };
-    TeacherPlannerSettingTab = class extends import_obsidian10.PluginSettingTab {
+    TeacherPlannerSettingTab = class extends import_obsidian11.PluginSettingTab {
       constructor(app, plugin) {
         super(app, plugin);
         /** JSON snapshot taken when the tab opens — used to detect unsaved changes on close. */
@@ -9543,16 +9737,16 @@ var init_SettingsTab = __esm({
         containerEl.empty();
         this._snapshot = JSON.stringify(this.plugin.settings);
         this.renderPlannersSection(containerEl);
-        new import_obsidian10.Setting(containerEl).setName("Academic year").setHeading();
-        new import_obsidian10.Setting(containerEl).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => t.setPlaceholder("2025-26").setValue(this.plugin.settings.academicYear.name).onChange((v) => {
+        new import_obsidian11.Setting(containerEl).setName("Academic year").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Planner name").setDesc('e.g. "2025-26 IB Science"').addText((t) => t.setPlaceholder("2025-26").setValue(this.plugin.settings.academicYear.name).onChange((v) => {
           this.plugin.settings.academicYear.name = v;
           this.plugin.requestSave();
         }));
-        new import_obsidian10.Setting(containerEl).setName("Start date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2025-09-01").setValue(this.plugin.settings.academicYear.startDate).onChange((v) => {
+        new import_obsidian11.Setting(containerEl).setName("Start date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2025-09-01").setValue(this.plugin.settings.academicYear.startDate).onChange((v) => {
           this.plugin.settings.academicYear.startDate = v;
           this.plugin.requestSave();
         }));
-        new import_obsidian10.Setting(containerEl).setName("End date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2026-07-15").setValue(this.plugin.settings.academicYear.endDate).onChange((v) => {
+        new import_obsidian11.Setting(containerEl).setName("End date").setDesc("YYYY-MM-DD").addText((t) => t.setPlaceholder("2026-07-15").setValue(this.plugin.settings.academicYear.endDate).onChange((v) => {
           this.plugin.settings.academicYear.endDate = v;
           this.plugin.requestSave();
         }));
@@ -9565,7 +9759,7 @@ var init_SettingsTab = __esm({
           { key: "saturday", label: "Sat" },
           { key: "sunday", label: "Sun" }
         ];
-        const schoolDaysSetting = new import_obsidian10.Setting(containerEl).setName("School days").setDesc("Enable Saturday or Sunday for boarding or Saturday schools.");
+        const schoolDaysSetting = new import_obsidian11.Setting(containerEl).setName("School days").setDesc("Enable Saturday or Sunday for boarding or Saturday schools.");
         const sdWrap = schoolDaysSetting.controlEl.createDiv("tp-school-days-wrap");
         for (const opt of schoolDayOptions) {
           const lbl = sdWrap.createEl("label", { cls: "tp-school-day-label" });
@@ -9587,12 +9781,12 @@ var init_SettingsTab = __esm({
             })();
           });
         }
-        new import_obsidian10.Setting(containerEl).setName("Directed time tracker").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Directed time tracker").setHeading();
         if (!this.plugin.settings.directedTime) {
           this.plugin.settings.directedTime = { enabled: false, contractedHours: 1265, timetablePercentage: 100, defaultLessonDurationMinutes: 60 };
         }
         const dt = this.plugin.settings.directedTime;
-        new import_obsidian10.Setting(containerEl).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(dt.enabled).onChange(async (v) => {
+        new import_obsidian11.Setting(containerEl).setName("Enable directed time tracker").setDesc("Track cumulative directed time based on events in your planner.").addToggle((t) => t.setValue(dt.enabled).onChange(async (v) => {
           dt.enabled = v;
           await this.plugin.saveSettings();
           if (v) await this.createDirectedTimeGuideNote();
@@ -9604,37 +9798,37 @@ var init_SettingsTab = __esm({
           const callout = dtPanel.createDiv("tp-dt-callout");
           callout.createEl("p", { text: "\u2139\uFE0F  How it works: Directed time is counted only from items placed in your planner. The tracker shows hours accrued to today and a projection based on future planned events. Keep your planner up to date for accurate figures." });
           callout.createEl("p", { text: "\u26A0\uFE0F  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice \u2014 always consult your union representative for formal disputes." });
-          new import_obsidian10.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts.").addText((t) => t.setPlaceholder("1265").setValue(String(dt.contractedHours)).onChange((v) => {
+          new import_obsidian11.Setting(dtPanel).setName("Contracted directed time (hours)").setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts.").addText((t) => t.setPlaceholder("1265").setValue(String(dt.contractedHours)).onChange((v) => {
             const n = parseFloat(v);
             if (!isNaN(n) && n > 0) {
               dt.contractedHours = n;
               this.plugin.requestSave();
             }
           }));
-          new import_obsidian10.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Your directed time maximum = contracted hours \xD7 this %. Default: 100 (full-time).").addText((t) => t.setPlaceholder("100").setValue(String(dt.timetablePercentage)).onChange((v) => {
+          new import_obsidian11.Setting(dtPanel).setName("Timetable fraction (%)").setDesc("For part-time teachers. Your directed time maximum = contracted hours \xD7 this %. Default: 100 (full-time).").addText((t) => t.setPlaceholder("100").setValue(String(dt.timetablePercentage)).onChange((v) => {
             const n = parseFloat(v);
             if (!isNaN(n) && n > 0 && n <= 100) {
               dt.timetablePercentage = n;
               this.plugin.requestSave();
             }
           }));
-          new import_obsidian10.Setting(dtPanel).setName("Lesson and activity duration").setDesc("Each lesson, activity, or event counts the length of the block it sits in. To count a different amount (a half period, say), click the duration badge on that block in the timetable editor.");
-          new import_obsidian10.Setting(dtPanel).setName("Export directed time").setDesc("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management.").addButton((btn) => btn.setButtonText("Export XLSX\u2026").setCta().onClick(() => new DirectedTimeExportModal(this.app, this.plugin).open()));
-          new import_obsidian10.Setting(dtPanel).setName("Directed time guide").setDesc("Open the guide note explaining how the tracker works and your statutory rights.").addButton((btn) => btn.setButtonText("Open guide").onClick(async () => {
+          new import_obsidian11.Setting(dtPanel).setName("Lesson and activity duration").setDesc("Each lesson, activity, or event counts the length of the block it sits in. To count a different amount (a half period, say), click the duration badge on that block in the timetable editor.");
+          new import_obsidian11.Setting(dtPanel).setName("Export directed time").setDesc("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management.").addButton((btn) => btn.setButtonText("Export XLSX\u2026").setCta().onClick(() => new DirectedTimeExportModal(this.app, this.plugin).open()));
+          new import_obsidian11.Setting(dtPanel).setName("Directed time guide").setDesc("Open the guide note explaining how the tracker works and your statutory rights.").addButton((btn) => btn.setButtonText("Open guide").onClick(async () => {
             await this.createDirectedTimeGuideNote();
             const path = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/Directed Time \u2014 Guide.md";
             const file = this.app.vault.getAbstractFileByPath(path);
-            if (file instanceof import_obsidian10.TFile) await this.app.workspace.getLeaf(false).openFile(file);
+            if (file instanceof import_obsidian11.TFile) await this.app.workspace.getLeaf(false).openFile(file);
           }));
         }
-        new import_obsidian10.Setting(containerEl).setName("Holidays & INSET Days").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Holidays & INSET Days").setHeading();
         containerEl.createEl("p", {
           text: "Mark date ranges as holidays or INSET training days. Individual day columns are greyed out in the planner.",
           cls: "setting-item-description"
         });
         const overridesContainer = containerEl.createDiv("tp-overrides-list");
         this.renderWeekOverridesList(overridesContainer);
-        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET range").setCta().onClick(async () => {
+        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET range").setCta().onClick(async () => {
           var _a3;
           const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
           const newOverride = { startDate: today, type: "holiday", label: "" };
@@ -9643,7 +9837,7 @@ var init_SettingsTab = __esm({
           (_a3 = overridesContainer.querySelector("p")) == null ? void 0 : _a3.remove();
           this.renderWeekOverrideRow(overridesContainer, newOverride);
         }));
-        new import_obsidian10.Setting(containerEl).setName("School day blocks").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("School day blocks").setHeading();
         containerEl.createEl("p", {
           text: "Define the types of block that make up your school day \u2014 lessons, breaks, registration, admin time, and so on. Each block type has a colour that appears as a shaded band in the week view, making it easy to see your day structure at a glance. Assign block types to individual periods in School Timetable.",
           cls: "setting-item-description"
@@ -9651,7 +9845,7 @@ var init_SettingsTab = __esm({
         if (!this.plugin.settings.periodTypes) this.plugin.settings.periodTypes = [];
         const periodTypesContainer = containerEl.createDiv("tp-activities-list");
         this.renderPeriodTypesList(periodTypesContainer);
-        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(async () => {
+        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add block type").setCta().onClick(async () => {
           this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: FALLBACK_PERIOD_TYPE_COLOUR });
           await this.plugin.saveSettings();
           periodTypesContainer.empty();
@@ -9665,10 +9859,10 @@ var init_SettingsTab = __esm({
             await this.plugin.saveSettings();
             periodTypesContainer.empty();
             this.renderPeriodTypesList(periodTypesContainer);
-            new import_obsidian10.Notice("Block colours reset to theme defaults.");
+            new import_obsidian11.Notice("Block colours reset to theme defaults.");
           }).open();
         }));
-        new import_obsidian10.Setting(containerEl).setName("School timetable").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("School timetable").setHeading();
         containerEl.createEl("p", {
           text: "Periods are grouped into day schedules. Most schools only need the Standard day. Add another schedule for days shaped differently \u2014 a sports afternoon, a half-day Saturday \u2014 and assign it to those days. Colours and types are configured in School Day Blocks above.",
           cls: "setting-item-description"
@@ -9685,7 +9879,7 @@ var init_SettingsTab = __esm({
           scheduleBar.empty();
           const ay = this.plugin.settings.academicYear;
           const sel = this.getSelectedSchedule();
-          const bar = new import_obsidian10.Setting(scheduleBar).setName("Day schedule").setDesc("Choose which schedule to edit. Click a day below to make it use the selected schedule.");
+          const bar = new import_obsidian11.Setting(scheduleBar).setName("Day schedule").setDesc("Choose which schedule to edit. Click a day below to make it use the selected schedule.");
           bar.addDropdown((d) => {
             for (const sch of ay.daySchedules) d.addOption(sch.id, sch.name);
             d.setValue(sel.id);
@@ -9718,7 +9912,7 @@ var init_SettingsTab = __esm({
           }));
           bar.addExtraButton((b) => b.setIcon("trash").setTooltip("Delete schedule").onClick(() => {
             if (ay.daySchedules.length <= 1) {
-              new import_obsidian10.Notice("At least one day schedule is required.");
+              new import_obsidian11.Notice("At least one day schedule is required.");
               return;
             }
             const fallbackName = ay.daySchedules[0].id === sel.id ? ay.daySchedules[1].name : ay.daySchedules[0].name;
@@ -9755,11 +9949,11 @@ var init_SettingsTab = __esm({
             pill.addEventListener("click", () => {
               void (async () => {
                 if (ay.daySchedules.length < 2) {
-                  new import_obsidian10.Notice("All days use the only schedule. Click + to create a second schedule, then assign days to it.");
+                  new import_obsidian11.Notice("All days use the only schedule. Click + to create a second schedule, then assign days to it.");
                   return;
                 }
                 if (active) {
-                  new import_obsidian10.Notice(`${label} already uses "${sel.name}". Select a different schedule above to move ${label} to it.`);
+                  new import_obsidian11.Notice(`${label} already uses "${sel.name}". Select a different schedule above to move ${label} to it.`);
                   return;
                 }
                 if (!ay.dayScheduleMap) ay.dayScheduleMap = {};
@@ -9778,7 +9972,7 @@ var init_SettingsTab = __esm({
         };
         renderScheduleBar();
         this.renderPeriodsList(periodsContainer);
-        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
+        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add period").setCta().onClick(() => {
           new AddPeriodModal(this.app, async (period) => {
             this.getSelectedSchedule().periods.push(period);
             this.sortPeriods();
@@ -9786,36 +9980,36 @@ var init_SettingsTab = __esm({
             refreshPeriods();
           }).open();
         }));
-        new import_obsidian10.Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekEnabled).onChange(async (v) => {
+        new import_obsidian11.Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekEnabled).onChange(async (v) => {
           this.plugin.settings.academicYear.abWeekEnabled = v;
           await this.plugin.saveSettings();
           abPanel.setCssStyles({ display: v ? "" : "none" });
         }));
         const abPanel = containerEl.createDiv();
         abPanel.setCssStyles({ display: this.plugin.settings.academicYear.abWeekEnabled ? "" : "none" });
-        new import_obsidian10.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.plugin.settings.academicYear.abWeekStartsOn).onChange(async (v) => {
+        new import_obsidian11.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.plugin.settings.academicYear.abWeekStartsOn).onChange(async (v) => {
           this.plugin.settings.academicYear.abWeekStartsOn = v;
           await this.plugin.saveSettings();
         }));
-        new import_obsidian10.Setting(abPanel).setName("Continue rotation across holidays").setDesc("Skip fully-holiday weeks so the A/B pattern carries on seamlessly after a break. Recomputes automatically when holidays change.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekHolidayAware !== false).onChange(async (v) => {
+        new import_obsidian11.Setting(abPanel).setName("Continue rotation across holidays").setDesc("Skip fully-holiday weeks so the A/B pattern carries on seamlessly after a break. Recomputes automatically when holidays change.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekHolidayAware !== false).onChange(async (v) => {
           this.plugin.settings.academicYear.abWeekHolidayAware = v;
           await this.plugin.saveSettings();
         }));
-        new import_obsidian10.Setting(containerEl).setName("Lessons").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Lessons").setHeading();
         containerEl.createEl("p", {
           text: "Define your subjects and class groups. Colours appear on lesson blocks in the week view.",
           cls: "setting-item-description"
         });
         const classesContainer = containerEl.createDiv("tp-classes-list");
         this.renderSubjectsList(classesContainer);
-        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(async () => {
+        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(async () => {
           const colour = CLASS_COLOUR_PALETTE[this.plugin.settings.subjects.length % CLASS_COLOUR_PALETTE.length];
           this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour, emoji: "\u{1F4DA}" });
           await this.plugin.saveSettings();
           classesContainer.empty();
           this.renderSubjectsList(classesContainer);
         }));
-        new import_obsidian10.Setting(containerEl).setName("Events \u2014 Directed time").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Events \u2014 Directed time").setHeading();
         containerEl.createEl("p", {
           text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Each one counts the length of the block you put it in; to count a different amount, click the duration badge on that block in the timetable editor.",
           cls: "setting-item-description"
@@ -9834,31 +10028,31 @@ var init_SettingsTab = __esm({
         activityHeaders.createDiv("tp-activity-header-spacer");
         const activitiesContainer = containerEl.createDiv("tp-activities-list");
         this.renderActivitiesList(activitiesContainer, "directed");
-        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(async () => {
+        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add activity").setCta().onClick(async () => {
           this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Activity", colour: "#cba6f7", activityType: "directed" });
           await this.plugin.saveSettings();
           activitiesContainer.empty();
           this.renderActivitiesList(activitiesContainer, "directed");
         }));
-        new import_obsidian10.Setting(containerEl).setName("Events \u2014 Other").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Events \u2014 Other").setHeading();
         containerEl.createEl("p", {
           text: "\u26A0\uFE0F  Items in this section appear in the planner but are excluded from the directed time count. Use these for personal appointments, reminders, or any non-directed activity.",
           cls: "setting-item-description"
         });
         const otherContainer = containerEl.createDiv("tp-activities-list");
         this.renderActivitiesList(otherContainer, "other");
-        new import_obsidian10.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add other event").setCta().onClick(async () => {
+        new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add other event").setCta().onClick(async () => {
           this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Other Event", colour: "#888888", activityType: "other" });
           await this.plugin.saveSettings();
           otherContainer.empty();
           this.renderActivitiesList(otherContainer, "other");
         }));
-        new import_obsidian10.Setting(containerEl).setName("Vault").setHeading();
-        new import_obsidian10.Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created").addText((t) => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder).onChange((v) => {
+        new import_obsidian11.Setting(containerEl).setName("Vault").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created").addText((t) => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder).onChange((v) => {
           this.plugin.settings.plannerFolder = v;
           this.plugin.requestSave();
         }));
-        new import_obsidian10.Setting(containerEl).setName("Note titles").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Note titles").setHeading();
         containerEl.createEl("p", {
           text: "Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default.",
           cls: "setting-item-description"
@@ -9883,7 +10077,7 @@ var init_SettingsTab = __esm({
         });
         let lessonTitlePreview;
         let eventTitlePreview;
-        const lessonTitleSetting = new import_obsidian10.Setting(containerEl).setName("Lesson note title").addText((t) => {
+        const lessonTitleSetting = new import_obsidian11.Setting(containerEl).setName("Lesson note title").addText((t) => {
           var _a3;
           t.setPlaceholder(DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
           t.setValue((_a3 = this.plugin.settings.lessonNoteTitleTemplate) != null ? _a3 : DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
@@ -9896,7 +10090,7 @@ var init_SettingsTab = __esm({
         });
         lessonTitlePreview = lessonTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
         lessonTitlePreview.setText("Preview:  " + renderLessonTitle((_d = this.plugin.settings.lessonNoteTitleTemplate) != null ? _d : DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
-        const eventTitleSetting = new import_obsidian10.Setting(containerEl).setName("Event note title").addText((t) => {
+        const eventTitleSetting = new import_obsidian11.Setting(containerEl).setName("Event note title").addText((t) => {
           var _a3;
           t.setPlaceholder(DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
           t.setValue((_a3 = this.plugin.settings.eventNoteTitleTemplate) != null ? _a3 : DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
@@ -9909,17 +10103,17 @@ var init_SettingsTab = __esm({
         });
         eventTitlePreview = eventTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
         eventTitlePreview.setText("Preview:  " + renderEventTitle((_e = this.plugin.settings.eventNoteTitleTemplate) != null ? _e : DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
-        new import_obsidian10.Setting(containerEl).setName("Lesson overview").setHeading();
-        new import_obsidian10.Setting(containerEl).setName("Main line shows").setDesc("What to show on each lesson row in the overview. Notes are the per-lesson note field; plan title is the linked lesson-plan filename.").addDropdown((d) => {
+        new import_obsidian11.Setting(containerEl).setName("Lesson overview").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Main line shows").setDesc("What to show on each lesson row in the overview. Notes are the per-lesson note field; plan title is the linked lesson-plan filename.").addDropdown((d) => {
           var _a3;
           return d.addOption("notes-plan", "Notes, then plan title").addOption("notes", "Notes only").addOption("plan", "Plan title").setValue((_a3 = this.plugin.settings.lessonOverviewMainLine) != null ? _a3 : "notes-plan").onChange(async (v) => {
             this.plugin.settings.lessonOverviewMainLine = v;
             await this.plugin.saveSettings();
           });
         });
-        new import_obsidian10.Setting(containerEl).setName("Grid visuals").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Grid visuals").setHeading();
         const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
-        const blockColourSetting = new import_obsidian10.Setting(containerEl).setName("Period block border colour").setDesc("Border on the top and bottom edge of each period band.");
+        const blockColourSetting = new import_obsidian11.Setting(containerEl).setName("Period block border colour").setDesc("Border on the top and bottom edge of each period band.");
         blockColourSetting.controlEl.setCssStyles({ display: "flex" });
         blockColourSetting.controlEl.setCssStyles({ alignItems: "center" });
         blockColourSetting.controlEl.setCssStyles({ gap: "8px" });
@@ -9965,7 +10159,7 @@ var init_SettingsTab = __esm({
           });
           blockPresetSwatches.push(chip);
         }
-        new import_obsidian10.Setting(containerEl).setName("Period block border weight").setDesc("Thickness of period band borders in pixels (1-4).").addSlider((s) => {
+        new import_obsidian11.Setting(containerEl).setName("Period block border weight").setDesc("Thickness of period band borders in pixels (1-4).").addSlider((s) => {
           var _a3, _b3;
           const valueLabel = createSpan({ cls: "tp-slider-value", text: `${(_a3 = this.plugin.settings.blockBorderWeight) != null ? _a3 : 1}px` });
           s.setLimits(1, 4, 1).setValue((_b3 = this.plugin.settings.blockBorderWeight) != null ? _b3 : 1).onChange((v) => {
@@ -9975,7 +10169,7 @@ var init_SettingsTab = __esm({
           });
           s.sliderEl.after(valueLabel);
         });
-        const gridColourSetting = new import_obsidian10.Setting(containerEl).setName("Time grid line colour").setDesc("Colour of the day-column borders and row dividers.");
+        const gridColourSetting = new import_obsidian11.Setting(containerEl).setName("Time grid line colour").setDesc("Colour of the day-column borders and row dividers.");
         gridColourSetting.controlEl.setCssStyles({ display: "flex" });
         gridColourSetting.controlEl.setCssStyles({ alignItems: "center" });
         gridColourSetting.controlEl.setCssStyles({ gap: "8px" });
@@ -10021,7 +10215,7 @@ var init_SettingsTab = __esm({
           });
           gridPresetSwatches.push(chip);
         }
-        new import_obsidian10.Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).").addSlider((s) => {
+        new import_obsidian11.Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).").addSlider((s) => {
           var _a3, _b3;
           const valueLabel = createSpan({ cls: "tp-slider-value", text: `${(_a3 = this.plugin.settings.gridLineWeight) != null ? _a3 : 1}px` });
           s.setLimits(1, 4, 1).setValue((_b3 = this.plugin.settings.gridLineWeight) != null ? _b3 : 1).onChange((v) => {
@@ -10031,7 +10225,7 @@ var init_SettingsTab = __esm({
           });
           s.sliderEl.after(valueLabel);
         });
-        new import_obsidian10.Setting(containerEl).setName("Grid zoom (this device)").setDesc("Height of the week grid, in pixels per hour. Stored per device \u2014 not synced, so each device keeps its own zoom.").addSlider((s) => {
+        new import_obsidian11.Setting(containerEl).setName("Grid zoom (this device)").setDesc("Height of the week grid, in pixels per hour. Stored per device \u2014 not synced, so each device keeps its own zoom.").addSlider((s) => {
           const valueLabel = createSpan({ cls: "tp-slider-value", text: `${this.plugin.getGridScale()} px/hr` });
           s.setLimits(60, 240, 10).setValue(this.plugin.getGridScale()).onChange((v) => {
             this.plugin.setGridScale(v);
@@ -10039,17 +10233,17 @@ var init_SettingsTab = __esm({
           });
           s.sliderEl.after(valueLabel);
         });
-        new import_obsidian10.Setting(containerEl).setName("Reset grid visuals").setDesc("Restore both colours to your Obsidian theme and weights to 1px.").addButton((btn) => btn.setButtonText("Reset to theme defaults").setClass("mod-warning").onClick(async () => {
+        new import_obsidian11.Setting(containerEl).setName("Reset grid visuals").setDesc("Restore both colours to your Obsidian theme and weights to 1px.").addButton((btn) => btn.setButtonText("Reset to theme defaults").setClass("mod-warning").onClick(async () => {
           this.plugin.settings.blockBorderColour = GRID_THEME_TOKEN;
           this.plugin.settings.gridLineColour = GRID_THEME_TOKEN;
           this.plugin.settings.blockBorderWeight = 1;
           this.plugin.settings.gridLineWeight = 1;
           await this.plugin.saveSettings();
-          new import_obsidian10.Notice("Grid visuals reset to theme defaults.");
+          new import_obsidian11.Notice("Grid visuals reset to theme defaults.");
           this.display();
         }));
-        new import_obsidian10.Setting(containerEl).setName("Lesson plans").setHeading();
-        new import_obsidian10.Setting(containerEl).setName("Plans folder").setDesc('Where new lesson plans are created and listed first in the picker. Leave empty for "<planner folder>/Plans".').addText((t) => {
+        new import_obsidian11.Setting(containerEl).setName("Lesson plans").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Plans folder").setDesc('Where new lesson plans are created and listed first in the picker. Leave empty for "<planner folder>/Plans".').addText((t) => {
           var _a3;
           t.setPlaceholder((this.plugin.settings.plannerFolder || "Teacher Planner") + "/Plans");
           t.setValue((_a3 = this.plugin.settings.lessonPlansFolder) != null ? _a3 : "");
@@ -10060,28 +10254,28 @@ var init_SettingsTab = __esm({
             })();
           });
         });
-        new import_obsidian10.Setting(containerEl).setName("Show lesson-prepared marker").setDesc("Adds a green tick you can click on each lesson to mark it prepared \u2014 independent of linking a plan. Turn off if you only use plan links.").addToggle((t) => {
+        new import_obsidian11.Setting(containerEl).setName("Show lesson-prepared marker").setDesc("Adds a green tick you can click on each lesson to mark it prepared \u2014 independent of linking a plan. Turn off if you only use plan links.").addToggle((t) => {
           var _a3;
           return t.setValue((_a3 = this.plugin.settings.showPreparedMark) != null ? _a3 : true).onChange(async (v) => {
             this.plugin.settings.showPreparedMark = v;
             await this.plugin.saveSettings();
           });
         });
-        new import_obsidian10.Setting(containerEl).setName("Notes").setHeading();
-        new import_obsidian10.Setting(containerEl).setName("Organise notes into weekly folders").setDesc('Create lesson and event notes inside "WC - <Monday date>" folders under the planner folder. Existing notes stay where they are and keep opening.').addToggle((t) => {
+        new import_obsidian11.Setting(containerEl).setName("Notes").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Organise notes into weekly folders").setDesc('Create lesson and event notes inside "WC - <Monday date>" folders under the planner folder. Existing notes stay where they are and keep opening.').addToggle((t) => {
           var _a3;
           return t.setValue((_a3 = this.plugin.settings.weeklyNoteFolders) != null ? _a3 : true).onChange(async (v) => {
             this.plugin.settings.weeklyNoteFolders = v;
             await this.plugin.saveSettings();
           });
         });
-        new import_obsidian10.Setting(containerEl).setName("Store week notes as vault files").setDesc(`Save each week's sidebar note as a markdown file ("Week note - <Monday date>") so it's searchable and linkable. Enabling moves existing week notes out of the plugin data file.`).addToggle((t) => {
+        new import_obsidian11.Setting(containerEl).setName("Store week notes as vault files").setDesc(`Save each week's sidebar note as a markdown file ("Week note - <Monday date>") so it's searchable and linkable. Enabling moves existing week notes out of the plugin data file.`).addToggle((t) => {
           var _a3;
           return t.setValue((_a3 = this.plugin.settings.weekNoteFiles) != null ? _a3 : false).onChange(async (v) => {
             this.plugin.settings.weekNoteFiles = v;
             if (v) {
               const n = await migrateWeekNotesToFiles(this.plugin);
-              new import_obsidian10.Notice(n > 0 ? `Moved ${n} week note${n === 1 ? "" : "s"} to files.` : "Week notes will now be saved as files.");
+              new import_obsidian11.Notice(n > 0 ? `Moved ${n} week note${n === 1 ? "" : "s"} to files.` : "Week notes will now be saved as files.");
             } else {
               await this.plugin.saveSettings();
             }
@@ -10089,7 +10283,7 @@ var init_SettingsTab = __esm({
           });
         });
         if (this.plugin.settings.weekNoteFiles) {
-          new import_obsidian10.Setting(containerEl).setName("Week notes folder").setDesc('Folder for week-note files. Leave empty for "<planner folder>/Week notes".').addText((t) => {
+          new import_obsidian11.Setting(containerEl).setName("Week notes folder").setDesc('Folder for week-note files. Leave empty for "<planner folder>/Week notes".').addText((t) => {
             var _a3;
             t.setPlaceholder((this.plugin.settings.plannerFolder || "Teacher Planner") + "/Week notes");
             t.setValue((_a3 = this.plugin.settings.weekNotesFolder) != null ? _a3 : "");
@@ -10101,21 +10295,21 @@ var init_SettingsTab = __esm({
             });
           });
         }
-        new import_obsidian10.Setting(containerEl).setName("Export").setHeading();
-        new import_obsidian10.Setting(containerEl).setName("Export planner data").setDesc("Export timetable and events as Excel or CSV, or as an iCal calendar (.ics) for Google, Apple or Outlook calendar \u2014 to your Planner folder or anywhere on your computer.").addButton((btn) => btn.setButtonText("Export data\u2026").setCta().onClick(() => new ExportModal(this.app, this.plugin).open()));
-        new import_obsidian10.Setting(containerEl).setName("Reset").setHeading();
-        new import_obsidian10.Setting(containerEl).setName("Reset periods to defaults").addButton((btn) => btn.setButtonText("Reset periods").setClass("mod-warning").onClick(async () => {
+        new import_obsidian11.Setting(containerEl).setName("Export").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Export planner data").setDesc("Export timetable and events as Excel or CSV, or as an iCal calendar (.ics) for Google, Apple or Outlook calendar \u2014 to your Planner folder or anywhere on your computer.").addButton((btn) => btn.setButtonText("Export data\u2026").setCta().onClick(() => new ExportModal(this.app, this.plugin).open()));
+        new import_obsidian11.Setting(containerEl).setName("Reset").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Reset periods to defaults").addButton((btn) => btn.setButtonText("Reset periods").setClass("mod-warning").onClick(async () => {
           this.getSelectedSchedule().periods = DEFAULT_SETTINGS.academicYear.periods.map((p) => ({ ...p }));
           await this.plugin.saveSettings();
           periodsContainer.empty();
           this.renderPeriodsList(periodsContainer);
-          new import_obsidian10.Notice("Periods reset to defaults.");
+          new import_obsidian11.Notice("Periods reset to defaults.");
         }));
         this.wrapSectionsCollapsible(containerEl);
       }
       // ── Planners section ──────────────────────────────────────────────────────
       renderPlannersSection(container) {
-        new import_obsidian10.Setting(container).setName("Planners").setHeading();
+        new import_obsidian11.Setting(container).setName("Planners").setHeading();
         container.createEl("p", {
           text: "Each planner has its own timetable, classes and academic year. Switch between planners here or create a new one.",
           cls: "setting-item-description"
@@ -10140,10 +10334,10 @@ var init_SettingsTab = __esm({
             void (async () => {
               try {
                 const path = await backupPlanner(this.plugin, p);
-                new import_obsidian10.Notice(`Backed up to ${path}`);
+                new import_obsidian11.Notice(`Backed up to ${path}`);
               } catch (e) {
                 console.error("Teacher Planner: export failed.", e);
-                new import_obsidian10.Notice("Backup failed \u2014 see console.");
+                new import_obsidian11.Notice("Backup failed \u2014 see console.");
               }
             })();
           });
@@ -10174,9 +10368,9 @@ var init_SettingsTab = __esm({
             disabledDel.setCssStyles({ cursor: "not-allowed" });
           }
         }
-        new import_obsidian10.Setting(container).setName("Backups").setDesc(`Saved as .json files in "${backupsFolder(this.plugin)}" \u2014 re-importable. Deleting a planner backs it up automatically.`).addButton((btn) => btn.setButtonText("Import planner\u2026").onClick(() => {
+        new import_obsidian11.Setting(container).setName("Backups").setDesc(`Saved as .json files in "${backupsFolder(this.plugin)}" \u2014 re-importable. Deleting a planner backs it up automatically.`).addButton((btn) => btn.setButtonText("Import planner\u2026").onClick(() => {
           if (listBackupFiles(this.plugin).length === 0) {
-            new import_obsidian10.Notice(`No backups found in "${backupsFolder(this.plugin)}".`);
+            new import_obsidian11.Notice(`No backups found in "${backupsFolder(this.plugin)}".`);
             return;
           }
           new ImportPlannerModal(this.app, this.plugin, () => this.display()).open();
@@ -10184,14 +10378,21 @@ var init_SettingsTab = __esm({
           void (async () => {
             try {
               const path = await backupAll(this.plugin);
-              new import_obsidian10.Notice(`All planners backed up to ${path}`);
+              new import_obsidian11.Notice(`All planners backed up to ${path}`);
             } catch (e) {
               console.error("Teacher Planner: export-all failed.", e);
-              new import_obsidian10.Notice("Backup failed \u2014 see console.");
+              new import_obsidian11.Notice("Backup failed \u2014 see console.");
             }
           })();
         }));
-        new import_obsidian10.Setting(container).addButton((btn) => btn.setButtonText("+ New planner").setCta().onClick(() => {
+        new import_obsidian11.Setting(container).setName("Templates").setHeading();
+        container.createEl("p", {
+          text: `Reusable setups saved as .json under "${this.plugin.plannerData.rootPlannerFolder || "Teacher Planner"}/Templates". A template holds the school shell only, never your classes, timetable, notes, or dates. Share one by dropping its file into the matching folder.`,
+          cls: "setting-item-description"
+        });
+        new import_obsidian11.Setting(container).setName("School structure").setDesc("Periods, block types, A/B pattern and school days.").addButton((btn) => btn.setButtonText("Save current\u2026").onClick(() => this.saveStructureTemplate())).addButton((btn) => btn.setButtonText("Apply template\u2026").onClick(() => this.applyStructureTemplateFlow()));
+        new import_obsidian11.Setting(container).setName("Holiday calendar").setDesc("Holiday and INSET dates to drop in and nudge each year.").addButton((btn) => btn.setButtonText("Save current\u2026").onClick(() => this.saveHolidayTemplate())).addButton((btn) => btn.setButtonText("Load template\u2026").onClick(() => this.loadHolidayTemplateFlow()));
+        new import_obsidian11.Setting(container).addButton((btn) => btn.setButtonText("+ New planner").setCta().onClick(() => {
           var _a2;
           new SetupWizardModal(this.app, this.plugin, true).open();
           (_a2 = this.app.setting) == null ? void 0 : _a2.close();
@@ -10237,7 +10438,7 @@ var init_SettingsTab = __esm({
         for (let i = 0; i < periods.length; i++) this.renderPeriodRow(container, periods[i], i);
       }
       renderPeriodRow(container, period, index) {
-        new import_obsidian10.Setting(container).setName(period.name).setDesc(`${period.start} - ${period.end}`).addText((t) => {
+        new import_obsidian11.Setting(container).setName(period.name).setDesc(`${period.start} - ${period.end}`).addText((t) => {
           t.setPlaceholder("Name").setValue(period.name);
           t.inputEl.addEventListener("blur", () => {
             void (async () => {
@@ -10346,7 +10547,7 @@ var init_SettingsTab = __esm({
           })();
         });
         const delSubjectBtn = header.createEl("button", { cls: "tp-icon-btn" });
-        (0, import_obsidian10.setIcon)(delSubjectBtn, "trash-2");
+        (0, import_obsidian11.setIcon)(delSubjectBtn, "trash-2");
         delSubjectBtn.title = "Delete subject and all its classes";
         delSubjectBtn.addEventListener("click", () => {
           void (async () => {
@@ -10425,7 +10626,7 @@ var init_SettingsTab = __esm({
         });
         if (cls.colourOverridden && !isArchived) {
           const resetBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Reset to subject colour" });
-          (0, import_obsidian10.setIcon)(resetBtn, "rotate-ccw");
+          (0, import_obsidian11.setIcon)(resetBtn, "rotate-ccw");
           resetBtn.addEventListener("click", () => {
             void (async () => {
               var _a3;
@@ -10441,7 +10642,7 @@ var init_SettingsTab = __esm({
           cls: "tp-icon-btn",
           title: isArchived ? "Restore class" : "Archive class (hides from timetable editor)"
         });
-        (0, import_obsidian10.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
+        (0, import_obsidian11.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
         archiveBtn.addEventListener("click", () => {
           void (async () => {
             cls.archived = !isArchived;
@@ -10451,7 +10652,7 @@ var init_SettingsTab = __esm({
           })();
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete class" });
-        (0, import_obsidian10.setIcon)(delBtn, "trash-2");
+        (0, import_obsidian11.setIcon)(delBtn, "trash-2");
         delBtn.addEventListener("click", () => {
           void (async () => {
             this.plugin.settings.classes = this.plugin.settings.classes.filter((c) => c.id !== cls.id);
@@ -10467,6 +10668,113 @@ var init_SettingsTab = __esm({
        * typeFilter "directed" shows activities where activityType !== "other" (includes undefined).
        * typeFilter "other" shows activities where activityType === "other".
        */
+      saveStructureTemplate() {
+        new TextPromptModal(this.app, "Save school structure template", "", "Template name (e.g. School main)", (name) => {
+          void (async () => {
+            const n = name.trim();
+            if (!n) return;
+            try {
+              const path = await writeTemplateFile(this.plugin, "structure", n, buildStructureTemplate(this.plugin, n));
+              new import_obsidian11.Notice(`Saved structure template to ${path}`);
+            } catch (e) {
+              console.error("Teacher Planner: save structure template failed.", e);
+              new import_obsidian11.Notice("Could not save template \u2014 see console.");
+            }
+          })();
+        }).open();
+      }
+      saveHolidayTemplate() {
+        if (holidayCount(this.plugin) === 0) {
+          new import_obsidian11.Notice("No holidays or INSET days to save yet.");
+          return;
+        }
+        new TextPromptModal(this.app, "Save holiday calendar template", "", "Template name (e.g. 2026-27 holidays)", (name) => {
+          void (async () => {
+            const n = name.trim();
+            if (!n) return;
+            try {
+              const path = await writeTemplateFile(this.plugin, "holidays", n, buildHolidayTemplate(this.plugin, n));
+              new import_obsidian11.Notice(`Saved holiday template to ${path}`);
+            } catch (e) {
+              console.error("Teacher Planner: save holiday template failed.", e);
+              new import_obsidian11.Notice("Could not save template \u2014 see console.");
+            }
+          })();
+        }).open();
+      }
+      applyStructureTemplateFlow() {
+        const files2 = listTemplateFiles(this.plugin, "structure");
+        if (files2.length === 0) {
+          new import_obsidian11.Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`);
+          return;
+        }
+        new TemplatePickModal(this.app, files2, "Pick a school structure template\u2026", (file) => {
+          void (async () => {
+            let tpl;
+            try {
+              tpl = parseTemplate(await this.app.vault.read(file));
+            } catch (e) {
+              new import_obsidian11.Notice(e instanceof Error ? e.message : "Could not read template.");
+              return;
+            }
+            if (tpl.kind !== "structure" || !tpl.structure) {
+              new import_obsidian11.Notice("That file is not a school structure template.");
+              return;
+            }
+            const structure = tpl.structure;
+            new ConfirmModal(
+              this.app,
+              "Apply this school structure to the current planner? It replaces your periods, block types, A/B pattern and school days. Any classes already placed on the timetable will be detached, since their slots point at the old periods. Your classes, notes and year dates are kept.",
+              () => {
+                void (async () => {
+                  try {
+                    await applyStructureTemplate(this.plugin, structure);
+                    new import_obsidian11.Notice("School structure applied.");
+                    this.display();
+                  } catch (e) {
+                    console.error("Teacher Planner: apply structure failed.", e);
+                    new import_obsidian11.Notice("Could not apply template \u2014 see console.");
+                  }
+                })();
+              },
+              "Apply structure"
+            ).open();
+          })();
+        }).open();
+      }
+      loadHolidayTemplateFlow() {
+        const files2 = listTemplateFiles(this.plugin, "holidays");
+        if (files2.length === 0) {
+          new import_obsidian11.Notice(`No holiday templates in "${holidayTemplatesFolder(this.plugin)}".`);
+          return;
+        }
+        new TemplatePickModal(this.app, files2, "Pick a holiday calendar template\u2026", (file) => {
+          void (async () => {
+            let tpl;
+            try {
+              tpl = parseTemplate(await this.app.vault.read(file));
+            } catch (e) {
+              new import_obsidian11.Notice(e instanceof Error ? e.message : "Could not read template.");
+              return;
+            }
+            if (tpl.kind !== "holidays" || !tpl.holidays) {
+              new import_obsidian11.Notice("That file is not a holiday calendar template.");
+              return;
+            }
+            const holidays = tpl.holidays;
+            new TextPromptModal(this.app, "Shift dates (optional)", "0", "Days to shift (364 \u2248 next year, 0 to keep as saved)", (val) => {
+              void (async () => {
+                const days = parseInt(val);
+                const d = isNaN(days) ? 0 : days;
+                const overrides = d !== 0 ? shiftOverrideDates(holidays.overrides, d) : holidays.overrides;
+                const n = await applyHolidayTemplate(this.plugin, { overrides });
+                new import_obsidian11.Notice(`Added ${n} holiday/INSET ${n === 1 ? "entry" : "entries"}. Fine-tune dates in the Academic year settings.`);
+                this.display();
+              })();
+            }).open();
+          })();
+        }).open();
+      }
       renderActivitiesList(container, typeFilter = "directed") {
         var _a2;
         const activities = (_a2 = this.plugin.settings.activities) != null ? _a2 : [];
@@ -10547,7 +10855,7 @@ var init_SettingsTab = __esm({
           cls: "tp-icon-btn",
           title: isArchived ? "Restore" : "Archive (hides from timetable editor)"
         });
-        (0, import_obsidian10.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
+        (0, import_obsidian11.setIcon)(archiveBtn, isArchived ? "rotate-ccw" : "archive");
         archiveBtn.addEventListener("click", () => {
           void (async () => {
             activity.archived = !isArchived;
@@ -10557,7 +10865,7 @@ var init_SettingsTab = __esm({
           })();
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete" });
-        (0, import_obsidian10.setIcon)(delBtn, "trash-2");
+        (0, import_obsidian11.setIcon)(delBtn, "trash-2");
         delBtn.addEventListener("click", () => {
           void (async () => {
             this.plugin.settings.activities = this.plugin.settings.activities.filter((a) => a.id !== activity.id);
@@ -10599,7 +10907,7 @@ var init_SettingsTab = __esm({
           })();
         });
         const resetBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Reset colour to theme default" });
-        (0, import_obsidian10.setIcon)(resetBtn, "rotate-ccw");
+        (0, import_obsidian11.setIcon)(resetBtn, "rotate-ccw");
         resetBtn.addEventListener("click", () => {
           void (async () => {
             var _a2;
@@ -10610,7 +10918,7 @@ var init_SettingsTab = __esm({
           })();
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete type" });
-        (0, import_obsidian10.setIcon)(delBtn, "trash-2");
+        (0, import_obsidian11.setIcon)(delBtn, "trash-2");
         delBtn.addEventListener("click", () => {
           void (async () => {
             this.plugin.settings.periodTypes = this.plugin.settings.periodTypes.filter((t) => t.id !== pt.id);
@@ -10642,7 +10950,7 @@ var init_SettingsTab = __esm({
         const overlap = findOverlappingOverrides(this.plugin.settings.weekOverrides);
         if (overlap) {
           const name = (o) => o.label || (o.type === "inset" ? "INSET" : "Holiday");
-          new import_obsidian10.Notice(
+          new import_obsidian11.Notice(
             `Warning: "${name(overlap[0])}" (from ${overlap[0].startDate}) and "${name(overlap[1])}" (from ${overlap[1].startDate}) overlap. Directed time may be miscounted.`,
             6e3
           );
@@ -10651,7 +10959,7 @@ var init_SettingsTab = __esm({
       renderWeekOverrideRow(container, override) {
         var _a2, _b2;
         const wrapper = container.createDiv("tp-override-entry");
-        const row = new import_obsidian10.Setting(wrapper).setName("").setDesc("");
+        const row = new import_obsidian11.Setting(wrapper).setName("").setDesc("");
         row.settingEl.addClass("tp-override-row");
         const fromInput = row.controlEl.createEl("input", { type: "date", cls: "tp-override-date-input" });
         fromInput.value = override.startDate;
@@ -10693,7 +11001,7 @@ var init_SettingsTab = __esm({
             await this.plugin.saveSettings();
           })();
         });
-        new import_obsidian10.ButtonComponent(row.controlEl).setIcon("trash").setTooltip("Remove").onClick(async () => {
+        new import_obsidian11.ButtonComponent(row.controlEl).setIcon("trash").setTooltip("Remove").onClick(async () => {
           this.plugin.settings.weekOverrides = this.plugin.settings.weekOverrides.filter((w) => w !== override);
           await this.plugin.saveSettings();
           wrapper.remove();
@@ -10820,7 +11128,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         }
       }
     };
-    SettingsAppliedModal = class extends import_obsidian10.Modal {
+    SettingsAppliedModal = class extends import_obsidian11.Modal {
       constructor(app, plugin, snapshot) {
         super(app);
         this.plugin = plugin;
@@ -10833,7 +11141,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
           text: "Your changes have been saved and the planner has been updated.",
           cls: "setting-item-description"
         });
-        new import_obsidian10.Setting(contentEl).addButton((btn) => btn.setButtonText("Got it").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Revert changes").setClass("mod-warning").onClick(async () => {
+        new import_obsidian11.Setting(contentEl).addButton((btn) => btn.setButtonText("Got it").setCta().onClick(() => this.close())).addButton((btn) => btn.setButtonText("Revert changes").setClass("mod-warning").onClick(async () => {
           const original = JSON.parse(this.snapshot);
           Object.assign(this.plugin.settings, original);
           await this.plugin.saveSettings();
@@ -10844,7 +11152,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         this.contentEl.empty();
       }
     };
-    ColourPickerModal = class extends import_obsidian10.Modal {
+    ColourPickerModal = class extends import_obsidian11.Modal {
       constructor(app, initialColour, label, onSave, showThemeRow = false) {
         super(app);
         this.component = null;
@@ -10881,7 +11189,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         this.contentEl.empty();
       }
     };
-    DeletePlannerModal = class extends import_obsidian10.Modal {
+    DeletePlannerModal = class extends import_obsidian11.Modal {
       constructor(app, plugin, plannerId, plannerName, isLast, onDeleted) {
         super(app);
         this.plugin = plugin;
@@ -10897,7 +11205,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
           text: this.isLast ? `"${this.plannerName}" is your only planner. Deleting it will remove all planner data and relaunch the setup wizard. A re-importable backup is saved to "${backupsFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.` : `Delete "${this.plannerName}"? All planner data (timetable, classes, events) will be removed \u2014 but a re-importable backup is saved to "${backupsFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.`,
           cls: "setting-item-description"
         });
-        new import_obsidian10.Setting(contentEl).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close())).addButton((btn) => btn.setButtonText(this.isLast ? "Delete & restart wizard" : "Delete planner").setClass("mod-warning").onClick(async () => {
+        new import_obsidian11.Setting(contentEl).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close())).addButton((btn) => btn.setButtonText(this.isLast ? "Delete & restart wizard" : "Delete planner").setClass("mod-warning").onClick(async () => {
           await this.plugin.deletePlanner(this.plannerId);
           this.close();
           if (this.isLast) {
@@ -10912,7 +11220,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         this.contentEl.empty();
       }
     };
-    ImportPlannerModal = class extends import_obsidian10.FuzzySuggestModal {
+    ImportPlannerModal = class extends import_obsidian11.FuzzySuggestModal {
       constructor(app, plugin, onDone) {
         super(app);
         this.plugin = plugin;
@@ -10931,14 +11239,31 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
           try {
             const { planners } = parseBackup(await this.app.vault.read(f));
             const ids = await importPlanners(this.plugin, planners);
-            new import_obsidian10.Notice(`Imported ${planners.length} planner${planners.length === 1 ? "" : "s"}.`);
+            new import_obsidian11.Notice(`Imported ${planners.length} planner${planners.length === 1 ? "" : "s"}.`);
             if (ids[0]) await this.plugin.switchPlanner(ids[0]);
             this.onDone();
           } catch (e) {
             console.error("Teacher Planner: import failed.", e);
-            new import_obsidian10.Notice(`Import failed: ${(_a2 = e.message) != null ? _a2 : "see console"}`);
+            new import_obsidian11.Notice(`Import failed: ${(_a2 = e.message) != null ? _a2 : "see console"}`);
           }
         })();
+      }
+    };
+    TemplatePickModal = class extends import_obsidian11.FuzzySuggestModal {
+      constructor(app, files2, placeholder, onPick) {
+        super(app);
+        this.files = files2;
+        this.onPick = onPick;
+        this.setPlaceholder(placeholder);
+      }
+      getItems() {
+        return this.files;
+      }
+      getItemText(f) {
+        return f.basename;
+      }
+      onChooseItem(f) {
+        this.onPick(f);
       }
     };
   }
@@ -14543,11 +14868,11 @@ function instance2($$self, $$props, $$invalidate) {
   let periodTypes;
   var _a2, _b2, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
   function icon(node, name) {
-    (0, import_obsidian11.setIcon)(node, name);
+    (0, import_obsidian12.setIcon)(node, name);
     return {
       update(n) {
         node.empty();
-        (0, import_obsidian11.setIcon)(node, n);
+        (0, import_obsidian12.setIcon)(node, n);
       }
     };
   }
@@ -15195,13 +15520,13 @@ function instance2($$self, $$props, $$invalidate) {
     click_handler_22
   ];
 }
-var import_obsidian11, window_1, func_3, func_4, TimetableEditorComponent, TimetableEditorComponent_default;
+var import_obsidian12, window_1, func_3, func_4, TimetableEditorComponent, TimetableEditorComponent_default;
 var init_TimetableEditorComponent = __esm({
   "src/modals/TimetableEditorComponent.svelte"() {
     init_internal();
     init_disclose_version();
     init_AddTimetableTemplateModal();
-    import_obsidian11 = require("obsidian");
+    import_obsidian12 = require("obsidian");
     init_SettingsTab();
     init_themeColours();
     init_scheduleUtils();
@@ -15219,12 +15544,12 @@ var init_TimetableEditorComponent = __esm({
 });
 
 // src/modals/TimetableEditorModal.ts
-var import_obsidian12, TimetableEditorModal;
+var import_obsidian13, TimetableEditorModal;
 var init_TimetableEditorModal = __esm({
   "src/modals/TimetableEditorModal.ts"() {
-    import_obsidian12 = require("obsidian");
+    import_obsidian13 = require("obsidian");
     init_TimetableEditorComponent();
-    TimetableEditorModal = class extends import_obsidian12.Modal {
+    TimetableEditorModal = class extends import_obsidian13.Modal {
       constructor(app, plugin) {
         super(app);
         this.component = null;
@@ -15259,21 +15584,21 @@ __export(main_exports, {
   default: () => TeacherPlannerPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian23 = require("obsidian");
+var import_obsidian24 = require("obsidian");
 init_settings();
 
 // src/views/WeekView.ts
-var import_obsidian18 = require("obsidian");
+var import_obsidian19 = require("obsidian");
 
 // src/views/WeekView.svelte
 init_internal();
 init_disclose_version();
-var import_obsidian17 = require("obsidian");
+var import_obsidian18 = require("obsidian");
 init_weekUtils();
 init_TimetableEditorModal();
 
 // src/modals/SlotNotesModal.ts
-var import_obsidian13 = require("obsidian");
+var import_obsidian14 = require("obsidian");
 
 // src/utils/planLinkUtils.ts
 init_weekUtils();
@@ -15468,7 +15793,7 @@ function clearLessonRoom(s, slotId, date) {
 }
 
 // src/modals/SlotNotesModal.ts
-var SlotNotesModal = class extends import_obsidian13.Modal {
+var SlotNotesModal = class extends import_obsidian14.Modal {
   constructor(app, plugin, slotId, date, notes, classroom, slotName, formattedDate, periodName, timeRange, onSaved) {
     super(app);
     this.plugin = plugin;
@@ -15585,7 +15910,7 @@ var SlotNotesModal = class extends import_obsidian13.Modal {
 init_SettingsTab();
 
 // src/modals/AddDateEventModal.ts
-var import_obsidian14 = require("obsidian");
+var import_obsidian15 = require("obsidian");
 init_scheduleUtils();
 init_eventUtils();
 init_settings();
@@ -15661,7 +15986,7 @@ var DAY_OF_WEEK = {
 function randomPaletteColour() {
   return CLASS_COLOUR_PALETTE[Math.floor(Math.random() * CLASS_COLOUR_PALETTE.length)];
 }
-var AddDateEventModal = class extends import_obsidian14.Modal {
+var AddDateEventModal = class extends import_obsidian15.Modal {
   constructor(app, plugin, existingEvent, onSaved, prefillDate, prefillPeriodId) {
     super(app);
     this.plugin = plugin;
@@ -16024,7 +16349,7 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
       const ordered = orderedSelected();
       const ay = this.plugin.settings.academicYear;
       if ((ay == null ? void 0 : ay.startDate) && (ay == null ? void 0 : ay.endDate) && (date < ay.startDate || date > ay.endDate)) {
-        new import_obsidian14.Notice(`Note: ${date} is outside the academic year (${ay.startDate} \u2013 ${ay.endDate}). The event was saved but won't count towards directed time.`, 6e3);
+        new import_obsidian15.Notice(`Note: ${date} is outside the academic year (${ay.startDate} \u2013 ${ay.endDate}). The event was saved but won't count towards directed time.`, 6e3);
       }
       if (!this.plugin.settings.dateEvents) this.plugin.settings.dateEvents = [];
       const fields = {
@@ -16074,7 +16399,7 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
       const card = overlay.createDiv("tp-clash-card");
       const head = card.createDiv("tp-clash-head");
       const hIcon = head.createSpan("tp-clash-head-icon");
-      (0, import_obsidian14.setIcon)(hIcon, "alert-triangle");
+      (0, import_obsidian15.setIcon)(hIcon, "alert-triangle");
       head.createSpan({ text: "Block already in use" });
       const list = card.createDiv("tp-clash-list");
       for (const c of clashes) {
@@ -16094,7 +16419,7 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
       const makeAction = (iconName, title2, desc, danger) => {
         const b = acts.createEl("button", { cls: "tp-clash-action" + (danger ? " tp-clash-action--danger" : "") });
         const ic = b.createSpan("tp-clash-action-icon");
-        (0, import_obsidian14.setIcon)(ic, iconName);
+        (0, import_obsidian15.setIcon)(ic, iconName);
         const txt = b.createDiv("tp-clash-action-text");
         txt.createEl("span", { text: title2, cls: "tp-clash-action-title" });
         txt.createEl("span", { text: desc, cls: "tp-clash-action-desc" });
@@ -16121,7 +16446,7 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
       });
       const back = card.createEl("button", { cls: "tp-clash-back" });
       const bIcon = back.createSpan("tp-clash-back-icon");
-      (0, import_obsidian14.setIcon)(bIcon, "arrow-left");
+      (0, import_obsidian15.setIcon)(bIcon, "arrow-left");
       back.createSpan({ text: "Back" });
       back.addEventListener("click", () => overlay.remove());
     };
@@ -16129,15 +16454,15 @@ var AddDateEventModal = class extends import_obsidian14.Modal {
     saveBtn.addEventListener("click", () => {
       void (async () => {
         if (!title.trim()) {
-          new import_obsidian14.Notice("Please give the event a name.");
+          new import_obsidian15.Notice("Please give the event a name.");
           return;
         }
         if (!date) {
-          new import_obsidian14.Notice("Please choose a date.");
+          new import_obsidian15.Notice("Please choose a date.");
           return;
         }
         if (selected.size === 0) {
-          new import_obsidian14.Notice("Please select at least one period block.");
+          new import_obsidian15.Notice("Please select at least one period block.");
           return;
         }
         const periodsList = periodsForDate(date);
@@ -16170,7 +16495,7 @@ function hexToRgba3(hex, alpha) {
 }
 
 // src/utils/lessonNoteFiles.ts
-var import_obsidian15 = require("obsidian");
+var import_obsidian16 = require("obsidian");
 init_noteTitleUtils();
 init_weekUtils();
 init_settings();
@@ -16230,7 +16555,7 @@ function findNote(app, s, meta, date, periodName) {
   }
   const computed = `${noteFolder(s, date)}/${noteFileName(s, meta, date, periodName)}.md`;
   const ex = app.vault.getAbstractFileByPath(computed);
-  return ex instanceof import_obsidian15.TFile ? ex : void 0;
+  return ex instanceof import_obsidian16.TFile ? ex : void 0;
 }
 async function setFm(app, file, date, periodName, classCode) {
   try {
@@ -16277,7 +16602,7 @@ async function applyNoteMoves(app, s, classId, moves) {
     } else {
       const entry = ((_b2 = s.unplacedLessons) != null ? _b2 : []).find((u) => u.id === mv.unplacedId);
       const src = (entry == null ? void 0 : entry.notePath) ? app.vault.getAbstractFileByPath(entry.notePath) : null;
-      if (!(src instanceof import_obsidian15.TFile)) continue;
+      if (!(src instanceof import_obsidian16.TFile)) continue;
       const targetPath = `${noteFolder(s, mv.to.date)}/${noteFileName(s, meta, mv.to.date, mv.to.periodName)}.md`;
       planned.push({
         file: src,
@@ -16293,7 +16618,7 @@ async function applyNoteMoves(app, s, classId, moves) {
   const temps = [];
   for (let i = 0; i < planned.length; i++) {
     const pl = planned[i];
-    const tmp = (0, import_obsidian15.normalizePath)(`${base}/.tp-shift-tmp-${Date.now().toString(36)}-${i}.md`);
+    const tmp = (0, import_obsidian16.normalizePath)(`${base}/.tp-shift-tmp-${Date.now().toString(36)}-${i}.md`);
     try {
       await app.fileManager.renameFile(pl.file, tmp);
       temps.push({ file: pl.file, plan: pl });
@@ -16307,7 +16632,7 @@ async function applyNoteMoves(app, s, classId, moves) {
     const folder = pl.targetPath.slice(0, pl.targetPath.lastIndexOf("/"));
     await ensureFolder(app, folder);
     try {
-      await app.fileManager.renameFile(t.file, (0, import_obsidian15.normalizePath)(pl.targetPath));
+      await app.fileManager.renameFile(t.file, (0, import_obsidian16.normalizePath)(pl.targetPath));
       await setFm(app, t.file, pl.date, pl.periodName, meta.code);
       undo.push(pl.undo);
     } catch (err2) {
@@ -16322,8 +16647,8 @@ async function reverseNoteMoves(app, ops) {
   const temps = [];
   for (let i = 0; i < ops.length; i++) {
     const f = app.vault.getAbstractFileByPath(ops[i].fromPath);
-    if (!(f instanceof import_obsidian15.TFile)) continue;
-    const tmp = (0, import_obsidian15.normalizePath)(`${base}/.tp-unshift-tmp-${Date.now().toString(36)}-${i}.md`);
+    if (!(f instanceof import_obsidian16.TFile)) continue;
+    const tmp = (0, import_obsidian16.normalizePath)(`${base}/.tp-unshift-tmp-${Date.now().toString(36)}-${i}.md`);
     try {
       await app.fileManager.renameFile(f, tmp);
       temps.push({ file: f, op: ops[i] });
@@ -16340,7 +16665,7 @@ async function reverseNoteMoves(app, ops) {
       }
     }
     try {
-      await app.fileManager.renameFile(t.file, (0, import_obsidian15.normalizePath)(t.op.toPath));
+      await app.fileManager.renameFile(t.file, (0, import_obsidian16.normalizePath)(t.op.toPath));
       await app.fileManager.processFrontMatter(t.file, (fm) => {
         fm.period = t.op.periodName;
         fm.date = t.op.date;
@@ -16359,7 +16684,7 @@ function lessonNoteDefaultTitle(s, classId, periodName, dateIso) {
 function findLessonNoteByTitle(app, s, dateIso, fileName) {
   const base = plannerFolder(s);
   for (const p of [`${noteFolder(s, dateIso)}/${fileName}.md`, `${base}/${fileName}.md`]) {
-    if (app.vault.getAbstractFileByPath(p) instanceof import_obsidian15.TFile) return p;
+    if (app.vault.getAbstractFileByPath(p) instanceof import_obsidian16.TFile) return p;
   }
   return null;
 }
@@ -16393,9 +16718,9 @@ init_eventUtils();
 init_exportDestination();
 
 // src/modals/LessonPlanSuggestModal.ts
-var import_obsidian16 = require("obsidian");
+var import_obsidian17 = require("obsidian");
 init_SettingsTab();
-var LessonPlanSuggestModal = class extends import_obsidian16.FuzzySuggestModal {
+var LessonPlanSuggestModal = class extends import_obsidian17.FuzzySuggestModal {
   constructor(app, plugin, classCode, subjectName, onPick) {
     super(app);
     this.plugin = plugin;
@@ -16428,7 +16753,7 @@ var LessonPlanSuggestModal = class extends import_obsidian16.FuzzySuggestModal {
       void (async () => {
         var _a2;
         const folder = defaultPlansFolder(this.plugin.settings);
-        if (!(this.app.vault.getAbstractFileByPath(folder) instanceof import_obsidian16.TFolder)) {
+        if (!(this.app.vault.getAbstractFileByPath(folder) instanceof import_obsidian17.TFolder)) {
           try {
             await this.app.vault.createFolder(folder);
           } catch (e) {
@@ -16437,7 +16762,7 @@ var LessonPlanSuggestModal = class extends import_obsidian16.FuzzySuggestModal {
         const safe = name.replace(/[\\/:*?"<>|]/g, "-");
         const path = `${folder}/${safe}.md`;
         if (this.app.vault.getAbstractFileByPath(path)) {
-          new import_obsidian16.Notice("A note with that name already exists \u2014 linking it instead.");
+          new import_obsidian17.Notice("A note with that name already exists \u2014 linking it instead.");
           this.onPick(path);
           return;
         }
@@ -16449,7 +16774,7 @@ var LessonPlanSuggestModal = class extends import_obsidian16.FuzzySuggestModal {
           void this.app.workspace.openLinkText(path, "", false);
         } catch (err2) {
           console.error("Teacher Planner: failed to create lesson plan.", err2);
-          new import_obsidian16.Notice("Could not create the plan note \u2014 see console.");
+          new import_obsidian17.Notice("Could not create the plan note \u2014 see console.");
         }
       })();
     }).open();
@@ -22444,10 +22769,10 @@ function instance3($$self, $$props, $$invalidate) {
   let selectedDayDateStr;
   var _a2, _b2, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
   function obsIcon(node, id) {
-    (0, import_obsidian17.setIcon)(node, id);
+    (0, import_obsidian18.setIcon)(node, id);
     return {
       update(newId) {
-        (0, import_obsidian17.setIcon)(node, newId);
+        (0, import_obsidian18.setIcon)(node, newId);
       }
     };
   }
@@ -22684,14 +23009,14 @@ function instance3($$self, $$props, $$invalidate) {
       if (!ev) return;
       const single = eventPeriodIds(ev).length <= 1;
       if (copy) {
-        const clone = {
+        const clone2 = {
           ...ev,
           id: "devevent-" + Date.now(),
           date: dayDate,
           periodId: single ? periodId : ev.periodId,
           periodIds: single ? [periodId] : ev.periodIds ? ev.periodIds.slice() : void 0
         };
-        plugin.settings.dateEvents.push(clone);
+        plugin.settings.dateEvents.push(clone2);
       } else {
         ev.date = dayDate;
         if (single) {
@@ -22745,7 +23070,7 @@ function instance3($$self, $$props, $$invalidate) {
   function openChipMenu(e, type, date, periodId, slot, event) {
     var _a3, _b3, _c2, _d2;
     e.stopPropagation();
-    const menu = new import_obsidian17.Menu();
+    const menu = new import_obsidian18.Menu();
     const period = plugin.settings.academicYear.periods.find((p) => p.id === periodId);
     if (period) {
       menu.addItem((i) => i.setTitle(`${period.name} \xB7 ${period.start}\u2013${period.end}`).setIcon("clock").setDisabled(true));
@@ -23040,7 +23365,7 @@ function instance3($$self, $$props, $$invalidate) {
     e.stopPropagation();
     const cur = currentAbOverride();
     const state = cur ? `This week: Week ${abWeekType} (forced${cur.anchor ? ", shifts rest" : ""})` : `This week: Week ${abWeekType} (automatic)`;
-    const menu = new import_obsidian17.Menu();
+    const menu = new import_obsidian18.Menu();
     menu.addItem((i) => i.setTitle(state).setIcon("calendar").setDisabled(true));
     menu.addSeparator();
     menu.addItem((i) => i.setTitle("Use automatic rotation").setIcon("rotate-ccw").setChecked(!cur).onClick(() => setAbOverride(null, false)));
@@ -23067,7 +23392,7 @@ function instance3($$self, $$props, $$invalidate) {
   }
   function showOverflowMenu(e) {
     e.stopPropagation();
-    const menu = new import_obsidian17.Menu();
+    const menu = new import_obsidian18.Menu();
     menu.addItem((i) => i.setTitle("+ Event").setIcon("calendar-plus").onClick(() => onAddEvent()));
     menu.addItem((i) => i.setTitle("Timetable").setIcon("layout-grid").onClick(onOpenTimetable));
     menu.addItem((i) => i.setTitle("Settings").setIcon("settings").onClick(onOpenSettings));
@@ -23090,7 +23415,7 @@ function instance3($$self, $$props, $$invalidate) {
     e.stopPropagation();
     onAddEvent(dayDate, periodId);
   }
-  const _isMobileApp = import_obsidian17.Platform.isMobile;
+  const _isMobileApp = import_obsidian18.Platform.isMobile;
   function _schoolDayKeys() {
     var _a3;
     return (_a3 = plugin.settings.schoolDays) !== null && _a3 !== void 0 ? _a3 : ["monday", "tuesday", "wednesday", "thursday", "friday"];
@@ -23153,7 +23478,7 @@ function instance3($$self, $$props, $$invalidate) {
   function findExistingNote(dateIso, fileName) {
     const base = plugin.settings.plannerFolder || "Teacher Planner";
     for (const p of [`${wcFolderFor(dateIso)}/${fileName}.md`, `${base}/${fileName}.md`]) {
-      if (plugin.app.vault.getAbstractFileByPath(p) instanceof import_obsidian17.TFile) return p;
+      if (plugin.app.vault.getAbstractFileByPath(p) instanceof import_obsidian18.TFile) return p;
     }
     return null;
   }
@@ -23182,7 +23507,7 @@ function instance3($$self, $$props, $$invalidate) {
   function doUndoBulkApply() {
     const journal = plugin.settings.lastBulkApply;
     if (!journal) {
-      new import_obsidian17.Notice("Nothing to undo.");
+      new import_obsidian18.Notice("Nothing to undo.");
       return;
     }
     new ConfirmModal(
@@ -23192,7 +23517,7 @@ function instance3($$self, $$props, $$invalidate) {
         const n = undoBulkApply(plugin.settings);
         await plugin.saveSettings();
         invalidate();
-        new import_obsidian17.Notice(`Bulk apply undone \u2014 ${n} lesson${n === 1 ? "" : "s"} reverted.`);
+        new import_obsidian18.Notice(`Bulk apply undone \u2014 ${n} lesson${n === 1 ? "" : "s"} reverted.`);
       },
       "Undo"
     ).open();
@@ -23205,7 +23530,7 @@ function instance3($$self, $$props, $$invalidate) {
     btn.className = "tp-btn";
     btn.style.marginLeft = "8px";
     frag.appendChild(btn);
-    const notice = new import_obsidian17.Notice(frag, 1e4);
+    const notice = new import_obsidian18.Notice(frag, 1e4);
     btn.addEventListener("click", () => {
       notice.hide();
       doUndoBulkApply();
@@ -23226,7 +23551,7 @@ function instance3($$self, $$props, $$invalidate) {
   }
   function openPlan(path) {
     if (!plugin.app.vault.getAbstractFileByPath(path)) {
-      new import_obsidian17.Notice("Lesson plan note not found \u2014 it may have been deleted. Re-link from the lesson menu.");
+      new import_obsidian18.Notice("Lesson plan note not found \u2014 it may have been deleted. Re-link from the lesson menu.");
       return;
     }
     plugin.app.workspace.openLinkText(path, "", false);
@@ -23966,7 +24291,7 @@ var WeekView_default = WeekView;
 
 // src/views/WeekView.ts
 var WEEK_VIEW_TYPE = "teacher-planner-week-view";
-var WeekView2 = class extends import_obsidian18.ItemView {
+var WeekView2 = class extends import_obsidian19.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.component = null;
@@ -24082,7 +24407,7 @@ var WeekView2 = class extends import_obsidian18.ItemView {
 };
 
 // src/views/CalendarSidebarView.ts
-var import_obsidian20 = require("obsidian");
+var import_obsidian21 = require("obsidian");
 
 // src/views/CalendarSidebarComponent.svelte
 init_internal();
@@ -24090,7 +24415,7 @@ init_disclose_version();
 init_weekUtils();
 init_weekNoteFiles();
 init_directedTimeUtils();
-var import_obsidian19 = require("obsidian");
+var import_obsidian20 = require("obsidian");
 init_runtime();
 function add_css4(target) {
   append_styles(target, "svelte-6i2l03", ".tp-sidebar.svelte-6i2l03.svelte-6i2l03{display:flex;flex-direction:column;flex:1;height:100%;min-height:0;background:var(--background-primary);font-family:var(--font-interface);overflow:hidden}.tp-cal.svelte-6i2l03.svelte-6i2l03{padding:16px 12px 10px;flex-shrink:0}.tp-cal-header.svelte-6i2l03.svelte-6i2l03{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.tp-cal-title.svelte-6i2l03.svelte-6i2l03{font-size:20px;font-weight:700;color:var(--text-normal);margin:0;line-height:1.1}.tp-cal-year.svelte-6i2l03.svelte-6i2l03{color:var(--interactive-accent)}.tp-cal-nav-group.svelte-6i2l03.svelte-6i2l03{display:flex;align-items:center;gap:2px}.tp-cal-nav.svelte-6i2l03.svelte-6i2l03{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:20px;padding:2px 5px;border-radius:4px;line-height:1;transition:color 0.1s}.tp-cal-nav.svelte-6i2l03.svelte-6i2l03:hover:not(:disabled){color:var(--text-normal);background:var(--background-modifier-hover)}.tp-cal-nav.svelte-6i2l03.svelte-6i2l03:disabled{opacity:0.25;cursor:default}.tp-cal-today-btn.svelte-6i2l03.svelte-6i2l03{font-size:11px;font-weight:700;letter-spacing:0.05em;color:var(--text-muted);background:none;border:none;border-radius:4px;padding:3px 7px;cursor:pointer;transition:color 0.1s}.tp-cal-today-btn.svelte-6i2l03.svelte-6i2l03:hover{color:var(--text-normal)}.tp-cal-grid.svelte-6i2l03.svelte-6i2l03{display:grid;grid-template-columns:repeat(7, 1fr);gap:0;row-gap:2px}.tp-cal-dow.svelte-6i2l03.svelte-6i2l03{text-align:center;font-size:10px;font-weight:700;letter-spacing:0.06em;color:var(--text-muted);padding:0 0 8px}.tp-cal-day.svelte-6i2l03.svelte-6i2l03{text-align:center;font-size:13px;padding:3px 2px;color:var(--text-normal);line-height:1;min-height:28px;display:flex;align-items:center;justify-content:center}.tp-cal-day-num.svelte-6i2l03.svelte-6i2l03{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid transparent;border-radius:3px;transition:border-color 0.12s}.tp-cal-day--clickable.svelte-6i2l03.svelte-6i2l03{cursor:pointer}.tp-cal-day--clickable.svelte-6i2l03:hover .tp-cal-day-num.svelte-6i2l03{border-color:var(--interactive-accent)}.tp-cal-day--outside.svelte-6i2l03.svelte-6i2l03{color:var(--text-faint)}.tp-cal-day--faded.svelte-6i2l03.svelte-6i2l03{opacity:0.3;cursor:default;pointer-events:none}.tp-cal-day--today.svelte-6i2l03 .tp-cal-day-num.svelte-6i2l03{color:var(--interactive-accent);font-weight:700}.tp-sb-notes.svelte-6i2l03.svelte-6i2l03{flex:1;display:flex;flex-direction:column;margin:6px 12px 12px;border-radius:8px;background:var(--background-secondary);border:1px solid var(--background-modifier-border);overflow:hidden;min-height:60px}.tp-sb-notes-toolbar.svelte-6i2l03.svelte-6i2l03{display:flex;align-items:center;flex-wrap:wrap;gap:1px;padding:4px 5px;border-bottom:1px solid var(--background-modifier-border)}.tp-fmt-btn.svelte-6i2l03.svelte-6i2l03{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;padding:0;background:transparent;border:none;border-radius:5px;color:var(--text-muted);cursor:pointer;box-shadow:none}.tp-fmt-btn.svelte-6i2l03.svelte-6i2l03:hover{background:var(--background-modifier-hover);color:var(--text-normal)}.tp-fmt-btn.svelte-6i2l03 svg{width:15px;height:15px}.tp-fmt-sep.svelte-6i2l03.svelte-6i2l03{width:1px;height:16px;background:var(--background-modifier-border);margin:0 3px}.tp-fmt-hl.svelte-6i2l03.svelte-6i2l03{position:relative;display:inline-flex;align-items:center}.tp-fmt-hl-main.svelte-6i2l03.svelte-6i2l03{flex-direction:column;gap:1px;width:26px}.tp-fmt-hl-bar.svelte-6i2l03.svelte-6i2l03{width:14px;height:3px;border-radius:1px}.tp-fmt-hl-caret.svelte-6i2l03.svelte-6i2l03{width:16px}.tp-fmt-hl-caret.svelte-6i2l03 svg{width:11px;height:11px}.tp-fmt-swatches.svelte-6i2l03.svelte-6i2l03{position:absolute;top:30px;right:0;z-index:30;display:flex;gap:6px;padding:7px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:7px;box-shadow:0 2px 8px rgba(0,0,0,0.25)}.tp-fmt-swatch.svelte-6i2l03.svelte-6i2l03{width:18px;height:18px;border-radius:4px;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.12)}.tp-fmt-swatch--active.svelte-6i2l03.svelte-6i2l03{box-shadow:0 0 0 2px var(--text-normal)}.tp-sb-notes-body.svelte-6i2l03.svelte-6i2l03{position:relative;flex:1;display:flex;min-height:0}.tp-sb-notes-textarea.svelte-6i2l03.svelte-6i2l03{flex:1;resize:none;width:100%;box-sizing:border-box;padding:10px 12px;background:transparent;color:var(--text-normal);border:none;outline:none;overflow-y:auto;font-family:var(--font-text);font-size:13px;line-height:1.5}.tp-sb-notes-textarea.svelte-6i2l03.svelte-6i2l03::placeholder{color:var(--text-faint);font-style:italic;font-size:12px}.tp-sb-notes-preview.svelte-6i2l03.svelte-6i2l03{position:absolute;inset:0;overflow-y:auto;cursor:text;padding:4px 12px 10px;background:var(--background-secondary);color:var(--text-normal);font-family:var(--font-text);font-size:13px;line-height:1.5}.tp-sb-notes-preview--hidden.svelte-6i2l03.svelte-6i2l03{display:none}.tp-sb-notes-preview.svelte-6i2l03 p{margin:6px 0}.tp-sb-notes-preview.svelte-6i2l03 ul,.tp-sb-notes-preview.svelte-6i2l03 ol{margin:6px 0;padding-left:20px}.tp-sb-notes-preview.svelte-6i2l03 h1,.tp-sb-notes-preview.svelte-6i2l03 h2,.tp-sb-notes-preview.svelte-6i2l03 h3{margin:8px 0 4px;line-height:1.3}.tp-sb-dt.svelte-6i2l03.svelte-6i2l03{margin:0 12px 12px;border-radius:8px;background:var(--background-secondary);border:1px solid var(--background-modifier-border);padding:10px 12px;flex-shrink:0}.tp-sb-dt-title.svelte-6i2l03.svelte-6i2l03{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);margin-bottom:8px;display:flex;align-items:center;gap:5px}.tp-sb-dt-icon.svelte-6i2l03.svelte-6i2l03{display:inline-flex;align-items:center;flex-shrink:0}.tp-sb-dt-icon.svelte-6i2l03 svg{width:12px;height:12px}.tp-sb-dt-rows.svelte-6i2l03.svelte-6i2l03{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}.tp-sb-dt-row.svelte-6i2l03.svelte-6i2l03{display:flex;justify-content:space-between;align-items:baseline;gap:6px}.tp-sb-dt-label.svelte-6i2l03.svelte-6i2l03{font-size:12px;color:var(--text-muted);white-space:nowrap}.tp-sb-dt-value.svelte-6i2l03.svelte-6i2l03{font-size:13px;font-weight:700;color:var(--text-normal);white-space:nowrap}.tp-sb-dt-value--over.svelte-6i2l03.svelte-6i2l03{color:var(--color-red, #f38ba8)}.tp-sb-dt-status.svelte-6i2l03.svelte-6i2l03{font-size:11px;font-weight:600;padding:5px 8px;border-radius:5px;line-height:1.4;display:flex;align-items:center;gap:5px}.tp-sb-dt-status--over.svelte-6i2l03.svelte-6i2l03{background:color-mix(in srgb, var(--color-red, #f38ba8) 15%, transparent);color:var(--color-red, #f38ba8)}.tp-sb-dt-status--under.svelte-6i2l03.svelte-6i2l03{background:color-mix(in srgb, var(--color-green, #a6e3a1) 12%, transparent);color:var(--color-green, #a6e3a1)}");
@@ -25364,11 +25689,11 @@ function instance4($$self, $$props, $$invalidate) {
   let dtCalc;
   var _a2, _b2, _c;
   function icon(node, name) {
-    (0, import_obsidian19.setIcon)(node, name);
+    (0, import_obsidian20.setIcon)(node, name);
     return {
       update(n) {
         node.empty();
-        (0, import_obsidian19.setIcon)(node, n);
+        (0, import_obsidian20.setIcon)(node, n);
       }
     };
   }
@@ -25428,7 +25753,7 @@ function instance4($$self, $$props, $$invalidate) {
     if (!previewEl) return;
     previewEl.empty();
     if (!md || !md.trim()) return;
-    await import_obsidian19.MarkdownRenderer.render(plugin.app, md, previewEl, "", plugin);
+    await import_obsidian20.MarkdownRenderer.render(plugin.app, md, previewEl, "", plugin);
   }
   async function enterEdit() {
     if (plugin.settings.weekNoteFiles && !editing) {
@@ -25694,7 +26019,7 @@ var CalendarSidebarComponent_default = CalendarSidebarComponent;
 
 // src/views/CalendarSidebarView.ts
 var CALENDAR_SIDEBAR_VIEW_TYPE = "teacher-planner-calendar-sidebar";
-var CalendarSidebarView = class extends import_obsidian20.ItemView {
+var CalendarSidebarView = class extends import_obsidian21.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.component = null;
@@ -25773,12 +26098,12 @@ var CalendarSidebarView = class extends import_obsidian20.ItemView {
 };
 
 // src/views/LessonOverviewView.ts
-var import_obsidian22 = require("obsidian");
+var import_obsidian23 = require("obsidian");
 
 // src/modals/LessonOverviewComponent.svelte
 init_internal();
 init_disclose_version();
-var import_obsidian21 = require("obsidian");
+var import_obsidian22 = require("obsidian");
 init_runtime();
 
 // src/utils/lessonOccurrences.ts
@@ -28481,10 +28806,10 @@ function instance5($$self, $$props, $$invalidate) {
   var _a2, _b2, _c;
   let { plugin } = $$props;
   function obsIcon(node, id) {
-    (0, import_obsidian21.setIcon)(node, id);
+    (0, import_obsidian22.setIcon)(node, id);
     return {
       update(n) {
-        (0, import_obsidian21.setIcon)(node, n);
+        (0, import_obsidian22.setIcon)(node, n);
       }
     };
   }
@@ -28502,7 +28827,7 @@ function instance5($$self, $$props, $$invalidate) {
   let menuKey = null;
   let panelNote = "";
   let panelRoom = "";
-  const isMobile = import_obsidian21.Platform.isMobileApp;
+  const isMobile = import_obsidian22.Platform.isMobileApp;
   let lastSnap = null;
   let lastNoteUndo = [];
   let toast = "";
@@ -28896,7 +29221,7 @@ var LessonOverviewComponent_default = LessonOverviewComponent;
 
 // src/views/LessonOverviewView.ts
 var LESSON_OVERVIEW_VIEW_TYPE = "teacher-planner-lesson-overview";
-var LessonOverviewView = class extends import_obsidian22.ItemView {
+var LessonOverviewView = class extends import_obsidian23.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.component = null;
@@ -28976,7 +29301,7 @@ function copySettingsToGlobal(dst, src, k) {
   const value = src[k];
   if (value !== void 0) dst[k] = value;
 }
-var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian23.Plugin {
+var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian24.Plugin {
   constructor() {
     super(...arguments);
     /** True when there are no planners on load — the wizard is triggered from onload. */
@@ -29118,7 +29443,7 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
     const raw = window.localStorage.getItem(_TeacherPlannerPlugin.GRID_SCALE_KEY);
     const n = raw != null ? parseInt(raw, 10) : NaN;
     if (!isNaN(n) && n >= 60 && n <= 240) return n;
-    return import_obsidian23.Platform.isMobile ? 150 : 120;
+    return import_obsidian24.Platform.isMobile ? 150 : 120;
   }
   setGridScale(pxPerHour) {
     const clamped = Math.max(60, Math.min(240, Math.round(pxPerHour)));

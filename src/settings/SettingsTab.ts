@@ -7,6 +7,7 @@ import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FA
 import { buildNoteTitle } from "../utils/noteTitleUtils";
 import { migrateWeekNotesToFiles } from "../utils/weekNoteFiles";
 import { backupPlanner, backupAll, parseBackup, importPlanners, listBackupFiles, backupsFolder } from "../utils/plannerBackup";
+import { buildStructureTemplate, buildHolidayTemplate, writeTemplateFile, listTemplateFiles, parseTemplate, applyStructureTemplate, applyHolidayTemplate, holidayCount, shiftOverrideDates, structureTemplatesFolder, holidayTemplatesFolder } from "../utils/schoolTemplates";
 import { resolveColour, isThemeToken, GRID_THEME_TOKEN } from "../utils/themeColours";
 import { findOverlappingOverrides } from "../utils/weekUtils";
 import ColourPickerComponent from "../modals/ColourPickerComponent.svelte";
@@ -922,6 +923,23 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         catch (e) { console.error("Teacher Planner: export-all failed.", e); new Notice("Backup failed — see console."); }
       })(); }));
 
+    // School templates: reusable shell + holiday calendar (shareable .json files)
+    new Setting(container).setName("Templates").setHeading();
+    container.createEl("p", {
+      text: `Reusable setups saved as .json under "${this.plugin.plannerData.rootPlannerFolder || "Teacher Planner"}/Templates". A template holds the school shell only, never your classes, timetable, notes, or dates. Share one by dropping its file into the matching folder.`,
+      cls: "setting-item-description",
+    });
+    new Setting(container)
+      .setName("School structure")
+      .setDesc("Periods, block types, A/B pattern and school days.")
+      .addButton(btn => btn.setButtonText("Save current…").onClick(() => this.saveStructureTemplate()))
+      .addButton(btn => btn.setButtonText("Apply template…").onClick(() => this.applyStructureTemplateFlow()));
+    new Setting(container)
+      .setName("Holiday calendar")
+      .setDesc("Holiday and INSET dates to drop in and nudge each year.")
+      .addButton(btn => btn.setButtonText("Save current…").onClick(() => this.saveHolidayTemplate()))
+      .addButton(btn => btn.setButtonText("Load template…").onClick(() => this.loadHolidayTemplateFlow()));
+
     // "+ New planner" button
     new Setting(container).addButton(btn => btn.setButtonText("+ New planner").setCta()
       .onClick(() => {
@@ -1173,6 +1191,61 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
    * typeFilter "directed" shows activities where activityType !== "other" (includes undefined).
    * typeFilter "other" shows activities where activityType === "other".
    */
+  private saveStructureTemplate() {
+    new TextPromptModal(this.app, "Save school structure template", "", "Template name (e.g. School main)", (name) => { void (async () => {
+      const n = name.trim(); if (!n) return;
+      try { const path = await writeTemplateFile(this.plugin, "structure", n, buildStructureTemplate(this.plugin, n)); new Notice(`Saved structure template to ${path}`); }
+      catch (e) { console.error("Teacher Planner: save structure template failed.", e); new Notice("Could not save template — see console."); }
+    })(); }).open();
+  }
+
+  private saveHolidayTemplate() {
+    if (holidayCount(this.plugin) === 0) { new Notice("No holidays or INSET days to save yet."); return; }
+    new TextPromptModal(this.app, "Save holiday calendar template", "", "Template name (e.g. 2026-27 holidays)", (name) => { void (async () => {
+      const n = name.trim(); if (!n) return;
+      try { const path = await writeTemplateFile(this.plugin, "holidays", n, buildHolidayTemplate(this.plugin, n)); new Notice(`Saved holiday template to ${path}`); }
+      catch (e) { console.error("Teacher Planner: save holiday template failed.", e); new Notice("Could not save template — see console."); }
+    })(); }).open();
+  }
+
+  private applyStructureTemplateFlow() {
+    const files = listTemplateFiles(this.plugin, "structure");
+    if (files.length === 0) { new Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`); return; }
+    new TemplatePickModal(this.app, files, "Pick a school structure template…", (file) => { void (async () => {
+      let tpl;
+      try { tpl = parseTemplate(await this.app.vault.read(file)); }
+      catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
+      if (tpl.kind !== "structure" || !tpl.structure) { new Notice("That file is not a school structure template."); return; }
+      const structure = tpl.structure;
+      new ConfirmModal(this.app,
+        "Apply this school structure to the current planner? It replaces your periods, block types, A/B pattern and school days. Any classes already placed on the timetable will be detached, since their slots point at the old periods. Your classes, notes and year dates are kept.",
+        () => { void (async () => {
+          try { await applyStructureTemplate(this.plugin, structure); new Notice("School structure applied."); this.display(); }
+          catch (e) { console.error("Teacher Planner: apply structure failed.", e); new Notice("Could not apply template — see console."); }
+        })(); },
+        "Apply structure").open();
+    })(); }).open();
+  }
+
+  private loadHolidayTemplateFlow() {
+    const files = listTemplateFiles(this.plugin, "holidays");
+    if (files.length === 0) { new Notice(`No holiday templates in "${holidayTemplatesFolder(this.plugin)}".`); return; }
+    new TemplatePickModal(this.app, files, "Pick a holiday calendar template…", (file) => { void (async () => {
+      let tpl;
+      try { tpl = parseTemplate(await this.app.vault.read(file)); }
+      catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
+      if (tpl.kind !== "holidays" || !tpl.holidays) { new Notice("That file is not a holiday calendar template."); return; }
+      const holidays = tpl.holidays;
+      new TextPromptModal(this.app, "Shift dates (optional)", "0", "Days to shift (364 ≈ next year, 0 to keep as saved)", (val) => { void (async () => {
+        const days = parseInt(val); const d = isNaN(days) ? 0 : days;
+        const overrides = d !== 0 ? shiftOverrideDates(holidays.overrides, d) : holidays.overrides;
+        const n = await applyHolidayTemplate(this.plugin, { overrides });
+        new Notice(`Added ${n} holiday/INSET ${n === 1 ? "entry" : "entries"}. Fine-tune dates in the Academic year settings.`);
+        this.display();
+      })(); }).open();
+    })(); }).open();
+  }
+
   private renderActivitiesList(container: HTMLElement, typeFilter: "directed" | "other" = "directed") {
     const activities = this.plugin.settings.activities ?? [];
     const matchType = (a: Activity) =>
@@ -1683,4 +1756,18 @@ class ImportPlannerModal extends FuzzySuggestModal<TFile> {
       }
     })();
   }
+}
+
+class TemplatePickModal extends FuzzySuggestModal<TFile> {
+  private files: TFile[];
+  private onPick: (file: TFile) => void;
+  constructor(app: App, files: TFile[], placeholder: string, onPick: (file: TFile) => void) {
+    super(app);
+    this.files = files;
+    this.onPick = onPick;
+    this.setPlaceholder(placeholder);
+  }
+  getItems(): TFile[] { return this.files; }
+  getItemText(f: TFile): string { return f.basename; }
+  onChooseItem(f: TFile): void { this.onPick(f); }
 }

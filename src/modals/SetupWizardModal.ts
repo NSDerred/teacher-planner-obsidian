@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Setting, setIcon } from "obsidian";
+import { App, Modal, Notice, Setting, setIcon, FuzzySuggestModal, TFile } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type {
   PlannerRecord, Subject, ClassGroup, SchoolDay,
@@ -8,6 +8,7 @@ import { DEFAULT_PLANNER, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, FALLBACK_PERIO
 import { resolveColour } from "../utils/themeColours";
 import { isValidIsoDate, findOverlappingOverrides } from "../utils/weekUtils";
 import { syncPeriodsUnion } from "../utils/scheduleUtils";
+import { listTemplateFiles, parseTemplate, structureTemplatesFolder } from "../utils/schoolTemplates";
 import { TimetableEditorModal } from "./TimetableEditorModal";
 import { openEmojiPicker, closeEmojiPicker, TextPromptModal, ConfirmModal } from "../settings/SettingsTab";
 
@@ -155,6 +156,31 @@ export class SetupWizardModal extends Modal {
 
   // ── Step 1: Planner name ────────────────────────────────────────────────────
 
+  private loadStructureTemplate() {
+    const files = listTemplateFiles(this.plugin, "structure");
+    if (files.length === 0) { new Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`); return; }
+    new WizardTemplatePickModal(this.app, files, (file) => { void (async () => {
+      let tpl;
+      try { tpl = parseTemplate(await this.app.vault.read(file)); }
+      catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
+      if (tpl.kind !== "structure" || !tpl.structure) { new Notice("That file is not a school structure template."); return; }
+      const st = tpl.structure;
+      const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null));
+      let daySchedules: DaySchedule[] = clone(st.daySchedules) ?? [];
+      if (daySchedules.length === 0 && (st.periods?.length ?? 0) > 0) {
+        daySchedules = [{ id: "sched-default", name: "Standard day", periods: clone(st.periods) }];
+      }
+      this.state.periodTypes = clone(st.periodTypes) ?? [];
+      this.state.daySchedules = daySchedules;
+      this.state.dayScheduleMap = clone(st.dayScheduleMap) ?? {};
+      if (st.schoolDays) this.state.schoolDays = clone(st.schoolDays);
+      this.state.abWeekEnabled = !!st.abWeekEnabled;
+      this.state.abWeekStartsOn = st.abWeekStartsOn ?? "A";
+      new Notice(`Loaded structure from "${tpl.name}".`);
+      this.render();
+    })(); }).open();
+  }
+
   private renderStep1(body: HTMLElement) {
     this.stepHeading(body, 1, "Name your planner",
       "Give this planner a name — usually the academic year. It will also be used as the vault subfolder.");
@@ -169,6 +195,11 @@ export class SetupWizardModal extends Modal {
         nameInput = t.inputEl;
         window.setTimeout(() => t.inputEl.focus(), 50);
       });
+
+    new Setting(body)
+      .setName("Start from a school structure template")
+      .setDesc("Optional. Load a saved school shell (periods, blocks, A/B pattern, school days) so the next steps come pre-filled.")
+      .addButton(btn => btn.setButtonText("Choose template…").onClick(() => this.loadStructureTemplate()));
 
     this.footer(body, () => {
       const v = nameInput!.value.trim();
@@ -992,4 +1023,19 @@ class WizardCloseConfirmModal extends Modal {
   }
 
   onClose() { this.contentEl.empty(); }
+}
+
+
+class WizardTemplatePickModal extends FuzzySuggestModal<TFile> {
+  private files: TFile[];
+  private onPick: (file: TFile) => void;
+  constructor(app: App, files: TFile[], onPick: (file: TFile) => void) {
+    super(app);
+    this.files = files;
+    this.onPick = onPick;
+    this.setPlaceholder("Pick a school structure template…");
+  }
+  getItems(): TFile[] { return this.files; }
+  getItemText(f: TFile): string { return f.basename; }
+  onChooseItem(f: TFile): void { this.onPick(f); }
 }
