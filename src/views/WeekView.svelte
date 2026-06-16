@@ -16,6 +16,8 @@
   import { SlotNotesModal } from "../modals/SlotNotesModal";
   import { ColourPickerModal, ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
   import { AddDateEventModal } from "../modals/AddDateEventModal";
+  import { LessonOverviewModal } from "../modals/LessonOverviewModal";
+  import { lessonNoteFrontmatter } from "../utils/lessonNoteFiles";
   import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
   import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
   import { eventPeriodIds, eventIsDirected } from "../utils/eventUtils";
@@ -738,6 +740,10 @@
   // ── Navigation ────────────────────────────────────────────────────────────
   function onPrev()  { if (isDayMode) { onPrevDay(); return; } if (canGoWeekPrev) currentDate = addWeeks(currentDate, -1); }
   function onNext()  { if (isDayMode) { onNextDay(); return; } if (canGoWeekNext) currentDate = addWeeks(currentDate, 1); }
+  function onOpenOverview() {
+    new LessonOverviewModal(plugin.app, plugin).open();
+  }
+
   function onToday() {
     const t = new Date();
     const s = _ayStart(); const e = _ayEnd();
@@ -1035,7 +1041,8 @@
       classCode: cls?.code ?? getSlotLabel(slot).code,
       subjectName: subj?.name, emoji: subj?.emoji,
     }) || `${dayDate} ${getSlotLabel(slot).code}`;
-    const body = plugin.settings.lessonNoteTemplate ?? LESSON_BODY_FALLBACK;
+    const fm = lessonNoteFrontmatter({ code: cls?.code ?? getSlotLabel(slot).code, subjectName: subj?.name, emoji: subj?.emoji }, periodName, dayDate);
+    const body = fm + (plugin.settings.lessonNoteTemplate ?? LESSON_BODY_FALLBACK);
     promptAndCreateNote({ dayDate, defaultTitle, body, promptTitle: "New lesson note", classIdForCount: slot.classId });
   }
 
@@ -1098,6 +1105,7 @@
     </nav>
     <div class="tp-header-actions">
       <button class="tp-btn tp-action-btn" on:click={() => onAddEvent()} aria-label="Add event"><span use:obsIcon={"calendar-plus"} class="tp-btn-icon"></span>Event</button>
+      <button class="tp-btn tp-action-btn" on:click={onOpenOverview} aria-label="Lesson overview"><span use:obsIcon={"list-details"} class="tp-btn-icon"></span>Overview</button>
       <button class="tp-btn tp-action-btn" on:click={onOpenTimetable} aria-label="Edit timetable"><span use:obsIcon={"layout-grid"} class="tp-btn-icon"></span>Timetable</button>
       <button class="tp-btn tp-action-btn tp-action-btn--icon-only" on:click={onOpenSettings} aria-label="Settings" use:obsIcon={"settings"}></button>
       <button class="tp-btn tp-overflow-btn" on:click={showOverflowMenu} aria-label="More options" use:obsIcon={"more-horizontal"}></button>

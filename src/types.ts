@@ -184,6 +184,26 @@ export interface PreparedMark {
   eventId?: string;
 }
 
+/** Small per-lesson notes field, keyed to the lesson (slot + date). Travels with shifts. */
+export interface LessonNote {
+  slotId: string;
+  date: string;      // ISO "YYYY-MM-DD"
+  text: string;
+}
+
+/** A lesson pushed off the end of the year by a forward shift. Parked, never lost. */
+export interface UnplacedLesson {
+  id: string;
+  classId: string;
+  label?: string;        // display label (plan title / note snippet)
+  plan?: string;         // plan note path
+  prepared?: boolean;
+  external?: { path: string; kind?: "file" | "folder" };
+  note?: string;         // per-lesson notes text
+  notePath?: string;     // parked MD note file path (set when the note file is moved)
+  pushedFromDate?: string;
+}
+
 /** Undo journal for the last "Apply plan to future lessons" action. */
 export interface BulkApplyJournal {
   path: string;
@@ -261,6 +281,8 @@ export interface TeacherPlannerSettings {
   mobileViewMode?: "day" | "agenda" | "grid";
   /** External (outside-the-vault) file/folder attachments. Desktop only. */
   externalLinks?: ExternalResourceLink[];
+  lessonNotes?: LessonNote[];
+  unplacedLessons?: UnplacedLesson[];
   /** Undo journal for the last bulk plan apply. */
   lastBulkApply?: BulkApplyJournal;
   /** Create dated notes inside "WC - <Monday>" weekly folders. Default true. */
@@ -319,6 +341,8 @@ export interface PlannerRecord {
   /** Mobile-only view mode: day | agenda | grid. Default "day" on mobile. */
   mobileViewMode?: "day" | "agenda" | "grid";
   externalLinks?: ExternalResourceLink[];
+  lessonNotes?: LessonNote[];
+  unplacedLessons?: UnplacedLesson[];
   lastBulkApply?: BulkApplyJournal;
   weeklyNoteFolders?: boolean;
   directedTime: DirectedTimeSettings;

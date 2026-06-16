@@ -252,3 +252,18 @@ created: {{date}}
 
 ## Assessment & homework
 `;
+
+// ── Per-lesson notes field (small, keyed to slot+date; travels with shifts) ──
+export function getLessonNote(s: TeacherPlannerSettings, slotId: string, date: string): string {
+  return (s.lessonNotes ?? []).find(n => n.slotId === slotId && n.date === date)?.text ?? "";
+}
+export function setLessonNote(s: TeacherPlannerSettings, slotId: string, date: string, text: string): void {
+  const t = text.trim();
+  if (!s.lessonNotes) s.lessonNotes = [];
+  if (!t) { s.lessonNotes = s.lessonNotes.filter(n => !(n.slotId === slotId && n.date === date)); return; }
+  const existing = s.lessonNotes.find(n => n.slotId === slotId && n.date === date);
+  if (existing) existing.text = t; else s.lessonNotes.push({ slotId, date, text: t });
+}
+export function clearLessonNote(s: TeacherPlannerSettings, slotId: string, date: string): void {
+  if (s.lessonNotes) s.lessonNotes = s.lessonNotes.filter(n => !(n.slotId === slotId && n.date === date));
+}

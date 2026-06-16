@@ -203,7 +203,7 @@ export default class TeacherPlannerPlugin extends Plugin {
     "directedTime", "schoolDays", "plannerFolder",
     "lessonPlanLinks", "lessonPlansFolder", "lessonPlanTemplate", "showUnplannedDot",
     "preparedMarks", "showPreparedMark", "mobileViewMode",
-    "externalLinks", "lastBulkApply", "weeklyNoteFolders",
+    "externalLinks", "lessonNotes", "unplacedLessons", "lastBulkApply", "weeklyNoteFolders",
     "weekNoteFiles", "weekNotesFolder",
   ];
 
