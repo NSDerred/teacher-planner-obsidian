@@ -17,6 +17,7 @@ export interface LessonOccurrence {
   end: string;
   slotId: string;
   classroom: string;   // resolved room (per-slot override, else class default)
+  notes: string;       // recurring slot note (fallback default for the per-lesson note)
   weekType: "A" | "B" | null;
   weekKey: string;     // ISO Monday date for the week (grouping key)
 }
@@ -69,6 +70,7 @@ export function classOccurrences(s: TeacherPlannerSettings, classId: string): Le
             date: dateIso, dayName, periodId: p.id, periodName: p.name,
             start: p.start, end: p.end, slotId: slot.id,
             classroom: slot.classroom ?? classDefaultRoom,
+            notes: slot.notes ?? "",
             weekType, weekKey,
           });
         }

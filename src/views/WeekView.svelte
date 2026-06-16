@@ -26,6 +26,7 @@
     getSlotExternal, setSlotExternal, clearSlotExternal,
     getEventExternal, setEventExternal, clearEventExternal, migrateSlotExternalToEvent, externalKindOf,
     isSlotPrepared, isEventPrepared, toggleSlotPrepared, toggleEventPrepared, migrateSlotPreparedToEvent,
+    getLessonNote, getLessonRoom,
   } from "../utils/planLinkUtils";
   import { openOSFolderPicker, openOSFilePicker, openSystemPath } from "../utils/exportDestination";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
@@ -327,6 +328,10 @@
     if (act) return { code: act.label, year: "", subjectName: act.info ?? "", colour: act.colour, notes: slot.notes ?? "", classroom: slot.classroom ?? act.classroom ?? "" };
     return { code: "?", year: "", subjectName: "", colour: "#888", notes: "", classroom: "" };
   }
+
+  // Effective per-lesson note/room: the date-keyed override if set, else the recurring slot value.
+  const effNote = (slotId: string, date: string, fallback: string) => getLessonNote(plugin.settings, slotId, date) || fallback;
+  const effRoom = (slotId: string, date: string, fallback: string) => getLessonRoom(plugin.settings, slotId, date) || fallback;
 
   function getDateEventLabel(ev: DateEvent) {
     if (ev.title && ev.title.trim()) {
@@ -669,7 +674,7 @@
     const timeRange  = period ? `${period.start}–${period.end}` : "";
     new SlotNotesModal(
       plugin.app, plugin, slot.id, dayDate,
-      lbl.notes, lbl.classroom,
+      effNote(slot.id, dayDate, lbl.notes), effRoom(slot.id, dayDate, lbl.classroom),
       lbl.code, formattedDate, periodName, timeRange,
       () => invalidate()
     ).open();
@@ -1144,7 +1149,7 @@
                   on:click={(e) => openChipMenu(e, "slot", aDate, period.id, aSlot)}>
                   <span class="tp-agenda-period">{period.name}</span>
                   <span class="tp-agenda-main">{subjectEmoji(aSlot.classId)} {sl.code}{#if sl.subjectName} · {sl.subjectName}{/if}</span>
-                  {#if sl.classroom}<span class="tp-agenda-room">{sl.classroom}</span>{/if}
+                  {#if effRoom(aSlot.id, aDate, sl.classroom)}<span class="tp-agenda-room">{effRoom(aSlot.id, aDate, sl.classroom)}</span>{/if}
                 </button>
               {/if}
               {#each aEvents as aEv (aEv.id)}
@@ -1326,13 +1331,13 @@
                             {#if lbl.year || lbl.subjectName}
                               <span class="tp-chip-meta">{[lbl.year, lbl.subjectName].filter(Boolean).join(" · ")}</span>
                             {/if}
-                            {#if lbl.notes}
-                              <span class="tp-chip-notes">{lbl.notes}</span>
+                            {#if effNote(slot.id, dayDate, lbl.notes)}
+                              <span class="tp-chip-notes">{effNote(slot.id, dayDate, lbl.notes)}</span>
                             {/if}
                           </div>
                           <div class="tp-chip-footer">
-                            {#if lbl.classroom}
-                              <span class="tp-chip-room">{lbl.classroom}</span>
+                            {#if effRoom(slot.id, dayDate, lbl.classroom)}
+                              <span class="tp-chip-room">{effRoom(slot.id, dayDate, lbl.classroom)}</span>
                             {/if}
                             <div class="tp-chip-marks">
                               {#if _showPrepared && isClassId(slot.classId)}

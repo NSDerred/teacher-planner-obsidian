@@ -1,5 +1,6 @@
 import { App, Modal } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
+import { setLessonNote, clearLessonNote, setLessonRoom, clearLessonRoom } from "../utils/planLinkUtils";
 
 export class SlotNotesModal extends Modal {
   private plugin: TeacherPlannerPlugin;
@@ -138,13 +139,19 @@ export class SlotNotesModal extends Modal {
   }
 
   private async saveSlot(notes: string, classroom: string) {
+    // One note per lesson: write to the date-keyed store (shared with the overview,
+    // travels with shifts). The slot's recurring note/room is the default — when the
+    // value equals it, store no override so the default keeps showing.
     const slot = this.plugin.findSlotById(this.slotId);
-    if (slot) {
-      slot.notes = notes;
-      slot.classroom = classroom;
-      await this.plugin.saveSettings();
-      this.onSaved();
-    }
+    const cls = slot ? (this.plugin.settings.classes ?? []).find(c => c.id === slot.classId) : undefined;
+    const defNotes = (slot?.notes ?? "").trim();
+    const defRoom = (slot?.classroom ?? cls?.classroom ?? "").trim();
+    if (notes.trim() === defNotes) clearLessonNote(this.plugin.settings, this.slotId, this.date);
+    else setLessonNote(this.plugin.settings, this.slotId, this.date, notes);
+    if (classroom.trim() === defRoom) clearLessonRoom(this.plugin.settings, this.slotId, this.date);
+    else setLessonRoom(this.plugin.settings, this.slotId, this.date, classroom);
+    await this.plugin.saveSettings();
+    this.onSaved();
     this.close();
   }
 

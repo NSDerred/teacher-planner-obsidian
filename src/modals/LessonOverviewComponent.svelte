@@ -4,7 +4,7 @@
   import { setIcon, Platform } from "obsidian";
   import { tick as svelteTick } from "svelte";
   import { classOccurrences, groupByWeek, nextOccurrence, type LessonOccurrence } from "../utils/lessonOccurrences";
-  import { getSlotPlan, setSlotPlan, clearSlotPlan, isSlotPrepared, toggleSlotPrepared, getSlotExternal, setSlotExternal, clearSlotExternal, externalKindOf, getLessonNote, setLessonNote, getLessonRoom, setLessonRoom, clearLessonRoom } from "../utils/planLinkUtils";
+  import { getSlotPlan, setSlotPlan, clearSlotPlan, isSlotPrepared, toggleSlotPrepared, getSlotExternal, setSlotExternal, clearSlotExternal, externalKindOf, getLessonNote, setLessonNote, clearLessonNote, getLessonRoom, setLessonRoom, clearLessonRoom } from "../utils/planLinkUtils";
   import { shiftForward, shiftBackward, snapshotState, restoreState, type ShiftSnapshot } from "../utils/lessonShiftApply";
   import { applyNoteMoves, reverseNoteMoves, type NoteUndoOp, lessonNoteDefaultTitle, findLessonNoteByTitle, createLessonNoteFile } from "../utils/lessonNoteFiles";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
@@ -77,7 +77,7 @@
 
   function mainLine(o: LessonOccurrence): { text: string; faint: boolean } {
     const mode = plugin.settings.lessonOverviewMainLine ?? "notes-plan";
-    const notes = (lessonNote(o) || "").replace(/\s+/g, " ").trim();
+    const notes = (lessonNote(o) || o.notes || "").replace(/\s+/g, " ").trim();
     const plan = planTitle(o);
     if (mode === "notes") return notes ? { text: notes, faint: false } : { text: "No notes", faint: true };
     if (mode === "plan") return plan ? { text: plan, faint: false } : { text: "—", faint: true };
@@ -108,11 +108,12 @@
 
   function openPanel(o: LessonOccurrence) {
     menuKey = keyOf(o);
-    panelNote = lessonNote(o);
+    panelNote = lessonNote(o) || o.notes;
     panelRoom = getLessonRoom(plugin.settings, o.slotId, o.date) || defaultRoom(o);
   }
   async function savePanel(o: LessonOccurrence) {
-    setLessonNote(plugin.settings, o.slotId, o.date, panelNote);
+    if (panelNote.trim() === (o.notes || "").trim()) clearLessonNote(plugin.settings, o.slotId, o.date);
+    else setLessonNote(plugin.settings, o.slotId, o.date, panelNote);
     if (panelRoom.trim() === defaultRoom(o).trim()) clearLessonRoom(plugin.settings, o.slotId, o.date);
     else setLessonRoom(plugin.settings, o.slotId, o.date, panelRoom);
     await plugin.saveSettings();
