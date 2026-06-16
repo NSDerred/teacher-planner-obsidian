@@ -152,7 +152,7 @@
     refresh();
     toast = dir === "forward"
       ? (res.overflowed ? "Shifted forward — last lesson moved to Unplaced." : "Lessons shifted forward.")
-      : (res.filled ? "Pulled back — an Unplaced lesson dropped in." : "Lessons pulled back.");
+      : (res.parked ? "Pulled back — this lesson moved to Unplaced." : res.filled ? "Pulled back — an Unplaced lesson dropped in." : "Lessons pulled back.");
   }
   async function shiftFwd(o: LessonOccurrence) {
     await savePanel(o);

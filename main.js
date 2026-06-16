@@ -25637,7 +25637,7 @@ function shiftForward(s, classId, fromIndex) {
     writeBundle(s, occ[m.to], snap[m.from]);
     noteMoves.push({ kind: "slot", from: occ[m.from], to: occ[m.to] });
   }
-  return { moved: plan.moves.length, overflowed, filled: false, noteMoves };
+  return { moved: plan.moves.length, overflowed, filled: false, parked: false, noteMoves };
 }
 function shiftBackward(s, classId, fromIndex) {
   var _a2;
@@ -25647,12 +25647,21 @@ function shiftBackward(s, classId, fromIndex) {
   const snap = occ.map((o) => readBundle(s, o));
   for (let j = fromIndex; j < n; j++) clearBundle(s, occ[j]);
   const noteMoves = [];
+  const clicked = snap[fromIndex];
+  let parked = false;
+  if (!bundleEmpty(clicked)) {
+    if (!s.unplacedLessons) s.unplacedLessons = [];
+    const entry = toUnplaced(classId, clicked, occ[fromIndex].date);
+    s.unplacedLessons.unshift(entry);
+    noteMoves.push({ kind: "toUnplaced", from: occ[fromIndex], unplacedId: entry.id });
+    parked = true;
+  }
   for (const m of plan.moves) {
     writeBundle(s, occ[m.to], snap[m.from]);
     noteMoves.push({ kind: "slot", from: occ[m.from], to: occ[m.to] });
   }
   let filled = false;
-  if (plan.fillIndex !== null && ((_a2 = s.unplacedLessons) == null ? void 0 : _a2.length)) {
+  if (!parked && plan.fillIndex !== null && ((_a2 = s.unplacedLessons) == null ? void 0 : _a2.length)) {
     const up = s.unplacedLessons.find((u) => u.classId === classId);
     if (up) {
       s.unplacedLessons = s.unplacedLessons.filter((u) => u.id !== up.id);
@@ -25661,7 +25670,7 @@ function shiftBackward(s, classId, fromIndex) {
       filled = true;
     }
   }
-  return { moved: plan.moves.length, overflowed: false, filled, noteMoves };
+  return { moved: plan.moves.length, overflowed: false, filled, parked, noteMoves };
 }
 
 // src/modals/LessonOverviewComponent.svelte
@@ -28195,7 +28204,7 @@ function instance5($$self, $$props, $$invalidate) {
     lastNoteUndo = await applyNoteMoves(plugin.app, plugin.settings, cid, res.noteMoves);
     await plugin.saveSettings();
     refresh();
-    $$invalidate(9, toast = dir === "forward" ? res.overflowed ? "Shifted forward \u2014 last lesson moved to Unplaced." : "Lessons shifted forward." : res.filled ? "Pulled back \u2014 an Unplaced lesson dropped in." : "Lessons pulled back.");
+    $$invalidate(9, toast = dir === "forward" ? res.overflowed ? "Shifted forward \u2014 last lesson moved to Unplaced." : "Lessons shifted forward." : res.parked ? "Pulled back \u2014 this lesson moved to Unplaced." : res.filled ? "Pulled back \u2014 an Unplaced lesson dropped in." : "Lessons pulled back.");
   }
   async function shiftFwd(o) {
     await savePanel(o);

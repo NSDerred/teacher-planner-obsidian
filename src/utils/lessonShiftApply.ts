@@ -67,7 +67,7 @@ export type NoteMove =
   | { kind: "toUnplaced"; from: LessonOccurrence; unplacedId: string }
   | { kind: "fromUnplaced"; unplacedId: string; to: LessonOccurrence };
 
-export interface ShiftResult { moved: number; overflowed: boolean; filled: boolean; noteMoves: NoteMove[]; }
+export interface ShiftResult { moved: number; overflowed: boolean; filled: boolean; parked: boolean; noteMoves: NoteMove[]; }
 
 /** Snapshot the stores a shift touches, for undo. */
 export interface ShiftSnapshot {
@@ -111,7 +111,7 @@ export function shiftForward(s: TeacherPlannerSettings, classId: string, fromInd
     writeBundle(s, occ[m.to], snap[m.from]);
     noteMoves.push({ kind: "slot", from: occ[m.from], to: occ[m.to] });
   }
-  return { moved: plan.moves.length, overflowed, filled: false, noteMoves };
+  return { moved: plan.moves.length, overflowed, filled: false, parked: false, noteMoves };
 }
 
 /** "Pull later lessons back into this slot." Fills the freed end slot from the unplaced queue. */
@@ -122,12 +122,30 @@ export function shiftBackward(s: TeacherPlannerSettings, classId: string, fromIn
   const snap = occ.map(o => readBundle(s, o));
   for (let j = fromIndex; j < n; j++) clearBundle(s, occ[j]);
   const noteMoves: NoteMove[] = [];
+
+  // The clicked slot is about to be overwritten by the next lesson. If it holds
+  // anything (note, room, plan, prepared, external), park it in Unplaced so it
+  // is never lost. A genuinely empty slot is just a gap being closed.
+  const clicked = snap[fromIndex];
+  let parked = false;
+  if (!bundleEmpty(clicked)) {
+    if (!s.unplacedLessons) s.unplacedLessons = [];
+    const entry = toUnplaced(classId, clicked, occ[fromIndex].date);
+    s.unplacedLessons.unshift(entry);
+    noteMoves.push({ kind: "toUnplaced", from: occ[fromIndex], unplacedId: entry.id });
+    parked = true;
+  }
+
   for (const m of plan.moves) {
     writeBundle(s, occ[m.to], snap[m.from]);
     noteMoves.push({ kind: "slot", from: occ[m.from], to: occ[m.to] });
   }
+
+  // Only refill the freed end slot from the queue when we were closing a real
+  // gap (empty clicked slot) — i.e. undoing an earlier push. When we parked a
+  // lesson, the end slot stays free instead.
   let filled = false;
-  if (plan.fillIndex !== null && s.unplacedLessons?.length) {
+  if (!parked && plan.fillIndex !== null && s.unplacedLessons?.length) {
     const up = s.unplacedLessons.find(u => u.classId === classId);
     if (up) {
       s.unplacedLessons = s.unplacedLessons.filter(u => u.id !== up.id);
@@ -136,5 +154,5 @@ export function shiftBackward(s: TeacherPlannerSettings, classId: string, fromIn
       filled = true;
     }
   }
-  return { moved: plan.moves.length, overflowed: false, filled, noteMoves };
+  return { moved: plan.moves.length, overflowed: false, filled, parked, noteMoves };
 }
