@@ -1,5 +1,5 @@
-import { TFile, TFolder } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
+import { writeLibraryFile, listLibraryFiles, readLibraryFile, libraryFolder, type LibFile } from "./pluginLibrary";
 import type {
   SchoolPeriod, DaySchedule, PeriodTypeConfig, WeekOverride, SchoolDay,
 } from "../types";
@@ -44,22 +44,16 @@ export interface ParsedTemplate {
 
 // ── Folders ─────────────────────────────────────────────────────────────────
 
-function templatesRoot(plugin: TeacherPlannerPlugin): string {
-  const root = plugin.plannerData.rootPlannerFolder || "Teacher Planner";
-  return `${root}/Templates`;
+const STRUCTURE_SUB = "templates/School structure";
+const HOLIDAY_SUB = "templates/Holiday calendars";
+function subFor(kind: TemplateKind): string {
+  return kind === "structure" ? STRUCTURE_SUB : HOLIDAY_SUB;
 }
 export function structureTemplatesFolder(plugin: TeacherPlannerPlugin): string {
-  return `${templatesRoot(plugin)}/School structure`;
+  return libraryFolder(plugin, STRUCTURE_SUB);
 }
 export function holidayTemplatesFolder(plugin: TeacherPlannerPlugin): string {
-  return `${templatesRoot(plugin)}/Holiday calendars`;
-}
-function folderFor(plugin: TeacherPlannerPlugin, kind: TemplateKind): string {
-  return kind === "structure" ? structureTemplatesFolder(plugin) : holidayTemplatesFolder(plugin);
-}
-
-function safeName(s: string): string {
-  return s.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim() || "Template";
+  return libraryFolder(plugin, HOLIDAY_SUB);
 }
 
 // ── Build (extract from the current planner) ────────────────────────────────
@@ -93,29 +87,16 @@ export function holidayCount(plugin: TeacherPlannerPlugin): number {
 
 // ── Write / list / parse ────────────────────────────────────────────────────
 
-export async function writeTemplateFile(plugin: TeacherPlannerPlugin, kind: TemplateKind, name: string, json: string): Promise<string> {
-  const app = plugin.app;
-  const root = templatesRoot(plugin);
-  const folder = folderFor(plugin, kind);
-  for (const f of [root, folder]) {
-    if (!app.vault.getAbstractFileByPath(f)) {
-      try { await app.vault.createFolder(f); } catch { /* exists / race — non-fatal */ }
-    }
-  }
-  const base = safeName(name);
-  let path = `${folder}/${base}.json`;
-  let i = 2;
-  while (app.vault.getAbstractFileByPath(path)) path = `${folder}/${base} (${i++}).json`;
-  await app.vault.create(path, json);
-  return path;
+export function writeTemplateFile(plugin: TeacherPlannerPlugin, kind: TemplateKind, name: string, json: string): Promise<string> {
+  return writeLibraryFile(plugin, subFor(kind), name, json);
 }
 
-export function listTemplateFiles(plugin: TeacherPlannerPlugin, kind: TemplateKind): TFile[] {
-  const folder = plugin.app.vault.getAbstractFileByPath(folderFor(plugin, kind));
-  if (!(folder instanceof TFolder)) return [];
-  return folder.children
-    .filter((c): c is TFile => c instanceof TFile && c.extension === "json")
-    .sort((a, b) => b.stat.mtime - a.stat.mtime);
+export function listTemplateFiles(plugin: TeacherPlannerPlugin, kind: TemplateKind): Promise<LibFile[]> {
+  return listLibraryFiles(plugin, subFor(kind));
+}
+
+export function readTemplateText(plugin: TeacherPlannerPlugin, path: string): Promise<string> {
+  return readLibraryFile(plugin, path);
 }
 
 /** Parse + validate a template file's text. Throws with a friendly message on failure. */

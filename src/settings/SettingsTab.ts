@@ -1,13 +1,15 @@
 
-import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon, FuzzySuggestModal, TFile } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon, FuzzySuggestModal, TFile, Platform } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity, DaySchedule, SchoolDay, TeacherPlannerSettings } from "../types";
 import { ensureDaySchedules, getScheduleForDay } from "../utils/scheduleUtils";
 import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE } from "../settings";
 import { buildNoteTitle } from "../utils/noteTitleUtils";
 import { migrateWeekNotesToFiles } from "../utils/weekNoteFiles";
-import { backupPlanner, backupAll, parseBackup, importPlanners, listBackupFiles, backupsFolder } from "../utils/plannerBackup";
-import { buildStructureTemplate, buildHolidayTemplate, writeTemplateFile, listTemplateFiles, parseTemplate, applyStructureTemplate, applyHolidayTemplate, holidayCount, shiftOverrideDates, structureTemplatesFolder, holidayTemplatesFolder } from "../utils/schoolTemplates";
+import { backupPlanner, parseBackup, importPlanners, buildBackupOf, listLibraryBackups, readBackupText, backupsLibraryFolder, writeBackupToDestination } from "../utils/plannerBackup";
+import { renderDestinationPicker, openOSFilePicker, readSystemFile, type ExportDestination } from "../utils/exportDestination";
+import { buildStructureTemplate, buildHolidayTemplate, writeTemplateFile, listTemplateFiles, readTemplateText, parseTemplate, applyStructureTemplate, applyHolidayTemplate, holidayCount, shiftOverrideDates, structureTemplatesFolder, holidayTemplatesFolder } from "../utils/schoolTemplates";
+import type { LibFile } from "../utils/pluginLibrary";
 import { resolveColour, isThemeToken, GRID_THEME_TOKEN } from "../utils/themeColours";
 import { findOverlappingOverrides } from "../utils/weekUtils";
 import ColourPickerComponent from "../modals/ColourPickerComponent.svelte";
@@ -910,18 +912,15 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }
     }
 
-    // Backups: import / export all
-    new Setting(container)
+    // Backups: export (select + destination) / import (library or file)
+    const backupSetting = new Setting(container)
       .setName("Backups")
-      .setDesc(`Saved as .json files in "${backupsFolder(this.plugin)}" — re-importable. Deleting a planner backs it up automatically.`)
-      .addButton(btn => btn.setButtonText("Import planner…").onClick(() => {
-        if (listBackupFiles(this.plugin).length === 0) { new Notice(`No backups found in "${backupsFolder(this.plugin)}".`); return; }
-        new ImportPlannerModal(this.app, this.plugin, () => this.display()).open();
-      }))
-      .addButton(btn => btn.setButtonText("Export all").onClick(() => { void (async () => {
-        try { const path = await backupAll(this.plugin); new Notice(`All planners backed up to ${path}`); }
-        catch (e) { console.error("Teacher Planner: export-all failed.", e); new Notice("Backup failed — see console."); }
-      })(); }));
+      .setDesc("Saved as .json in the plugin folder (hidden, no vault clutter); the auto-backup taken before deleting a planner goes here too. Export lets you also save a copy to a vault folder or your computer.")
+      .addButton(btn => btn.setButtonText("Export…").onClick(() => new BackupExportModal(this.app, this.plugin, () => this.display()).open()))
+      .addButton(btn => btn.setButtonText("Import from library…").onClick(() => this.importBackupFromLibrary()));
+    if (!Platform.isMobile) {
+      backupSetting.addButton(btn => btn.setButtonText("Import from file…").onClick(() => this.importBackupFromFile()));
+    }
 
     // School templates: reusable shell + holiday calendar (shareable .json files)
     new Setting(container).setName("Templates").setHeading();
@@ -1209,11 +1208,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   private applyStructureTemplateFlow() {
-    const files = listTemplateFiles(this.plugin, "structure");
+    void (async () => {
+    const files = await listTemplateFiles(this.plugin, "structure");
     if (files.length === 0) { new Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`); return; }
     new TemplatePickModal(this.app, files, "Pick a school structure template…", (file) => { void (async () => {
       let tpl;
-      try { tpl = parseTemplate(await this.app.vault.read(file)); }
+      try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
       catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
       if (tpl.kind !== "structure" || !tpl.structure) { new Notice("That file is not a school structure template."); return; }
       const structure = tpl.structure;
@@ -1225,14 +1225,16 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         })(); },
         "Apply structure").open();
     })(); }).open();
+    })();
   }
 
   private loadHolidayTemplateFlow() {
-    const files = listTemplateFiles(this.plugin, "holidays");
+    void (async () => {
+    const files = await listTemplateFiles(this.plugin, "holidays");
     if (files.length === 0) { new Notice(`No holiday templates in "${holidayTemplatesFolder(this.plugin)}".`); return; }
     new TemplatePickModal(this.app, files, "Pick a holiday calendar template…", (file) => { void (async () => {
       let tpl;
-      try { tpl = parseTemplate(await this.app.vault.read(file)); }
+      try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
       catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
       if (tpl.kind !== "holidays" || !tpl.holidays) { new Notice("That file is not a holiday calendar template."); return; }
       const holidays = tpl.holidays;
@@ -1244,6 +1246,29 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         this.display();
       })(); }).open();
     })(); }).open();
+    })();
+  }
+
+  private importBackupFromLibrary() {
+    void (async () => {
+      const files = await listLibraryBackups(this.plugin);
+      if (files.length === 0) { new Notice("No saved backups in the plugin library yet."); return; }
+      new BackupPickModal(this.app, this.plugin, files, () => this.display()).open();
+    })();
+  }
+
+  private importBackupFromFile() {
+    void (async () => {
+      const path = await openOSFilePicker("Choose a backup .json");
+      if (!path) return;
+      try {
+        const { planners } = parseBackup(await readSystemFile(path));
+        const ids = await importPlanners(this.plugin, planners);
+        new Notice(`Imported ${planners.length} planner${planners.length === 1 ? "" : "s"}.`);
+        if (ids[0]) await this.plugin.switchPlanner(ids[0]);
+        this.display();
+      } catch (e) { new Notice(`Import failed: ${(e as Error).message ?? "see console"}`); }
+    })();
   }
 
   private renderActivitiesList(container: HTMLElement, typeFilter: "directed" | "other" = "directed") {
@@ -1704,8 +1729,8 @@ class DeletePlannerModal extends Modal {
 
     contentEl.createEl("p", {
       text: this.isLast
-        ? `"${this.plannerName}" is your only planner. Deleting it will remove all planner data and relaunch the setup wizard. A re-importable backup is saved to "${backupsFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.`
-        : `Delete "${this.plannerName}"? All planner data (timetable, classes, events) will be removed — but a re-importable backup is saved to "${backupsFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.`,
+        ? `"${this.plannerName}" is your only planner. Deleting it will remove all planner data and relaunch the setup wizard. A re-importable backup is saved to "${backupsLibraryFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.`
+        : `Delete "${this.plannerName}"? All planner data (timetable, classes, events) will be removed — but a re-importable backup is saved to "${backupsLibraryFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.`,
       cls: "setting-item-description",
     });
 
@@ -1731,21 +1756,23 @@ class DeletePlannerModal extends Modal {
   }
 }
 
-class ImportPlannerModal extends FuzzySuggestModal<TFile> {
+class BackupPickModal extends FuzzySuggestModal<LibFile> {
   private plugin: TeacherPlannerPlugin;
+  private files: LibFile[];
   private onDone: () => void;
-  constructor(app: App, plugin: TeacherPlannerPlugin, onDone: () => void) {
+  constructor(app: App, plugin: TeacherPlannerPlugin, files: LibFile[], onDone: () => void) {
     super(app);
     this.plugin = plugin;
+    this.files = files;
     this.onDone = onDone;
     this.setPlaceholder("Pick a backup to import…");
   }
-  getItems(): TFile[] { return listBackupFiles(this.plugin); }
-  getItemText(f: TFile): string { return f.basename; }
-  onChooseItem(f: TFile): void {
+  getItems(): LibFile[] { return this.files; }
+  getItemText(f: LibFile): string { return f.basename; }
+  onChooseItem(f: LibFile): void {
     void (async () => {
       try {
-        const { planners } = parseBackup(await this.app.vault.read(f));
+        const { planners } = parseBackup(await readBackupText(this.plugin, f.path));
         const ids = await importPlanners(this.plugin, planners);
         new Notice(`Imported ${planners.length} planner${planners.length === 1 ? "" : "s"}.`);
         if (ids[0]) await this.plugin.switchPlanner(ids[0]);
@@ -1758,16 +1785,63 @@ class ImportPlannerModal extends FuzzySuggestModal<TFile> {
   }
 }
 
-class TemplatePickModal extends FuzzySuggestModal<TFile> {
-  private files: TFile[];
-  private onPick: (file: TFile) => void;
-  constructor(app: App, files: TFile[], placeholder: string, onPick: (file: TFile) => void) {
+class BackupExportModal extends Modal {
+  private plugin: TeacherPlannerPlugin;
+  private onDone: () => void;
+  private selected: Set<string>;
+  private destination: ExportDestination;
+  constructor(app: App, plugin: TeacherPlannerPlugin, onDone: () => void) {
+    super(app);
+    this.plugin = plugin;
+    this.onDone = onDone;
+    this.selected = new Set(plugin.plannerData.planners.map(p => p.id));
+    this.destination = { mode: "vault", vaultPath: backupsLibraryFolder(plugin), systemPath: null };
+  }
+  private stamp(): string {
+    const d = new Date(); const p = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}${p(d.getMinutes())}`;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("tp-modal-form");
+    contentEl.createEl("h3", { text: "Export backup" });
+    contentEl.createEl("p", { text: "Choose which planners to back up and where to save. The default plugin folder keeps it out of your vault and listed under Import.", cls: "setting-item-description" });
+    const list = contentEl.createDiv();
+    for (const pl of this.plugin.plannerData.planners) {
+      new Setting(list).setName(pl.name)
+        .addToggle(t => t.setValue(this.selected.has(pl.id)).onChange(v => { if (v) this.selected.add(pl.id); else this.selected.delete(pl.id); }));
+    }
+    renderDestinationPicker(contentEl, this.destination, Platform.isMobile);
+    const footer = contentEl.createDiv("tp-modal-footer");
+    footer.setCssStyles({ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" });
+    footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
+    footer.createEl("button", { text: "Export", cls: "tp-btn tp-btn--primary" }).addEventListener("click", () => { void (async () => {
+      const chosen = this.plugin.plannerData.planners.filter(pl => this.selected.has(pl.id));
+      if (chosen.length === 0) { new Notice("Select at least one planner."); return; }
+      try {
+        const label = chosen.length === 1 ? chosen[0].name : `${chosen.length} planners`;
+        const filename = `Teacher Planner backup - ${label} - ${this.stamp()}.json`;
+        const path = await writeBackupToDestination(this.plugin, this.destination, filename, buildBackupOf(chosen));
+        new Notice(`Backed up ${chosen.length} planner${chosen.length === 1 ? "" : "s"} to ${path}`);
+        this.onDone();
+        this.close();
+      } catch (e) { console.error("Teacher Planner: backup export failed.", e); new Notice("Backup failed — see console."); }
+    })(); });
+  }
+  onClose() { this.contentEl.empty(); }
+}
+
+class TemplatePickModal extends FuzzySuggestModal<LibFile> {
+  private files: LibFile[];
+  private onPick: (file: LibFile) => void;
+  constructor(app: App, files: LibFile[], placeholder: string, onPick: (file: LibFile) => void) {
     super(app);
     this.files = files;
     this.onPick = onPick;
     this.setPlaceholder(placeholder);
   }
-  getItems(): TFile[] { return this.files; }
-  getItemText(f: TFile): string { return f.basename; }
-  onChooseItem(f: TFile): void { this.onPick(f); }
+  getItems(): LibFile[] { return this.files; }
+  getItemText(f: LibFile): string { return f.basename; }
+  onChooseItem(f: LibFile): void { this.onPick(f); }
 }

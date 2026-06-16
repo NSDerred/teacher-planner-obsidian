@@ -1641,46 +1641,276 @@ var init_weekNoteFiles = __esm({
   }
 });
 
-// src/utils/plannerBackup.ts
-function backupsFolder(plugin) {
-  const root = plugin.plannerData.rootPlannerFolder || "Teacher Planner";
-  return `${root}/Backups`;
+// src/utils/pluginLibrary.ts
+function pluginDir(plugin) {
+  const dir = plugin.manifest.dir;
+  if (dir) return dir;
+  return `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`;
 }
+function libraryFolder(plugin, sub) {
+  return (0, import_obsidian3.normalizePath)(`${pluginDir(plugin)}/${sub}`);
+}
+function safeName(s) {
+  return s.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim() || "Untitled";
+}
+async function ensureFolder(plugin, folder) {
+  const adapter = plugin.app.vault.adapter;
+  const parts = folder.split("/").filter(Boolean);
+  let cur = "";
+  for (const part of parts) {
+    cur = cur ? `${cur}/${part}` : part;
+    if (!await adapter.exists(cur)) {
+      try {
+        await adapter.mkdir(cur);
+      } catch (e) {
+      }
+    }
+  }
+}
+async function writeLibraryFile(plugin, sub, baseName, json) {
+  const adapter = plugin.app.vault.adapter;
+  const folder = libraryFolder(plugin, sub);
+  await ensureFolder(plugin, folder);
+  const base = safeName(baseName);
+  let path = `${folder}/${base}.json`;
+  let i = 2;
+  while (await adapter.exists(path)) path = `${folder}/${base} (${i++}).json`;
+  await adapter.write(path, json);
+  return path;
+}
+async function listLibraryFiles(plugin, sub) {
+  var _a2, _b2;
+  const adapter = plugin.app.vault.adapter;
+  const folder = libraryFolder(plugin, sub);
+  if (!await adapter.exists(folder)) return [];
+  let listed;
+  try {
+    listed = await adapter.list(folder);
+  } catch (e) {
+    return [];
+  }
+  const out = [];
+  for (const path of listed.files) {
+    if (!path.toLowerCase().endsWith(".json")) continue;
+    const basename = ((_a2 = path.split("/").pop()) != null ? _a2 : path).replace(/\.json$/i, "");
+    let mtime = 0;
+    try {
+      const st = await adapter.stat(path);
+      mtime = (_b2 = st == null ? void 0 : st.mtime) != null ? _b2 : 0;
+    } catch (e) {
+    }
+    out.push({ path, basename, mtime });
+  }
+  return out.sort((a, b) => b.mtime - a.mtime);
+}
+async function readLibraryFile(plugin, path) {
+  return plugin.app.vault.adapter.read(path);
+}
+var import_obsidian3;
+var init_pluginLibrary = __esm({
+  "src/utils/pluginLibrary.ts"() {
+    import_obsidian3 = require("obsidian");
+  }
+});
+
+// src/utils/exportDestination.ts
+function getRequire() {
+  return window.require;
+}
+function getElectronRemote(noticeText) {
+  const req = getRequire();
+  if (!req) {
+    new import_obsidian4.Notice(noticeText);
+    return null;
+  }
+  const electron = req("electron");
+  if (electron == null ? void 0 : electron.remote) return electron.remote;
+  try {
+    return req("@electron/remote");
+  } catch (e) {
+    new import_obsidian4.Notice(noticeText);
+    return null;
+  }
+}
+function renderDestinationPicker(container, state, isMobile) {
+  container.createEl("p", { text: "Destination", cls: "tp-modal-label" });
+  const wrap = container.createDiv("tp-export-destination");
+  const vaultRow = wrap.createDiv("tp-export-dest-row");
+  vaultRow.createEl("span", { text: "Vault folder", cls: "tp-export-dest-sublabel" });
+  const vaultInput = vaultRow.createEl("input", { type: "text", cls: "tp-export-dest-input" });
+  vaultInput.value = state.vaultPath;
+  vaultInput.placeholder = "Teacher Planner/exports";
+  vaultInput.addEventListener("input", () => {
+    state.vaultPath = vaultInput.value;
+    state.mode = "vault";
+    state.systemPath = null;
+    updateSummary();
+  });
+  if (!isMobile) {
+    const browseRow = wrap.createDiv("tp-export-dest-row");
+    const browseBtn = browseRow.createEl("button", {
+      text: "Browse on computer\u2026",
+      cls: "tp-btn"
+    });
+    browseBtn.addEventListener("click", () => {
+      void (async () => {
+        const picked = await openOSFolderPicker();
+        if (picked) {
+          state.systemPath = picked;
+          state.mode = "system";
+          updateSummary();
+        }
+      })();
+    });
+  }
+  const summary = wrap.createEl("p", { cls: "tp-export-dest-summary setting-item-description" });
+  function updateSummary() {
+    if (state.mode === "system" && state.systemPath) {
+      summary.textContent = `Will save to: ${state.systemPath}  (on your computer)`;
+    } else {
+      summary.textContent = `Will save to: ${state.vaultPath}  (in your vault)`;
+    }
+  }
+  updateSummary();
+}
+async function openOSFolderPicker() {
+  try {
+    const remote = getElectronRemote("Folder picker is not available \u2014 please use a vault path.");
+    if (!remote) return null;
+    const result = await remote.dialog.showOpenDialog({
+      title: "Choose export folder",
+      properties: ["openDirectory", "createDirectory"]
+    });
+    if (result.canceled || !result.filePaths || result.filePaths.length === 0) return null;
+    return result.filePaths[0];
+  } catch (err2) {
+    console.error("OS folder picker failed:", err2);
+    new import_obsidian4.Notice("Could not open folder picker \u2014 please use a vault path.");
+    return null;
+  }
+}
+async function openOSFilePicker(title = "Choose a file") {
+  try {
+    const remote = getElectronRemote("File picker is not available on this platform.");
+    if (!remote) return null;
+    const result = await remote.dialog.showOpenDialog({ title, properties: ["openFile"] });
+    if (result.canceled || !result.filePaths || result.filePaths.length === 0) return null;
+    return result.filePaths[0];
+  } catch (err2) {
+    console.error("OS file picker failed:", err2);
+    new import_obsidian4.Notice("Could not open the file picker.");
+    return null;
+  }
+}
+async function openSystemPath(absolutePath) {
+  var _a2;
+  try {
+    const req = getRequire();
+    const electron = req == null ? void 0 : req("electron");
+    let shell = electron == null ? void 0 : electron.shell;
+    if (!shell) {
+      try {
+        shell = (_a2 = req == null ? void 0 : req("@electron/remote")) == null ? void 0 : _a2.shell;
+      } catch (e) {
+      }
+    }
+    if (!shell) {
+      new import_obsidian4.Notice("Opening external paths is only available on desktop.");
+      return;
+    }
+    const err2 = await shell.openPath(absolutePath);
+    if (err2) new import_obsidian4.Notice(`Could not open: ${err2}`);
+  } catch (e) {
+    console.error("openSystemPath failed:", e);
+    new import_obsidian4.Notice("Could not open the external resource.");
+  }
+}
+async function writeSystemFile(absolutePath, data) {
+  var _a2;
+  const fs = (_a2 = getRequire()) == null ? void 0 : _a2("fs/promises");
+  if (!fs) throw new Error("System filesystem not available on this platform.");
+  if (typeof data === "string") {
+    await fs.writeFile(absolutePath, data, "utf8");
+  } else {
+    await fs.writeFile(absolutePath, new Uint8Array(data));
+  }
+}
+function joinSystemPath(...parts) {
+  var _a2;
+  try {
+    const path = (_a2 = getRequire()) == null ? void 0 : _a2("path");
+    if (path) return path.join(...parts);
+  } catch (e) {
+  }
+  return parts.filter(Boolean).join("/");
+}
+async function readSystemFile(absolutePath) {
+  var _a2;
+  const fs = (_a2 = getRequire()) == null ? void 0 : _a2("fs/promises");
+  if (!fs) throw new Error("System filesystem not available on this platform.");
+  return fs.readFile(absolutePath, "utf8");
+}
+var import_obsidian4;
+var init_exportDestination = __esm({
+  "src/utils/exportDestination.ts"() {
+    import_obsidian4 = require("obsidian");
+  }
+});
+
+// src/utils/plannerBackup.ts
 function stamp() {
   const d = /* @__PURE__ */ new Date();
   const p = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}${p(d.getMinutes())}`;
 }
-function safeName(s) {
-  return s.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim();
-}
 function buildPlannerBackup(planner) {
   return JSON.stringify({ type: BACKUP_TYPE, version: 1, kind: "planner", exportedAt: (/* @__PURE__ */ new Date()).toISOString(), planner }, null, 2);
 }
-function buildFullBackup(plugin) {
-  return JSON.stringify({ type: BACKUP_TYPE, version: 1, kind: "full", exportedAt: (/* @__PURE__ */ new Date()).toISOString(), planners: plugin.plannerData.planners }, null, 2);
+async function backupPlanner(plugin, planner, prefix = "Teacher Planner backup") {
+  return backupPlannerToLibrary(plugin, planner, prefix);
 }
-async function writeBackupFile(plugin, baseName, json) {
-  const app = plugin.app;
-  const folder = backupsFolder(plugin);
-  if (!app.vault.getAbstractFileByPath(folder)) {
-    try {
-      await app.vault.createFolder(folder);
-    } catch (e) {
+function backupsLibraryFolder(plugin) {
+  return libraryFolder(plugin, BACKUPS_SUB);
+}
+function buildBackupOf(planners) {
+  if (planners.length === 1) return buildPlannerBackup(planners[0]);
+  return JSON.stringify({ type: BACKUP_TYPE, version: 1, kind: "full", exportedAt: (/* @__PURE__ */ new Date()).toISOString(), planners }, null, 2);
+}
+function backupPlannerToLibrary(plugin, planner, prefix = "Teacher Planner backup") {
+  return writeLibraryFile(plugin, BACKUPS_SUB, `${prefix} - ${planner.name} - ${stamp()}`, buildPlannerBackup(planner));
+}
+function listLibraryBackups(plugin) {
+  return listLibraryFiles(plugin, BACKUPS_SUB);
+}
+function readBackupText(plugin, path) {
+  return readLibraryFile(plugin, path);
+}
+async function writeBackupToDestination(plugin, dest, filename, content) {
+  if (dest.mode === "system" && dest.systemPath) {
+    const abs = joinSystemPath(dest.systemPath, filename);
+    await writeSystemFile(abs, content);
+    return abs;
+  }
+  const folder = (dest.vaultPath || backupsLibraryFolder(plugin)).replace(/\/+$/g, "");
+  const adapter = plugin.app.vault.adapter;
+  let cur = "";
+  for (const part of folder.split("/").filter(Boolean)) {
+    cur = cur ? `${cur}/${part}` : part;
+    if (!await adapter.exists(cur)) {
+      try {
+        await adapter.mkdir(cur);
+      } catch (e) {
+      }
     }
   }
-  const name = safeName(baseName);
-  let path = `${folder}/${name}.json`;
+  let path = `${folder}/${filename}`;
   let i = 2;
-  while (app.vault.getAbstractFileByPath(path)) path = `${folder}/${name} (${i++}).json`;
-  await app.vault.create(path, json);
+  const dot = filename.lastIndexOf(".");
+  const base = dot > 0 ? filename.slice(0, dot) : filename;
+  const ext = dot > 0 ? filename.slice(dot) : "";
+  while (await adapter.exists(path)) path = `${folder}/${base} (${i++})${ext}`;
+  await adapter.write(path, content);
   return path;
-}
-async function backupPlanner(plugin, planner, prefix = "Teacher Planner backup") {
-  return writeBackupFile(plugin, `${prefix} - ${planner.name} - ${stamp()}`, buildPlannerBackup(planner));
-}
-async function backupAll(plugin) {
-  return writeBackupFile(plugin, `Teacher Planner full backup - ${stamp()}`, buildFullBackup(plugin));
 }
 function parseBackup(text2) {
   let parsed;
@@ -1702,11 +1932,6 @@ function parseBackup(text2) {
     }
   }
   return { planners };
-}
-function listBackupFiles(plugin) {
-  const folder = plugin.app.vault.getAbstractFileByPath(backupsFolder(plugin));
-  if (!(folder instanceof import_obsidian3.TFolder)) return [];
-  return folder.children.filter((c) => c instanceof import_obsidian3.TFile && c.extension === "json").sort((a, b) => b.stat.mtime - a.stat.mtime);
 }
 async function importPlanners(plugin, planners) {
   const names = new Set(plugin.plannerData.planners.map((p) => p.name));
@@ -1730,30 +1955,26 @@ async function importPlanners(plugin, planners) {
   await plugin.saveData(plugin.plannerData);
   return newIds;
 }
-var import_obsidian3, BACKUP_TYPE;
+var import_obsidian5, BACKUP_TYPE, BACKUPS_SUB;
 var init_plannerBackup = __esm({
   "src/utils/plannerBackup.ts"() {
-    import_obsidian3 = require("obsidian");
+    import_obsidian5 = require("obsidian");
+    init_pluginLibrary();
+    init_exportDestination();
     BACKUP_TYPE = "teacher-planner-backup";
+    BACKUPS_SUB = "backups";
   }
 });
 
 // src/utils/schoolTemplates.ts
-function templatesRoot(plugin) {
-  const root = plugin.plannerData.rootPlannerFolder || "Teacher Planner";
-  return `${root}/Templates`;
+function subFor(kind) {
+  return kind === "structure" ? STRUCTURE_SUB : HOLIDAY_SUB;
 }
 function structureTemplatesFolder(plugin) {
-  return `${templatesRoot(plugin)}/School structure`;
+  return libraryFolder(plugin, STRUCTURE_SUB);
 }
 function holidayTemplatesFolder(plugin) {
-  return `${templatesRoot(plugin)}/Holiday calendars`;
-}
-function folderFor(plugin, kind) {
-  return kind === "structure" ? structureTemplatesFolder(plugin) : holidayTemplatesFolder(plugin);
-}
-function safeName2(s) {
-  return s.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim() || "Template";
+  return libraryFolder(plugin, HOLIDAY_SUB);
 }
 function buildStructureTemplate(plugin, name) {
   var _a2, _b2, _c;
@@ -1781,29 +2002,14 @@ function holidayCount(plugin) {
   var _a2;
   return ((_a2 = plugin.settings.weekOverrides) != null ? _a2 : []).filter((o) => o.type === "holiday" || o.type === "inset").length;
 }
-async function writeTemplateFile(plugin, kind, name, json) {
-  const app = plugin.app;
-  const root = templatesRoot(plugin);
-  const folder = folderFor(plugin, kind);
-  for (const f of [root, folder]) {
-    if (!app.vault.getAbstractFileByPath(f)) {
-      try {
-        await app.vault.createFolder(f);
-      } catch (e) {
-      }
-    }
-  }
-  const base = safeName2(name);
-  let path = `${folder}/${base}.json`;
-  let i = 2;
-  while (app.vault.getAbstractFileByPath(path)) path = `${folder}/${base} (${i++}).json`;
-  await app.vault.create(path, json);
-  return path;
+function writeTemplateFile(plugin, kind, name, json) {
+  return writeLibraryFile(plugin, subFor(kind), name, json);
 }
 function listTemplateFiles(plugin, kind) {
-  const folder = plugin.app.vault.getAbstractFileByPath(folderFor(plugin, kind));
-  if (!(folder instanceof import_obsidian4.TFolder)) return [];
-  return folder.children.filter((c) => c instanceof import_obsidian4.TFile && c.extension === "json").sort((a, b) => b.stat.mtime - a.stat.mtime);
+  return listLibraryFiles(plugin, subFor(kind));
+}
+function readTemplateText(plugin, path) {
+  return readLibraryFile(plugin, path);
 }
 function parseTemplate(text2) {
   let parsed;
@@ -1865,13 +2071,15 @@ function shiftOverrideDates(overrides, days) {
     endDate: o.endDate ? shift(o.endDate) : o.endDate
   }));
 }
-var import_obsidian4, TEMPLATE_TYPE, clone;
+var TEMPLATE_TYPE, clone, STRUCTURE_SUB, HOLIDAY_SUB;
 var init_schoolTemplates = __esm({
   "src/utils/schoolTemplates.ts"() {
-    import_obsidian4 = require("obsidian");
+    init_pluginLibrary();
     init_scheduleUtils();
     TEMPLATE_TYPE = "teacher-planner-template";
     clone = (v) => JSON.parse(JSON.stringify(v != null ? v : null));
+    STRUCTURE_SUB = "templates/School structure";
+    HOLIDAY_SUB = "templates/Holiday calendars";
   }
 });
 
@@ -2836,11 +3044,11 @@ var init_ColourPickerComponent = __esm({
 });
 
 // src/modals/AddPeriodModal.ts
-var import_obsidian5, AddPeriodModal;
+var import_obsidian6, AddPeriodModal;
 var init_AddPeriodModal = __esm({
   "src/modals/AddPeriodModal.ts"() {
-    import_obsidian5 = require("obsidian");
-    AddPeriodModal = class extends import_obsidian5.Modal {
+    import_obsidian6 = require("obsidian");
+    AddPeriodModal = class extends import_obsidian6.Modal {
       constructor(app, onAdd) {
         super(app);
         this.onAdd = onAdd;
@@ -2854,26 +3062,26 @@ var init_AddPeriodModal = __esm({
         let start = "";
         let end = "";
         let type = "lesson";
-        new import_obsidian5.Setting(contentEl).setName("Period name").setDesc("e.g. Period 1, Break, Lunch").addText((t) => {
+        new import_obsidian6.Setting(contentEl).setName("Period name").setDesc("e.g. Period 1, Break, Lunch").addText((t) => {
           t.setPlaceholder("Period 1");
           t.inputEl.addEventListener("input", () => {
             name = t.inputEl.value;
           });
           window.setTimeout(() => t.inputEl.focus(), 50);
         });
-        new import_obsidian5.Setting(contentEl).setName("Start time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
+        new import_obsidian6.Setting(contentEl).setName("Start time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
           t.setPlaceholder("08:50");
           t.inputEl.addEventListener("input", () => {
             start = t.inputEl.value;
           });
         });
-        new import_obsidian5.Setting(contentEl).setName("End time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
+        new import_obsidian6.Setting(contentEl).setName("End time").setDesc("HH:MM \u2014 24-hour format").addText((t) => {
           t.setPlaceholder("10:05");
           t.inputEl.addEventListener("input", () => {
             end = t.inputEl.value;
           });
         });
-        new import_obsidian5.Setting(contentEl).setName("Type").addDropdown((d) => {
+        new import_obsidian6.Setting(contentEl).setName("Type").addDropdown((d) => {
           d.addOption("lesson", "Lesson").addOption("break", "Break").addOption("registration", "Registration").addOption("free", "Free");
           d.setValue("lesson");
           d.onChange((v) => {
@@ -2890,20 +3098,20 @@ var init_AddPeriodModal = __esm({
             const trimmedStart = start.trim();
             const trimmedEnd = end.trim();
             if (!trimmedName) {
-              new import_obsidian5.Notice("Please enter a period name.");
+              new import_obsidian6.Notice("Please enter a period name.");
               return;
             }
             const timeRe = /^([01]\d|2[0-3]):[0-5]\d$/;
             if (!timeRe.test(trimmedStart)) {
-              new import_obsidian5.Notice("Start time must be HH:MM (e.g. 08:50).");
+              new import_obsidian6.Notice("Start time must be HH:MM (e.g. 08:50).");
               return;
             }
             if (!timeRe.test(trimmedEnd)) {
-              new import_obsidian5.Notice("End time must be HH:MM (e.g. 10:05).");
+              new import_obsidian6.Notice("End time must be HH:MM (e.g. 10:05).");
               return;
             }
             if (trimmedEnd <= trimmedStart) {
-              new import_obsidian5.Notice("End time must be after the start time.");
+              new import_obsidian6.Notice("End time must be after the start time.");
               return;
             }
             await this.onAdd({ id: `period-${Date.now()}`, name: trimmedName, start: trimmedStart, end: trimmedEnd, type });
@@ -7340,144 +7548,6 @@ var init_xlsxWriter = __esm({
   }
 });
 
-// src/utils/exportDestination.ts
-function getRequire() {
-  return window.require;
-}
-function getElectronRemote(noticeText) {
-  const req = getRequire();
-  if (!req) {
-    new import_obsidian6.Notice(noticeText);
-    return null;
-  }
-  const electron = req("electron");
-  if (electron == null ? void 0 : electron.remote) return electron.remote;
-  try {
-    return req("@electron/remote");
-  } catch (e) {
-    new import_obsidian6.Notice(noticeText);
-    return null;
-  }
-}
-function renderDestinationPicker(container, state, isMobile) {
-  container.createEl("p", { text: "Destination", cls: "tp-modal-label" });
-  const wrap = container.createDiv("tp-export-destination");
-  const vaultRow = wrap.createDiv("tp-export-dest-row");
-  vaultRow.createEl("span", { text: "Vault folder", cls: "tp-export-dest-sublabel" });
-  const vaultInput = vaultRow.createEl("input", { type: "text", cls: "tp-export-dest-input" });
-  vaultInput.value = state.vaultPath;
-  vaultInput.placeholder = "Teacher Planner/exports";
-  vaultInput.addEventListener("input", () => {
-    state.vaultPath = vaultInput.value;
-    state.mode = "vault";
-    state.systemPath = null;
-    updateSummary();
-  });
-  if (!isMobile) {
-    const browseRow = wrap.createDiv("tp-export-dest-row");
-    const browseBtn = browseRow.createEl("button", {
-      text: "Browse on computer\u2026",
-      cls: "tp-btn"
-    });
-    browseBtn.addEventListener("click", () => {
-      void (async () => {
-        const picked = await openOSFolderPicker();
-        if (picked) {
-          state.systemPath = picked;
-          state.mode = "system";
-          updateSummary();
-        }
-      })();
-    });
-  }
-  const summary = wrap.createEl("p", { cls: "tp-export-dest-summary setting-item-description" });
-  function updateSummary() {
-    if (state.mode === "system" && state.systemPath) {
-      summary.textContent = `Will save to: ${state.systemPath}  (on your computer)`;
-    } else {
-      summary.textContent = `Will save to: ${state.vaultPath}  (in your vault)`;
-    }
-  }
-  updateSummary();
-}
-async function openOSFolderPicker() {
-  try {
-    const remote = getElectronRemote("Folder picker is not available \u2014 please use a vault path.");
-    if (!remote) return null;
-    const result = await remote.dialog.showOpenDialog({
-      title: "Choose export folder",
-      properties: ["openDirectory", "createDirectory"]
-    });
-    if (result.canceled || !result.filePaths || result.filePaths.length === 0) return null;
-    return result.filePaths[0];
-  } catch (err2) {
-    console.error("OS folder picker failed:", err2);
-    new import_obsidian6.Notice("Could not open folder picker \u2014 please use a vault path.");
-    return null;
-  }
-}
-async function openOSFilePicker(title = "Choose a file") {
-  try {
-    const remote = getElectronRemote("File picker is not available on this platform.");
-    if (!remote) return null;
-    const result = await remote.dialog.showOpenDialog({ title, properties: ["openFile"] });
-    if (result.canceled || !result.filePaths || result.filePaths.length === 0) return null;
-    return result.filePaths[0];
-  } catch (err2) {
-    console.error("OS file picker failed:", err2);
-    new import_obsidian6.Notice("Could not open the file picker.");
-    return null;
-  }
-}
-async function openSystemPath(absolutePath) {
-  var _a2;
-  try {
-    const req = getRequire();
-    const electron = req == null ? void 0 : req("electron");
-    let shell = electron == null ? void 0 : electron.shell;
-    if (!shell) {
-      try {
-        shell = (_a2 = req == null ? void 0 : req("@electron/remote")) == null ? void 0 : _a2.shell;
-      } catch (e) {
-      }
-    }
-    if (!shell) {
-      new import_obsidian6.Notice("Opening external paths is only available on desktop.");
-      return;
-    }
-    const err2 = await shell.openPath(absolutePath);
-    if (err2) new import_obsidian6.Notice(`Could not open: ${err2}`);
-  } catch (e) {
-    console.error("openSystemPath failed:", e);
-    new import_obsidian6.Notice("Could not open the external resource.");
-  }
-}
-async function writeSystemFile(absolutePath, data) {
-  var _a2;
-  const fs = (_a2 = getRequire()) == null ? void 0 : _a2("fs/promises");
-  if (!fs) throw new Error("System filesystem not available on this platform.");
-  if (typeof data === "string") {
-    await fs.writeFile(absolutePath, data, "utf8");
-  } else {
-    await fs.writeFile(absolutePath, new Uint8Array(data));
-  }
-}
-function joinSystemPath(...parts) {
-  var _a2;
-  try {
-    const path = (_a2 = getRequire()) == null ? void 0 : _a2("path");
-    if (path) return path.join(...parts);
-  } catch (e) {
-  }
-  return parts.filter(Boolean).join("/");
-}
-var import_obsidian6;
-var init_exportDestination = __esm({
-  "src/utils/exportDestination.ts"() {
-    import_obsidian6 = require("obsidian");
-  }
-});
-
 // src/utils/eventUtils.ts
 function eventPeriodIds(ev) {
   if (ev.periodIds && ev.periodIds.length) return ev.periodIds;
@@ -8066,8 +8136,8 @@ var init_ExportModal = __esm({
           calendarName: s.academicYear.name || "Teacher Planner",
           days: (_a2 = this.icalDays) != null ? _a2 : void 0
         });
-        const safeName3 = (s.academicYear.name || "planner").replace(/[^a-z0-9]/gi, "-").toLowerCase();
-        const filename = `calendar-${safeName3}.ics`;
+        const safeName2 = (s.academicYear.name || "planner").replace(/[^a-z0-9]/gi, "-").toLowerCase();
+        const filename = `calendar-${safeName2}.ics`;
         if (this.destination.mode === "system" && this.destination.systemPath) {
           const absPath = joinSystemPath(this.destination.systemPath, filename);
           await writeSystemFile(absPath, content);
@@ -8393,8 +8463,8 @@ var init_DirectedTimeExportModal = __esm({
           { name: "Summary", rows: summaryData },
           { name: "Weekly Breakdown", rows: breakdownData }
         ]);
-        const safeName3 = ayName.replace(/[^a-z0-9]/gi, "-");
-        const filename = `directed-time-${safeName3}.xlsx`;
+        const safeName2 = ayName.replace(/[^a-z0-9]/gi, "-");
+        const filename = `directed-time-${safeName2}.xlsx`;
         if (this.destination.mode === "system" && this.destination.systemPath) {
           const absPath = joinSystemPath(this.destination.systemPath, filename);
           await writeSystemFile(absPath, buf);
@@ -8575,41 +8645,43 @@ var init_SetupWizardModal = __esm({
       }
       // ── Step 1: Planner name ────────────────────────────────────────────────────
       loadStructureTemplate() {
-        const files2 = listTemplateFiles(this.plugin, "structure");
-        if (files2.length === 0) {
-          new import_obsidian9.Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`);
-          return;
-        }
-        new WizardTemplatePickModal(this.app, files2, (file) => {
-          void (async () => {
-            var _a2, _b2, _c, _d, _e, _f;
-            let tpl;
-            try {
-              tpl = parseTemplate(await this.app.vault.read(file));
-            } catch (e) {
-              new import_obsidian9.Notice(e instanceof Error ? e.message : "Could not read template.");
-              return;
-            }
-            if (tpl.kind !== "structure" || !tpl.structure) {
-              new import_obsidian9.Notice("That file is not a school structure template.");
-              return;
-            }
-            const st = tpl.structure;
-            const clone2 = (v) => JSON.parse(JSON.stringify(v != null ? v : null));
-            let daySchedules = (_a2 = clone2(st.daySchedules)) != null ? _a2 : [];
-            if (daySchedules.length === 0 && ((_c = (_b2 = st.periods) == null ? void 0 : _b2.length) != null ? _c : 0) > 0) {
-              daySchedules = [{ id: "sched-default", name: "Standard day", periods: clone2(st.periods) }];
-            }
-            this.state.periodTypes = (_d = clone2(st.periodTypes)) != null ? _d : [];
-            this.state.daySchedules = daySchedules;
-            this.state.dayScheduleMap = (_e = clone2(st.dayScheduleMap)) != null ? _e : {};
-            if (st.schoolDays) this.state.schoolDays = clone2(st.schoolDays);
-            this.state.abWeekEnabled = !!st.abWeekEnabled;
-            this.state.abWeekStartsOn = (_f = st.abWeekStartsOn) != null ? _f : "A";
-            new import_obsidian9.Notice(`Loaded structure from "${tpl.name}".`);
-            this.render();
-          })();
-        }).open();
+        void (async () => {
+          const files2 = await listTemplateFiles(this.plugin, "structure");
+          if (files2.length === 0) {
+            new import_obsidian9.Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`);
+            return;
+          }
+          new WizardTemplatePickModal(this.app, files2, (file) => {
+            void (async () => {
+              var _a2, _b2, _c, _d, _e, _f;
+              let tpl;
+              try {
+                tpl = parseTemplate(await readTemplateText(this.plugin, file.path));
+              } catch (e) {
+                new import_obsidian9.Notice(e instanceof Error ? e.message : "Could not read template.");
+                return;
+              }
+              if (tpl.kind !== "structure" || !tpl.structure) {
+                new import_obsidian9.Notice("That file is not a school structure template.");
+                return;
+              }
+              const st = tpl.structure;
+              const clone2 = (v) => JSON.parse(JSON.stringify(v != null ? v : null));
+              let daySchedules = (_a2 = clone2(st.daySchedules)) != null ? _a2 : [];
+              if (daySchedules.length === 0 && ((_c = (_b2 = st.periods) == null ? void 0 : _b2.length) != null ? _c : 0) > 0) {
+                daySchedules = [{ id: "sched-default", name: "Standard day", periods: clone2(st.periods) }];
+              }
+              this.state.periodTypes = (_d = clone2(st.periodTypes)) != null ? _d : [];
+              this.state.daySchedules = daySchedules;
+              this.state.dayScheduleMap = (_e = clone2(st.dayScheduleMap)) != null ? _e : {};
+              if (st.schoolDays) this.state.schoolDays = clone2(st.schoolDays);
+              this.state.abWeekEnabled = !!st.abWeekEnabled;
+              this.state.abWeekStartsOn = (_f = st.abWeekStartsOn) != null ? _f : "A";
+              new import_obsidian9.Notice(`Loaded structure from "${tpl.name}".`);
+              this.render();
+            })();
+          }).open();
+        })();
       }
       renderStep1(body) {
         this.stepHeading(
@@ -9592,7 +9664,7 @@ function openEmojiPicker(anchor, current, onSelect) {
   }, 0);
   _activeEmojiCleanup = cleanup;
 }
-var import_obsidian11, SUBJECT_EMOJIS, _activeEmojiCleanup, TextPromptModal, ConfirmModal, TeacherPlannerSettingTab, SettingsAppliedModal, ColourPickerModal, DeletePlannerModal, ImportPlannerModal, TemplatePickModal;
+var import_obsidian11, SUBJECT_EMOJIS, _activeEmojiCleanup, TextPromptModal, ConfirmModal, TeacherPlannerSettingTab, SettingsAppliedModal, ColourPickerModal, DeletePlannerModal, BackupPickModal, BackupExportModal, TemplatePickModal;
 var init_SettingsTab = __esm({
   "src/settings/SettingsTab.ts"() {
     import_obsidian11 = require("obsidian");
@@ -9601,6 +9673,7 @@ var init_SettingsTab = __esm({
     init_noteTitleUtils();
     init_weekNoteFiles();
     init_plannerBackup();
+    init_exportDestination();
     init_schoolTemplates();
     init_themeColours();
     init_weekUtils();
@@ -10368,23 +10441,10 @@ var init_SettingsTab = __esm({
             disabledDel.setCssStyles({ cursor: "not-allowed" });
           }
         }
-        new import_obsidian11.Setting(container).setName("Backups").setDesc(`Saved as .json files in "${backupsFolder(this.plugin)}" \u2014 re-importable. Deleting a planner backs it up automatically.`).addButton((btn) => btn.setButtonText("Import planner\u2026").onClick(() => {
-          if (listBackupFiles(this.plugin).length === 0) {
-            new import_obsidian11.Notice(`No backups found in "${backupsFolder(this.plugin)}".`);
-            return;
-          }
-          new ImportPlannerModal(this.app, this.plugin, () => this.display()).open();
-        })).addButton((btn) => btn.setButtonText("Export all").onClick(() => {
-          void (async () => {
-            try {
-              const path = await backupAll(this.plugin);
-              new import_obsidian11.Notice(`All planners backed up to ${path}`);
-            } catch (e) {
-              console.error("Teacher Planner: export-all failed.", e);
-              new import_obsidian11.Notice("Backup failed \u2014 see console.");
-            }
-          })();
-        }));
+        const backupSetting = new import_obsidian11.Setting(container).setName("Backups").setDesc("Saved as .json in the plugin folder (hidden, no vault clutter); the auto-backup taken before deleting a planner goes here too. Export lets you also save a copy to a vault folder or your computer.").addButton((btn) => btn.setButtonText("Export\u2026").onClick(() => new BackupExportModal(this.app, this.plugin, () => this.display()).open())).addButton((btn) => btn.setButtonText("Import from library\u2026").onClick(() => this.importBackupFromLibrary()));
+        if (!import_obsidian11.Platform.isMobile) {
+          backupSetting.addButton((btn) => btn.setButtonText("Import from file\u2026").onClick(() => this.importBackupFromFile()));
+        }
         new import_obsidian11.Setting(container).setName("Templates").setHeading();
         container.createEl("p", {
           text: `Reusable setups saved as .json under "${this.plugin.plannerData.rootPlannerFolder || "Teacher Planner"}/Templates". A template holds the school shell only, never your classes, timetable, notes, or dates. Share one by dropping its file into the matching folder.`,
@@ -10703,77 +10763,107 @@ var init_SettingsTab = __esm({
         }).open();
       }
       applyStructureTemplateFlow() {
-        const files2 = listTemplateFiles(this.plugin, "structure");
-        if (files2.length === 0) {
-          new import_obsidian11.Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`);
-          return;
-        }
-        new TemplatePickModal(this.app, files2, "Pick a school structure template\u2026", (file) => {
-          void (async () => {
-            let tpl;
-            try {
-              tpl = parseTemplate(await this.app.vault.read(file));
-            } catch (e) {
-              new import_obsidian11.Notice(e instanceof Error ? e.message : "Could not read template.");
-              return;
-            }
-            if (tpl.kind !== "structure" || !tpl.structure) {
-              new import_obsidian11.Notice("That file is not a school structure template.");
-              return;
-            }
-            const structure = tpl.structure;
-            new ConfirmModal(
-              this.app,
-              "Apply this school structure to the current planner? It replaces your periods, block types, A/B pattern and school days. Any classes already placed on the timetable will be detached, since their slots point at the old periods. Your classes, notes and year dates are kept.",
-              () => {
-                void (async () => {
-                  try {
-                    await applyStructureTemplate(this.plugin, structure);
-                    new import_obsidian11.Notice("School structure applied.");
-                    this.display();
-                  } catch (e) {
-                    console.error("Teacher Planner: apply structure failed.", e);
-                    new import_obsidian11.Notice("Could not apply template \u2014 see console.");
-                  }
-                })();
-              },
-              "Apply structure"
-            ).open();
-          })();
-        }).open();
+        void (async () => {
+          const files2 = await listTemplateFiles(this.plugin, "structure");
+          if (files2.length === 0) {
+            new import_obsidian11.Notice(`No structure templates in "${structureTemplatesFolder(this.plugin)}".`);
+            return;
+          }
+          new TemplatePickModal(this.app, files2, "Pick a school structure template\u2026", (file) => {
+            void (async () => {
+              let tpl;
+              try {
+                tpl = parseTemplate(await readTemplateText(this.plugin, file.path));
+              } catch (e) {
+                new import_obsidian11.Notice(e instanceof Error ? e.message : "Could not read template.");
+                return;
+              }
+              if (tpl.kind !== "structure" || !tpl.structure) {
+                new import_obsidian11.Notice("That file is not a school structure template.");
+                return;
+              }
+              const structure = tpl.structure;
+              new ConfirmModal(
+                this.app,
+                "Apply this school structure to the current planner? It replaces your periods, block types, A/B pattern and school days. Any classes already placed on the timetable will be detached, since their slots point at the old periods. Your classes, notes and year dates are kept.",
+                () => {
+                  void (async () => {
+                    try {
+                      await applyStructureTemplate(this.plugin, structure);
+                      new import_obsidian11.Notice("School structure applied.");
+                      this.display();
+                    } catch (e) {
+                      console.error("Teacher Planner: apply structure failed.", e);
+                      new import_obsidian11.Notice("Could not apply template \u2014 see console.");
+                    }
+                  })();
+                },
+                "Apply structure"
+              ).open();
+            })();
+          }).open();
+        })();
       }
       loadHolidayTemplateFlow() {
-        const files2 = listTemplateFiles(this.plugin, "holidays");
-        if (files2.length === 0) {
-          new import_obsidian11.Notice(`No holiday templates in "${holidayTemplatesFolder(this.plugin)}".`);
-          return;
-        }
-        new TemplatePickModal(this.app, files2, "Pick a holiday calendar template\u2026", (file) => {
-          void (async () => {
-            let tpl;
-            try {
-              tpl = parseTemplate(await this.app.vault.read(file));
-            } catch (e) {
-              new import_obsidian11.Notice(e instanceof Error ? e.message : "Could not read template.");
-              return;
-            }
-            if (tpl.kind !== "holidays" || !tpl.holidays) {
-              new import_obsidian11.Notice("That file is not a holiday calendar template.");
-              return;
-            }
-            const holidays = tpl.holidays;
-            new TextPromptModal(this.app, "Shift dates (optional)", "0", "Days to shift (364 \u2248 next year, 0 to keep as saved)", (val) => {
-              void (async () => {
-                const days = parseInt(val);
-                const d = isNaN(days) ? 0 : days;
-                const overrides = d !== 0 ? shiftOverrideDates(holidays.overrides, d) : holidays.overrides;
-                const n = await applyHolidayTemplate(this.plugin, { overrides });
-                new import_obsidian11.Notice(`Added ${n} holiday/INSET ${n === 1 ? "entry" : "entries"}. Fine-tune dates in the Academic year settings.`);
-                this.display();
-              })();
-            }).open();
-          })();
-        }).open();
+        void (async () => {
+          const files2 = await listTemplateFiles(this.plugin, "holidays");
+          if (files2.length === 0) {
+            new import_obsidian11.Notice(`No holiday templates in "${holidayTemplatesFolder(this.plugin)}".`);
+            return;
+          }
+          new TemplatePickModal(this.app, files2, "Pick a holiday calendar template\u2026", (file) => {
+            void (async () => {
+              let tpl;
+              try {
+                tpl = parseTemplate(await readTemplateText(this.plugin, file.path));
+              } catch (e) {
+                new import_obsidian11.Notice(e instanceof Error ? e.message : "Could not read template.");
+                return;
+              }
+              if (tpl.kind !== "holidays" || !tpl.holidays) {
+                new import_obsidian11.Notice("That file is not a holiday calendar template.");
+                return;
+              }
+              const holidays = tpl.holidays;
+              new TextPromptModal(this.app, "Shift dates (optional)", "0", "Days to shift (364 \u2248 next year, 0 to keep as saved)", (val) => {
+                void (async () => {
+                  const days = parseInt(val);
+                  const d = isNaN(days) ? 0 : days;
+                  const overrides = d !== 0 ? shiftOverrideDates(holidays.overrides, d) : holidays.overrides;
+                  const n = await applyHolidayTemplate(this.plugin, { overrides });
+                  new import_obsidian11.Notice(`Added ${n} holiday/INSET ${n === 1 ? "entry" : "entries"}. Fine-tune dates in the Academic year settings.`);
+                  this.display();
+                })();
+              }).open();
+            })();
+          }).open();
+        })();
+      }
+      importBackupFromLibrary() {
+        void (async () => {
+          const files2 = await listLibraryBackups(this.plugin);
+          if (files2.length === 0) {
+            new import_obsidian11.Notice("No saved backups in the plugin library yet.");
+            return;
+          }
+          new BackupPickModal(this.app, this.plugin, files2, () => this.display()).open();
+        })();
+      }
+      importBackupFromFile() {
+        void (async () => {
+          var _a2;
+          const path = await openOSFilePicker("Choose a backup .json");
+          if (!path) return;
+          try {
+            const { planners } = parseBackup(await readSystemFile(path));
+            const ids = await importPlanners(this.plugin, planners);
+            new import_obsidian11.Notice(`Imported ${planners.length} planner${planners.length === 1 ? "" : "s"}.`);
+            if (ids[0]) await this.plugin.switchPlanner(ids[0]);
+            this.display();
+          } catch (e) {
+            new import_obsidian11.Notice(`Import failed: ${(_a2 = e.message) != null ? _a2 : "see console"}`);
+          }
+        })();
       }
       renderActivitiesList(container, typeFilter = "directed") {
         var _a2;
@@ -11202,7 +11292,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         const { contentEl, titleEl } = this;
         titleEl.setText(this.isLast ? "Delete last planner" : "Delete planner");
         contentEl.createEl("p", {
-          text: this.isLast ? `"${this.plannerName}" is your only planner. Deleting it will remove all planner data and relaunch the setup wizard. A re-importable backup is saved to "${backupsFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.` : `Delete "${this.plannerName}"? All planner data (timetable, classes, events) will be removed \u2014 but a re-importable backup is saved to "${backupsFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.`,
+          text: this.isLast ? `"${this.plannerName}" is your only planner. Deleting it will remove all planner data and relaunch the setup wizard. A re-importable backup is saved to "${backupsLibraryFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.` : `Delete "${this.plannerName}"? All planner data (timetable, classes, events) will be removed \u2014 but a re-importable backup is saved to "${backupsLibraryFolder(this.plugin)}" first. Lesson notes already created in your vault will not be affected.`,
           cls: "setting-item-description"
         });
         new import_obsidian11.Setting(contentEl).addButton((btn) => btn.setButtonText("Cancel").onClick(() => this.close())).addButton((btn) => btn.setButtonText(this.isLast ? "Delete & restart wizard" : "Delete planner").setClass("mod-warning").onClick(async () => {
@@ -11220,15 +11310,16 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         this.contentEl.empty();
       }
     };
-    ImportPlannerModal = class extends import_obsidian11.FuzzySuggestModal {
-      constructor(app, plugin, onDone) {
+    BackupPickModal = class extends import_obsidian11.FuzzySuggestModal {
+      constructor(app, plugin, files2, onDone) {
         super(app);
         this.plugin = plugin;
+        this.files = files2;
         this.onDone = onDone;
         this.setPlaceholder("Pick a backup to import\u2026");
       }
       getItems() {
-        return listBackupFiles(this.plugin);
+        return this.files;
       }
       getItemText(f) {
         return f.basename;
@@ -11237,7 +11328,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
         void (async () => {
           var _a2;
           try {
-            const { planners } = parseBackup(await this.app.vault.read(f));
+            const { planners } = parseBackup(await readBackupText(this.plugin, f.path));
             const ids = await importPlanners(this.plugin, planners);
             new import_obsidian11.Notice(`Imported ${planners.length} planner${planners.length === 1 ? "" : "s"}.`);
             if (ids[0]) await this.plugin.switchPlanner(ids[0]);
@@ -11247,6 +11338,61 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
             new import_obsidian11.Notice(`Import failed: ${(_a2 = e.message) != null ? _a2 : "see console"}`);
           }
         })();
+      }
+    };
+    BackupExportModal = class extends import_obsidian11.Modal {
+      constructor(app, plugin, onDone) {
+        super(app);
+        this.plugin = plugin;
+        this.onDone = onDone;
+        this.selected = new Set(plugin.plannerData.planners.map((p) => p.id));
+        this.destination = { mode: "vault", vaultPath: backupsLibraryFolder(plugin), systemPath: null };
+      }
+      stamp() {
+        const d = /* @__PURE__ */ new Date();
+        const p = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}${p(d.getMinutes())}`;
+      }
+      onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        contentEl.addClass("tp-modal-form");
+        contentEl.createEl("h3", { text: "Export backup" });
+        contentEl.createEl("p", { text: "Choose which planners to back up and where to save. The default plugin folder keeps it out of your vault and listed under Import.", cls: "setting-item-description" });
+        const list = contentEl.createDiv();
+        for (const pl of this.plugin.plannerData.planners) {
+          new import_obsidian11.Setting(list).setName(pl.name).addToggle((t) => t.setValue(this.selected.has(pl.id)).onChange((v) => {
+            if (v) this.selected.add(pl.id);
+            else this.selected.delete(pl.id);
+          }));
+        }
+        renderDestinationPicker(contentEl, this.destination, import_obsidian11.Platform.isMobile);
+        const footer = contentEl.createDiv("tp-modal-footer");
+        footer.setCssStyles({ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" });
+        footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
+        footer.createEl("button", { text: "Export", cls: "tp-btn tp-btn--primary" }).addEventListener("click", () => {
+          void (async () => {
+            const chosen = this.plugin.plannerData.planners.filter((pl) => this.selected.has(pl.id));
+            if (chosen.length === 0) {
+              new import_obsidian11.Notice("Select at least one planner.");
+              return;
+            }
+            try {
+              const label = chosen.length === 1 ? chosen[0].name : `${chosen.length} planners`;
+              const filename = `Teacher Planner backup - ${label} - ${this.stamp()}.json`;
+              const path = await writeBackupToDestination(this.plugin, this.destination, filename, buildBackupOf(chosen));
+              new import_obsidian11.Notice(`Backed up ${chosen.length} planner${chosen.length === 1 ? "" : "s"} to ${path}`);
+              this.onDone();
+              this.close();
+            } catch (e) {
+              console.error("Teacher Planner: backup export failed.", e);
+              new import_obsidian11.Notice("Backup failed \u2014 see console.");
+            }
+          })();
+        });
+      }
+      onClose() {
+        this.contentEl.empty();
       }
     };
     TemplatePickModal = class extends import_obsidian11.FuzzySuggestModal {
@@ -16533,7 +16679,7 @@ date: "${dateIso}"
 ---
 `;
 }
-async function ensureFolder(app, path) {
+async function ensureFolder2(app, path) {
   if (!app.vault.getAbstractFileByPath(path)) {
     try {
       await app.vault.createFolder(path);
@@ -16588,7 +16734,7 @@ async function applyNoteMoves(app, s, classId, moves) {
     } else if (mv.kind === "toUnplaced") {
       const file = findNote(app, s, meta, mv.from.date, mv.from.periodName);
       if (!file) continue;
-      await ensureFolder(app, unplacedFolder(s));
+      await ensureFolder2(app, unplacedFolder(s));
       const targetPath = `${unplacedFolder(s)}/${meta.code} - ${mv.from.date} - ${file.basename}`.slice(0, 200) + ".md";
       planned.push({
         file,
@@ -16630,7 +16776,7 @@ async function applyNoteMoves(app, s, classId, moves) {
   for (const t of temps) {
     const pl = t.plan;
     const folder = pl.targetPath.slice(0, pl.targetPath.lastIndexOf("/"));
-    await ensureFolder(app, folder);
+    await ensureFolder2(app, folder);
     try {
       await app.fileManager.renameFile(t.file, (0, import_obsidian16.normalizePath)(pl.targetPath));
       await setFm(app, t.file, pl.date, pl.periodName, meta.code);
@@ -16700,8 +16846,8 @@ async function createLessonNoteFile(app, s, classId, periodName, dateIso, rawNam
   }
   const base = plannerFolder(s);
   const folder = noteFolder(s, dateIso);
-  await ensureFolder(app, base);
-  if (folder !== base) await ensureFolder(app, folder);
+  await ensureFolder2(app, base);
+  if (folder !== base) await ensureFolder2(app, folder);
   const body = lessonNoteFrontmatter(meta, periodName, dateIso) + ((_b2 = s.lessonNoteTemplate) != null ? _b2 : LESSON_BODY_FALLBACK);
   try {
     await app.vault.create(`${folder}/${fileName}.md`, body);

@@ -23,7 +23,7 @@ interface ElectronDialog {
 interface ElectronShell { openPath(path: string): Promise<string> }
 interface ElectronRemote { dialog: ElectronDialog; shell?: ElectronShell }
 interface ElectronModule { remote?: ElectronRemote; shell?: ElectronShell }
-interface FsPromisesLike { writeFile(path: string, data: string | Uint8Array, encoding?: string): Promise<void> }
+interface FsPromisesLike { writeFile(path: string, data: string | Uint8Array, encoding?: string): Promise<void>; readFile(path: string, encoding: string): Promise<string> }
 interface PathLike { join(...parts: string[]): string }
 
 function getRequire(): NodeRequireFn | undefined {
@@ -185,4 +185,11 @@ export function joinSystemPath(...parts: string[]): string {
     if (path) return path.join(...parts);
   } catch { /* fall through */ }
   return parts.filter(Boolean).join("/");
+}
+
+/** Read an absolute OS path as UTF-8 text. Desktop only. */
+export async function readSystemFile(absolutePath: string): Promise<string> {
+  const fs = getRequire()?.("fs/promises") as FsPromisesLike | undefined;
+  if (!fs) throw new Error("System filesystem not available on this platform.");
+  return fs.readFile(absolutePath, "utf8");
 }
