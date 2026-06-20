@@ -110,6 +110,19 @@ export const CLASS_COLOUR_PALETTE = [
   "#e8a2b8", "#f38ba8",
 ];
 
+/**
+ * Pick a class/subject colour at random from CLASS_COLOUR_PALETTE, preferring a
+ * colour not already used by an existing class. Skipping used colours also means
+ * the colour just added is never immediately repeated. Falls back to a plain
+ * random pick from the full palette once every preset colour is in use.
+ */
+export function randomClassColour(used: Array<string | undefined> = []): string {
+  const taken = new Set(used.filter((c): c is string => !!c).map(c => c.toLowerCase()));
+  const free = CLASS_COLOUR_PALETTE.filter(c => !taken.has(c.toLowerCase()));
+  const pool = free.length ? free : CLASS_COLOUR_PALETTE;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 import type { PlannerRecord, GlobalPluginData } from "./types";
 
 /**

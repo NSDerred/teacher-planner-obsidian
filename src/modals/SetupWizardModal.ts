@@ -4,7 +4,7 @@ import type {
   PlannerRecord, Subject, ClassGroup, SchoolDay,
   WeekOverride, PeriodTypeConfig, Activity, DaySchedule,
 } from "../types";
-import { DEFAULT_PLANNER, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, FALLBACK_PERIOD_TYPE_COLOUR } from "../settings";
+import { DEFAULT_PLANNER, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, FALLBACK_PERIOD_TYPE_COLOUR, randomClassColour } from "../settings";
 import { resolveColour } from "../utils/themeColours";
 import { isValidIsoDate, findOverlappingOverrides } from "../utils/weekUtils";
 import { syncPeriodsUnion } from "../utils/scheduleUtils";
@@ -810,7 +810,7 @@ export class SetupWizardModal extends Modal {
 
       new Setting(listEl).addButton(btn => btn.setButtonText("+ Add subject").setCta()
         .onClick(() => {
-          const colour = CLASS_COLOUR_PALETTE[this.state.subjects.length % CLASS_COLOUR_PALETTE.length];
+          const colour = randomClassColour(this.state.subjects.map(s => s.colour));
           this.state.subjects.push({ id: "subj-" + Date.now(), name: "New Subject", colour, emoji: "📚" });
           renderList();
         }));

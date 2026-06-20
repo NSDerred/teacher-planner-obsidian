@@ -27,6 +27,12 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/settings.ts
+function randomClassColour(used = []) {
+  const taken = new Set(used.filter((c) => !!c).map((c) => c.toLowerCase()));
+  const free = CLASS_COLOUR_PALETTE.filter((c) => !taken.has(c.toLowerCase()));
+  const pool = free.length ? free : CLASS_COLOUR_PALETTE;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 var DEFAULT_LESSON_TEMPLATE, DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE, DEFAULT_SETTINGS, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, CLASS_COLOUR_PALETTE, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA;
 var init_settings = __esm({
   "src/settings.ts"() {
@@ -9307,7 +9313,7 @@ var init_SetupWizardModal = __esm({
             }
           }
           new import_obsidian9.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(() => {
-            const colour = CLASS_COLOUR_PALETTE[this.state.subjects.length % CLASS_COLOUR_PALETTE.length];
+            const colour = randomClassColour(this.state.subjects.map((s) => s.colour));
             this.state.subjects.push({ id: "subj-" + Date.now(), name: "New Subject", colour, emoji: "\u{1F4DA}" });
             renderList();
           }));
@@ -10162,7 +10168,7 @@ var init_SettingsTab = __esm({
         const classesContainer = containerEl.createDiv("tp-classes-list");
         this.renderSubjectsList(classesContainer);
         new import_obsidian11.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add subject").setCta().onClick(async () => {
-          const colour = CLASS_COLOUR_PALETTE[this.plugin.settings.subjects.length % CLASS_COLOUR_PALETTE.length];
+          const colour = randomClassColour(this.plugin.settings.subjects.map((s) => s.colour));
           this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour, emoji: "\u{1F4DA}" });
           await this.plugin.saveSettings();
           classesContainer.empty();

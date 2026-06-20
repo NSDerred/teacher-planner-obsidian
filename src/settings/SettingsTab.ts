@@ -3,7 +3,7 @@ import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon
 import type TeacherPlannerPlugin from "../main";
 import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity, DaySchedule, SchoolDay, TeacherPlannerSettings } from "../types";
 import { ensureDaySchedules, getScheduleForDay } from "../utils/scheduleUtils";
-import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE } from "../settings";
+import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE, randomClassColour } from "../settings";
 import { buildNoteTitle } from "../utils/noteTitleUtils";
 import { migrateWeekNotesToFiles } from "../utils/weekNoteFiles";
 import { backupPlanner, parseBackup, importPlanners, buildBackupOf, listLibraryBackups, readBackupText, backupsLibraryFolder, writeBackupToDestination } from "../utils/plannerBackup";
@@ -504,7 +504,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     this.renderSubjectsList(classesContainer);
     new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add subject").setCta()
       .onClick(async () => {
-        const colour = CLASS_COLOUR_PALETTE[this.plugin.settings.subjects.length % CLASS_COLOUR_PALETTE.length];
+        const colour = randomClassColour(this.plugin.settings.subjects.map(s => s.colour));
         this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour, emoji: "📚" });
         await this.plugin.saveSettings();
         classesContainer.empty();
