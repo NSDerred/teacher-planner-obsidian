@@ -480,19 +480,6 @@ export class SetupWizardModal extends Modal {
     this.stepHeading(body, 5, "School days & timetable rotation",
       "Choose which days are school days and optionally enable A/B week rotation.");
 
-    body.createEl("p", { text: "School days", cls: "tp-wizard-sublabel" });
-    const dayRow = body.createDiv("tp-school-days-wrap");
-    for (const d of DAYS) {
-      const lbl = dayRow.createEl("label", { cls: "tp-school-day-label" });
-      const cb  = lbl.createEl("input", { type: "checkbox" });
-      cb.checked = this.state.schoolDays.includes(d.key);
-      lbl.appendText(d.label);
-      cb.addEventListener("change", () => {
-        if (cb.checked) { if (!this.state.schoolDays.includes(d.key)) this.state.schoolDays.push(d.key); }
-        else { this.state.schoolDays = this.state.schoolDays.filter(k => k !== d.key); }
-      });
-    }
-
     let abPanel: HTMLElement;
     new Setting(body)
       .setName("Enable A/B week rotation")
@@ -509,6 +496,19 @@ export class SetupWizardModal extends Modal {
       .addDropdown(d => d.addOption("A", "Week A").addOption("B", "Week B")
         .setValue(this.state.abWeekStartsOn)
         .onChange(v => { this.state.abWeekStartsOn = v as "A" | "B"; }));
+
+    body.createEl("p", { text: "School days", cls: "tp-wizard-sublabel" });
+    const dayRow = body.createDiv("tp-school-days-wrap");
+    for (const d of DAYS) {
+      const lbl = dayRow.createEl("label", { cls: "tp-school-day-label" });
+      const cb  = lbl.createEl("input", { type: "checkbox" });
+      cb.checked = this.state.schoolDays.includes(d.key);
+      lbl.appendText(d.label);
+      cb.addEventListener("change", () => {
+        if (cb.checked) { if (!this.state.schoolDays.includes(d.key)) this.state.schoolDays.push(d.key); }
+        else { this.state.schoolDays = this.state.schoolDays.filter(k => k !== d.key); }
+      });
+    }
 
     this.footer(body, () => {
       if (this.state.schoolDays.length === 0) { new Notice("Please select at least one school day."); return false; }

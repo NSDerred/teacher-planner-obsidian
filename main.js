@@ -8981,6 +8981,16 @@ var init_SetupWizardModal = __esm({
           "School days & timetable rotation",
           "Choose which days are school days and optionally enable A/B week rotation."
         );
+        let abPanel;
+        new import_obsidian9.Setting(body).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.state.abWeekEnabled).onChange((v) => {
+          this.state.abWeekEnabled = v;
+          abPanel.setCssStyles({ display: v ? "" : "none" });
+        }));
+        abPanel = body.createDiv();
+        abPanel.setCssStyles({ display: this.state.abWeekEnabled ? "" : "none" });
+        new import_obsidian9.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.state.abWeekStartsOn).onChange((v) => {
+          this.state.abWeekStartsOn = v;
+        }));
         body.createEl("p", { text: "School days", cls: "tp-wizard-sublabel" });
         const dayRow = body.createDiv("tp-school-days-wrap");
         for (const d of DAYS) {
@@ -8996,16 +9006,6 @@ var init_SetupWizardModal = __esm({
             }
           });
         }
-        let abPanel;
-        new import_obsidian9.Setting(body).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.state.abWeekEnabled).onChange((v) => {
-          this.state.abWeekEnabled = v;
-          abPanel.setCssStyles({ display: v ? "" : "none" });
-        }));
-        abPanel = body.createDiv();
-        abPanel.setCssStyles({ display: this.state.abWeekEnabled ? "" : "none" });
-        new import_obsidian9.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.state.abWeekStartsOn).onChange((v) => {
-          this.state.abWeekStartsOn = v;
-        }));
         this.footer(body, () => {
           if (this.state.schoolDays.length === 0) {
             new import_obsidian9.Notice("Please select at least one school day.");
@@ -10035,6 +10035,21 @@ var init_SettingsTab = __esm({
           text: "Periods are grouped into day schedules. Most schools only need the Standard day. Add another schedule for days shaped differently \u2014 a sports afternoon, a half-day Saturday \u2014 and assign it to those days. Colours and types are configured in School Day Blocks above.",
           cls: "setting-item-description"
         });
+        new import_obsidian11.Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekEnabled).onChange(async (v) => {
+          this.plugin.settings.academicYear.abWeekEnabled = v;
+          await this.plugin.saveSettings();
+          abPanel.setCssStyles({ display: v ? "" : "none" });
+        }));
+        const abPanel = containerEl.createDiv();
+        abPanel.setCssStyles({ display: this.plugin.settings.academicYear.abWeekEnabled ? "" : "none" });
+        new import_obsidian11.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.plugin.settings.academicYear.abWeekStartsOn).onChange(async (v) => {
+          this.plugin.settings.academicYear.abWeekStartsOn = v;
+          await this.plugin.saveSettings();
+        }));
+        new import_obsidian11.Setting(abPanel).setName("Continue rotation across holidays").setDesc("Skip fully-holiday weeks so the A/B pattern carries on seamlessly after a break. Recomputes automatically when holidays change.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekHolidayAware !== false).onChange(async (v) => {
+          this.plugin.settings.academicYear.abWeekHolidayAware = v;
+          await this.plugin.saveSettings();
+        }));
         ensureDaySchedules(this.plugin.settings.academicYear);
         const scheduleBar = containerEl.createDiv("tp-schedule-bar");
         const periodsContainer = containerEl.createDiv("tp-periods-list");
@@ -10147,21 +10162,6 @@ var init_SettingsTab = __esm({
             await this.plugin.saveSettings();
             refreshPeriods();
           }).open();
-        }));
-        new import_obsidian11.Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekEnabled).onChange(async (v) => {
-          this.plugin.settings.academicYear.abWeekEnabled = v;
-          await this.plugin.saveSettings();
-          abPanel.setCssStyles({ display: v ? "" : "none" });
-        }));
-        const abPanel = containerEl.createDiv();
-        abPanel.setCssStyles({ display: this.plugin.settings.academicYear.abWeekEnabled ? "" : "none" });
-        new import_obsidian11.Setting(abPanel).setName("Academic year starts on").addDropdown((d) => d.addOption("A", "Week A").addOption("B", "Week B").setValue(this.plugin.settings.academicYear.abWeekStartsOn).onChange(async (v) => {
-          this.plugin.settings.academicYear.abWeekStartsOn = v;
-          await this.plugin.saveSettings();
-        }));
-        new import_obsidian11.Setting(abPanel).setName("Continue rotation across holidays").setDesc("Skip fully-holiday weeks so the A/B pattern carries on seamlessly after a break. Recomputes automatically when holidays change.").addToggle((t) => t.setValue(this.plugin.settings.academicYear.abWeekHolidayAware !== false).onChange(async (v) => {
-          this.plugin.settings.academicYear.abWeekHolidayAware = v;
-          await this.plugin.saveSettings();
         }));
         new import_obsidian11.Setting(containerEl).setName("Lessons").setHeading();
         containerEl.createEl("p", {
