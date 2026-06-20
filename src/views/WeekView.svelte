@@ -1581,8 +1581,7 @@
   .tp-axis-override-label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); opacity:0.55; pointer-events:none; }
 
   /* Period blocks — positioned by time within the day column */
-  .tp-chip:focus-visible,
-  .tp-cell-add-event:focus-visible { outline:2px solid var(--interactive-accent); outline-offset:-2px; border-radius:4px; }
+  .tp-chip:focus-visible { outline:2px solid var(--interactive-accent); outline-offset:-2px; border-radius:4px; }
   .tp-block { position:absolute; left:4px; right:4px; border:1px solid var(--background-modifier-border); border-radius:4px; box-sizing:border-box; overflow:hidden; transition:background 0.1s; z-index:2; container-type:inline-size; container-name:block; }
   .tp-block-clash { position:absolute; top:1px; right:3px; z-index:6; font-size:11px; line-height:1; color:var(--color-yellow,#e0af68); cursor:help; }
   .tp-block-clash--directed { color:var(--color-red,#f38ba8); font-size:13px; font-weight:700; }
