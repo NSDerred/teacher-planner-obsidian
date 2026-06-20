@@ -361,6 +361,64 @@
 
   function cellKey(day: string, periodId: string) { return `${day}:${periodId}`; }
 
+  // ── Keyboard navigation for the week grid (roving tabindex + arrow keys) ──
+  let gridBodyEl: HTMLElement | undefined;
+  let gridFocusKey: string | null = null;
+
+  afterUpdate(() => {
+    if (!gridBodyEl) return;
+    const cells = gridBodyEl.querySelectorAll<HTMLElement>("[data-gridkey]");
+    if (cells.length === 0) { gridFocusKey = null; return; }
+    if (gridFocusKey && gridBodyEl.querySelector(`[data-gridkey="${gridCssEsc(gridFocusKey)}"]`)) return;
+    gridFocusKey = cells[0].getAttribute("data-gridkey");
+  });
+
+  function gridCssEsc(v: string): string {
+    const C = (window as unknown as { CSS?: { escape?: (s: string) => string } }).CSS;
+    return C && C.escape ? C.escape(v) : v.replace(/["\\]/g, "\\$&");
+  }
+
+  function gridNeighbour(cur: HTMLElement, dir: string): HTMLElement | null {
+    if (!gridBodyEl) return null;
+    const cells = Array.from(gridBodyEl.querySelectorAll<HTMLElement>("[data-gridkey]"));
+    const cr = cur.getBoundingClientRect();
+    const cx = cr.left + cr.width / 2, cy = cr.top + cr.height / 2;
+    let best: HTMLElement | null = null, bestScore = Infinity;
+    for (const el of cells) {
+      if (el === cur) continue;
+      const r = el.getBoundingClientRect();
+      const ex = r.left + r.width / 2, ey = r.top + r.height / 2;
+      const dx = ex - cx, dy = ey - cy;
+      let primary: number, cross: number;
+      if (dir === "ArrowRight")     { if (dx <= 1)  continue; primary = dx;  cross = Math.abs(dy); }
+      else if (dir === "ArrowLeft") { if (dx >= -1) continue; primary = -dx; cross = Math.abs(dy); }
+      else if (dir === "ArrowDown") { if (dy <= 1)  continue; primary = dy;  cross = Math.abs(dx); }
+      else                          { if (dy >= -1) continue; primary = -dy; cross = Math.abs(dx); }
+      const score = primary + cross * 2; // weight the cross-axis so aligned cells win
+      if (score < bestScore) { bestScore = score; best = el; }
+    }
+    return best;
+  }
+
+  function onCellKeydown(e: KeyboardEvent): void {
+    const el = e.currentTarget as HTMLElement;
+    const k = e.key;
+    const isBtn = el.tagName === "BUTTON";
+    if (!isBtn && (k === "Enter" || k === " ")) {
+      e.preventDefault();
+      el.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      return;
+    }
+    if (k === "ArrowUp" || k === "ArrowDown" || k === "ArrowLeft" || k === "ArrowRight") {
+      const next = gridNeighbour(el, k);
+      if (next) {
+        e.preventDefault();
+        gridFocusKey = next.getAttribute("data-gridkey");
+        next.focus();
+      }
+    }
+  }
+
   // ── Drag-and-drop ─────────────────────────────────────────────────────────
   let dragSlotId:  string | null = null;
   let dragEventId: string | null = null;
@@ -700,7 +758,7 @@
     clearThemeColourCache();
     invalidate();
   });
-  import { onDestroy } from "svelte";
+  import { onDestroy, afterUpdate } from "svelte";
   onDestroy(() => {
     clearInterval(_nowInterval);
     if (rejectTimer) clearTimeout(rejectTimer);
@@ -1196,7 +1254,7 @@
         {/each}
       </div>
 
-      <div class="tp-axis-body">
+      <div class="tp-axis-body" bind:this={gridBodyEl}>
         <div class="tp-axis-gutter" style="height:{axisHeight}px;">
           {#each hourMarks as hm}
             <div class="tp-axis-hour" style="top:{(hm - _axis.start) * PX_PER_MIN}px;">{fmtAxisTime(hm)}</div>
@@ -1260,11 +1318,12 @@
                   <div class="tp-block tp-block--merged" style="top:{_mTop}px; height:{_mH}px; --bh:{_mH}px; --tint:{hexToRgba(_mlbl.colour, 0.08)}; background:{hexToRgba(_mlbl.colour, 0.08)}; border-left:3px solid {_mlbl.colour};">
                     <div class="tp-event-stack">
                       <!-- svelte-ignore a11y-interactive-supports-focus -->
-                      <div class="tp-chip tp-chip--event" role="button" tabindex="0" draggable="true"
+                      <div class="tp-chip tp-chip--event" role="button" tabindex={gridFocusKey === `${day.key}:${_first.id}:merged` ? 0 : -1} draggable="true"
+                        data-gridkey={`${day.key}:${_first.id}:merged`}
                         on:dragstart={(e) => onEventDragStart(e, _mev)}
                         on:dragend={onDragEnd}
                         on:click={(e) => openChipMenu(e, "event", dayDate, _first.id, undefined, _mev)}
-                        on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
+                        on:keydown={onCellKeydown}
                         title="{_mlbl.code} · {_mRange}"
                         style="--ctint:{hexToRgba(_mlbl.colour,0.22)}; border-left:3px solid {_mlbl.colour}; background:{hexToRgba(_mlbl.colour,0.22)};">
                         <span class="tp-chip-period-time">{_mRange}</span>
@@ -1331,11 +1390,12 @@
                           class="tp-chip"
                           draggable="true"
                           role="button"
-                          tabindex="0"
+                          tabindex={gridFocusKey === `${day.key}:${period.id}:slot` ? 0 : -1}
+                          data-gridkey={`${day.key}:${period.id}:slot`}
                           on:dragstart={(e) => onChipDragStart(e, slot)}
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "slot", dayDate, period.id, slot)}
-                          on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
+                          on:keydown={onCellKeydown}
                           title={_partial ? `${period.name} · ${period.start}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
                         >
@@ -1381,12 +1441,13 @@
                         <div
                           class="tp-chip tp-chip--event"
                           role="button"
-                          tabindex="0"
+                          tabindex={gridFocusKey === `${day.key}:${period.id}:ev:${devEv.id}` ? 0 : -1}
+                          data-gridkey={`${day.key}:${period.id}:ev:${devEv.id}`}
                           draggable="true"
                           on:dragstart={(e) => onEventDragStart(e, devEv)}
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "event", dayDate, period.id, undefined, devEv)}
-                          on:keydown={(e) => { if (e.key === "Enter") e.currentTarget?.dispatchEvent(new MouseEvent("click", {bubbles:true})); }}
+                          on:keydown={onCellKeydown}
                           title={_partial ? `${period.name} · ${period.start}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
                         >
@@ -1426,6 +1487,9 @@
                     <button
                       class="tp-cell-add-event"
                       title="Add one-off event to this slot"
+                      tabindex={gridFocusKey === `${day.key}:${period.id}:add` ? 0 : -1}
+                      data-gridkey={`${day.key}:${period.id}:add`}
+                      on:keydown={onCellKeydown}
                       on:click={(e) => openEventPicker(e, dayDate, period.id)}
                     >＋ Event</button>
                   {/if}
@@ -1517,6 +1581,8 @@
   .tp-axis-override-label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); opacity:0.55; pointer-events:none; }
 
   /* Period blocks — positioned by time within the day column */
+  .tp-chip:focus-visible,
+  .tp-cell-add-event:focus-visible { outline:2px solid var(--interactive-accent); outline-offset:-2px; border-radius:4px; }
   .tp-block { position:absolute; left:4px; right:4px; border:1px solid var(--background-modifier-border); border-radius:4px; box-sizing:border-box; overflow:hidden; transition:background 0.1s; z-index:2; container-type:inline-size; container-name:block; }
   .tp-block-clash { position:absolute; top:1px; right:3px; z-index:6; font-size:11px; line-height:1; color:var(--color-yellow,#e0af68); cursor:help; }
   .tp-block-clash--directed { color:var(--color-red,#f38ba8); font-size:13px; font-weight:700; }
