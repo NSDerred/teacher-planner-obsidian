@@ -6,7 +6,7 @@
   import { setIcon } from "obsidian";
   import { ConfirmModal } from "../settings/SettingsTab";
   import { resolveColour } from "../utils/themeColours";
-  import { periodAppliesTo, periodLengthMinutes } from "../utils/scheduleUtils";
+  import { periodAppliesTo, periodLengthMinutes, getPeriodsForDay } from "../utils/scheduleUtils";
 
   function icon(node: HTMLElement, name: string) {
     setIcon(node, name);
@@ -370,7 +370,7 @@
 
   function onCellDragLeave(e: DragEvent) {
     const rel = e.relatedTarget as HTMLElement | null;
-    if (!rel?.closest(".tp-te-cell")) dragOverKey = null;
+    if (!rel?.closest(".tp-te-blk")) dragOverKey = null;
   }
 
   function onCellDrop(e: DragEvent, day: SchoolDay, period: SchoolPeriod) {
@@ -518,6 +518,15 @@
     return resolveColour(periodTypes.find(t => t.id === typeId)?.colour ?? "#888888");
   }
 
+  // ── Time-axis layout (each day column shows its own schedule's blocks) ──────
+  const TE_PX = 1.4; // pixels per minute
+  function getDayPeriods(day: SchoolDay): SchoolPeriod[] { return getPeriodsForDay(plugin.settings.academicYear, day); }
+  $: _axisStart = periods.length ? Math.min(...periods.map(p => tMin(p.start))) : 8 * 60;
+  $: _axisEnd   = periods.length ? Math.max(...periods.map(p => tMin(p.end)))   : 16 * 60;
+  $: axisHeight = Math.max(40, (_axisEnd - _axisStart) * TE_PX);
+  $: hourMarks  = (() => { const out: number[] = []; for (let h = Math.ceil(_axisStart / 60); h <= Math.floor((_axisEnd - 1) / 60); h++) out.push(h * 60); return out; })();
+  function fmtAxis(min: number): string { return `${String(Math.floor(min / 60)).padStart(2, "0")}:00`; }
+
   function hexToRgba(hex: string, alpha: number): string {
     const clean = hex.replace("#", "");
     const r = parseInt(clean.substring(0, 2), 16);
@@ -532,7 +541,7 @@
   on:keydown={(e) => e.key === "Escape" && (renamingId ? renamingId = null : closePicker())}
   on:mousedown={(e) => {
     const t = e.target instanceof Element ? e.target : null;
-    if (pickerEl && !t?.closest(".tp-te-picker") && !t?.closest(".tp-te-cell")) closePicker();
+    if (pickerEl && !t?.closest(".tp-te-picker") && !t?.closest(".tp-te-blk")) closePicker();
     if (renamingId && !t?.closest(".tp-te-rename-input")) commitRename();
   }}
 />
@@ -628,43 +637,39 @@
   {/if}
 
   <!-- ── Timetable grid ─────────────────────────────────────────────────────── -->
-  <div class="tp-te-grid-wrap">
-    <table class="tp-te-grid">
-      <thead>
-        <tr>
-          <th class="tp-te-th tp-te-th--period">Period</th>
-          {#each DAYS as day}
-            <th class="tp-te-th">{day.label}</th>
+  <div class="tp-te-grid-wrap" style="--te-days:{DAYS.length}">
+    <div class="tp-te-axis">
+      <div class="tp-te-axis-head">
+        <div class="tp-te-axis-gutter-head"></div>
+        {#each DAYS as day}
+          <div class="tp-te-axis-day-head">{day.label}</div>
+        {/each}
+      </div>
+      <div class="tp-te-axis-body">
+        <div class="tp-te-axis-gutter" style="height:{axisHeight}px;">
+          {#each hourMarks as hm}
+            <div class="tp-te-axis-hour" style="top:{(hm - _axisStart) * TE_PX}px;">{fmtAxis(hm)}</div>
           {/each}
-        </tr>
-      </thead>
-      <tbody>
-        {#each periods as period}
-          {@const tc = getPeriodTypeColour(period.type)}
-          <tr style="background:{hexToRgba(tc, 0.05)};">
-            <td class="tp-te-period-cell" style="background:{hexToRgba(tc, 0.25)}; border-left:3px solid {tc};">
-              <span class="tp-te-period-name">{period.name}</span>
-              <span class="tp-te-period-time">{period.start}–{period.end}</span>
-            </td>
-            {#each DAYS as day}
-              {@const slot   = _slotGrid[day.key + ":" + period.id]}
-              {@const isOpen = pickerDay === day.key && pickerPeriodId === period.id}
+        </div>
+        {#each DAYS as day}
+          <div class="tp-te-axis-col" style="height:{axisHeight}px;">
+            {#each getDayPeriods(day.key) as period (period.id)}
+              {@const tc      = getPeriodTypeColour(period.type)}
+              {@const _bt     = (tMin(period.start) - _axisStart) * TE_PX}
+              {@const _bh     = Math.max(22, (tMin(period.end) - tMin(period.start)) * TE_PX)}
+              {@const slot    = _slotGrid[day.key + ":" + period.id]}
               {@const cellKey = day.key + ":" + period.id}
-              {@const isNA = !periodAppliesTo(plugin.settings.academicYear, period.id, day.key)}
-              <td
-                class="tp-te-cell"
-                class:tp-te-cell--filled={!!slot && !isNA}
-                class:tp-te-cell--open={isOpen}
-                class:tp-te-cell--na={isNA}
-                class:tp-te-cell--dragover={dragOverKey === cellKey && !isNA}
-                class:tp-te-cell--reject={rejectKey === cellKey}
+              <!-- svelte-ignore a11y-no-static-element-interactions -->
+              <div
+                class="tp-te-blk"
+                class:tp-te-blk--dragover={dragOverKey === cellKey}
+                class:tp-te-blk--reject={rejectKey === cellKey}
+                style="top:{_bt}px; height:{_bh}px; background:{hexToRgba(tc, 0.08)}; border-left:3px solid {hexToRgba(tc, 0.55)};"
                 on:dragover={(e) => onCellDragOver(e, day.key, period.id)}
                 on:dragleave={onCellDragLeave}
                 on:drop={(e) => onCellDrop(e, day.key, period)}
               >
-                {#if isNA}
-                  <!-- period not in this day's schedule -->
-                {:else if slot}
+                {#if slot}
                   {@const lbl = getLabel(slot)}
                   <button
                     class="tp-te-chip"
@@ -681,21 +686,24 @@
                     {/if}
                   </button>
                   {#if isCustomised(slot, period)}
-                    <span class="tp-te-cust" title="Custom start / length — click the cell to edit">{slotStartOf(slot, period)} · {getSlotDuration(slot)}m</span>
+                    <span class="tp-te-cust" title="Custom start / length — click to edit">{slotStartOf(slot, period)} · {getSlotDuration(slot)}m</span>
                   {/if}
                 {:else}
                   <button
-                    class="tp-te-add"
-                    aria-label="Assign"
+                    class="tp-te-blk-label"
                     on:click={(e) => openPicker(day.key, period.id, currentWeek, e.currentTarget)}
-                  >+</button>
+                  >
+                    <span class="tp-te-blk-name">{period.name}</span>
+                    <span class="tp-te-blk-time">{period.start}–{period.end}</span>
+                    <span class="tp-te-blk-add">+ assign</span>
+                  </button>
                 {/if}
-              </td>
+              </div>
             {/each}
-          </tr>
+          </div>
         {/each}
-      </tbody>
-    </table>
+      </div>
+    </div>
   </div>
 
   <!-- ── Floating picker ───────────────────────────────────────────────────── -->
@@ -913,17 +921,23 @@
   .tp-te-week-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); border-color: var(--interactive-accent); }
 
   /* ── Grid ─────────────────────────────────────────────────────────────────── */
-  .tp-te-grid-wrap { overflow: auto; max-height: 55vh; border: 1px solid var(--background-modifier-border); border-radius: 8px; }
-  .tp-te-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  .tp-te-th { padding: 10px 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); text-align: center; background: var(--background-secondary); border-bottom: 1px solid var(--background-modifier-border); position: sticky; top: 0; z-index: 2; }
-  .tp-te-th--period { text-align: left; width: 130px; }
-  .tp-te-period-cell { padding: 6px 10px; border-bottom: 1px solid var(--background-modifier-border); vertical-align: middle; }
-  .tp-te-period-name { display: block; font-size: 13px; font-weight: 600; color: var(--text-normal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tp-te-period-time { display: block; font-size: 11px; color: var(--text-normal); margin-top: 1px; }
-  .tp-te-cell { height: 52px; padding: 4px; border-bottom: 1px solid var(--background-modifier-border); border-left: 1px solid var(--background-modifier-border); vertical-align: middle; position: relative; }
-  .tp-te-cell:hover .tp-te-add { opacity: 1; }
-  .tp-te-add { opacity: 0; width: 100%; height: 100%; border: 1.5px dashed var(--background-modifier-border); border-radius: 6px; background: transparent; color: var(--text-faint); font-size: 18px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
-  .tp-te-add:hover { border-color: var(--interactive-accent); color: var(--interactive-accent); background: var(--background-modifier-hover); }
+  .tp-te-grid-wrap { overflow: auto; max-height: 60vh; border: 1px solid var(--background-modifier-border); border-radius: 8px; }
+  .tp-te-axis { min-width: 640px; }
+  .tp-te-axis-head { display: grid; grid-template-columns: 52px repeat(var(--te-days, 5), minmax(0, 1fr)); position: sticky; top: 0; z-index: 3; background: var(--background-secondary); border-bottom: 1px solid var(--background-modifier-border); }
+  .tp-te-axis-day-head { padding: 8px 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); text-align: center; border-left: 1px solid var(--background-modifier-border); }
+  .tp-te-axis-body { display: grid; grid-template-columns: 52px repeat(var(--te-days, 5), minmax(0, 1fr)); position: relative; }
+  .tp-te-axis-gutter { position: relative; }
+  .tp-te-axis-hour { position: absolute; left: 4px; font-size: 10px; color: var(--text-faint); transform: translateY(-50%); white-space: nowrap; }
+  .tp-te-axis-col { position: relative; border-left: 1px solid var(--background-modifier-border); }
+  .tp-te-blk { position: absolute; left: 3px; right: 3px; border-radius: 5px; box-sizing: border-box; overflow: hidden; }
+  .tp-te-blk--dragover { outline: 2px solid var(--interactive-accent); outline-offset: -2px; background: color-mix(in srgb, var(--interactive-accent) 18%, transparent) !important; }
+  .tp-te-blk--reject { outline: 2px solid var(--color-red, #f38ba8); outline-offset: -2px; }
+  .tp-te-blk-label { width: 100%; height: 100%; border: 1.5px dashed transparent; border-radius: 5px; background: transparent; cursor: pointer; padding: 3px 6px; text-align: left; display: flex; flex-direction: column; gap: 1px; color: var(--text-muted); overflow: hidden; box-sizing: border-box; }
+  .tp-te-blk-label:hover { border-color: var(--interactive-accent); background: var(--background-modifier-hover); }
+  .tp-te-blk-name { font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tp-te-blk-time { font-size: 10px; color: var(--text-faint); }
+  .tp-te-blk-add { font-size: 10px; color: var(--text-faint); opacity: 0; transition: opacity 0.1s; }
+  .tp-te-blk-label:hover .tp-te-blk-add { opacity: 1; color: var(--interactive-accent); }
   .tp-te-chip { width: 100%; height: 100%; border-radius: 6px; border: none; cursor: pointer; padding: 4px 6px; text-align: left; display: flex; flex-direction: column; justify-content: center; gap: 1px; overflow: hidden; transition: filter 0.1s; }
   .tp-te-chip:hover { filter: brightness(1.1); }
   .tp-te-chip-code { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -979,9 +993,6 @@
   .tp-te-btn:hover { background: var(--background-modifier-hover); }
   .tp-te-btn-primary { background: var(--interactive-accent); color: var(--text-on-accent); border-color: var(--interactive-accent); }
   .tp-te-btn-primary:hover { filter: brightness(1.08); }
-  .tp-te-cell--na { background: var(--background-secondary); opacity: 0.5; pointer-events: none; }
-  .tp-te-cell--dragover { outline: 2px dashed var(--interactive-accent); outline-offset: -2px; background: color-mix(in srgb, var(--interactive-accent) 14%, transparent); }
-  .tp-te-cell--reject   { outline: 2px dashed var(--text-error); outline-offset: -2px; }
   .tp-te-chip { cursor: grab; }
   .tp-te-chip:active { cursor: grabbing; }
 </style>
