@@ -983,7 +983,7 @@
   .tp-te-axis-gutter { position: relative; }
   .tp-te-axis-hour { position: absolute; left: 4px; font-size: 10px; color: var(--text-faint); transform: translateY(-50%); white-space: nowrap; }
   .tp-te-axis-col { position: relative; border-left: 1px solid var(--background-modifier-border); }
-  .tp-te-blk { position: absolute; left: 3px; right: 3px; border-radius: 5px; box-sizing: border-box; overflow: hidden; z-index: 1; cursor: pointer; }
+  .tp-te-blk { position: absolute; left: 3px; right: 3px; border: 1px solid var(--background-modifier-border); border-radius: 5px; box-sizing: border-box; overflow: hidden; z-index: 1; cursor: pointer; }
   .tp-te-blk--dragover { outline: 2px solid var(--interactive-accent); outline-offset: -2px; background: color-mix(in srgb, var(--interactive-accent) 18%, transparent) !important; }
   .tp-te-blk--reject { outline: 2px solid var(--color-red, #f38ba8); outline-offset: -2px; }
   .tp-te-blk-label { display: flex; flex-direction: column; gap: 1px; padding: 3px 6px; pointer-events: none; min-width: 0; color: var(--text-muted); }
