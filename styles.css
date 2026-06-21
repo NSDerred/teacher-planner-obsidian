@@ -178,6 +178,11 @@
 
 .tp-timetable-modal {
   font-size: max(11px, var(--font-ui-small));
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .tp-timetable-modal .modal-content {
@@ -190,6 +195,8 @@
 .tp-timetable-modal .tp-te-wrap {
   width: 100%;
   box-sizing: border-box;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .tp-timetable-modal .tp-te-grid-wrap {

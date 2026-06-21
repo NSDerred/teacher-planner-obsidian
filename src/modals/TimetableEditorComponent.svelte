@@ -97,6 +97,17 @@
     if (cls) return cls.classroom ?? "";
     return activities.find(a => a.id === slot.classId)?.classroom ?? "";
   }
+  /** Resolve the drafted Start/Length/Room into slot fields for a new assignment. */
+  function draftFields(period: SchoolPeriod): { start: string; end: string; durationMinutes?: number; classroom?: string } {
+    const ps = tMin(period.start), pe = tMin(period.end);
+    let start = period.start;
+    if (draftStart) { const sv = Math.max(ps, Math.min(tMin(draftStart), pe - 1)); start = sv === ps ? period.start : mTime(sv); }
+    const ss = tMin(start);
+    let durationMinutes: number | undefined;
+    if (draftLen) { const d = parseInt(draftLen); if (!isNaN(d)) durationMinutes = Math.max(1, Math.min(d, pe - ss)); }
+    const end = mTime(ss + (durationMinutes ?? (pe - ss)));
+    return { start, end, durationMinutes, classroom: draftRoom.trim() || undefined };
+  }
 
   // Default to the most-recently-starting template.
   // NOTE: must read plugin.settings directly here — $: reactive vars aren't
@@ -258,6 +269,10 @@
   let pickerWeek:     "A" | "B" | null = null;
   let pickerEl:       HTMLElement | null = null;
   let pickerSearch:   string = "";
+  // Draft Start/Length/Room while adding to an empty block (applied when a class is picked)
+  let draftStart = "";
+  let draftLen = "";
+  let draftRoom = "";
 
   function focusPicker(node: HTMLElement) { setTimeout(() => node.focus(), 30); }
 
@@ -292,6 +307,7 @@
       closePicker(); return;
     }
     pickerDay = day; pickerPeriodId = periodId; pickerWeek = week; pickerEl = el;
+    draftStart = ""; draftLen = ""; draftRoom = "";
   }
 
   function closePicker() {
@@ -304,20 +320,26 @@
       const exact = slots.find(s => s.day === day && s.periodId === period.id && s.weekType === week);
       if (exact) { exact.classId = itemId; slots = [...slots]; }
       else {
+        const _df = draftFields(period);
         slots = [...slots, {
           id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
           day: day as any, periodId: period.id, classId: itemId,
-          start: period.start, end: period.end, weekType: week,
+          start: _df.start, end: _df.end, weekType: week,
+          ...(_df.durationMinutes != null ? { durationMinutes: _df.durationMinutes } : {}),
+          ...(_df.classroom ? { classroom: _df.classroom } : {}),
         }];
       }
     } else {
       const exact = slots.find(s => s.day === day && s.periodId === period.id);
       if (exact) { exact.classId = itemId; slots = [...slots]; }
       else {
+        const _df = draftFields(period);
         slots = [...slots, {
           id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
           day: day as any, periodId: period.id, classId: itemId,
-          start: period.start, end: period.end,
+          start: _df.start, end: _df.end,
+          ...(_df.durationMinutes != null ? { durationMinutes: _df.durationMinutes } : {}),
+          ...(_df.classroom ? { classroom: _df.classroom } : {}),
         }];
       }
     }
@@ -519,7 +541,7 @@
   }
 
   // ── Time-axis layout (each day column shows its own schedule's blocks) ──────
-  const TE_PX = 1.4; // pixels per minute
+  const TE_PX = 1.7; // pixels per minute
   function getDayPeriods(day: SchoolDay): SchoolPeriod[] { return getPeriodsForDay(plugin.settings.academicYear, day); }
   $: _axisStart = periods.length ? Math.min(...periods.map(p => tMin(p.start))) : 8 * 60;
   $: _axisEnd   = periods.length ? Math.max(...periods.map(p => tMin(p.end)))   : 16 * 60;
@@ -680,6 +702,7 @@
                     on:dragend={onChipDragEnd}
                     on:click={(e) => openPicker(day.key, period.id, currentWeek, e.currentTarget)}
                   >
+                    <span class="tp-te-chip-time">{period.name} · {period.start}–{period.end}</span>
                     <span class="tp-te-chip-code" style="color:{lbl.colour}">{lbl.code}</span>
                     {#if lbl.sub || lbl.classroom}
                       <span class="tp-te-chip-sub">{[lbl.sub, lbl.classroom].filter(Boolean).join(" · ")}</span>
@@ -720,31 +743,56 @@
           on:click|stopPropagation
         />
 
-        {#if pickerSlot && pickerPeriod}
-          {@const _ps = pickerSlot}
+        {#if pickerPeriod}
           {@const _pp = pickerPeriod}
-          <div class="tp-te-detail">
-            <div class="tp-te-detail-grid">
+          {#if pickerSlot}
+            {@const _ps = pickerSlot}
+            <div class="tp-te-detail">
+              <div class="tp-te-detail-grid">
+                <label class="tp-te-detail-field">
+                  <span class="tp-te-detail-label">Start</span>
+                  <input type="time" value={slotStartOf(_ps, _pp)}
+                    on:click|stopPropagation
+                    on:change={(e) => commitSlotStart(_ps, _pp, e.currentTarget.value)} />
+                </label>
+                <label class="tp-te-detail-field">
+                  <span class="tp-te-detail-label">Length</span>
+                  <input type="number" min="1" max="480" value={getSlotDuration(_ps)}
+                    on:click|stopPropagation
+                    on:change={(e) => commitSlotLength(_ps, _pp, e.currentTarget.value)} />
+                </label>
+              </div>
               <label class="tp-te-detail-field">
-                <span class="tp-te-detail-label">Start</span>
-                <input type="time" value={slotStartOf(_ps, _pp)}
+                <span class="tp-te-detail-label">Room</span>
+                <input type="text" placeholder={defaultRoomOf(_ps)} value={_ps.classroom ?? ""}
                   on:click|stopPropagation
-                  on:change={(e) => commitSlotStart(_ps, _pp, e.currentTarget.value)} />
-              </label>
-              <label class="tp-te-detail-field">
-                <span class="tp-te-detail-label">Length</span>
-                <input type="number" min="1" max="480" value={getSlotDuration(_ps)}
-                  on:click|stopPropagation
-                  on:change={(e) => commitSlotLength(_ps, _pp, e.currentTarget.value)} />
+                  on:change={(e) => commitSlotRoom(_ps, e.currentTarget.value)} />
               </label>
             </div>
-            <label class="tp-te-detail-field">
-              <span class="tp-te-detail-label">Room</span>
-              <input type="text" placeholder={defaultRoomOf(_ps)} value={_ps.classroom ?? ""}
-                on:click|stopPropagation
-                on:change={(e) => commitSlotRoom(_ps, e.currentTarget.value)} />
-            </label>
-          </div>
+          {:else}
+            <div class="tp-te-detail">
+              <div class="tp-te-detail-grid">
+                <label class="tp-te-detail-field">
+                  <span class="tp-te-detail-label">Start</span>
+                  <input type="time" value={draftStart || _pp.start}
+                    on:click|stopPropagation
+                    on:change={(e) => draftStart = e.currentTarget.value} />
+                </label>
+                <label class="tp-te-detail-field">
+                  <span class="tp-te-detail-label">Length</span>
+                  <input type="number" min="1" max="480" value={draftLen || (tMin(_pp.end) - tMin(_pp.start))}
+                    on:click|stopPropagation
+                    on:change={(e) => draftLen = e.currentTarget.value} />
+                </label>
+              </div>
+              <label class="tp-te-detail-field">
+                <span class="tp-te-detail-label">Room</span>
+                <input type="text" placeholder="Room" value={draftRoom}
+                  on:click|stopPropagation
+                  on:change={(e) => draftRoom = e.currentTarget.value} />
+              </label>
+            </div>
+          {/if}
           <div class="tp-te-picker-divider"></div>
         {/if}
 
@@ -880,7 +928,7 @@
 </div>
 
 <style>
-  .tp-te-wrap { display: flex; flex-direction: column; width: 100%; box-sizing: border-box; height: auto; overflow: visible; font-size: 14px; position: relative; }
+  .tp-te-wrap { display: flex; flex-direction: column; width: 100%; box-sizing: border-box; flex: 1 1 auto; min-height: 0; overflow: visible; font-size: 14px; position: relative; }
 
   /* ── Template bar ─────────────────────────────────────────────────────────── */
   .tp-te-tmpl-bar { display: flex; align-items: flex-start; gap: 8px; padding: 8px 48px 12px 0; flex-shrink: 0; flex-wrap: wrap; }
@@ -921,7 +969,7 @@
   .tp-te-week-tab--active { background: var(--interactive-accent); color: var(--text-on-accent); border-color: var(--interactive-accent); }
 
   /* ── Grid ─────────────────────────────────────────────────────────────────── */
-  .tp-te-grid-wrap { overflow: auto; max-height: 60vh; border: 1px solid var(--background-modifier-border); border-radius: 8px; }
+  .tp-te-grid-wrap { overflow: auto; min-height: 0; flex: 1 1 auto; border: 1px solid var(--background-modifier-border); border-radius: 8px; }
   .tp-te-axis { min-width: 640px; }
   .tp-te-axis-head { display: grid; grid-template-columns: 52px repeat(var(--te-days, 5), minmax(0, 1fr)); position: sticky; top: 0; z-index: 3; background: var(--background-secondary); border-bottom: 1px solid var(--background-modifier-border); }
   .tp-te-axis-day-head { padding: 8px 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); text-align: center; border-left: 1px solid var(--background-modifier-border); }
@@ -938,6 +986,10 @@
   .tp-te-blk-time { font-size: 10px; color: var(--text-faint); }
   .tp-te-blk-add { font-size: 10px; color: var(--text-faint); opacity: 0; transition: opacity 0.1s; }
   .tp-te-blk-label:hover .tp-te-blk-add { opacity: 1; color: var(--interactive-accent); }
+  .tp-te-blk:hover { height: auto !important; min-height: 58px; z-index: 20; box-shadow: 0 2px 10px rgba(0,0,0,0.28); }
+  .tp-te-blk:hover .tp-te-chip, .tp-te-blk:hover .tp-te-blk-label { height: auto; }
+  .tp-te-chip-time { display: none; font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tp-te-blk:hover .tp-te-chip-time { display: block; }
   .tp-te-chip { width: 100%; height: 100%; border-radius: 6px; border: none; cursor: pointer; padding: 4px 6px; text-align: left; display: flex; flex-direction: column; justify-content: center; gap: 1px; overflow: hidden; transition: filter 0.1s; }
   .tp-te-chip:hover { filter: brightness(1.1); }
   .tp-te-chip-code { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

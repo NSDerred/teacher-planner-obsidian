@@ -15,6 +15,7 @@ export class TimetableEditorModal extends Modal {
     this.modalEl.setCssStyles({ width: "min(95vw, 1100px)" });
     this.modalEl.setCssStyles({ maxWidth: "95vw" });
     this.modalEl.setCssStyles({ maxHeight: "min(90vh, 900px)" });
+    this.modalEl.setCssStyles({ height: "min(90vh, 900px)" });
     this.modalEl.setCssStyles({ minWidth: "600px" });
     this.modalEl.setCssStyles({ boxSizing: "border-box" });
 
