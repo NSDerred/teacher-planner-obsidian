@@ -851,6 +851,24 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           new Notice("Periods reset to defaults.");
         }));
     this.wrapSectionsCollapsible(containerEl);
+
+    // ── Support development (always visible, below the collapsible sections) ──
+    const TP_REPO_URL = "https://github.com/NSDerred/teacher-planner-obsidian";
+    const fundingRaw = (this.plugin.manifest as { fundingUrl?: string | Record<string, string> }).fundingUrl;
+    const TP_FUNDING_URL = typeof fundingRaw === "string" ? fundingRaw : "https://buymeacoffee.com/teacher.nsmith";
+    const support = containerEl.createDiv("tp-support-section");
+    new Setting(support)
+      .setName(`What's new in Teacher Planner ${this.plugin.manifest.version}`)
+      .setDesc("See recent updates and improvements.")
+      .addButton(b => b.setButtonText("View recent updates")
+        .onClick(() => window.open(`${TP_REPO_URL}/releases`, "_blank")));
+    new Setting(support)
+      .setName("Support development")
+      .setDesc("If you find Teacher Planner useful, please consider supporting its continued development.")
+      .addButton(b => b.setButtonText("⭐ Star on GitHub")
+        .onClick(() => window.open(TP_REPO_URL, "_blank")))
+      .addButton(b => b.setButtonText("☕ Buy me a coffee").setCta()
+        .onClick(() => window.open(TP_FUNDING_URL, "_blank")));
   }
 
   // ── Planners section ──────────────────────────────────────────────────────

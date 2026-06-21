@@ -1518,3 +1518,6 @@
 
 /* Note-title template inputs (Settings) */
 .tp-title-template-input { min-width: 260px; }
+
+/* Support-development footer at the bottom of the settings tab */
+.tp-support-section { margin-top: 18px; padding-top: 6px; border-top: 0.5px solid var(--background-modifier-border); }

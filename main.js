@@ -10474,6 +10474,12 @@ var init_SettingsTab = __esm({
           new import_obsidian11.Notice("Periods reset to defaults.");
         }));
         this.wrapSectionsCollapsible(containerEl);
+        const TP_REPO_URL = "https://github.com/NSDerred/teacher-planner-obsidian";
+        const fundingRaw = this.plugin.manifest.fundingUrl;
+        const TP_FUNDING_URL = typeof fundingRaw === "string" ? fundingRaw : "https://buymeacoffee.com/teacher.nsmith";
+        const support = containerEl.createDiv("tp-support-section");
+        new import_obsidian11.Setting(support).setName(`What's new in Teacher Planner ${this.plugin.manifest.version}`).setDesc("See recent updates and improvements.").addButton((b) => b.setButtonText("View recent updates").onClick(() => window.open(`${TP_REPO_URL}/releases`, "_blank")));
+        new import_obsidian11.Setting(support).setName("Support development").setDesc("If you find Teacher Planner useful, please consider supporting its continued development.").addButton((b) => b.setButtonText("\u2B50 Star on GitHub").onClick(() => window.open(TP_REPO_URL, "_blank"))).addButton((b) => b.setButtonText("\u2615 Buy me a coffee").setCta().onClick(() => window.open(TP_FUNDING_URL, "_blank")));
       }
       // ── Planners section ──────────────────────────────────────────────────────
       renderPlannersSection(container) {
