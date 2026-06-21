@@ -694,8 +694,11 @@
               >
                 {#if slot}
                   {@const lbl = getLabel(slot)}
-                  <button
+                  <!-- svelte-ignore a11y-interactive-supports-focus a11y-click-events-have-key-events -->
+                  <div
                     class="tp-te-chip"
+                    role="button"
+                    tabindex="0"
                     style="border-left: 3px solid {lbl.colour}; background: {lbl.colour}22;"
                     title="{lbl.code}{lbl.classroom ? ' · ' + lbl.classroom : ''}"
                     draggable="true"
@@ -713,7 +716,7 @@
                     {#if lbl.classroom}
                       <span class="tp-te-chip-room">{lbl.classroom}</span>
                     {/if}
-                  </button>
+                  </div>
                   {#if isCustomised(slot, period)}
                     <span class="tp-te-cust" title="Custom start / length — click to edit">{slotStartOf(slot, period)} · {getSlotDuration(slot)}m</span>
                   {/if}
@@ -992,7 +995,7 @@
   .tp-te-blk:hover { min-height: 54px; z-index: 20; background: var(--background-secondary) !important; box-shadow: 0 2px 10px rgba(0,0,0,0.28); }
   .tp-te-chip-time { display: none; font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tp-te-blk:hover .tp-te-chip-time { display: block; }
-  .tp-te-chip { width: 100%; height: 100%; border-radius: 6px; border: none; cursor: pointer; padding: 4px 6px; text-align: left; display: flex; flex-direction: column; gap: 2px; overflow: hidden; transition: filter 0.1s; box-sizing: border-box; color: var(--text-normal); container-type: size; container-name: techip; }
+  .tp-te-chip { width: 100%; height: 100%; border-radius: 6px; border: none; cursor: pointer; padding: 4px 6px 4px 3px; text-align: left; display: flex; flex-direction: column; gap: 2px; overflow: hidden; transition: filter 0.1s; box-sizing: border-box; color: var(--text-normal); container-type: size; container-name: techip; }
   .tp-te-chip:hover { filter: brightness(1.1); }
   .tp-te-chip-body { flex: 0 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 1px; }
   .tp-te-chip-code { font-size: 14px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
