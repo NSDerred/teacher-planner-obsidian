@@ -1639,20 +1639,10 @@
      footprint as an invisible hover hit-area (no flicker), while the card
      itself is painted on the chip stack, which hugs the content exactly. */
   .tp-block:hover:has(.tp-event-stack) {
-    min-height:var(--bh, 20px);
-    padding-bottom:0;
     overflow:visible;
-    background:transparent !important;
-    border-color:transparent !important;
-    box-shadow:none;
-    outline:none;
   }
   .tp-block:hover .tp-event-stack {
     position:relative; inset:auto; height:auto; margin:3px;
-    border-radius:4px;
-    background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary);
-    box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);
-    outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border));
   }
   .tp-block:hover .tp-block-label { padding:4px 8px; }
   .tp-block:hover .tp-chip {
