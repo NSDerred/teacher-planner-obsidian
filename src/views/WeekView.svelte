@@ -1308,9 +1308,11 @@
                 {@const _leadMins = Math.max(0, _soleStartMin - _periodStartMin)}
                 {@const _leadPx = _leadMins * PX_PER_MIN}
                 {@const _partial = _occCount === 1 && _occMins > 0 && (_occMins < _blockMins || _leadMins > 0) && (slot ? true : _evSingleBlock) && ((_leadMins + _occMins) * PX_PER_MIN) <= bHeight}
-                {@const _occPx = Math.max(22, _occMins * PX_PER_MIN)}
                 {@const _occEndMin = _soleStartMin + _occMins}
                 {@const _occEnd = minutesToTime(_occEndMin)}
+                {@const _innerH = Math.max(0, bHeight - 6)}
+                {@const _stackH = Math.min(_innerH, Math.max(_occMins * PX_PER_MIN, 40))}
+                {@const _stackTop = Math.min(_leadPx, Math.max(0, _innerH - _stackH))}
                 {#if dayMerges.starts[period.id]}
                   {@const _mrun  = dayMerges.starts[period.id]}
                   {@const _mev   = _mrun.ev}
@@ -1387,7 +1389,7 @@
                   {/if}
 
                   {#if slot || devEvents.length > 0}
-                    <div class="tp-event-stack" class:tp-event-stack--partial={_partial} style={_partial ? `--stack-h:${_occPx}px; --stack-top:${_leadPx}px;` : ""}>
+                    <div class="tp-event-stack" class:tp-event-stack--partial={_partial} style={_partial ? `--stack-h:${_stackH}px; --stack-top:${_stackTop}px;` : ""}>
                       {#if slot}
                         {@const lbl = getSlotLabel(slot)}
                         {@const slotPlanPath = _slotPlanMap[slot.id + "|" + dayDate]}
@@ -1503,11 +1505,11 @@
                   {/if}
                   {#if _partial}
                     {#if _leadMins > 0}
-                      <div class="tp-block-free tp-block-free--lead" style="height:{_leadPx}px;">{period.start}–{minutesToTime(_soleStartMin)}</div>
+                      <div class="tp-block-free tp-block-free--lead" style="height:{_stackTop}px;">{period.start}–{minutesToTime(_soleStartMin)}</div>
                     {/if}
                     <div class="tp-block-durbadge">{_occMins}m</div>
                     {#if _occEndMin < _blockEndMin}
-                      <div class="tp-block-free" style="top:{_leadPx + _occPx}px;">{_occEnd}–{period.end}</div>
+                      <div class="tp-block-free" style="top:{3 + _stackTop + _stackH}px;">{_occEnd}–{period.end}</div>
                     {/if}
                   {/if}
                 </div>
