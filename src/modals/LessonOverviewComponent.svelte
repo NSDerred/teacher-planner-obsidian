@@ -179,7 +179,6 @@
 
   function selectClass(id: string) { selectedClassId = id; void svelteTick().then(scrollToCurrent); }
   function onCardKey(e: KeyboardEvent, id: string) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectClass(id); } }
-  function back() { selectedClassId = null; menuKey = null; toast = ""; }
   function scrollToCurrent() {
     const el = listEl?.querySelector<HTMLElement>(`[data-week="${currentWeekKey}"]`);
     if (el) el.scrollIntoView({ block: "start" });
@@ -193,26 +192,25 @@
 </script>
 
 <div class="tp-lo">
-  {#if !selectedClassId}
-    <div class="tp-lo-head"><h3 class="tp-lo-title">Lesson overview</h3></div>
-    <div class="tp-lo-search">
-      <span class="tp-lo-search-icon" use:obsIcon={"search"}></span>
-      <input type="text" bind:value={classSearch} placeholder="Search classes…" />
-    </div>
-    <div class="tp-lo-cards">
-      {#each filteredClasses as c (c.id)}
-        <div class="tp-lo-card" role="button" tabindex="0" style="border-left:3px solid {c.colour};" on:click={() => selectClass(c.id)} on:keydown={(e) => onCardKey(e, c.id)}>
-          <span class="tp-lo-card-code">{#if emojiFor(c)}<span class="tp-lo-card-emoji">{emojiFor(c)}</span>{/if}<span class="tp-lo-card-codetext">{c.code}</span></span>
-          <span class="tp-lo-card-sub">{[subjectFor(c)?.name, c.year ? "Yr" + c.year : ""].filter(Boolean).join(" · ")}</span>
-          <span class="tp-lo-card-next">Next: {nextLabels.get(c.id) ?? "—"}</span>
-        </div>
-      {/each}
-      {#if filteredClasses.length === 0}<div class="tp-lo-empty">No classes</div>{/if}
-    </div>
-  {:else}
-    <div class="tp-lo-head">
-      <button class="tp-lo-back" on:click={back} aria-label="Back to classes" use:obsIcon={"arrow-left"}></button>
-      <h3 class="tp-lo-title">{emojiFor(selectedClass)} {selectedClass?.code ?? ""}</h3>
+  <div class="tp-lo-head"><h3 class="tp-lo-title">Lesson overview</h3></div>
+  <div class="tp-lo-search">
+    <span class="tp-lo-search-icon" use:obsIcon={"search"}></span>
+    <input type="text" bind:value={classSearch} placeholder="Search classes…" />
+  </div>
+  <div class="tp-lo-cards">
+    {#each filteredClasses as c (c.id)}
+      <div class="tp-lo-card" class:tp-lo-card--selected={c.id === selectedClassId} role="button" tabindex="0" style="border-left:3px solid {c.colour};" on:click={() => selectClass(c.id)} on:keydown={(e) => onCardKey(e, c.id)}>
+        <span class="tp-lo-card-code">{#if emojiFor(c)}<span class="tp-lo-card-emoji">{emojiFor(c)}</span>{/if}<span class="tp-lo-card-codetext">{c.code}</span></span>
+        <span class="tp-lo-card-sub">{[subjectFor(c)?.name, c.year ? "Yr" + c.year : ""].filter(Boolean).join(" · ")}</span>
+        <span class="tp-lo-card-next">Next: {nextLabels.get(c.id) ?? "—"}</span>
+      </div>
+    {/each}
+    {#if filteredClasses.length === 0}<div class="tp-lo-empty">No classes</div>{/if}
+  </div>
+
+  {#if selectedClassId}
+    <div class="tp-lo-subhead">
+      <h3 class="tp-lo-title">{emojiFor(selectedClass)} {selectedClass?.code ?? ""} · lessons</h3>
       <label class="tp-lo-jump" title="Jump to a date">
         <span use:obsIcon={"calendar-search"}></span>
         <input type="date" bind:value={jump} on:change={jumpTo} />
@@ -314,6 +312,8 @@
         <button class="tp-lo-toast-x" on:click={() => toast = ""} use:obsIcon={"x"} aria-label="Dismiss"></button>
       </div>
     {/if}
+  {:else}
+    <div class="tp-lo-hint">Select a class above to see its lessons.</div>
   {/if}
 </div>
 
@@ -321,17 +321,18 @@
   .tp-lo { display:flex; flex-direction:column; min-height:0; height:100%; font-family:var(--font-interface); position:relative; }
   .tp-lo-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   .tp-lo-title { margin:0; font-size:17px; font-weight:600; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .tp-lo-back { border:none; background:transparent; box-shadow:none; cursor:pointer; color:var(--text-muted); display:inline-flex; padding:4px; border-radius:5px; }
-  .tp-lo-back:hover { background:var(--background-modifier-hover); color:var(--text-normal); }
+  .tp-lo-subhead { display:flex; align-items:center; gap:10px; margin:12px 0 10px; padding-top:11px; border-top:1px solid var(--background-modifier-border); }
+  .tp-lo-hint { flex:1 1 auto; display:flex; align-items:center; justify-content:center; text-align:center; color:var(--text-faint); font-size:13px; padding:24px 12px; }
 
   .tp-lo-search { position:relative; margin-bottom:12px; }
   .tp-lo-search-icon { position:absolute; left:10px; top:8px; color:var(--text-muted); display:inline-flex; }
   .tp-lo-search-icon :global(svg) { width:16px; height:16px; }
   .tp-lo-search input { width:100%; box-sizing:border-box; padding:7px 10px 7px 32px; border:1px solid var(--background-modifier-border); border-radius:6px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:13px; }
 
-  .tp-lo-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); align-content:start; align-items:start; gap:9px; overflow-y:auto; padding:2px; min-height:0; flex:1 1 auto; }
+  .tp-lo-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); align-content:start; align-items:start; gap:9px; overflow-y:auto; padding:2px; min-height:0; flex:0 0 auto; max-height:260px; }
   .tp-lo-card { display:flex; flex-direction:column; gap:3px; min-width:0; text-align:left; padding:10px 12px; border:1px solid var(--background-modifier-border); border-radius:7px; background:var(--background-primary); cursor:pointer; transition:background 0.1s; }
   .tp-lo-card:hover { background:var(--background-modifier-hover); }
+  .tp-lo-card--selected { border-color:var(--interactive-accent); box-shadow:inset 0 0 0 1px var(--interactive-accent); background:color-mix(in srgb, var(--interactive-accent) 8%, var(--background-primary)); }
   .tp-lo-card-code { display:flex; align-items:center; gap:6px; min-width:0; font-size:15px; font-weight:600; line-height:1.5; color:var(--text-normal); }
   .tp-lo-card-emoji { flex-shrink:0; font-size:14px; line-height:1; }
   .tp-lo-card-codetext { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
