@@ -22,7 +22,7 @@ Lay out your week visually in the timetable editor. Define your periods and the 
 
 If your school runs a two-week timetable, turn on A and B week rotation and the planner tracks which week you are on automatically. It counts teaching weeks and skips full holiday weeks, so it never drifts out of step across a half term, and a single click on the week badge sets a one-off swap when a term starts on the opposite week.
 
-![Building a timetable](docs/screenshots/timetable-template.gif)
+![Building a timetable](docs/screenshots/timetable-editor.gif)
 
 ## See your week the way you think about it
 
