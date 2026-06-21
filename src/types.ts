@@ -153,6 +153,11 @@ export interface DateEvent {
   classroom?: string;
   /** Per-event duration override in minutes. Falls back to the activity's durationMinutes. */
   durationMinutes?: number;
+  /**
+   * Optional custom start time "HH:MM" within the first period block. When absent the
+   * event starts at the first block's start. Phase 1 supports a start within a single block.
+   */
+  startTime?: string;
 }
 
 /**

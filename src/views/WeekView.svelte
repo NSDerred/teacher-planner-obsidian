@@ -1300,9 +1300,17 @@
                 {@const _occMins = slot && devEvents.length === 0
                   ? (slot.durationMinutes ?? _blockMins)
                   : (_soleEv && _evSingleBlock ? (_soleEv.durationMinutes ?? _blockMins) : _blockMins)}
-                {@const _partial = _occCount === 1 && _occMins > 0 && _occMins < _blockMins && (slot ? true : _evSingleBlock) && (_occMins * PX_PER_MIN) <= bHeight - 16}
+                {@const _periodStartMin = timeToMinutes(period.start)}
+                {@const _blockEndMin = timeToMinutes(period.end)}
+                {@const _soleStartMin = slot && devEvents.length === 0
+                  ? timeToMinutes(slot.start ?? period.start)
+                  : (_soleEv && _evSingleBlock ? timeToMinutes(_soleEv.startTime ?? period.start) : _periodStartMin)}
+                {@const _leadMins = Math.max(0, _soleStartMin - _periodStartMin)}
+                {@const _leadPx = _leadMins * PX_PER_MIN}
+                {@const _partial = _occCount === 1 && _occMins > 0 && (_occMins < _blockMins || _leadMins > 0) && (slot ? true : _evSingleBlock) && ((_leadMins + _occMins) * PX_PER_MIN) <= bHeight}
                 {@const _occPx = Math.max(22, _occMins * PX_PER_MIN)}
-                {@const _occEnd = minutesToTime(timeToMinutes(period.start) + _occMins)}
+                {@const _occEndMin = _soleStartMin + _occMins}
+                {@const _occEnd = minutesToTime(_occEndMin)}
                 {#if dayMerges.starts[period.id]}
                   {@const _mrun  = dayMerges.starts[period.id]}
                   {@const _mev   = _mrun.ev}
@@ -1379,7 +1387,7 @@
                   {/if}
 
                   {#if slot || devEvents.length > 0}
-                    <div class="tp-event-stack" class:tp-event-stack--partial={_partial} style={_partial ? `--stack-h:${_occPx}px;` : ""}>
+                    <div class="tp-event-stack" class:tp-event-stack--partial={_partial} style={_partial ? `--stack-h:${_occPx}px; --stack-top:${_leadPx}px;` : ""}>
                       {#if slot}
                         {@const lbl = getSlotLabel(slot)}
                         {@const slotPlanPath = _slotPlanMap[slot.id + "|" + dayDate]}
@@ -1396,10 +1404,10 @@
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "slot", dayDate, period.id, slot)}
                           on:keydown={onCellKeydown}
-                          title={_partial ? `${period.name} · ${period.start}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}
+                          title={_partial ? `${period.name} · ${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
                         >
-                          <span class="tp-chip-period-time">{_partial ? `${period.start}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
+                          <span class="tp-chip-period-time">{_partial ? `${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
                           <div class="tp-chip-body">
                             <span class="tp-chip-code">{lbl.code}</span>
                             {#if lbl.year || lbl.subjectName}
@@ -1448,10 +1456,10 @@
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "event", dayDate, period.id, undefined, devEv)}
                           on:keydown={onCellKeydown}
-                          title={_partial ? `${period.name} · ${period.start}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}
+                          title={_partial ? `${period.name} · ${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
                         >
-                          <span class="tp-chip-period-time">{_partial ? `${period.start}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
+                          <span class="tp-chip-period-time">{_partial ? `${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
                           <div class="tp-chip-body">
                             <span class="tp-chip-code">{lbl.code}</span>
                             {#if lbl.meta}
@@ -1494,8 +1502,13 @@
                     >＋ Event</button>
                   {/if}
                   {#if _partial}
+                    {#if _leadMins > 0}
+                      <div class="tp-block-free tp-block-free--lead" style="height:{_leadPx}px;">{period.start}–{minutesToTime(_soleStartMin)}</div>
+                    {/if}
                     <div class="tp-block-durbadge">{_occMins}m</div>
-                    <div class="tp-block-free" style="top:{_occPx}px;">{_occEnd}–{period.end}</div>
+                    {#if _occEndMin < _blockEndMin}
+                      <div class="tp-block-free" style="top:{_leadPx + _occPx}px;">{_occEnd}–{period.end}</div>
+                    {/if}
                   {/if}
                 </div>
                 {/if}
@@ -1700,8 +1713,9 @@
 
   /* Chip stack inside a block — below the block label */
   .tp-event-stack { position:absolute; top:3px; left:3px; right:3px; bottom:3px; display:flex; flex-direction:row; gap:2px; z-index:3; }
-  .tp-event-stack--partial { bottom:auto; height:var(--stack-h, auto); }
+  .tp-event-stack--partial { bottom:auto; top:calc(3px + var(--stack-top, 0px)); height:var(--stack-h, auto); }
   .tp-block-free { position:absolute; left:6px; right:6px; bottom:3px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:11px; color:var(--text-faint); white-space:nowrap; overflow:hidden; pointer-events:none; z-index:2; }
+  .tp-block-free--lead { top:3px; bottom:auto; }
   .tp-block-durbadge { position:absolute; top:4px; right:4px; font-size:10px; font-weight:700; line-height:1.5; padding:0 4px; border-radius:3px; background:var(--interactive-accent); color:var(--text-on-accent, #fff); pointer-events:none; z-index:4; }
   .tp-block:hover .tp-block-free, .tp-block:hover .tp-block-durbadge { display:none; }
   .tp-event-stack .tp-chip { position:relative; inset:auto; flex:1; min-width:0; }

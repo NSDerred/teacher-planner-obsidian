@@ -73,6 +73,8 @@ export class AddDateEventModal extends Modal {
     const selected = new Set<string>();
     let durationTouched = false;
     let durationMinutes = 0;
+    let start = "";
+    let startTouched = false;
 
     if (isEdit && this.existingEvent) {
       const ev = this.existingEvent;
@@ -88,6 +90,8 @@ export class AddDateEventModal extends Modal {
       notes = ev.notes ?? "";
       durationTouched = ev.durationMinutes != null;
       durationMinutes = ev.durationMinutes ?? 0;
+      start = ev.startTime ?? "";
+      startTouched = ev.startTime != null;
     } else {
       date = this.prefillDate ?? new Date().toISOString().split("T")[0];
       title = ""; colour = randomPaletteColour(); directed = directedTimeEnabled;
@@ -100,9 +104,20 @@ export class AddDateEventModal extends Modal {
       const day = DAY_OF_WEEK[d.getDay()];
       return day ? getPeriodsForDay(this.plugin.settings.academicYear, day) : [];
     };
+    const timeToMin = (t: string): number => { const [h, m] = (t || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
+    const selectedBlocks = (): SchoolPeriod[] => periodsForDate(date).filter(p => selected.has(p.id));
+    const firstBlockStart = (): string => { const b = selectedBlocks(); return b.length ? b[0].start : ""; };
+    const effStart = (): string => start || firstBlockStart();
     const recalcDuration = () => {
       if (durationTouched) return;
-      durationMinutes = sumPeriodMinutes(periodsForDate(date), [...selected]);
+      const full = sumPeriodMinutes(periodsForDate(date), [...selected]);
+      const blocks = selectedBlocks();
+      if (start && blocks.length) {
+        const lead = Math.max(0, timeToMin(start) - timeToMin(blocks[0].start));
+        durationMinutes = Math.max(0, full - lead);
+      } else {
+        durationMinutes = full;
+      }
     };
     if (!durationTouched) recalcDuration();
 
@@ -209,6 +224,12 @@ export class AddDateEventModal extends Modal {
     const dateInput = dateCol.createEl("input", { type: "date", cls: "tp-modal-input" });
     dateInput.value = date;
 
+    const startCol = dateRow.createDiv("tp-modal-field");
+    startCol.createEl("label", { text: "Start time", cls: "tp-modal-label" });
+    const startInput = startCol.createEl("input", { type: "time", cls: "tp-modal-input" });
+    const paintStart = () => { startInput.value = effStart(); };
+    startInput.addEventListener("input", () => { start = startInput.value; startTouched = !!startInput.value; recalcDuration(); paintDuration(); });
+
     const durCol = dateRow.createDiv("tp-modal-field tp-modal-field--dur");
     durCol.createEl("label", { text: "Duration", cls: "tp-modal-label" });
     const durLine = durCol.createDiv("tp-modal-input-inline");
@@ -221,7 +242,7 @@ export class AddDateEventModal extends Modal {
     durInput.addEventListener("input", () => { const n = parseInt(durInput.value); durationMinutes = isNaN(n) ? 0 : n; durationTouched = true; });
     durAuto.addEventListener("click", () => { durationTouched = false; recalcDuration(); paintDuration(); });
 
-    dateInput.addEventListener("change", () => { date = dateInput.value; refreshPeriods(); recalcDuration(); paintDuration(); });
+    dateInput.addEventListener("change", () => { date = dateInput.value; refreshPeriods(); recalcDuration(); paintDuration(); paintStart(); });
 
     // ── Period blocks (multi-select dropdown) ────────────────────────────
     const periodRow = form.createDiv("tp-modal-row tp-modal-row--col");
@@ -254,7 +275,7 @@ export class AddDateEventModal extends Modal {
           tag.setCssStyles({ background: hexToRgba(colour, 0.18), border: `1px solid ${colour}` });
           tag.createEl("span", { text: p.name });
           const x = tag.createEl("span", { cls: "tp-period-tag-x" }); x.setText("✕");
-          x.addEventListener("click", (e) => { e.stopPropagation(); selected.delete(p.id); renderTags(); renderOptions(filterInput.value); recalcDuration(); paintDuration(); });
+          x.addEventListener("click", (e) => { e.stopPropagation(); selected.delete(p.id); renderTags(); renderOptions(filterInput.value); recalcDuration(); paintDuration(); paintStart(); });
         }
       }
       const add = periodField.createEl("span", { cls: "tp-period-add" });
@@ -278,7 +299,7 @@ export class AddDateEventModal extends Modal {
         opt.createEl("span", { text: `${p.start}–${p.end}`, cls: "tp-period-opt-time" });
         opt.addEventListener("click", () => {
           if (selected.has(p.id)) selected.delete(p.id); else selected.add(p.id);
-          renderTags(); renderOptions(filterInput.value); recalcDuration(); paintDuration();
+          renderTags(); renderOptions(filterInput.value); recalcDuration(); paintDuration(); paintStart();
         });
       }
     }
@@ -325,6 +346,7 @@ export class AddDateEventModal extends Modal {
     paintColour();
     renderTags();
     paintDuration();
+    paintStart();
 
     // ── Footer ───────────────────────────────────────────────────────────
     const footer = contentEl.createDiv("tp-modal-footer");
@@ -349,6 +371,13 @@ export class AddDateEventModal extends Modal {
         new Notice(`Note: ${date} is outside the academic year (${ay.startDate} – ${ay.endDate}). The event was saved but won't count towards directed time.`, 6000);
       }
       if (!this.plugin.settings.dateEvents) this.plugin.settings.dateEvents = [];
+      if (start) {
+        const b = selectedBlocks();
+        if (b.length) {
+          const fs = timeToMin(b[0].start), fe = timeToMin(b[0].end), sv = timeToMin(start);
+          if (sv < fs || sv >= fe) { new Notice("Start time must be within the first period block — reset to the block start."); start = ""; startTouched = false; }
+        }
+      }
       const fields = {
         date,
         periodId: ordered[0],
@@ -360,6 +389,7 @@ export class AddDateEventModal extends Modal {
         notes,
         classroom: classroom.trim() || undefined,
         durationMinutes: durationMinutes > 0 ? durationMinutes : undefined,
+        startTime: (start && start !== firstBlockStart()) ? start : undefined,
       };
       if (isEdit && this.existingEvent) {
         const ev = this.plugin.settings.dateEvents.find(e => e.id === this.existingEvent!.id);

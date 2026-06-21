@@ -45,9 +45,10 @@
   // ── Directed time ──────────────────────────────────────────────────────────
   $: directedTimeEnabled = plugin.settings.directedTime?.enabled ?? false;
 
-  // Duration badge editing state
-  let durationEditKey: string | null = null;
-  let durationEditValue: number = 60;
+  // Start-time + length editing state
+  let timeEditKey: string | null = null;
+  const tMin = (t: string): number => { const [h, m] = (t || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
+  const mTime = (n: number): string => `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 
   function getSlotDuration(slot: TimetableSlot): number {
     if (slot.durationMinutes) return slot.durationMinutes;
@@ -65,19 +66,33 @@
     return act?.activityType !== "other";
   }
 
-  function startDurationEdit(slot: TimetableSlot, key: string, e: MouseEvent) {
-    e.stopPropagation();
-    durationEditKey = key;
-    durationEditValue = getSlotDuration(slot);
+  function slotStartOf(slot: TimetableSlot, period: SchoolPeriod): string { return slot.start || period.start; }
+  function isCustomStart(slot: TimetableSlot, period: SchoolPeriod): boolean { return !!slot.start && slot.start !== period.start; }
+  function isCustomised(slot: TimetableSlot, period: SchoolPeriod): boolean { return isDurationOverride(slot) || isCustomStart(slot, period); }
+
+  /** Set a slot's start time within its period; shrinks the length to fit the block (Phase 1: single block). */
+  function commitSlotStart(slot: TimetableSlot, period: SchoolPeriod, val: string) {
+    if (!val) return;
+    const ps = tMin(period.start), pe = tMin(period.end);
+    const sv = Math.max(ps, Math.min(tMin(val), pe - 1));
+    let dur = getSlotDuration(slot);
+    if (sv + dur > pe) dur = pe - sv;
+    slot.start = sv === ps ? period.start : mTime(sv);
+    slot.durationMinutes = dur;
+    slot.end = mTime(sv + dur);
+    slots = [...slots];
+    markDirty();
   }
 
-  function commitDurationEdit(slot: TimetableSlot) {
-    if (durationEditValue >= 1 && durationEditValue <= 480) {
-      slot.durationMinutes = durationEditValue;
-      slots = [...slots];
-      markDirty();
-    }
-    durationEditKey = null;
+  /** Set a slot's length, clamped to the time remaining in its period from its start. */
+  function commitSlotLength(slot: TimetableSlot, period: SchoolPeriod, val: string) {
+    let d = parseInt(val); if (isNaN(d)) return;
+    const ss = tMin(slotStartOf(slot, period)), pe = tMin(period.end);
+    d = Math.max(1, Math.min(d, pe - ss));
+    slot.durationMinutes = d;
+    slot.end = mTime(ss + d);
+    slots = [...slots];
+    markDirty();
   }
 
   // Default to the most-recently-starting template.
@@ -272,6 +287,7 @@
       closePicker(); return;
     }
     pickerDay = day; pickerPeriodId = periodId; pickerWeek = week; pickerEl = el;
+    timeEditKey = null;
   }
 
   function closePicker() {
@@ -509,7 +525,7 @@
 </script>
 
 <svelte:window
-  on:keydown={(e) => e.key === "Escape" && (renamingId ? renamingId = null : durationEditKey ? durationEditKey = null : closePicker())}
+  on:keydown={(e) => e.key === "Escape" && (renamingId ? renamingId = null : timeEditKey ? timeEditKey = null : closePicker())}
   on:mousedown={(e) => {
     const t = e.target instanceof Element ? e.target : null;
     if (pickerEl && !t?.closest(".tp-te-picker") && !t?.closest(".tp-te-cell")) closePicker();
@@ -661,30 +677,29 @@
                     {/if}
                   </button>
                   {#if directedTimeEnabled && isDirectedSlot(slot)}
-                    {#if durationEditKey === cellKey}
-                      <!-- svelte-ignore a11y-autofocus -->
-                      <input
-                        class="tp-te-duration-input"
-                        type="number"
-                        min="1"
-                        max="480"
-                        autofocus
-                        bind:value={durationEditValue}
-                        on:click|stopPropagation
-                        on:keydown={(e) => { if (e.key === "Enter") commitDurationEdit(slot); if (e.key === "Escape") durationEditKey = null; }}
-                        on:blur={() => commitDurationEdit(slot)}
-                      />
-                    {:else}
-                      <!-- svelte-ignore a11y-click-events-have-key-events -->
+                    <button
+                      class="tp-te-time-toggle"
+                      class:tp-te-time-toggle--custom={isCustomised(slot, period)}
+                      title="Edit start time and length"
+                      on:click|stopPropagation={() => timeEditKey = (timeEditKey === cellKey ? null : cellKey)}
+                    >{#if isCustomised(slot, period)}{slotStartOf(slot, period)} · {getSlotDuration(slot)}m{:else}{getSlotDuration(slot)}m{/if}</button>
+                    {#if timeEditKey === cellKey}
                       <!-- svelte-ignore a11y-no-static-element-interactions -->
-                      <span
-                        class="tp-te-duration-badge"
-                        class:tp-te-duration-badge--override={isDurationOverride(slot)}
-                        title={isDurationOverride(slot)
-                          ? `Custom duration ${getSlotDuration(slot)} min (block is ${periodLengthMinutes(plugin.settings.academicYear, slot.periodId)} min) — click to edit`
-                          : `Duration ${getSlotDuration(slot)} min (block length) — click to edit`}
-                        on:click|stopPropagation={(e) => startDurationEdit(slot, cellKey, e)}
-                      >{getSlotDuration(slot)}m{#if isDurationOverride(slot)} *{/if}</span>
+                      <!-- svelte-ignore a11y-click-events-have-key-events -->
+                      <div class="tp-te-timeedit" on:click|stopPropagation>
+                        <label class="tp-te-timeedit-field">
+                          <span class="tp-te-timeedit-label">Start</span>
+                          <input type="time" value={slotStartOf(slot, period)}
+                            on:click|stopPropagation
+                            on:change={(e) => commitSlotStart(slot, period, e.currentTarget.value)} />
+                        </label>
+                        <label class="tp-te-timeedit-field">
+                          <span class="tp-te-timeedit-label">Length</span>
+                          <input type="number" min="1" max="480" value={getSlotDuration(slot)}
+                            on:click|stopPropagation
+                            on:change={(e) => commitSlotLength(slot, period, e.currentTarget.value)} />
+                        </label>
+                      </div>
                     {/if}
                   {/if}
                 {:else}
@@ -905,12 +920,15 @@
   .tp-te-chip-code { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tp-te-chip-sub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* ── Duration badge ───────────────────────────────────────────────────────── */
-  .tp-te-duration-badge { position: absolute; bottom: 3px; right: 4px; font-size: 10px; font-weight: 700; background: rgba(0,0,0,0.30); color: #fff; border-radius: 3px; padding: 1px 4px; cursor: pointer; line-height: 1.4; transition: background 0.1s; z-index: 1; pointer-events: all; }
-  .tp-te-duration-badge:hover { background: rgba(0,0,0,0.50); }
-  .tp-te-duration-badge--override { background: var(--interactive-accent); color: var(--text-on-accent, #fff); }
-  .tp-te-duration-badge--override:hover { background: var(--interactive-accent-hover, var(--interactive-accent)); }
-  .tp-te-duration-input { position: absolute; bottom: 3px; right: 4px; width: 46px; font-size: 10px; padding: 1px 3px; border: 1px solid var(--interactive-accent); border-radius: 3px; background: var(--background-primary); color: var(--text-normal); z-index: 2; text-align: center; }
+  /* ── Start-time + length: quiet badge (Option B) + inline editor (Option C) ──── */
+  .tp-te-time-toggle { position: absolute; bottom: 3px; right: 4px; font-size: 10px; font-weight: 600; background: rgba(0,0,0,0.30); color: #fff; border: none; border-radius: 3px; padding: 1px 5px; cursor: pointer; line-height: 1.4; z-index: 1; opacity: 0; transition: opacity 0.1s, background 0.1s; }
+  .tp-te-cell:hover .tp-te-time-toggle { opacity: 1; }
+  .tp-te-time-toggle:hover { background: rgba(0,0,0,0.50); }
+  .tp-te-time-toggle--custom { opacity: 1; background: var(--interactive-accent); color: var(--text-on-accent, #fff); }
+  .tp-te-timeedit { position: absolute; left: 2px; right: 2px; bottom: 2px; z-index: 5; display: flex; gap: 6px; padding: 5px 6px; background: var(--background-primary); border: 1px solid var(--interactive-accent); border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.28); }
+  .tp-te-timeedit-field { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+  .tp-te-timeedit-label { font-size: 9px; color: var(--text-muted); }
+  .tp-te-timeedit input { width: 100%; box-sizing: border-box; font-size: 11px; padding: 2px 4px; border: 1px solid var(--background-modifier-border); border-radius: 4px; background: var(--background-secondary); color: var(--text-normal); }
 
   /* ── Picker ───────────────────────────────────────────────────────────────── */
   .tp-te-picker { position: fixed; z-index: 1000; width: 240px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.3); overflow: hidden; }
