@@ -20161,7 +20161,6 @@ function create_if_block_112(ctx) {
   let t8;
   let div3_tabindex_value;
   let div3_data_gridkey_value;
-  let div3_title_value;
   let t9;
   let if_block6_anchor;
   let mounted;
@@ -20259,9 +20258,6 @@ function create_if_block_112(ctx) {
       attr(div3, "data-gridkey", div3_data_gridkey_value = `${/*day*/
       ctx[192].key}:${/*_first*/
       ctx[242].id}:merged`);
-      attr(div3, "title", div3_title_value = /*_mlbl*/
-      ctx[253].code + " \xB7 " + /*_mRange*/
-      ctx[257]);
       set_style(div3, "--ctint", hexToRgba4(
         /*_mlbl*/
         ctx[253].colour,
@@ -20472,12 +20468,6 @@ function create_if_block_112(ctx) {
       ctx[192].key}:${/*_first*/
       ctx[242].id}:merged`)) {
         attr(div3, "data-gridkey", div3_data_gridkey_value);
-      }
-      if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 && div3_title_value !== (div3_title_value = /*_mlbl*/
-      ctx[253].code + " \xB7 " + /*_mRange*/
-      ctx[257])) {
-        attr(div3, "title", div3_title_value);
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
       1048581) {
@@ -20840,8 +20830,8 @@ function create_if_block_232(ctx) {
         if_block.d(1);
         if_block = null;
       }
-      if (dirty[0] & /*gridFocusKey, renderDays, plugin, _dateEventMap, _slotMap, currentMonday, PX_PER_MIN, _eventExternalMap*/
-      1074991365 | dirty[1] & /*isSlotExcluded, getDateEventLabel, onEventDragStart, onDragEnd, openChipMenu, onCellKeydown, _eventPlanMap, _preparedEventMap, _showPrepared*/
+      if (dirty[0] & /*gridFocusKey, renderDays, plugin, _dateEventMap, currentMonday, _eventExternalMap, _slotMap, PX_PER_MIN*/
+      1074991365 | dirty[1] & /*getDateEventLabel, onEventDragStart, onDragEnd, openChipMenu, onCellKeydown, _eventPlanMap, _preparedEventMap, _showPrepared, isSlotExcluded*/
       103563314 | dirty[2] & /*_isMobileApp, openPlan, toggleEventPrep, isClassId*/
       53376) {
         each_value_5 = ensure_array_like(
@@ -20943,7 +20933,6 @@ function create_if_block_30(ctx) {
   let t8;
   let div3_tabindex_value;
   let div3_data_gridkey_value;
-  let div3_title_value;
   let mounted;
   let dispose;
   let if_block0 = (
@@ -21025,17 +21014,6 @@ function create_if_block_30(ctx) {
       attr(div3, "data-gridkey", div3_data_gridkey_value = `${/*day*/
       ctx[192].key}:${/*period*/
       ctx[197].id}:slot`);
-      attr(div3, "title", div3_title_value = /*_partial*/
-      ctx[232] ? `${/*period*/
-      ctx[197].name} \xB7 ${minutesToTime(
-        /*_soleStartMin*/
-        ctx[229]
-      )}\u2013${/*_occEnd*/
-      ctx[234]} \xB7 ${/*_occMins*/
-      ctx[226]} min` : `${/*period*/
-      ctx[197].name} \xB7 ${/*period*/
-      ctx[197].start}\u2013${/*period*/
-      ctx[197].end}`);
       set_style(div3, "--ctint", hexToRgba4(
         /*lbl*/
         ctx[259].colour,
@@ -21230,20 +21208,6 @@ function create_if_block_30(ctx) {
       ctx[192].key}:${/*period*/
       ctx[197].id}:slot`)) {
         attr(div3, "data-gridkey", div3_data_gridkey_value);
-      }
-      if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
-      1245445 && div3_title_value !== (div3_title_value = /*_partial*/
-      ctx[232] ? `${/*period*/
-      ctx[197].name} \xB7 ${minutesToTime(
-        /*_soleStartMin*/
-        ctx[229]
-      )}\u2013${/*_occEnd*/
-      ctx[234]} \xB7 ${/*_occMins*/
-      ctx[226]} min` : `${/*period*/
-      ctx[197].name} \xB7 ${/*period*/
-      ctx[197].start}\u2013${/*period*/
-      ctx[197].end}`)) {
-        attr(div3, "title", div3_title_value);
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
       1179653) {
@@ -21905,7 +21869,6 @@ function create_each_block_52(key_2, ctx) {
   let t9;
   let div3_tabindex_value;
   let div3_data_gridkey_value;
-  let div3_title_value;
   let mounted;
   let dispose;
   let if_block0 = (
@@ -21997,17 +21960,6 @@ function create_each_block_52(key_2, ctx) {
       ctx[197].id}:ev:${/*devEv*/
       ctx[258].id}`);
       attr(div3, "draggable", "true");
-      attr(div3, "title", div3_title_value = /*_partial*/
-      ctx[232] ? `${/*period*/
-      ctx[197].name} \xB7 ${minutesToTime(
-        /*_soleStartMin*/
-        ctx[229]
-      )}\u2013${/*_occEnd*/
-      ctx[234]} \xB7 ${/*_occMins*/
-      ctx[226]} min` : `${/*period*/
-      ctx[197].name} \xB7 ${/*period*/
-      ctx[197].start}\u2013${/*period*/
-      ctx[197].end}`);
       set_style(div3, "--ctint", hexToRgba4(
         /*lbl*/
         ctx[259].colour,
@@ -22193,20 +22145,6 @@ function create_each_block_52(key_2, ctx) {
       ctx[197].id}:ev:${/*devEv*/
       ctx[258].id}`)) {
         attr(div3, "data-gridkey", div3_data_gridkey_value);
-      }
-      if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
-      1245445 && div3_title_value !== (div3_title_value = /*_partial*/
-      ctx[232] ? `${/*period*/
-      ctx[197].name} \xB7 ${minutesToTime(
-        /*_soleStartMin*/
-        ctx[229]
-      )}\u2013${/*_occEnd*/
-      ctx[234]} \xB7 ${/*_occMins*/
-      ctx[226]} min` : `${/*period*/
-      ctx[197].name} \xB7 ${/*period*/
-      ctx[197].start}\u2013${/*period*/
-      ctx[197].end}`)) {
-        attr(div3, "title", div3_title_value);
       }
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
       1114113) {

@@ -1344,7 +1344,6 @@
                         on:dragend={onDragEnd}
                         on:click={(e) => openChipMenu(e, "event", dayDate, _first.id, undefined, _mev)}
                         on:keydown={onCellKeydown}
-                        title="{_mlbl.code} · {_mRange}"
                         style="--ctint:{hexToRgba(_mlbl.colour,0.22)}; border-left:3px solid {_mlbl.colour}; background:{hexToRgba(_mlbl.colour,0.22)};">
                         <span class="tp-chip-period-time">{_mRange}</span>
                         <div class="tp-chip-body">
@@ -1419,7 +1418,6 @@
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "slot", dayDate, period.id, slot)}
                           on:keydown={onCellKeydown}
-                          title={_partial ? `${period.name} · ${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
                         >
                           <span class="tp-chip-period-time">{_partial ? `${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
@@ -1471,7 +1469,6 @@
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "event", dayDate, period.id, undefined, devEv)}
                           on:keydown={onCellKeydown}
-                          title={_partial ? `${period.name} · ${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}
                           style="--ctint:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
                         >
                           <span class="tp-chip-period-time">{_partial ? `${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
