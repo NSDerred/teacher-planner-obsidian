@@ -717,7 +717,7 @@
                     on:click={(e) => openPicker(day.key, period.id, currentWeek, e.currentTarget)}
                   >
                     <span class="tp-te-blk-name">{period.name}</span>
-                    <span class="tp-te-blk-time">{period.start}–{period.end}</span>
+                    <span class="tp-te-blk-time" class:tp-te-blk-time--hide={_bh < 44}>{period.start}–{period.end}</span>
                     <span class="tp-te-blk-add">+ assign</span>
                   </button>
                 {/if}
@@ -980,10 +980,12 @@
   .tp-te-blk { position: absolute; left: 3px; right: 3px; border-radius: 5px; box-sizing: border-box; overflow: hidden; }
   .tp-te-blk--dragover { outline: 2px solid var(--interactive-accent); outline-offset: -2px; background: color-mix(in srgb, var(--interactive-accent) 18%, transparent) !important; }
   .tp-te-blk--reject { outline: 2px solid var(--color-red, #f38ba8); outline-offset: -2px; }
-  .tp-te-blk-label { width: 100%; height: 100%; border: 1.5px dashed transparent; border-radius: 5px; background: transparent; cursor: pointer; padding: 3px 6px; text-align: left; display: flex; flex-direction: column; gap: 1px; color: var(--text-muted); overflow: hidden; box-sizing: border-box; }
+  .tp-te-blk-label { width: 100%; height: 100%; border: 1.5px dashed transparent; border-radius: 5px; background: transparent; cursor: pointer; padding: 3px 6px; text-align: left; display: flex; flex-direction: column; justify-content: center; gap: 1px; color: var(--text-muted); overflow: hidden; box-sizing: border-box; }
   .tp-te-blk-label:hover { border-color: var(--interactive-accent); background: var(--background-modifier-hover); }
   .tp-te-blk-name { font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tp-te-blk-time { font-size: 10px; color: var(--text-faint); }
+  .tp-te-blk-time--hide { display: none; }
+  .tp-te-blk:hover .tp-te-blk-time--hide { display: block; }
   .tp-te-blk-add { font-size: 10px; color: var(--text-faint); opacity: 0; transition: opacity 0.1s; }
   .tp-te-blk-label:hover .tp-te-blk-add { opacity: 1; color: var(--interactive-accent); }
   .tp-te-blk:hover { height: auto !important; min-height: 58px; z-index: 20; box-shadow: 0 2px 10px rgba(0,0,0,0.28); }
