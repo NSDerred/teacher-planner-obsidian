@@ -1318,13 +1318,23 @@
                   {@const _mev   = _mrun.ev}
                   {@const _first = _mrun.run[0]}
                   {@const _last  = _mrun.run[_mrun.run.length - 1]}
-                  {@const _mTop  = (timeToMinutes(_first.start) - _axis.start) * PX_PER_MIN}
-                  {@const _mH    = Math.max(20, (timeToMinutes(_last.end) - timeToMinutes(_first.start)) * PX_PER_MIN)}
+                  {@const _mHasStart = !!_mev.startTime}
+                  {@const _mFirstStartMin = timeToMinutes(_first.start)}
+                  {@const _mLastEndMin = timeToMinutes(_last.end)}
+                  {@const _mStartMin = _mHasStart ? Math.max(_mFirstStartMin, Math.min(timeToMinutes(_mev.startTime ?? _first.start), timeToMinutes(_first.end) - 1)) : _mFirstStartMin}
+                  {@const _mEndMin = _mHasStart && _mev.durationMinutes ? Math.min(_mStartMin + _mev.durationMinutes, _mLastEndMin) : _mLastEndMin}
+                  {@const _mTop  = (_mStartMin - _axis.start) * PX_PER_MIN}
+                  {@const _mH    = Math.max(20, (_mEndMin - _mStartMin) * PX_PER_MIN)}
+                  {@const _mLeadMins = _mStartMin - _mFirstStartMin}
+                  {@const _mTrailMins = _mLastEndMin - _mEndMin}
                   {@const _mlbl  = getDateEventLabel(_mev)}
                   {@const _mPlan = _eventPlanMap[_mev.id]}
                   {@const _mPrep = _preparedEventMap[_mev.id]}
                   {@const _mExt  = _eventExternalMap[_mev.id]}
-                  {@const _mRange = _first.name + (_mrun.run.length > 1 ? " – " + _last.name : "") + " · " + _first.start + "–" + _last.end}
+                  {@const _mRange = _first.name + (_mrun.run.length > 1 ? " – " + _last.name : "") + " · " + minutesToTime(_mStartMin) + "–" + minutesToTime(_mEndMin)}
+                  {#if _mLeadMins > 0}
+                    <div class="tp-merged-gap" style="top:{(_mFirstStartMin - _axis.start) * PX_PER_MIN}px; height:{_mLeadMins * PX_PER_MIN}px;">{_first.start}–{minutesToTime(_mStartMin)}</div>
+                  {/if}
                   <div class="tp-block tp-block--merged" style="top:{_mTop}px; height:{_mH}px; --bh:{_mH}px; --tint:{hexToRgba(_mlbl.colour, 0.08)}; background:{hexToRgba(_mlbl.colour, 0.08)}; border-left:3px solid {_mlbl.colour};">
                     <div class="tp-event-stack">
                       <!-- svelte-ignore a11y-interactive-supports-focus -->
@@ -1363,6 +1373,9 @@
                       </div>
                     </div>
                   </div>
+                  {#if _mTrailMins > 0}
+                    <div class="tp-merged-gap" style="top:{(_mEndMin - _axis.start) * PX_PER_MIN}px; height:{_mTrailMins * PX_PER_MIN}px;">{minutesToTime(_mEndMin)}–{_last.end}</div>
+                  {/if}
                 {:else if dayMerges.consumed.has(period.id)}
                   <!-- block consumed by the merged event rendered above -->
                 {:else}
@@ -1721,6 +1734,7 @@
   .tp-event-stack--partial { bottom:auto; top:calc(3px + var(--stack-top, 0px)); height:var(--stack-h, auto); }
   .tp-block-free { position:absolute; left:6px; right:6px; bottom:3px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:11px; color:var(--text-faint); white-space:nowrap; overflow:hidden; pointer-events:none; z-index:2; }
   .tp-block-free--lead { top:3px; bottom:auto; }
+  .tp-merged-gap { position:absolute; left:4px; right:4px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:11px; color:var(--text-faint); white-space:nowrap; overflow:hidden; pointer-events:none; z-index:1; }
   .tp-block-durbadge { position:absolute; top:4px; right:4px; font-size:10px; font-weight:700; line-height:1.5; padding:0 4px; border-radius:3px; background:var(--interactive-accent); color:var(--text-on-accent, #fff); pointer-events:none; z-index:4; }
   .tp-block:hover .tp-block-free, .tp-block:hover .tp-block-durbadge { display:none; }
   .tp-event-stack .tp-chip { position:relative; inset:auto; flex:1; min-width:0; }

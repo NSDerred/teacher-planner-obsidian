@@ -45,8 +45,6 @@
   // ── Directed time ──────────────────────────────────────────────────────────
   $: directedTimeEnabled = plugin.settings.directedTime?.enabled ?? false;
 
-  // Start-time + length editing state
-  let timeEditKey: string | null = null;
   const tMin = (t: string): number => { const [h, m] = (t || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
   const mTime = (n: number): string => `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 
@@ -59,12 +57,6 @@
     return slot.durationMinutes != null && slot.durationMinutes !== periodLengthMinutes(plugin.settings.academicYear, slot.periodId);
   }
 
-  function isDirectedSlot(slot: TimetableSlot): boolean {
-    const cls = classes.find(c => c.id === slot.classId);
-    if (cls) return true; // lessons always count as directed
-    const act = activities.find(a => a.id === slot.classId);
-    return act?.activityType !== "other";
-  }
 
   function slotStartOf(slot: TimetableSlot, period: SchoolPeriod): string { return slot.start || period.start; }
   function isCustomStart(slot: TimetableSlot, period: SchoolPeriod): boolean { return !!slot.start && slot.start !== period.start; }
@@ -93,6 +85,17 @@
     slot.end = mTime(ss + d);
     slots = [...slots];
     markDirty();
+  }
+
+  function commitSlotRoom(slot: TimetableSlot, val: string) {
+    slot.classroom = val.trim() || undefined;
+    slots = [...slots];
+    markDirty();
+  }
+  function defaultRoomOf(slot: TimetableSlot): string {
+    const cls = classes.find(c => c.id === slot.classId);
+    if (cls) return cls.classroom ?? "";
+    return activities.find(a => a.id === slot.classId)?.classroom ?? "";
   }
 
   // Default to the most-recently-starting template.
@@ -270,15 +273,17 @@
   $: pickerCurId = (pickerDay && pickerPeriodId)
     ? getSlot(pickerDay, pickerPeriodId, currentWeek)?.classId
     : undefined;
+  $: pickerSlot = (pickerDay && pickerPeriodId) ? getSlot(pickerDay, pickerPeriodId, currentWeek) : undefined;
+  $: pickerPeriod = pickerPeriodId ? periods.find(p => p.id === pickerPeriodId) : undefined;
 
   function getLabel(slot: TimetableSlot) {
     const cls = classes.find(c => c.id === slot.classId);
     if (cls) {
       const subj = subjects.find(s => s.id === cls.subjectId);
-      return { code: cls.code, sub: subj?.name ?? "", colour: cls.colour, classroom: cls.classroom ?? "" };
+      return { code: cls.code, sub: subj?.name ?? "", colour: cls.colour, classroom: slot.classroom ?? cls.classroom ?? "" };
     }
     const act = activities.find(a => a.id === slot.classId);
-    if (act) return { code: act.label, sub: act.info ?? "", colour: act.colour, classroom: act.classroom ?? "" };
+    if (act) return { code: act.label, sub: act.info ?? "", colour: act.colour, classroom: slot.classroom ?? act.classroom ?? "" };
     return { code: "?", sub: "", colour: "#888", classroom: "" };
   }
 
@@ -287,7 +292,6 @@
       closePicker(); return;
     }
     pickerDay = day; pickerPeriodId = periodId; pickerWeek = week; pickerEl = el;
-    timeEditKey = null;
   }
 
   function closePicker() {
@@ -525,7 +529,7 @@
 </script>
 
 <svelte:window
-  on:keydown={(e) => e.key === "Escape" && (renamingId ? renamingId = null : timeEditKey ? timeEditKey = null : closePicker())}
+  on:keydown={(e) => e.key === "Escape" && (renamingId ? renamingId = null : closePicker())}
   on:mousedown={(e) => {
     const t = e.target instanceof Element ? e.target : null;
     if (pickerEl && !t?.closest(".tp-te-picker") && !t?.closest(".tp-te-cell")) closePicker();
@@ -676,31 +680,8 @@
                       <span class="tp-te-chip-sub">{[lbl.sub, lbl.classroom].filter(Boolean).join(" · ")}</span>
                     {/if}
                   </button>
-                  {#if directedTimeEnabled && isDirectedSlot(slot)}
-                    <button
-                      class="tp-te-time-toggle"
-                      class:tp-te-time-toggle--custom={isCustomised(slot, period)}
-                      title="Edit start time and length"
-                      on:click|stopPropagation={() => timeEditKey = (timeEditKey === cellKey ? null : cellKey)}
-                    >{#if isCustomised(slot, period)}{slotStartOf(slot, period)} · {getSlotDuration(slot)}m{:else}{getSlotDuration(slot)}m{/if}</button>
-                    {#if timeEditKey === cellKey}
-                      <!-- svelte-ignore a11y-no-static-element-interactions -->
-                      <!-- svelte-ignore a11y-click-events-have-key-events -->
-                      <div class="tp-te-timeedit" on:click|stopPropagation>
-                        <label class="tp-te-timeedit-field">
-                          <span class="tp-te-timeedit-label">Start</span>
-                          <input type="time" value={slotStartOf(slot, period)}
-                            on:click|stopPropagation
-                            on:change={(e) => commitSlotStart(slot, period, e.currentTarget.value)} />
-                        </label>
-                        <label class="tp-te-timeedit-field">
-                          <span class="tp-te-timeedit-label">Length</span>
-                          <input type="number" min="1" max="480" value={getSlotDuration(slot)}
-                            on:click|stopPropagation
-                            on:change={(e) => commitSlotLength(slot, period, e.currentTarget.value)} />
-                        </label>
-                      </div>
-                    {/if}
+                  {#if isCustomised(slot, period)}
+                    <span class="tp-te-cust" title="Custom start / length — click the cell to edit">{slotStartOf(slot, period)} · {getSlotDuration(slot)}m</span>
                   {/if}
                 {:else}
                   <button
@@ -731,6 +712,34 @@
           on:click|stopPropagation
         />
 
+        {#if pickerSlot && pickerPeriod}
+          {@const _ps = pickerSlot}
+          {@const _pp = pickerPeriod}
+          <div class="tp-te-detail">
+            <div class="tp-te-detail-grid">
+              <label class="tp-te-detail-field">
+                <span class="tp-te-detail-label">Start</span>
+                <input type="time" value={slotStartOf(_ps, _pp)}
+                  on:click|stopPropagation
+                  on:change={(e) => commitSlotStart(_ps, _pp, e.currentTarget.value)} />
+              </label>
+              <label class="tp-te-detail-field">
+                <span class="tp-te-detail-label">Length</span>
+                <input type="number" min="1" max="480" value={getSlotDuration(_ps)}
+                  on:click|stopPropagation
+                  on:change={(e) => commitSlotLength(_ps, _pp, e.currentTarget.value)} />
+              </label>
+            </div>
+            <label class="tp-te-detail-field">
+              <span class="tp-te-detail-label">Room</span>
+              <input type="text" placeholder={defaultRoomOf(_ps)} value={_ps.classroom ?? ""}
+                on:click|stopPropagation
+                on:change={(e) => commitSlotRoom(_ps, e.currentTarget.value)} />
+            </label>
+          </div>
+          <div class="tp-te-picker-divider"></div>
+        {/if}
+
         {#if getSlot(pickerDay, pickerPeriodId, currentWeek)}
           <button
             class="tp-te-picker-clear"
@@ -750,7 +759,7 @@
                   class="tp-te-picker-item"
                   class:tp-te-picker-item--active={cls.id === pickerCurId}
                   style="border-left: 3px solid {cls.colour};"
-                  on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, cls.id, currentWeek); closePicker(); } }}
+                  on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, cls.id, currentWeek); } }}
                 >
                   {#if subj.emoji}<span class="tp-te-picker-emoji">{subj.emoji}</span>{/if}
                   <span class="tp-te-picker-item-text">
@@ -773,7 +782,7 @@
                 class="tp-te-picker-item"
                 class:tp-te-picker-item--active={act.id === pickerCurId}
                 style="border-left: 3px solid {act.colour};"
-                on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, act.id, currentWeek); closePicker(); } }}
+                on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, act.id, currentWeek); } }}
               >
                 <span class="tp-te-picker-item-text">
                   <span class="tp-te-picker-code">{act.label}</span>
@@ -794,7 +803,7 @@
                 class="tp-te-picker-item"
                 class:tp-te-picker-item--active={act.id === pickerCurId}
                 style="border-left: 3px solid {act.colour};"
-                on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, act.id, currentWeek); closePicker(); } }}
+                on:click={() => { const p = periods.find(p => p.id === pickerPeriodId); if (p && pickerDay) { assignItem(pickerDay, p, act.id, currentWeek); } }}
               >
                 <span class="tp-te-picker-item-text">
                   <span class="tp-te-picker-code">{act.label}</span>
@@ -921,14 +930,13 @@
   .tp-te-chip-sub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* ── Start-time + length: quiet badge (Option B) + inline editor (Option C) ──── */
-  .tp-te-time-toggle { position: absolute; bottom: 3px; right: 4px; font-size: 10px; font-weight: 600; background: rgba(0,0,0,0.30); color: #fff; border: none; border-radius: 3px; padding: 1px 5px; cursor: pointer; line-height: 1.4; z-index: 1; opacity: 0; transition: opacity 0.1s, background 0.1s; }
-  .tp-te-cell:hover .tp-te-time-toggle { opacity: 1; }
-  .tp-te-time-toggle:hover { background: rgba(0,0,0,0.50); }
-  .tp-te-time-toggle--custom { opacity: 1; background: var(--interactive-accent); color: var(--text-on-accent, #fff); }
-  .tp-te-timeedit { position: absolute; left: 2px; right: 2px; bottom: 2px; z-index: 5; display: flex; gap: 6px; padding: 5px 6px; background: var(--background-primary); border: 1px solid var(--interactive-accent); border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.28); }
-  .tp-te-timeedit-field { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
-  .tp-te-timeedit-label { font-size: 9px; color: var(--text-muted); }
-  .tp-te-timeedit input { width: 100%; box-sizing: border-box; font-size: 11px; padding: 2px 4px; border: 1px solid var(--background-modifier-border); border-radius: 4px; background: var(--background-secondary); color: var(--text-normal); }
+  .tp-te-cust { position: absolute; top: 3px; right: 4px; font-size: 10px; font-weight: 600; background: var(--interactive-accent); color: var(--text-on-accent, #fff); border-radius: 3px; padding: 1px 5px; line-height: 1.4; pointer-events: none; z-index: 1; }
+  .tp-te-detail { padding: 2px 2px 4px; }
+  .tp-te-detail-grid { display: flex; gap: 6px; margin-bottom: 6px; }
+  .tp-te-detail-field { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .tp-te-detail-label { font-size: 10px; color: var(--text-muted); }
+  .tp-te-detail input { width: 100%; box-sizing: border-box; font-size: 12px; padding: 3px 6px; border: 1px solid var(--background-modifier-border); border-radius: 5px; background: var(--background-secondary); color: var(--text-normal); }
+  .tp-te-detail input:focus { border-color: var(--interactive-accent); outline: none; }
 
   /* ── Picker ───────────────────────────────────────────────────────────────── */
   .tp-te-picker { position: fixed; z-index: 1000; width: 240px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.3); overflow: hidden; }
