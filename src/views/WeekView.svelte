@@ -1311,7 +1311,7 @@
                 {@const _occEndMin = _soleStartMin + _occMins}
                 {@const _occEnd = minutesToTime(_occEndMin)}
                 {@const _innerH = Math.max(0, bHeight - 6)}
-                {@const _stackH = Math.min(_innerH, Math.max(_occMins * PX_PER_MIN, 40))}
+                {@const _stackH = Math.min(_innerH, Math.max(_occMins * PX_PER_MIN, 22))}
                 {@const _stackTop = Math.min(_leadPx, Math.max(0, _innerH - _stackH))}
                 {#if dayMerges.starts[period.id]}
                   {@const _mrun  = dayMerges.starts[period.id]}
@@ -1677,6 +1677,9 @@
     .tp-chip-room { display: none; }
     .tp-chip-code { font-size: 11px; }
     .tp-chip-marks { --mark-size: 10px; }
+  }
+  @container chip (max-height: 30px) {
+    .tp-chip-footer { display: none; }
   }
   @container chip (max-width: 90px) {
     .tp-chip-code { font-size: 13px; }
