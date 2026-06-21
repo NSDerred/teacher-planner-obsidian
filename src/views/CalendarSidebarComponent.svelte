@@ -1,5 +1,6 @@
 <script lang="ts">
   import type TeacherPlannerPlugin from "../main";
+  import type { SchoolDay } from "../types";
   import { getMondayOfWeek, weekKey } from "../utils/weekUtils";
   import { readWeekNote, writeWeekNote } from "../utils/weekNoteFiles";
   import { calcDirectedTime, fmtMins } from "../utils/directedTimeUtils";
@@ -81,14 +82,14 @@
   const _dayNames = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
   function isSchoolDay(d: Date): boolean {
     const dayName = _dayNames[d.getDay()];
-    return (plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(dayName as any);
+    return (plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(dayName as SchoolDay);
   }
 
   function onDayClick(d: Date) {
     if (!isInAcademicYear(d) || !isSchoolDay(d)) return;
     const monday = getMondayOfWeek(d);
     currentWeek = monday;
-    (plugin as any).navigateWeekView(monday);
+    plugin.navigateWeekView(monday);
   }
 
   // ── Week notes ────────────────────────────────────────────────────────────
@@ -122,7 +123,7 @@
     if (!previewEl) return;
     previewEl.empty();
     if (!md || !md.trim()) return;
-    await MarkdownRenderer.render(plugin.app, md, previewEl, "", plugin as any);
+    await MarkdownRenderer.render(plugin.app, md, previewEl, "", plugin);
   }
 
   async function enterEdit() {

@@ -323,7 +323,7 @@
         const _df = draftFields(period);
         slots = [...slots, {
           id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-          day: day as any, periodId: period.id, classId: itemId,
+          day: day as SchoolDay, periodId: period.id, classId: itemId,
           start: _df.start, end: _df.end, weekType: week,
           ...(_df.durationMinutes != null ? { durationMinutes: _df.durationMinutes } : {}),
           ...(_df.classroom ? { classroom: _df.classroom } : {}),
@@ -336,7 +336,7 @@
         const _df = draftFields(period);
         slots = [...slots, {
           id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-          day: day as any, periodId: period.id, classId: itemId,
+          day: day as SchoolDay, periodId: period.id, classId: itemId,
           start: _df.start, end: _df.end,
           ...(_df.durationMinutes != null ? { durationMinutes: _df.durationMinutes } : {}),
           ...(_df.classroom ? { classroom: _df.classroom } : {}),
@@ -426,7 +426,7 @@
       } else {
         slots = [...slots, {
           id: "slot-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-          day: day as any, periodId: period.id, classId: source.classId,
+          day: day as SchoolDay, periodId: period.id, classId: source.classId,
           start: period.start, end: period.end,
           ...(w ? { weekType: w } : {}),
           ...(source.durationMinutes != null ? { durationMinutes: source.durationMinutes } : {}),
@@ -439,7 +439,7 @@
       target.classId = sClass; target.durationMinutes = sDur;
     } else {
       // Move onto an empty cell → relocate the source slot (its weekType is preserved).
-      source.day = day as any;
+      source.day = day as SchoolDay;
       source.periodId = period.id;
       source.start = period.start;
       source.end = period.end;

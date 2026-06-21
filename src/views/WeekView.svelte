@@ -787,7 +787,7 @@
   $: canGoNext = isDayMode ? !!_stepSchoolDay(currentDate,  1) : canGoWeekNext;
 
   // Sync sidebar notes to the current planner week whenever it changes
-  $: (plugin as any).notifySidebar(currentMonday);
+  $: plugin.notifySidebar(currentMonday);
 
   // ── Navigation ────────────────────────────────────────────────────────────
   function onPrev()  { if (isDayMode) { onPrevDay(); return; } if (canGoWeekPrev) currentDate = addWeeks(currentDate, -1); }
@@ -861,7 +861,7 @@
 
   function onOpenTimetable() { new TimetableEditorModal(plugin.app, plugin).open(); }
   function onOpenSettings()  {
-    const s = (plugin.app as any).setting;
+    const s = (plugin.app as unknown as { setting: { open(): void; openTabById(id: string): void } }).setting;
     s.open();
     s.openTabById("teacher-planner");
   }
