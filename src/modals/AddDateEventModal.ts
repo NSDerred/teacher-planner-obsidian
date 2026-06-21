@@ -74,7 +74,6 @@ export class AddDateEventModal extends Modal {
     let durationTouched = false;
     let durationMinutes = 0;
     let start = "";
-    let startTouched = false;
 
     if (isEdit && this.existingEvent) {
       const ev = this.existingEvent;
@@ -91,7 +90,6 @@ export class AddDateEventModal extends Modal {
       durationTouched = ev.durationMinutes != null;
       durationMinutes = ev.durationMinutes ?? 0;
       start = ev.startTime ?? "";
-      startTouched = ev.startTime != null;
     } else {
       date = this.prefillDate ?? new Date().toISOString().split("T")[0];
       title = ""; colour = randomPaletteColour(); directed = directedTimeEnabled;
@@ -228,7 +226,7 @@ export class AddDateEventModal extends Modal {
     startCol.createEl("label", { text: "Start time", cls: "tp-modal-label" });
     const startInput = startCol.createEl("input", { type: "time", cls: "tp-modal-input" });
     const paintStart = () => { startInput.value = effStart(); };
-    startInput.addEventListener("input", () => { start = startInput.value; startTouched = !!startInput.value; recalcDuration(); paintDuration(); });
+    startInput.addEventListener("input", () => { start = startInput.value; recalcDuration(); paintDuration(); });
 
     const durCol = dateRow.createDiv("tp-modal-field tp-modal-field--dur");
     durCol.createEl("label", { text: "Duration", cls: "tp-modal-label" });
@@ -375,7 +373,7 @@ export class AddDateEventModal extends Modal {
         const b = selectedBlocks();
         if (b.length) {
           const fs = timeToMin(b[0].start), fe = timeToMin(b[0].end), sv = timeToMin(start);
-          if (sv < fs || sv >= fe) { new Notice("Start time must be within the first period block — reset to the block start."); start = ""; startTouched = false; }
+          if (sv < fs || sv >= fe) { new Notice("Start time must be within the first period block — reset to the block start."); start = ""; }
         }
       }
       const fields = {

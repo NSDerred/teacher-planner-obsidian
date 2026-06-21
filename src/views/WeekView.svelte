@@ -1381,6 +1381,7 @@
                 <!-- svelte-ignore a11y-no-static-element-interactions -->
                 <div
                   class="tp-block"
+                  class:tp-block--empty={!slot && devEvents.length === 0}
                   class:tp-block--dragover={isOver}
                   class:tp-block--reject={isReject}
                   style="top:{bTop}px; height:{bHeight}px; --bh:{bHeight}px; --tint:{hexToRgba(tc, 0.08)}; background:{hexToRgba(tc, 0.08)}; border-left:3px solid {hexToRgba(tc, 0.55)};"
@@ -1631,13 +1632,10 @@
     background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;
     box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);
     outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border));
-  }
-  /* Adaptive hover for blocks with chips: the block keeps its timetable
-     footprint as an invisible hover hit-area (no flicker), while the card
-     itself is painted on the chip stack, which hugs the content exactly. */
-  .tp-block:hover:has(.tp-event-stack) {
     overflow:visible;
   }
+  /* On hover a block with a chip keeps its timetable footprint as the hit-area,
+     while the in-flow stack grows to reveal full details. */
   .tp-block:hover .tp-event-stack {
     position:relative; inset:auto; height:auto; margin:3px;
   }
