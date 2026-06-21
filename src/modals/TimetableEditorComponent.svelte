@@ -678,7 +678,7 @@
             {#each getDayPeriods(day.key) as period (period.id)}
               {@const tc      = getPeriodTypeColour(period.type)}
               {@const _bt     = (tMin(period.start) - _axisStart) * TE_PX}
-              {@const _bh     = Math.max(22, (tMin(period.end) - tMin(period.start)) * TE_PX)}
+              {@const _bh     = Math.max(2, (tMin(period.end) - tMin(period.start)) * TE_PX)}
               {@const slot    = _slotGrid[day.key + ":" + period.id]}
               {@const cellKey = day.key + ":" + period.id}
               <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -717,7 +717,7 @@
                     on:click={(e) => openPicker(day.key, period.id, currentWeek, e.currentTarget)}
                   >
                     <span class="tp-te-blk-name">{period.name}</span>
-                    <span class="tp-te-blk-time" class:tp-te-blk-time--hide={_bh < 44}>{period.start}–{period.end}</span>
+                    <span class="tp-te-blk-time">{period.start}–{period.end}</span>
                     <span class="tp-te-blk-add">+ assign</span>
                   </button>
                 {/if}
@@ -977,18 +977,17 @@
   .tp-te-axis-gutter { position: relative; }
   .tp-te-axis-hour { position: absolute; left: 4px; font-size: 10px; color: var(--text-faint); transform: translateY(-50%); white-space: nowrap; }
   .tp-te-axis-col { position: relative; border-left: 1px solid var(--background-modifier-border); }
-  .tp-te-blk { position: absolute; left: 3px; right: 3px; border-radius: 5px; box-sizing: border-box; overflow: hidden; }
+  .tp-te-blk { position: absolute; left: 3px; right: 3px; border-radius: 5px; box-sizing: border-box; overflow: hidden; z-index: 1; }
   .tp-te-blk--dragover { outline: 2px solid var(--interactive-accent); outline-offset: -2px; background: color-mix(in srgb, var(--interactive-accent) 18%, transparent) !important; }
   .tp-te-blk--reject { outline: 2px solid var(--color-red, #f38ba8); outline-offset: -2px; }
-  .tp-te-blk-label { width: 100%; height: 100%; border: 1.5px dashed transparent; border-radius: 5px; background: transparent; cursor: pointer; padding: 3px 6px; text-align: left; display: flex; flex-direction: column; justify-content: center; gap: 1px; color: var(--text-muted); overflow: hidden; box-sizing: border-box; }
+  .tp-te-blk-label { width: 100%; height: 100%; border: 1.5px dashed transparent; border-radius: 5px; background: transparent; cursor: pointer; padding: 3px 6px; text-align: left; display: flex; flex-direction: column; justify-content: flex-start; gap: 1px; color: var(--text-muted); overflow: hidden; box-sizing: border-box; }
   .tp-te-blk-label:hover { border-color: var(--interactive-accent); background: var(--background-modifier-hover); }
   .tp-te-blk-name { font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tp-te-blk-time { font-size: 10px; color: var(--text-faint); }
-  .tp-te-blk-time--hide { display: none; }
-  .tp-te-blk:hover .tp-te-blk-time--hide { display: block; }
+  .tp-te-blk-time { display: none; font-size: 10px; color: var(--text-faint); }
+  .tp-te-blk:hover .tp-te-blk-time { display: block; }
   .tp-te-blk-add { font-size: 10px; color: var(--text-faint); opacity: 0; transition: opacity 0.1s; }
   .tp-te-blk-label:hover .tp-te-blk-add { opacity: 1; color: var(--interactive-accent); }
-  .tp-te-blk:hover { height: auto !important; min-height: 58px; z-index: 20; box-shadow: 0 2px 10px rgba(0,0,0,0.28); }
+  .tp-te-blk:hover { height: auto !important; min-height: 58px; z-index: 20; background: var(--background-secondary) !important; box-shadow: 0 2px 10px rgba(0,0,0,0.28); }
   .tp-te-blk:hover .tp-te-chip, .tp-te-blk:hover .tp-te-blk-label { height: auto; }
   .tp-te-chip-time { display: none; font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tp-te-blk:hover .tp-te-chip-time { display: block; }
