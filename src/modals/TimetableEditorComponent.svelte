@@ -686,7 +686,7 @@
                 class="tp-te-blk"
                 class:tp-te-blk--dragover={dragOverKey === cellKey}
                 class:tp-te-blk--reject={rejectKey === cellKey}
-                style="top:{_bt}px; height:{_bh}px; --bh:{_bh}px; background:{hexToRgba(tc, 0.08)}; border-left:3px solid {hexToRgba(tc, 0.55)};"
+                style="top:{_bt}px; height:{_bh}px; background:{hexToRgba(tc, 0.08)}; border-left:3px solid {hexToRgba(tc, 0.55)};"
                 on:dragover={(e) => onCellDragOver(e, day.key, period.id)}
                 on:dragleave={onCellDragLeave}
                 on:drop={(e) => onCellDrop(e, day.key, period)}
@@ -980,17 +980,17 @@
   .tp-te-blk { position: absolute; left: 3px; right: 3px; border-radius: 5px; box-sizing: border-box; overflow: hidden; z-index: 1; }
   .tp-te-blk--dragover { outline: 2px solid var(--interactive-accent); outline-offset: -2px; background: color-mix(in srgb, var(--interactive-accent) 18%, transparent) !important; }
   .tp-te-blk--reject { outline: 2px solid var(--color-red, #f38ba8); outline-offset: -2px; }
-  .tp-te-blk-label { position: absolute; inset: 0; border: 1.5px dashed transparent; border-radius: 5px; background: transparent; cursor: pointer; padding: 3px 6px; text-align: left; display: flex; flex-direction: column; justify-content: flex-start; gap: 1px; color: var(--text-muted); overflow: hidden; box-sizing: border-box; }
+  .tp-te-blk-label { width: 100%; height: 100%; border: 1.5px dashed transparent; border-radius: 5px; background: transparent; cursor: pointer; padding: 3px 6px; text-align: left; display: flex; flex-direction: column; justify-content: flex-start; gap: 1px; color: var(--text-muted); overflow: hidden; box-sizing: border-box; }
   .tp-te-blk-label:hover { border-color: var(--interactive-accent); background: var(--background-modifier-hover); }
   .tp-te-blk-name { font-size: 11px; font-weight: 600; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tp-te-blk-time { display: none; font-size: 10px; color: var(--text-faint); }
   .tp-te-blk:hover .tp-te-blk-time { display: block; }
   .tp-te-blk-add { font-size: 10px; color: var(--text-faint); opacity: 0; transition: opacity 0.1s; }
   .tp-te-blk-label:hover .tp-te-blk-add { opacity: 1; color: var(--interactive-accent); }
-  .tp-te-blk:hover { height: auto !important; min-height: max(var(--bh, 20px), 48px); z-index: 20; background: var(--background-secondary) !important; box-shadow: 0 4px 16px rgba(0,0,0,0.4); outline: 1px solid var(--background-modifier-border-hover, var(--background-modifier-border)); }
+  .tp-te-blk:hover { min-height: 54px; z-index: 20; background: var(--background-secondary) !important; box-shadow: 0 2px 10px rgba(0,0,0,0.28); }
   .tp-te-chip-time { display: none; font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tp-te-blk:hover .tp-te-chip-time { display: block; }
-  .tp-te-chip { position: absolute; inset: 0; border-radius: 6px; border: none; cursor: pointer; padding: 4px 6px; text-align: left; display: flex; flex-direction: column; justify-content: center; gap: 1px; overflow: hidden; transition: filter 0.1s; }
+  .tp-te-chip { width: 100%; height: 100%; border-radius: 6px; border: none; cursor: pointer; padding: 4px 6px; text-align: left; display: flex; flex-direction: column; justify-content: center; gap: 1px; overflow: hidden; transition: filter 0.1s; }
   .tp-te-chip:hover { filter: brightness(1.1); }
   .tp-te-chip-code { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tp-te-chip-sub { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
