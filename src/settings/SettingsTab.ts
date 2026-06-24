@@ -510,7 +510,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Lessons ────────────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Lessons").setHeading();
+    new Setting(containerEl).setName("My Classes").setHeading();
     containerEl.createEl("p", {
       text: "Define your subjects and class groups. Colours appear on lesson blocks in the week view.",
       cls: "setting-item-description"
@@ -527,7 +527,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Directed time activities ───────────────────────────────────────────
-    new Setting(containerEl).setName("Events: Directed time").setHeading();
+    new Setting(containerEl).setName("Recurring Events: Directed Time").setHeading();
     containerEl.createEl("p", {
       text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Each one counts the length of the block you put it in; to count a different amount, click the duration badge on that block in the timetable editor.",
       cls: "setting-item-description"
@@ -558,7 +558,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Other Events ───────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Events: Other").setHeading();
+    new Setting(containerEl).setName("Recurring Events: Non-Directed Time").setHeading();
     containerEl.createEl("p", {
       text: "⚠️  Items in this section appear in the planner but are excluded from the directed time count. Use these for personal appointments, reminders, or any non-directed activity.",
       cls: "setting-item-description"
