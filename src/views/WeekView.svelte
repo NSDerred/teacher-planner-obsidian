@@ -278,6 +278,41 @@
     return resolveColour(_periodTypes.find(t => t.id === typeId)?.colour ?? "#888888");
   }
 
+  // ── Chip auto-contrast ────────────────────────────────────────────────────
+  // Chips paint the class colour at low alpha over the theme background, so the
+  // readable foreground depends on the effective colour. Read the theme background
+  // once per render and derive a light/dark --chip-fg per chip for text + icons.
+  let _rootEl: HTMLElement;
+  $: _themeBg = _dep(_tick, _rootEl ? getComputedStyle(_rootEl).getPropertyValue("--background-primary").trim() : "");
+
+  function _parseColour(c: string): [number, number, number] | null {
+    const t = c.trim();
+    if (t.startsWith("#")) {
+      let h = t.slice(1);
+      if (h.length === 3) h = h.split("").map(x => x + x).join("");
+      if (h.length >= 6) return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+      return null;
+    }
+    const m = t.match(/rgba?\(([^)]+)\)/);
+    if (m) {
+      const ps = m[1].split(",").map(n => parseFloat(n));
+      if (ps.length >= 3 && ps.slice(0, 3).every(n => !isNaN(n))) return [ps[0], ps[1], ps[2]];
+    }
+    return null;
+  }
+
+  // High-contrast foreground for a chip of `colour` painted at `alpha` over `bg`.
+  // Returns "" (inherit the theme text colour) when either colour can't be parsed.
+  function chipFg(colour: string, bg: string, alpha = 0.22): string {
+    const fg = _parseColour(colour), b = _parseColour(bg);
+    if (!fg || !b) return "";
+    const r = fg[0] * alpha + b[0] * (1 - alpha);
+    const g = fg[1] * alpha + b[1] * (1 - alpha);
+    const bl = fg[2] * alpha + b[2] * (1 - alpha);
+    const lum = (0.299 * r + 0.587 * g + 0.114 * bl) / 255;
+    return lum > 0.58 ? "#1c1c1e" : "#f2f2f3";
+  }
+
   function hexToRgba(hex: string, alpha: number): string {
     const clean = hex.replace("#", "");
     const r = parseInt(clean.substring(0, 2), 16);
@@ -1133,7 +1168,7 @@
 
 
 
-<div class="tp-week-view" data-tp-view={isDayMode ? "day" : isAgendaMode ? "agenda" : "grid"}>
+<div class="tp-week-view" bind:this={_rootEl} data-tp-view={isDayMode ? "day" : isAgendaMode ? "agenda" : "grid"}>
 
   <!-- ── Header ─────────────────────────────────────────────────────────── -->
   <header class="tp-header">
@@ -1359,7 +1394,7 @@
                         on:dragend={onDragEnd}
                         on:click={(e) => openChipMenu(e, "event", dayDate, _first.id, undefined, _mev)}
                         on:keydown={onCellKeydown}
-                        style="--ctint:{hexToRgba(_mlbl.colour,0.22)}; border-left:3px solid {_mlbl.colour}; background:{hexToRgba(_mlbl.colour,0.22)};">
+                        style="--chip-fg:{chipFg(_mlbl.colour, _themeBg)}; --ctint:{hexToRgba(_mlbl.colour,0.22)}; border-left:3px solid {_mlbl.colour}; background:{hexToRgba(_mlbl.colour,0.22)};">
                         <span class="tp-chip-period-time">{_mRange}</span>
                         <div class="tp-chip-body">
                           <span class="tp-chip-code">{_mlbl.code}</span>
@@ -1434,7 +1469,7 @@
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "slot", dayDate, period.id, slot)}
                           on:keydown={onCellKeydown}
-                          style="--ctint:{hexToRgba(lbl.colour,0.22)}; background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
+                          style="--chip-fg:{chipFg(lbl.colour, _themeBg)}; --ctint:{hexToRgba(lbl.colour,0.22)}; background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
                         >
                           <span class="tp-chip-period-time">{_partial ? `${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
                           <div class="tp-chip-body">
@@ -1485,7 +1520,7 @@
                           on:dragend={onDragEnd}
                           on:click={(e) => openChipMenu(e, "event", dayDate, period.id, undefined, devEv)}
                           on:keydown={onCellKeydown}
-                          style="--ctint:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
+                          style="--chip-fg:{chipFg(lbl.colour, _themeBg)}; --ctint:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
                         >
                           <span class="tp-chip-period-time">{_partial ? `${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
                           <div class="tp-chip-body">
@@ -1665,14 +1700,14 @@
   .tp-block:hover .tp-chip-period-time { display:block; }
 
   /* Lesson chip */
-  .tp-chip { --mark-size:14px; position:absolute; inset:3px; border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; cursor:pointer; overflow:hidden; user-select:none; transition:filter 0.1s; box-sizing:border-box; color:var(--text-normal); container-type:size; container-name:chip; }
+  .tp-chip { --mark-size:14px; position:absolute; inset:3px; border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; cursor:pointer; overflow:hidden; user-select:none; transition:filter 0.1s; box-sizing:border-box; color:var(--chip-fg, var(--text-normal)); container-type:size; container-name:chip; }
   .tp-chip-body { flex:0 1 auto; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:2px; }
   .tp-chip-footer { flex-shrink:0; display:flex; align-items:center; gap:4px; }
   .tp-chip:hover { filter:brightness(1.08); }
   .tp-chip-code  { font-size:15px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
-  .tp-chip-meta  { font-size:13px; color:var(--text-normal); opacity:0.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
-  .tp-chip-room  { font-size:12px; color:var(--text-normal); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto; min-width:0; font-style:italic; }
-  .tp-chip-notes { font-size:12px; color:var(--text-normal); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:1; line-clamp:1; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; }
+  .tp-chip-meta  { font-size:13px; color:var(--chip-fg, var(--text-normal)); opacity:0.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
+  .tp-chip-room  { font-size:12px; color:var(--chip-fg, var(--text-normal)); opacity:0.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1 1 auto; min-width:0; font-style:italic; }
+  .tp-chip-notes { font-size:12px; color:var(--chip-fg, var(--text-normal)); opacity:0.75; overflow:hidden; display:-webkit-box; -webkit-line-clamp:1; line-clamp:1; -webkit-box-orient:vertical; line-height:1.3; flex-shrink:1; }
 
   @container chip (max-height: 58px) {
     .tp-chip-meta,
@@ -1714,13 +1749,13 @@
   .tp-plan-mark { width:var(--mark-size); height:var(--mark-size); display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; line-height:0; box-sizing:border-box; flex-shrink:0; }
   button.tp-plan-mark--linked { color:var(--color-green); opacity:1; cursor:pointer; }
   button.tp-plan-mark--linked:hover { opacity:0.7; }
-  .tp-plan-mark :global(svg) { width:var(--mark-size); height:var(--mark-size); }
+  .tp-plan-mark :global(svg) { width:var(--mark-size); height:var(--mark-size); filter:drop-shadow(0 0 1px var(--background-primary)); }
   .tp-ext-mark { width:var(--mark-size); height:var(--mark-size); display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; line-height:0; box-sizing:border-box; flex-shrink:0; color:var(--text-muted); cursor:pointer; opacity:0.85; }
   .tp-ext-mark:hover { opacity:1; }
-  .tp-ext-mark :global(svg) { width:var(--mark-size); height:var(--mark-size); }
+  .tp-ext-mark :global(svg) { width:var(--mark-size); height:var(--mark-size); filter:drop-shadow(0 0 1px var(--background-primary)); }
   .tp-prep-tick { width:var(--mark-size); height:var(--mark-size); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1.5px solid var(--text-muted); padding:0; line-height:0; cursor:pointer; color:var(--text-muted); opacity:0; transition:opacity 80ms ease; box-sizing:border-box; flex-shrink:0; }
   .tp-chip:hover .tp-prep-tick { opacity:0.55; }
-  button.tp-prep-tick--on { opacity:1 !important; background:var(--color-green); border-color:var(--color-green); color:#fff; }
+  button.tp-prep-tick--on { opacity:1 !important; background:var(--color-green); border-color:var(--color-green); color:#fff; box-shadow:0 0 0 1.5px var(--background-primary); }
   .tp-prep-tick :global(svg) { width:calc(var(--mark-size) * 0.7); height:calc(var(--mark-size) * 0.7); }
 
   /* Current time indicator */

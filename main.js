@@ -18027,360 +18027,360 @@ init_noteTitleUtils();
 init_settings();
 init_runtime();
 function add_css3(target) {
-  append_styles(target, "svelte-1eco7z1", '.tp-week-view.svelte-1eco7z1.svelte-1eco7z1{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-1eco7z1.svelte-1eco7z1{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-1eco7z1.svelte-1eco7z1{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-1eco7z1.svelte-1eco7z1{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-1eco7z1.svelte-1eco7z1{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-1eco7z1.svelte-1eco7z1{display:flex;align-items:center;gap:4px}.tp-nav-arrow.svelte-1eco7z1.svelte-1eco7z1{padding:4px 11px;font-size:18px;line-height:1}.tp-nav-jump.svelte-1eco7z1.svelte-1eco7z1{position:relative;display:inline-flex}.tp-nav-centre.svelte-1eco7z1.svelte-1eco7z1{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;font-size:13px;font-weight:600}.tp-nav-centre-icon.svelte-1eco7z1 svg{width:14px;height:14px}.tp-nav-centre-label.svelte-1eco7z1.svelte-1eco7z1{white-space:nowrap}.tp-nav-caret.svelte-1eco7z1.svelte-1eco7z1{font-size:10px;color:var(--text-muted)}.tp-nav-backdrop.svelte-1eco7z1.svelte-1eco7z1{position:fixed;inset:0;z-index:40}.tp-nav-pop.svelte-1eco7z1.svelte-1eco7z1{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:6px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:8px;padding:8px;box-shadow:0 4px 18px rgba(0,0,0,0.32)}.tp-nav-date.svelte-1eco7z1.svelte-1eco7z1{font-size:13px;padding:4px 6px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-modifier-form-field);color:var(--text-normal);font-family:var(--font-interface)}.tp-header-actions.svelte-1eco7z1.svelte-1eco7z1{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-1eco7z1.svelte-1eco7z1{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}button.tp-week-ab-badge.svelte-1eco7z1.svelte-1eco7z1{border:none;cursor:pointer;font-family:var(--font-interface);line-height:1.5}button.tp-week-ab-badge.svelte-1eco7z1.svelte-1eco7z1:hover{opacity:0.85}.tp-week-ab-badge--forced.svelte-1eco7z1.svelte-1eco7z1{outline:1.5px dashed currentColor;outline-offset:1px}.tp-week-ab-badge--b.svelte-1eco7z1.svelte-1eco7z1{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-1eco7z1.svelte-1eco7z1{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-1eco7z1.svelte-1eco7z1:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-1eco7z1.svelte-1eco7z1:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-1eco7z1.svelte-1eco7z1{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-1eco7z1.svelte-1eco7z1:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-1eco7z1 svg,.tp-btn-icon.svelte-1eco7z1 svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-1eco7z1.svelte-1eco7z1{padding:5px 8px}.tp-action-btn--icon-only.svelte-1eco7z1 svg{width:15px;height:15px}.tp-overflow-btn.svelte-1eco7z1.svelte-1eco7z1{display:none}.tp-table-scroll.svelte-1eco7z1.svelte-1eco7z1{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-1eco7z1.svelte-1eco7z1{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-1eco7z1.svelte-1eco7z1{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-1eco7z1.svelte-1eco7z1{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-1eco7z1.svelte-1eco7z1{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-1eco7z1.svelte-1eco7z1{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-1eco7z1.svelte-1eco7z1{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-1eco7z1.svelte-1eco7z1{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-1eco7z1.svelte-1eco7z1{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-1eco7z1.svelte-1eco7z1{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-1eco7z1.svelte-1eco7z1{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-1eco7z1.svelte-1eco7z1{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-1eco7z1.svelte-1eco7z1{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-1eco7z1.svelte-1eco7z1{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-1eco7z1.svelte-1eco7z1{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-1eco7z1.svelte-1eco7z1{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0;position:relative}.tp-axis-gutter.svelte-1eco7z1.svelte-1eco7z1{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-1eco7z1.svelte-1eco7z1{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-1eco7z1.svelte-1eco7z1{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-1eco7z1.svelte-1eco7z1{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-1eco7z1.svelte-1eco7z1{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-1eco7z1.svelte-1eco7z1{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-1eco7z1.svelte-1eco7z1{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-chip.svelte-1eco7z1.svelte-1eco7z1:focus-visible{outline:2px solid var(--interactive-accent);outline-offset:-2px;border-radius:4px}.tp-block.svelte-1eco7z1.svelte-1eco7z1{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block-clash.svelte-1eco7z1.svelte-1eco7z1{position:absolute;top:1px;right:3px;z-index:6;font-size:11px;line-height:1;color:var(--color-yellow,#e0af68);cursor:help}.tp-block-clash--directed.svelte-1eco7z1.svelte-1eco7z1{color:var(--color-red,#f38ba8);font-size:13px;font-weight:700}.tp-block--dragover.svelte-1eco7z1.svelte-1eco7z1{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-1eco7z1.svelte-1eco7z1{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-1eco7z1.svelte-1eco7z1{display:flex;flex-direction:column;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-1eco7z1.svelte-1eco7z1{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-1eco7z1.svelte-1eco7z1{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-1eco7z1:hover .tp-block-time.svelte-1eco7z1{display:block}.tp-block.svelte-1eco7z1.svelte-1eco7z1:hover{height:auto !important;min-height:max(var(--bh, 20px), 48px);z-index:30;padding-bottom:6px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border));overflow:visible}.tp-block.svelte-1eco7z1:hover .tp-event-stack.svelte-1eco7z1{position:relative;inset:auto;height:auto;margin:3px}.tp-block.svelte-1eco7z1:hover .tp-block-label.svelte-1eco7z1{padding:4px 8px}.tp-block.svelte-1eco7z1:hover .tp-chip.svelte-1eco7z1{container-type:normal;background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important}.tp-block.svelte-1eco7z1:hover .tp-chip-body.svelte-1eco7z1{overflow:visible}.tp-block.svelte-1eco7z1:hover .tp-chip-notes.svelte-1eco7z1{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}.tp-chip-period-time.svelte-1eco7z1.svelte-1eco7z1{display:none;font-size:12px;color:var(--text-muted);opacity:0.85;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-1eco7z1:hover .tp-chip-period-time.svelte-1eco7z1{display:block}.tp-chip.svelte-1eco7z1.svelte-1eco7z1{--mark-size:14px;position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:chip}.tp-chip-body.svelte-1eco7z1.svelte-1eco7z1{flex:0 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}.tp-chip-footer.svelte-1eco7z1.svelte-1eco7z1{flex-shrink:0;display:flex;align-items:center;gap:4px}.tp-chip.svelte-1eco7z1.svelte-1eco7z1:hover{filter:brightness(1.08)}.tp-chip-code.svelte-1eco7z1.svelte-1eco7z1{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-1eco7z1.svelte-1eco7z1{font-size:13px;color:var(--text-normal);opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-1eco7z1.svelte-1eco7z1{font-size:12px;color:var(--text-normal);opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0;font-style:italic}.tp-chip-notes.svelte-1eco7z1.svelte-1eco7z1{font-size:12px;color:var(--text-normal);opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-1eco7z1.svelte-1eco7z1,.tp-chip-notes.svelte-1eco7z1.svelte-1eco7z1{display:none}.tp-chip-code.svelte-1eco7z1.svelte-1eco7z1{font-size:13px}.tp-chip-room.svelte-1eco7z1.svelte-1eco7z1{font-size:11px}.tp-chip-marks.svelte-1eco7z1.svelte-1eco7z1{--mark-size:12px}}@container chip (max-height: 44px){.tp-chip-code.svelte-1eco7z1.svelte-1eco7z1{font-size:12px}.tp-chip-room.svelte-1eco7z1.svelte-1eco7z1{font-size:10px}.tp-chip-marks.svelte-1eco7z1.svelte-1eco7z1{--mark-size:11px}}@container chip (max-height: 34px){.tp-chip-room.svelte-1eco7z1.svelte-1eco7z1{display:none}.tp-chip-code.svelte-1eco7z1.svelte-1eco7z1{font-size:11px}.tp-chip-marks.svelte-1eco7z1.svelte-1eco7z1{--mark-size:10px}}@container chip (max-height: 30px){.tp-chip-footer.svelte-1eco7z1.svelte-1eco7z1{display:none}}@container chip (max-width: 90px){.tp-chip-code.svelte-1eco7z1.svelte-1eco7z1{font-size:13px}.tp-chip-room.svelte-1eco7z1.svelte-1eco7z1{font-size:10px}.tp-chip-marks.svelte-1eco7z1.svelte-1eco7z1{--mark-size:12px}}@container chip (max-width: 60px){.tp-chip-code.svelte-1eco7z1.svelte-1eco7z1{font-size:11px}.tp-chip-room.svelte-1eco7z1.svelte-1eco7z1{font-size:9px}.tp-chip-marks.svelte-1eco7z1.svelte-1eco7z1{--mark-size:10px}}@container chip (max-width: 84px){.tp-chip-footer.svelte-1eco7z1.svelte-1eco7z1{flex-direction:column;align-items:stretch;gap:1px}.tp-chip-marks.svelte-1eco7z1.svelte-1eco7z1{margin-left:0;align-self:flex-end}}.tp-chip-marks.svelte-1eco7z1.svelte-1eco7z1{margin-left:auto;display:flex;gap:calc(var(--mark-size) * 0.3);align-items:center;justify-content:flex-end;flex-shrink:0}.tp-plan-mark.svelte-1eco7z1.svelte-1eco7z1{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0}button.tp-plan-mark--linked.svelte-1eco7z1.svelte-1eco7z1{color:var(--color-green);opacity:1;cursor:pointer}button.tp-plan-mark--linked.svelte-1eco7z1.svelte-1eco7z1:hover{opacity:0.7}.tp-plan-mark.svelte-1eco7z1 svg{width:var(--mark-size);height:var(--mark-size)}.tp-ext-mark.svelte-1eco7z1.svelte-1eco7z1{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0;color:var(--text-muted);cursor:pointer;opacity:0.85}.tp-ext-mark.svelte-1eco7z1.svelte-1eco7z1:hover{opacity:1}.tp-ext-mark.svelte-1eco7z1 svg{width:var(--mark-size);height:var(--mark-size)}.tp-prep-tick.svelte-1eco7z1.svelte-1eco7z1{width:var(--mark-size);height:var(--mark-size);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1.5px solid var(--text-muted);padding:0;line-height:0;cursor:pointer;color:var(--text-muted);opacity:0;transition:opacity 80ms ease;box-sizing:border-box;flex-shrink:0}.tp-chip.svelte-1eco7z1:hover .tp-prep-tick.svelte-1eco7z1{opacity:0.55}button.tp-prep-tick--on.svelte-1eco7z1.svelte-1eco7z1{opacity:1 !important;background:var(--color-green);border-color:var(--color-green);color:#fff}.tp-prep-tick.svelte-1eco7z1 svg{width:calc(var(--mark-size) * 0.7);height:calc(var(--mark-size) * 0.7)}.tp-now-line.svelte-1eco7z1.svelte-1eco7z1{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-line--week.svelte-1eco7z1.svelte-1eco7z1{left:48px;right:6px}.tp-now-badge.svelte-1eco7z1.svelte-1eco7z1{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-1eco7z1.svelte-1eco7z1{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack--partial.svelte-1eco7z1.svelte-1eco7z1{bottom:auto;top:calc(3px + var(--stack-top, 0px));height:var(--stack-h, auto)}.tp-block-free.svelte-1eco7z1.svelte-1eco7z1{position:absolute;left:6px;right:6px;bottom:3px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;pointer-events:none;z-index:2}.tp-block-free--lead.svelte-1eco7z1.svelte-1eco7z1{top:3px;bottom:auto}.tp-merged-gap.svelte-1eco7z1.svelte-1eco7z1{position:absolute;left:4px;right:4px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;pointer-events:none;z-index:1}.tp-block-durbadge.svelte-1eco7z1.svelte-1eco7z1{position:absolute;top:4px;right:4px;font-size:10px;font-weight:700;line-height:1.5;padding:0 4px;border-radius:3px;background:var(--interactive-accent);color:var(--text-on-accent, #fff);pointer-events:none;z-index:4}.tp-block.svelte-1eco7z1:hover .tp-block-free.svelte-1eco7z1,.tp-block.svelte-1eco7z1:hover .tp-block-durbadge.svelte-1eco7z1{display:none}.tp-event-stack.svelte-1eco7z1 .tp-chip.svelte-1eco7z1{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-1eco7z1.svelte-1eco7z1{display:none}@container (max-width: 680px){.tp-action-btn.svelte-1eco7z1.svelte-1eco7z1{display:none}.tp-overflow-btn.svelte-1eco7z1.svelte-1eco7z1{display:inline-flex !important}.tp-header.svelte-1eco7z1.svelte-1eco7z1{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-1eco7z1.svelte-1eco7z1{justify-content:center}.tp-header-identity.svelte-1eco7z1.svelte-1eco7z1{min-width:0;overflow:hidden}.tp-week-label.svelte-1eco7z1.svelte-1eco7z1{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-1eco7z1.svelte-1eco7z1{display:none}.tp-axis-head-day.svelte-1eco7z1.svelte-1eco7z1{padding:5px 2px}.tp-day-name.svelte-1eco7z1.svelte-1eco7z1{font-size:12px}.tp-day-date.svelte-1eco7z1.svelte-1eco7z1{font-size:10px}.tp-day-override-badge.svelte-1eco7z1.svelte-1eco7z1{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-1eco7z1.svelte-1eco7z1{min-width:440px}.tp-axis-head-gutter.svelte-1eco7z1.svelte-1eco7z1,.tp-axis-gutter.svelte-1eco7z1.svelte-1eco7z1{width:30px}.tp-now-line--week.svelte-1eco7z1.svelte-1eco7z1{left:30px}.tp-axis-hour.svelte-1eco7z1.svelte-1eco7z1{right:3px;font-size:9px}.tp-day-name.svelte-1eco7z1.svelte-1eco7z1{font-size:11px}.tp-day-date.svelte-1eco7z1.svelte-1eco7z1{font-size:10px}}.tp-mobile-modes.svelte-1eco7z1.svelte-1eco7z1{display:flex;gap:5px;padding:6px 12px;border-bottom:1px solid var(--background-modifier-border);background:var(--background-secondary);flex-shrink:0}.tp-mode-btn.svelte-1eco7z1.svelte-1eco7z1{flex:1;padding:6px 0;font-size:13px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-primary);color:var(--text-muted);cursor:pointer;font-family:var(--font-interface)}.tp-mode-btn--on.svelte-1eco7z1.svelte-1eco7z1{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent);font-weight:600}.tp-day-strip.svelte-1eco7z1.svelte-1eco7z1{display:flex;gap:5px;padding:8px 10px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0}.tp-day-pill.svelte-1eco7z1.svelte-1eco7z1{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 5px;border:1px solid transparent;border-radius:9px;background:var(--background-secondary);color:var(--text-muted);cursor:pointer;min-width:0}.tp-day-pill-dow.svelte-1eco7z1.svelte-1eco7z1{font-size:10px;text-transform:uppercase;letter-spacing:0.03em}.tp-day-pill-num.svelte-1eco7z1.svelte-1eco7z1{font-size:15px;font-weight:600;color:var(--text-normal)}.tp-day-pill--today.svelte-1eco7z1 .tp-day-pill-num.svelte-1eco7z1{color:var(--interactive-accent)}.tp-day-pill--sel.svelte-1eco7z1.svelte-1eco7z1{background:color-mix(in srgb,var(--interactive-accent) 18%,var(--background-secondary));outline:1.5px solid var(--interactive-accent)}.tp-day-pill-dot.svelte-1eco7z1.svelte-1eco7z1{width:4px;height:4px;border-radius:50%;background:var(--interactive-accent)}.tp-week-view[data-tp-view="day"].svelte-1eco7z1 .tp-axis.svelte-1eco7z1{min-width:0}.tp-week-view[data-tp-view="day"].svelte-1eco7z1 .tp-axis-head.svelte-1eco7z1{display:none}.tp-agenda.svelte-1eco7z1.svelte-1eco7z1{flex:1 1 0;overflow:auto;min-height:0;padding:8px 10px 16px}.tp-agenda-day.svelte-1eco7z1.svelte-1eco7z1{margin-bottom:12px}.tp-agenda-head.svelte-1eco7z1.svelte-1eco7z1{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-muted);padding:2px 2px 6px;position:sticky;top:0;background:var(--background-primary);z-index:2}.tp-agenda-head--today.svelte-1eco7z1.svelte-1eco7z1{color:var(--interactive-accent)}.tp-agenda-dayname.svelte-1eco7z1.svelte-1eco7z1{text-transform:uppercase;letter-spacing:0.03em}.tp-agenda-row.svelte-1eco7z1.svelte-1eco7z1{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:none;border-radius:0 7px 7px 0;padding:8px 10px;margin-bottom:5px;color:var(--text-normal);cursor:pointer;font-size:13px;font-family:var(--font-interface)}.tp-agenda-period.svelte-1eco7z1.svelte-1eco7z1{font-size:11px;color:var(--text-muted);min-width:64px;flex-shrink:0}.tp-agenda-main.svelte-1eco7z1.svelte-1eco7z1{flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-agenda-room.svelte-1eco7z1.svelte-1eco7z1{font-size:11px;font-style:italic;color:var(--text-muted);flex-shrink:0}.tp-agenda-empty.svelte-1eco7z1.svelte-1eco7z1{font-size:12px;color:var(--text-faint);padding:2px 4px 6px;font-style:italic}');
+  append_styles(target, "svelte-1vuxfjd", '.tp-week-view.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-1vuxfjd.svelte-1vuxfjd{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-1vuxfjd.svelte-1vuxfjd{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-1vuxfjd.svelte-1vuxfjd{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;align-items:center;gap:4px}.tp-nav-arrow.svelte-1vuxfjd.svelte-1vuxfjd{padding:4px 11px;font-size:18px;line-height:1}.tp-nav-jump.svelte-1vuxfjd.svelte-1vuxfjd{position:relative;display:inline-flex}.tp-nav-centre.svelte-1vuxfjd.svelte-1vuxfjd{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;font-size:13px;font-weight:600}.tp-nav-centre-icon.svelte-1vuxfjd svg{width:14px;height:14px}.tp-nav-centre-label.svelte-1vuxfjd.svelte-1vuxfjd{white-space:nowrap}.tp-nav-caret.svelte-1vuxfjd.svelte-1vuxfjd{font-size:10px;color:var(--text-muted)}.tp-nav-backdrop.svelte-1vuxfjd.svelte-1vuxfjd{position:fixed;inset:0;z-index:40}.tp-nav-pop.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:6px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:8px;padding:8px;box-shadow:0 4px 18px rgba(0,0,0,0.32)}.tp-nav-date.svelte-1vuxfjd.svelte-1vuxfjd{font-size:13px;padding:4px 6px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-modifier-form-field);color:var(--text-normal);font-family:var(--font-interface)}.tp-header-actions.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-1vuxfjd.svelte-1vuxfjd{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}button.tp-week-ab-badge.svelte-1vuxfjd.svelte-1vuxfjd{border:none;cursor:pointer;font-family:var(--font-interface);line-height:1.5}button.tp-week-ab-badge.svelte-1vuxfjd.svelte-1vuxfjd:hover{opacity:0.85}.tp-week-ab-badge--forced.svelte-1vuxfjd.svelte-1vuxfjd{outline:1.5px dashed currentColor;outline-offset:1px}.tp-week-ab-badge--b.svelte-1vuxfjd.svelte-1vuxfjd{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-1vuxfjd.svelte-1vuxfjd{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-1vuxfjd.svelte-1vuxfjd:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-1vuxfjd.svelte-1vuxfjd:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-1vuxfjd.svelte-1vuxfjd{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-1vuxfjd.svelte-1vuxfjd:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-1vuxfjd svg,.tp-btn-icon.svelte-1vuxfjd svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-1vuxfjd.svelte-1vuxfjd{padding:5px 8px}.tp-action-btn--icon-only.svelte-1vuxfjd svg{width:15px;height:15px}.tp-overflow-btn.svelte-1vuxfjd.svelte-1vuxfjd{display:none}.tp-table-scroll.svelte-1vuxfjd.svelte-1vuxfjd{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-1vuxfjd.svelte-1vuxfjd{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-1vuxfjd.svelte-1vuxfjd{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-1vuxfjd.svelte-1vuxfjd{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-1vuxfjd.svelte-1vuxfjd{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-1vuxfjd.svelte-1vuxfjd{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-1vuxfjd.svelte-1vuxfjd{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-1vuxfjd.svelte-1vuxfjd{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-1vuxfjd.svelte-1vuxfjd{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-1vuxfjd.svelte-1vuxfjd{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-1vuxfjd.svelte-1vuxfjd{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-1vuxfjd.svelte-1vuxfjd{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0;position:relative}.tp-axis-gutter.svelte-1vuxfjd.svelte-1vuxfjd{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-1vuxfjd.svelte-1vuxfjd{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-1vuxfjd.svelte-1vuxfjd{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-1vuxfjd.svelte-1vuxfjd{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-chip.svelte-1vuxfjd.svelte-1vuxfjd:focus-visible{outline:2px solid var(--interactive-accent);outline-offset:-2px;border-radius:4px}.tp-block.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block-clash.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;top:1px;right:3px;z-index:6;font-size:11px;line-height:1;color:var(--color-yellow,#e0af68);cursor:help}.tp-block-clash--directed.svelte-1vuxfjd.svelte-1vuxfjd{color:var(--color-red,#f38ba8);font-size:13px;font-weight:700}.tp-block--dragover.svelte-1vuxfjd.svelte-1vuxfjd{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-1vuxfjd.svelte-1vuxfjd{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;flex-direction:column;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-1vuxfjd.svelte-1vuxfjd{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-1vuxfjd.svelte-1vuxfjd{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-1vuxfjd:hover .tp-block-time.svelte-1vuxfjd{display:block}.tp-block.svelte-1vuxfjd.svelte-1vuxfjd:hover{height:auto !important;min-height:max(var(--bh, 20px), 48px);z-index:30;padding-bottom:6px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border));overflow:visible}.tp-block.svelte-1vuxfjd:hover .tp-event-stack.svelte-1vuxfjd{position:relative;inset:auto;height:auto;margin:3px}.tp-block.svelte-1vuxfjd:hover .tp-block-label.svelte-1vuxfjd{padding:4px 8px}.tp-block.svelte-1vuxfjd:hover .tp-chip.svelte-1vuxfjd{container-type:normal;background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important}.tp-block.svelte-1vuxfjd:hover .tp-chip-body.svelte-1vuxfjd{overflow:visible}.tp-block.svelte-1vuxfjd:hover .tp-chip-notes.svelte-1vuxfjd{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}.tp-chip-period-time.svelte-1vuxfjd.svelte-1vuxfjd{display:none;font-size:12px;color:var(--text-muted);opacity:0.85;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-1vuxfjd:hover .tp-chip-period-time.svelte-1vuxfjd{display:block}.tp-chip.svelte-1vuxfjd.svelte-1vuxfjd{--mark-size:14px;position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--chip-fg, var(--text-normal));container-type:size;container-name:chip}.tp-chip-body.svelte-1vuxfjd.svelte-1vuxfjd{flex:0 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}.tp-chip-footer.svelte-1vuxfjd.svelte-1vuxfjd{flex-shrink:0;display:flex;align-items:center;gap:4px}.tp-chip.svelte-1vuxfjd.svelte-1vuxfjd:hover{filter:brightness(1.08)}.tp-chip-code.svelte-1vuxfjd.svelte-1vuxfjd{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-1vuxfjd.svelte-1vuxfjd{font-size:13px;color:var(--chip-fg, var(--text-normal));opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-1vuxfjd.svelte-1vuxfjd{font-size:12px;color:var(--chip-fg, var(--text-normal));opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0;font-style:italic}.tp-chip-notes.svelte-1vuxfjd.svelte-1vuxfjd{font-size:12px;color:var(--chip-fg, var(--text-normal));opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-1vuxfjd.svelte-1vuxfjd,.tp-chip-notes.svelte-1vuxfjd.svelte-1vuxfjd{display:none}.tp-chip-code.svelte-1vuxfjd.svelte-1vuxfjd{font-size:13px}.tp-chip-room.svelte-1vuxfjd.svelte-1vuxfjd{font-size:11px}.tp-chip-marks.svelte-1vuxfjd.svelte-1vuxfjd{--mark-size:12px}}@container chip (max-height: 44px){.tp-chip-code.svelte-1vuxfjd.svelte-1vuxfjd{font-size:12px}.tp-chip-room.svelte-1vuxfjd.svelte-1vuxfjd{font-size:10px}.tp-chip-marks.svelte-1vuxfjd.svelte-1vuxfjd{--mark-size:11px}}@container chip (max-height: 34px){.tp-chip-room.svelte-1vuxfjd.svelte-1vuxfjd{display:none}.tp-chip-code.svelte-1vuxfjd.svelte-1vuxfjd{font-size:11px}.tp-chip-marks.svelte-1vuxfjd.svelte-1vuxfjd{--mark-size:10px}}@container chip (max-height: 30px){.tp-chip-footer.svelte-1vuxfjd.svelte-1vuxfjd{display:none}}@container chip (max-width: 90px){.tp-chip-code.svelte-1vuxfjd.svelte-1vuxfjd{font-size:13px}.tp-chip-room.svelte-1vuxfjd.svelte-1vuxfjd{font-size:10px}.tp-chip-marks.svelte-1vuxfjd.svelte-1vuxfjd{--mark-size:12px}}@container chip (max-width: 60px){.tp-chip-code.svelte-1vuxfjd.svelte-1vuxfjd{font-size:11px}.tp-chip-room.svelte-1vuxfjd.svelte-1vuxfjd{font-size:9px}.tp-chip-marks.svelte-1vuxfjd.svelte-1vuxfjd{--mark-size:10px}}@container chip (max-width: 84px){.tp-chip-footer.svelte-1vuxfjd.svelte-1vuxfjd{flex-direction:column;align-items:stretch;gap:1px}.tp-chip-marks.svelte-1vuxfjd.svelte-1vuxfjd{margin-left:0;align-self:flex-end}}.tp-chip-marks.svelte-1vuxfjd.svelte-1vuxfjd{margin-left:auto;display:flex;gap:calc(var(--mark-size) * 0.3);align-items:center;justify-content:flex-end;flex-shrink:0}.tp-plan-mark.svelte-1vuxfjd.svelte-1vuxfjd{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0}button.tp-plan-mark--linked.svelte-1vuxfjd.svelte-1vuxfjd{color:var(--color-green);opacity:1;cursor:pointer}button.tp-plan-mark--linked.svelte-1vuxfjd.svelte-1vuxfjd:hover{opacity:0.7}.tp-plan-mark.svelte-1vuxfjd svg{width:var(--mark-size);height:var(--mark-size);filter:drop-shadow(0 0 1px var(--background-primary))}.tp-ext-mark.svelte-1vuxfjd.svelte-1vuxfjd{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0;color:var(--text-muted);cursor:pointer;opacity:0.85}.tp-ext-mark.svelte-1vuxfjd.svelte-1vuxfjd:hover{opacity:1}.tp-ext-mark.svelte-1vuxfjd svg{width:var(--mark-size);height:var(--mark-size);filter:drop-shadow(0 0 1px var(--background-primary))}.tp-prep-tick.svelte-1vuxfjd.svelte-1vuxfjd{width:var(--mark-size);height:var(--mark-size);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1.5px solid var(--text-muted);padding:0;line-height:0;cursor:pointer;color:var(--text-muted);opacity:0;transition:opacity 80ms ease;box-sizing:border-box;flex-shrink:0}.tp-chip.svelte-1vuxfjd:hover .tp-prep-tick.svelte-1vuxfjd{opacity:0.55}button.tp-prep-tick--on.svelte-1vuxfjd.svelte-1vuxfjd{opacity:1 !important;background:var(--color-green);border-color:var(--color-green);color:#fff;box-shadow:0 0 0 1.5px var(--background-primary)}.tp-prep-tick.svelte-1vuxfjd svg{width:calc(var(--mark-size) * 0.7);height:calc(var(--mark-size) * 0.7)}.tp-now-line.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-line--week.svelte-1vuxfjd.svelte-1vuxfjd{left:48px;right:6px}.tp-now-badge.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack--partial.svelte-1vuxfjd.svelte-1vuxfjd{bottom:auto;top:calc(3px + var(--stack-top, 0px));height:var(--stack-h, auto)}.tp-block-free.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;left:6px;right:6px;bottom:3px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;pointer-events:none;z-index:2}.tp-block-free--lead.svelte-1vuxfjd.svelte-1vuxfjd{top:3px;bottom:auto}.tp-merged-gap.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;left:4px;right:4px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;pointer-events:none;z-index:1}.tp-block-durbadge.svelte-1vuxfjd.svelte-1vuxfjd{position:absolute;top:4px;right:4px;font-size:10px;font-weight:700;line-height:1.5;padding:0 4px;border-radius:3px;background:var(--interactive-accent);color:var(--text-on-accent, #fff);pointer-events:none;z-index:4}.tp-block.svelte-1vuxfjd:hover .tp-block-free.svelte-1vuxfjd,.tp-block.svelte-1vuxfjd:hover .tp-block-durbadge.svelte-1vuxfjd{display:none}.tp-event-stack.svelte-1vuxfjd .tp-chip.svelte-1vuxfjd{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-1vuxfjd.svelte-1vuxfjd{display:none}@container (max-width: 680px){.tp-action-btn.svelte-1vuxfjd.svelte-1vuxfjd{display:none}.tp-overflow-btn.svelte-1vuxfjd.svelte-1vuxfjd{display:inline-flex !important}.tp-header.svelte-1vuxfjd.svelte-1vuxfjd{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-1vuxfjd.svelte-1vuxfjd{justify-content:center}.tp-header-identity.svelte-1vuxfjd.svelte-1vuxfjd{min-width:0;overflow:hidden}.tp-week-label.svelte-1vuxfjd.svelte-1vuxfjd{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-1vuxfjd.svelte-1vuxfjd{display:none}.tp-axis-head-day.svelte-1vuxfjd.svelte-1vuxfjd{padding:5px 2px}.tp-day-name.svelte-1vuxfjd.svelte-1vuxfjd{font-size:12px}.tp-day-date.svelte-1vuxfjd.svelte-1vuxfjd{font-size:10px}.tp-day-override-badge.svelte-1vuxfjd.svelte-1vuxfjd{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-1vuxfjd.svelte-1vuxfjd{min-width:440px}.tp-axis-head-gutter.svelte-1vuxfjd.svelte-1vuxfjd,.tp-axis-gutter.svelte-1vuxfjd.svelte-1vuxfjd{width:30px}.tp-now-line--week.svelte-1vuxfjd.svelte-1vuxfjd{left:30px}.tp-axis-hour.svelte-1vuxfjd.svelte-1vuxfjd{right:3px;font-size:9px}.tp-day-name.svelte-1vuxfjd.svelte-1vuxfjd{font-size:11px}.tp-day-date.svelte-1vuxfjd.svelte-1vuxfjd{font-size:10px}}.tp-mobile-modes.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;gap:5px;padding:6px 12px;border-bottom:1px solid var(--background-modifier-border);background:var(--background-secondary);flex-shrink:0}.tp-mode-btn.svelte-1vuxfjd.svelte-1vuxfjd{flex:1;padding:6px 0;font-size:13px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-primary);color:var(--text-muted);cursor:pointer;font-family:var(--font-interface)}.tp-mode-btn--on.svelte-1vuxfjd.svelte-1vuxfjd{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent);font-weight:600}.tp-day-strip.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;gap:5px;padding:8px 10px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0}.tp-day-pill.svelte-1vuxfjd.svelte-1vuxfjd{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 5px;border:1px solid transparent;border-radius:9px;background:var(--background-secondary);color:var(--text-muted);cursor:pointer;min-width:0}.tp-day-pill-dow.svelte-1vuxfjd.svelte-1vuxfjd{font-size:10px;text-transform:uppercase;letter-spacing:0.03em}.tp-day-pill-num.svelte-1vuxfjd.svelte-1vuxfjd{font-size:15px;font-weight:600;color:var(--text-normal)}.tp-day-pill--today.svelte-1vuxfjd .tp-day-pill-num.svelte-1vuxfjd{color:var(--interactive-accent)}.tp-day-pill--sel.svelte-1vuxfjd.svelte-1vuxfjd{background:color-mix(in srgb,var(--interactive-accent) 18%,var(--background-secondary));outline:1.5px solid var(--interactive-accent)}.tp-day-pill-dot.svelte-1vuxfjd.svelte-1vuxfjd{width:4px;height:4px;border-radius:50%;background:var(--interactive-accent)}.tp-week-view[data-tp-view="day"].svelte-1vuxfjd .tp-axis.svelte-1vuxfjd{min-width:0}.tp-week-view[data-tp-view="day"].svelte-1vuxfjd .tp-axis-head.svelte-1vuxfjd{display:none}.tp-agenda.svelte-1vuxfjd.svelte-1vuxfjd{flex:1 1 0;overflow:auto;min-height:0;padding:8px 10px 16px}.tp-agenda-day.svelte-1vuxfjd.svelte-1vuxfjd{margin-bottom:12px}.tp-agenda-head.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-muted);padding:2px 2px 6px;position:sticky;top:0;background:var(--background-primary);z-index:2}.tp-agenda-head--today.svelte-1vuxfjd.svelte-1vuxfjd{color:var(--interactive-accent)}.tp-agenda-dayname.svelte-1vuxfjd.svelte-1vuxfjd{text-transform:uppercase;letter-spacing:0.03em}.tp-agenda-row.svelte-1vuxfjd.svelte-1vuxfjd{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:none;border-radius:0 7px 7px 0;padding:8px 10px;margin-bottom:5px;color:var(--text-normal);cursor:pointer;font-size:13px;font-family:var(--font-interface)}.tp-agenda-period.svelte-1vuxfjd.svelte-1vuxfjd{font-size:11px;color:var(--text-muted);min-width:64px;flex-shrink:0}.tp-agenda-main.svelte-1vuxfjd.svelte-1vuxfjd{flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-agenda-room.svelte-1vuxfjd.svelte-1vuxfjd{font-size:11px;font-style:italic;color:var(--text-muted);flex-shrink:0}.tp-agenda-empty.svelte-1vuxfjd.svelte-1vuxfjd{font-size:12px;color:var(--text-faint);padding:2px 4px 6px;font-style:italic}');
 }
 function get_each_context_32(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[192] = list[i];
+  child_ctx[195] = list[i];
   const constants_0 = dayISODate(
     /*day*/
-    child_ctx[192].offset,
+    child_ctx[195].offset,
     /*currentMonday*/
-    child_ctx[2]
+    child_ctx[3]
   );
-  child_ctx[208] = constants_0;
+  child_ctx[211] = constants_0;
   const constants_1 = (
     /*dayOverrideMap*/
-    child_ctx[26][
+    child_ctx[27][
       /*day*/
-      child_ctx[192].key
+      child_ctx[195].key
     ]
   );
-  child_ctx[209] = constants_1;
+  child_ctx[212] = constants_1;
   return child_ctx;
 }
 function get_each_context_42(ctx, list, i) {
   var _a2, _b2, _c, _d, _e;
   const child_ctx = ctx.slice();
-  child_ctx[197] = list[i];
+  child_ctx[200] = list[i];
   const constants_0 = (
     /*getPeriodTypeColour*/
-    child_ctx[44](
+    child_ctx[46](
       /*period*/
-      child_ctx[197].type
+      child_ctx[200].type
     )
   );
-  child_ctx[213] = constants_0;
+  child_ctx[216] = constants_0;
   const constants_1 = (timeToMinutes(
     /*period*/
-    child_ctx[197].start
+    child_ctx[200].start
   ) - /*_axis*/
-  child_ctx[9].start) * /*PX_PER_MIN*/
-  child_ctx[8];
-  child_ctx[214] = constants_1;
+  child_ctx[10].start) * /*PX_PER_MIN*/
+  child_ctx[9];
+  child_ctx[217] = constants_1;
   const constants_2 = Math.max(20, (timeToMinutes(
     /*period*/
-    child_ctx[197].end
+    child_ctx[200].end
   ) - timeToMinutes(
     /*period*/
-    child_ctx[197].start
+    child_ctx[200].start
   )) * /*PX_PER_MIN*/
-  child_ctx[8]);
-  child_ctx[215] = constants_2;
+  child_ctx[9]);
+  child_ctx[218] = constants_2;
   const constants_3 = (
     /*_slotMap*/
-    child_ctx[17][
+    child_ctx[18][
       /*day*/
-      child_ctx[192].key + ":" + /*period*/
-      child_ctx[197].id
+      child_ctx[195].key + ":" + /*period*/
+      child_ctx[200].id
     ]
   );
-  child_ctx[216] = constants_3;
+  child_ctx[219] = constants_3;
   const constants_4 = (
     /*_rawSlot*/
-    child_ctx[216] && !/*isSlotExcluded*/
-    child_ctx[45](
+    child_ctx[219] && !/*isSlotExcluded*/
+    child_ctx[47](
       /*_rawSlot*/
-      child_ctx[216].id,
+      child_ctx[219].id,
       /*dayDate*/
-      child_ctx[208]
+      child_ctx[211]
     ) ? (
       /*_rawSlot*/
-      child_ctx[216]
+      child_ctx[219]
     ) : void 0
   );
-  child_ctx[217] = constants_4;
+  child_ctx[220] = constants_4;
   const constants_5 = (
     /*_dateEventMap*/
-    (_a2 = child_ctx[16][
+    (_a2 = child_ctx[17][
       /*day*/
-      child_ctx[192].key + ":" + /*period*/
-      child_ctx[197].id
+      child_ctx[195].key + ":" + /*period*/
+      child_ctx[200].id
     ]) != null ? _a2 : []
   );
-  child_ctx[218] = constants_5;
+  child_ctx[221] = constants_5;
   const constants_6 = cellKey(
     /*day*/
-    child_ctx[192].key,
+    child_ctx[195].key,
     /*period*/
-    child_ctx[197].id
+    child_ctx[200].id
   );
-  child_ctx[219] = constants_6;
+  child_ctx[222] = constants_6;
   const constants_7 = (
     /*dragOverKey*/
-    child_ctx[13] === /*key*/
-    child_ctx[219] && !/*slot*/
-    child_ctx[217]
+    child_ctx[14] === /*key*/
+    child_ctx[222] && !/*slot*/
+    child_ctx[220]
   );
-  child_ctx[220] = constants_7;
+  child_ctx[223] = constants_7;
   const constants_8 = (
     /*rejectKey*/
-    child_ctx[14] === /*key*/
-    child_ctx[219]
+    child_ctx[15] === /*key*/
+    child_ctx[222]
   );
-  child_ctx[221] = constants_8;
+  child_ctx[224] = constants_8;
   const constants_9 = timeToMinutes(
     /*period*/
-    child_ctx[197].end
+    child_ctx[200].end
   ) - timeToMinutes(
     /*period*/
-    child_ctx[197].start
+    child_ctx[200].start
   );
-  child_ctx[222] = constants_9;
+  child_ctx[225] = constants_9;
   const constants_10 = (
     /*slot*/
-    (child_ctx[217] ? 1 : 0) + /*devEvents*/
-    child_ctx[218].length
+    (child_ctx[220] ? 1 : 0) + /*devEvents*/
+    child_ctx[221].length
   );
-  child_ctx[223] = constants_10;
+  child_ctx[226] = constants_10;
   const constants_11 = !/*slot*/
-  child_ctx[217] && /*devEvents*/
-  child_ctx[218].length === 1 ? (
+  child_ctx[220] && /*devEvents*/
+  child_ctx[221].length === 1 ? (
     /*devEvents*/
-    child_ctx[218][0]
+    child_ctx[221][0]
   ) : void 0;
-  child_ctx[224] = constants_11;
+  child_ctx[227] = constants_11;
   const constants_12 = (
     /*_soleEv*/
-    child_ctx[224] ? eventPeriodIds(
+    child_ctx[227] ? eventPeriodIds(
       /*_soleEv*/
-      child_ctx[224]
+      child_ctx[227]
     ).length <= 1 : false
   );
-  child_ctx[225] = constants_12;
+  child_ctx[228] = constants_12;
   const constants_13 = (
     /*slot*/
-    child_ctx[217] && /*devEvents*/
-    child_ctx[218].length === 0 ? (
+    child_ctx[220] && /*devEvents*/
+    child_ctx[221].length === 0 ? (
       /*slot*/
-      (_b2 = child_ctx[217].durationMinutes) != null ? _b2 : (
+      (_b2 = child_ctx[220].durationMinutes) != null ? _b2 : (
         /*_blockMins*/
-        child_ctx[222]
+        child_ctx[225]
       )
     ) : (
       /*_soleEv*/
-      child_ctx[224] && /*_evSingleBlock*/
-      child_ctx[225] ? (
+      child_ctx[227] && /*_evSingleBlock*/
+      child_ctx[228] ? (
         /*_soleEv*/
-        (_c = child_ctx[224].durationMinutes) != null ? _c : (
+        (_c = child_ctx[227].durationMinutes) != null ? _c : (
           /*_blockMins*/
-          child_ctx[222]
+          child_ctx[225]
         )
       ) : (
         /*_blockMins*/
-        child_ctx[222]
+        child_ctx[225]
       )
     )
   );
-  child_ctx[226] = constants_13;
+  child_ctx[229] = constants_13;
   const constants_14 = timeToMinutes(
     /*period*/
-    child_ctx[197].start
+    child_ctx[200].start
   );
-  child_ctx[227] = constants_14;
+  child_ctx[230] = constants_14;
   const constants_15 = timeToMinutes(
     /*period*/
-    child_ctx[197].end
+    child_ctx[200].end
   );
-  child_ctx[228] = constants_15;
+  child_ctx[231] = constants_15;
   const constants_16 = (
     /*slot*/
-    child_ctx[217] && /*devEvents*/
-    child_ctx[218].length === 0 ? timeToMinutes(
+    child_ctx[220] && /*devEvents*/
+    child_ctx[221].length === 0 ? timeToMinutes(
       /*slot*/
-      (_d = child_ctx[217].start) != null ? _d : (
+      (_d = child_ctx[220].start) != null ? _d : (
         /*period*/
-        child_ctx[197].start
+        child_ctx[200].start
       )
     ) : (
       /*_soleEv*/
-      child_ctx[224] && /*_evSingleBlock*/
-      child_ctx[225] ? timeToMinutes(
+      child_ctx[227] && /*_evSingleBlock*/
+      child_ctx[228] ? timeToMinutes(
         /*_soleEv*/
-        (_e = child_ctx[224].startTime) != null ? _e : (
+        (_e = child_ctx[227].startTime) != null ? _e : (
           /*period*/
-          child_ctx[197].start
+          child_ctx[200].start
         )
       ) : (
         /*_periodStartMin*/
-        child_ctx[227]
+        child_ctx[230]
       )
     )
   );
-  child_ctx[229] = constants_16;
+  child_ctx[232] = constants_16;
   const constants_17 = Math.max(
     0,
     /*_soleStartMin*/
-    child_ctx[229] - /*_periodStartMin*/
-    child_ctx[227]
+    child_ctx[232] - /*_periodStartMin*/
+    child_ctx[230]
   );
-  child_ctx[230] = constants_17;
+  child_ctx[233] = constants_17;
   const constants_18 = (
     /*_leadMins*/
-    child_ctx[230] * /*PX_PER_MIN*/
-    child_ctx[8]
+    child_ctx[233] * /*PX_PER_MIN*/
+    child_ctx[9]
   );
-  child_ctx[231] = constants_18;
+  child_ctx[234] = constants_18;
   const constants_19 = (
     /*_occCount*/
-    child_ctx[223] === 1 && /*_occMins*/
-    child_ctx[226] > 0 && /*_occMins*/
-    (child_ctx[226] < /*_blockMins*/
-    child_ctx[222] || /*_leadMins*/
-    child_ctx[230] > 0) && /*slot*/
-    (child_ctx[217] ? true : (
+    child_ctx[226] === 1 && /*_occMins*/
+    child_ctx[229] > 0 && /*_occMins*/
+    (child_ctx[229] < /*_blockMins*/
+    child_ctx[225] || /*_leadMins*/
+    child_ctx[233] > 0) && /*slot*/
+    (child_ctx[220] ? true : (
       /*_evSingleBlock*/
-      child_ctx[225]
+      child_ctx[228]
     )) && /*_leadMins*/
-    (child_ctx[230] + /*_occMins*/
-    child_ctx[226]) * /*PX_PER_MIN*/
-    child_ctx[8] <= /*bHeight*/
-    child_ctx[215]
+    (child_ctx[233] + /*_occMins*/
+    child_ctx[229]) * /*PX_PER_MIN*/
+    child_ctx[9] <= /*bHeight*/
+    child_ctx[218]
   );
-  child_ctx[232] = constants_19;
+  child_ctx[235] = constants_19;
   const constants_20 = (
     /*_soleStartMin*/
-    child_ctx[229] + /*_occMins*/
-    child_ctx[226]
+    child_ctx[232] + /*_occMins*/
+    child_ctx[229]
   );
-  child_ctx[233] = constants_20;
+  child_ctx[236] = constants_20;
   const constants_21 = minutesToTime(
     /*_occEndMin*/
-    child_ctx[233]
+    child_ctx[236]
   );
-  child_ctx[234] = constants_21;
+  child_ctx[237] = constants_21;
   const constants_22 = Math.max(
     0,
     /*bHeight*/
-    child_ctx[215] - 6
+    child_ctx[218] - 6
   );
-  child_ctx[235] = constants_22;
+  child_ctx[238] = constants_22;
   const constants_23 = Math.min(
     /*_innerH*/
-    child_ctx[235],
+    child_ctx[238],
     Math.max(
       /*_occMins*/
-      child_ctx[226] * /*PX_PER_MIN*/
-      child_ctx[8],
+      child_ctx[229] * /*PX_PER_MIN*/
+      child_ctx[9],
       22
     )
   );
-  child_ctx[236] = constants_23;
+  child_ctx[239] = constants_23;
   const constants_24 = Math.min(
     /*_leadPx*/
-    child_ctx[231],
+    child_ctx[234],
     Math.max(
       0,
       /*_innerH*/
-      child_ctx[235] - /*_stackH*/
-      child_ctx[236]
+      child_ctx[238] - /*_stackH*/
+      child_ctx[239]
     )
   );
-  child_ctx[237] = constants_24;
+  child_ctx[240] = constants_24;
   return child_ctx;
 }
 function get_each_context_52(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[258] = list[i];
+  child_ctx[261] = list[i];
   const constants_0 = (
     /*getDateEventLabel*/
-    child_ctx[49](
+    child_ctx[51](
       /*devEv*/
-      child_ctx[258]
+      child_ctx[261]
     )
   );
-  child_ctx[259] = constants_0;
+  child_ctx[262] = constants_0;
   const constants_1 = (
     /*_eventPlanMap*/
-    child_ctx[36][
+    child_ctx[38][
       /*devEv*/
-      child_ctx[258].id
+      child_ctx[261].id
     ]
   );
-  child_ctx[260] = constants_1;
+  child_ctx[263] = constants_1;
   const constants_2 = (
     /*_preparedEventMap*/
-    child_ctx[32][
+    child_ctx[34][
       /*devEv*/
-      child_ctx[258].id
+      child_ctx[261].id
     ]
   );
-  child_ctx[261] = constants_2;
+  child_ctx[264] = constants_2;
   const constants_3 = (
     /*_eventExternalMap*/
-    child_ctx[30][
+    child_ctx[32][
       /*devEv*/
-      child_ctx[258].id
+      child_ctx[261].id
     ]
   );
-  child_ctx[262] = constants_3;
+  child_ctx[265] = constants_3;
   return child_ctx;
 }
 function get_if_ctx_22(ctx) {
   const child_ctx = ctx.slice();
   const constants_0 = (
     /*getSlotLabel*/
-    child_ctx[46](
+    child_ctx[48](
       /*slot*/
-      child_ctx[217]
+      child_ctx[220]
     )
   );
-  child_ctx[259] = constants_0;
+  child_ctx[262] = constants_0;
   const constants_1 = (
     /*_slotPlanMap*/
-    child_ctx[37][
+    child_ctx[39][
       /*slot*/
-      child_ctx[217].id + "|" + /*dayDate*/
-      child_ctx[208]
+      child_ctx[220].id + "|" + /*dayDate*/
+      child_ctx[211]
     ]
   );
-  child_ctx[265] = constants_1;
+  child_ctx[268] = constants_1;
   const constants_2 = (
     /*_preparedSlotMap*/
-    child_ctx[33][
+    child_ctx[35][
       /*slot*/
-      child_ctx[217].id + "|" + /*dayDate*/
-      child_ctx[208]
+      child_ctx[220].id + "|" + /*dayDate*/
+      child_ctx[211]
     ]
   );
-  child_ctx[266] = constants_2;
+  child_ctx[269] = constants_2;
   const constants_3 = (
     /*_slotExternalMap*/
-    child_ctx[31][
+    child_ctx[33][
       /*slot*/
-      child_ctx[217].id + "|" + /*dayDate*/
-      child_ctx[208]
+      child_ctx[220].id + "|" + /*dayDate*/
+      child_ctx[211]
     ]
   );
-  child_ctx[267] = constants_3;
+  child_ctx[270] = constants_3;
   return child_ctx;
 }
 function get_if_ctx_3(ctx) {
   const child_ctx = ctx.slice();
   const constants_0 = (
     /*slot*/
-    (child_ctx[217] && /*slotIsDirected*/
-    child_ctx[43](
+    (child_ctx[220] && /*slotIsDirected*/
+    child_ctx[45](
       /*slot*/
-      child_ctx[217]
+      child_ctx[220]
     ) ? 1 : 0) + /*devEvents*/
-    child_ctx[218].filter((ev) => eventIsDirected(
+    child_ctx[221].filter((ev) => eventIsDirected(
       ev,
       /*plugin*/
       child_ctx[0].settings
     )).length
   );
-  child_ctx[268] = constants_0;
+  child_ctx[271] = constants_0;
   return child_ctx;
 }
 function get_if_ctx_12(ctx) {
@@ -18388,276 +18388,276 @@ function get_if_ctx_12(ctx) {
   const child_ctx = ctx.slice();
   const constants_0 = (
     /*dayMerges*/
-    child_ctx[212].starts[
+    child_ctx[215].starts[
       /*period*/
-      child_ctx[197].id
+      child_ctx[200].id
     ]
   );
-  child_ctx[240] = constants_0;
+  child_ctx[243] = constants_0;
   const constants_1 = (
     /*_mrun*/
-    child_ctx[240].ev
+    child_ctx[243].ev
   );
-  child_ctx[241] = constants_1;
+  child_ctx[244] = constants_1;
   const constants_2 = (
     /*_mrun*/
-    child_ctx[240].run[0]
+    child_ctx[243].run[0]
   );
-  child_ctx[242] = constants_2;
+  child_ctx[245] = constants_2;
   const constants_3 = (
     /*_mrun*/
-    child_ctx[240].run[
+    child_ctx[243].run[
       /*_mrun*/
-      child_ctx[240].run.length - 1
+      child_ctx[243].run.length - 1
     ]
   );
-  child_ctx[243] = constants_3;
+  child_ctx[246] = constants_3;
   const constants_4 = !!/*_mev*/
-  child_ctx[241].startTime;
-  child_ctx[244] = constants_4;
+  child_ctx[244].startTime;
+  child_ctx[247] = constants_4;
   const constants_5 = timeToMinutes(
     /*_first*/
-    child_ctx[242].start
+    child_ctx[245].start
   );
-  child_ctx[245] = constants_5;
+  child_ctx[248] = constants_5;
   const constants_6 = timeToMinutes(
     /*_last*/
-    child_ctx[243].end
+    child_ctx[246].end
   );
-  child_ctx[246] = constants_6;
+  child_ctx[249] = constants_6;
   const constants_7 = (
     /*_mHasStart*/
-    child_ctx[244] ? Math.max(
+    child_ctx[247] ? Math.max(
       /*_mFirstStartMin*/
-      child_ctx[245],
+      child_ctx[248],
       Math.min(timeToMinutes(
         /*_mev*/
-        (_a2 = child_ctx[241].startTime) != null ? _a2 : (
+        (_a2 = child_ctx[244].startTime) != null ? _a2 : (
           /*_first*/
-          child_ctx[242].start
+          child_ctx[245].start
         )
       ), timeToMinutes(
         /*_first*/
-        child_ctx[242].end
+        child_ctx[245].end
       ) - 1)
     ) : (
       /*_mFirstStartMin*/
-      child_ctx[245]
-    )
-  );
-  child_ctx[247] = constants_7;
-  const constants_8 = (
-    /*_mHasStart*/
-    child_ctx[244] && /*_mev*/
-    child_ctx[241].durationMinutes ? Math.min(
-      /*_mStartMin*/
-      child_ctx[247] + /*_mev*/
-      child_ctx[241].durationMinutes,
-      /*_mLastEndMin*/
-      child_ctx[246]
-    ) : (
-      /*_mLastEndMin*/
-      child_ctx[246]
-    )
-  );
-  child_ctx[248] = constants_8;
-  const constants_9 = (
-    /*_mStartMin*/
-    (child_ctx[247] - /*_axis*/
-    child_ctx[9].start) * /*PX_PER_MIN*/
-    child_ctx[8]
-  );
-  child_ctx[249] = constants_9;
-  const constants_10 = Math.max(
-    20,
-    /*_mEndMin*/
-    (child_ctx[248] - /*_mStartMin*/
-    child_ctx[247]) * /*PX_PER_MIN*/
-    child_ctx[8]
-  );
-  child_ctx[250] = constants_10;
-  const constants_11 = (
-    /*_mStartMin*/
-    child_ctx[247] - /*_mFirstStartMin*/
-    child_ctx[245]
-  );
-  child_ctx[251] = constants_11;
-  const constants_12 = (
-    /*_mLastEndMin*/
-    child_ctx[246] - /*_mEndMin*/
-    child_ctx[248]
-  );
-  child_ctx[252] = constants_12;
-  const constants_13 = (
-    /*getDateEventLabel*/
-    child_ctx[49](
-      /*_mev*/
-      child_ctx[241]
-    )
-  );
-  child_ctx[253] = constants_13;
-  const constants_14 = (
-    /*_eventPlanMap*/
-    child_ctx[36][
-      /*_mev*/
-      child_ctx[241].id
-    ]
-  );
-  child_ctx[254] = constants_14;
-  const constants_15 = (
-    /*_preparedEventMap*/
-    child_ctx[32][
-      /*_mev*/
-      child_ctx[241].id
-    ]
-  );
-  child_ctx[255] = constants_15;
-  const constants_16 = (
-    /*_eventExternalMap*/
-    child_ctx[30][
-      /*_mev*/
-      child_ctx[241].id
-    ]
-  );
-  child_ctx[256] = constants_16;
-  const constants_17 = (
-    /*_first*/
-    child_ctx[242].name + /*_mrun*/
-    (child_ctx[240].run.length > 1 ? " \u2013 " + /*_last*/
-    child_ctx[243].name : "") + " \xB7 " + minutesToTime(
-      /*_mStartMin*/
-      child_ctx[247]
-    ) + "\u2013" + minutesToTime(
-      /*_mEndMin*/
       child_ctx[248]
     )
   );
-  child_ctx[257] = constants_17;
+  child_ctx[250] = constants_7;
+  const constants_8 = (
+    /*_mHasStart*/
+    child_ctx[247] && /*_mev*/
+    child_ctx[244].durationMinutes ? Math.min(
+      /*_mStartMin*/
+      child_ctx[250] + /*_mev*/
+      child_ctx[244].durationMinutes,
+      /*_mLastEndMin*/
+      child_ctx[249]
+    ) : (
+      /*_mLastEndMin*/
+      child_ctx[249]
+    )
+  );
+  child_ctx[251] = constants_8;
+  const constants_9 = (
+    /*_mStartMin*/
+    (child_ctx[250] - /*_axis*/
+    child_ctx[10].start) * /*PX_PER_MIN*/
+    child_ctx[9]
+  );
+  child_ctx[252] = constants_9;
+  const constants_10 = Math.max(
+    20,
+    /*_mEndMin*/
+    (child_ctx[251] - /*_mStartMin*/
+    child_ctx[250]) * /*PX_PER_MIN*/
+    child_ctx[9]
+  );
+  child_ctx[253] = constants_10;
+  const constants_11 = (
+    /*_mStartMin*/
+    child_ctx[250] - /*_mFirstStartMin*/
+    child_ctx[248]
+  );
+  child_ctx[254] = constants_11;
+  const constants_12 = (
+    /*_mLastEndMin*/
+    child_ctx[249] - /*_mEndMin*/
+    child_ctx[251]
+  );
+  child_ctx[255] = constants_12;
+  const constants_13 = (
+    /*getDateEventLabel*/
+    child_ctx[51](
+      /*_mev*/
+      child_ctx[244]
+    )
+  );
+  child_ctx[256] = constants_13;
+  const constants_14 = (
+    /*_eventPlanMap*/
+    child_ctx[38][
+      /*_mev*/
+      child_ctx[244].id
+    ]
+  );
+  child_ctx[257] = constants_14;
+  const constants_15 = (
+    /*_preparedEventMap*/
+    child_ctx[34][
+      /*_mev*/
+      child_ctx[244].id
+    ]
+  );
+  child_ctx[258] = constants_15;
+  const constants_16 = (
+    /*_eventExternalMap*/
+    child_ctx[32][
+      /*_mev*/
+      child_ctx[244].id
+    ]
+  );
+  child_ctx[259] = constants_16;
+  const constants_17 = (
+    /*_first*/
+    child_ctx[245].name + /*_mrun*/
+    (child_ctx[243].run.length > 1 ? " \u2013 " + /*_last*/
+    child_ctx[246].name : "") + " \xB7 " + minutesToTime(
+      /*_mStartMin*/
+      child_ctx[250]
+    ) + "\u2013" + minutesToTime(
+      /*_mEndMin*/
+      child_ctx[251]
+    )
+  );
+  child_ctx[260] = constants_17;
   return child_ctx;
 }
 function get_else_ctx(ctx) {
   const child_ctx = ctx.slice();
   const constants_0 = (
     /*computeMerges*/
-    child_ctx[42](
+    child_ctx[44](
       /*day*/
-      child_ctx[192].key,
+      child_ctx[195].key,
       /*dayDate*/
-      child_ctx[208]
+      child_ctx[211]
     )
   );
-  child_ctx[212] = constants_0;
+  child_ctx[215] = constants_0;
   return child_ctx;
 }
 function get_each_context_62(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[269] = list[i];
+  child_ctx[272] = list[i];
   return child_ctx;
 }
 function get_each_context_72(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[269] = list[i];
+  child_ctx[272] = list[i];
   return child_ctx;
 }
 function get_each_context_82(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[192] = list[i];
+  child_ctx[195] = list[i];
   const constants_0 = (
     /*dayOverrideMap*/
-    child_ctx[26][
+    child_ctx[27][
       /*day*/
-      child_ctx[192].key
+      child_ctx[195].key
     ]
   );
-  child_ctx[209] = constants_0;
+  child_ctx[212] = constants_0;
   return child_ctx;
 }
 function get_each_context3(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[192] = list[i];
+  child_ctx[195] = list[i];
   const constants_0 = dayISODate(
     /*day*/
-    child_ctx[192].offset,
+    child_ctx[195].offset,
     /*currentMonday*/
-    child_ctx[2]
+    child_ctx[3]
   );
-  child_ctx[193] = constants_0;
+  child_ctx[196] = constants_0;
   const constants_1 = (
     /*dayOverrideMap*/
-    child_ctx[26][
+    child_ctx[27][
       /*day*/
-      child_ctx[192].key
+      child_ctx[195].key
     ]
   );
-  child_ctx[194] = constants_1;
+  child_ctx[197] = constants_1;
   return child_ctx;
 }
 function get_each_context_13(ctx, list, i) {
   var _a2;
   const child_ctx = ctx.slice();
-  child_ctx[197] = list[i];
+  child_ctx[200] = list[i];
   const constants_0 = (
     /*_slotMap*/
-    child_ctx[17][
+    child_ctx[18][
       /*day*/
-      child_ctx[192].key + ":" + /*period*/
-      child_ctx[197].id
+      child_ctx[195].key + ":" + /*period*/
+      child_ctx[200].id
     ]
   );
-  child_ctx[198] = constants_0;
+  child_ctx[201] = constants_0;
   const constants_1 = (
     /*aRaw*/
-    child_ctx[198] && !/*isSlotExcluded*/
-    child_ctx[45](
+    child_ctx[201] && !/*isSlotExcluded*/
+    child_ctx[47](
       /*aRaw*/
-      child_ctx[198].id,
+      child_ctx[201].id,
       /*aDate*/
-      child_ctx[193]
+      child_ctx[196]
     ) ? (
       /*aRaw*/
-      child_ctx[198]
+      child_ctx[201]
     ) : void 0
   );
-  child_ctx[199] = constants_1;
+  child_ctx[202] = constants_1;
   const constants_2 = (
     /*_dateEventMap*/
-    (_a2 = child_ctx[16][
+    (_a2 = child_ctx[17][
       /*day*/
-      child_ctx[192].key + ":" + /*period*/
-      child_ctx[197].id
+      child_ctx[195].key + ":" + /*period*/
+      child_ctx[200].id
     ]) != null ? _a2 : []
   );
-  child_ctx[200] = constants_2;
+  child_ctx[203] = constants_2;
   return child_ctx;
 }
 function get_each_context_22(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[203] = list[i];
+  child_ctx[206] = list[i];
   const constants_0 = (
     /*getDateEventLabel*/
-    child_ctx[49](
+    child_ctx[51](
       /*aEv*/
-      child_ctx[203]
+      child_ctx[206]
     )
   );
-  child_ctx[204] = constants_0;
+  child_ctx[207] = constants_0;
   return child_ctx;
 }
 function get_if_ctx2(ctx) {
   const child_ctx = ctx.slice();
   const constants_0 = (
     /*getSlotLabel*/
-    child_ctx[46](
+    child_ctx[48](
       /*aSlot*/
-      child_ctx[199]
+      child_ctx[202]
     )
   );
-  child_ctx[207] = constants_0;
+  child_ctx[210] = constants_0;
   return child_ctx;
 }
 function get_each_context_92(ctx, list, i) {
   const child_ctx = ctx.slice();
-  child_ctx[192] = list[i];
+  child_ctx[195] = list[i];
   return child_ctx;
 }
 function create_if_block_47(ctx) {
@@ -18674,17 +18674,17 @@ function create_if_block_47(ctx) {
       t0 = text("Week ");
       t1 = text(
         /*abWeekType*/
-        ctx[7]
+        ctx[8]
       );
       attr(button, "class", button_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx[7].toLowerCase() + " svelte-1eco7z1");
+      ctx[8].toLowerCase() + " svelte-1vuxfjd");
       attr(button, "title", button_title_value = /*abOverridden*/
-      ctx[38] ? "A/B forced for this week \u2014 click to change" : "Click to override this week's A/B");
+      ctx[40] ? "A/B forced for this week \u2014 click to change" : "Click to override this week's A/B");
       toggle_class(
         button,
         "tp-week-ab-badge--forced",
         /*abOverridden*/
-        ctx[38]
+        ctx[40]
       );
     },
     m(target, anchor) {
@@ -18696,36 +18696,36 @@ function create_if_block_47(ctx) {
           button,
           "click",
           /*openAbMenu*/
-          ctx[63]
+          ctx[65]
         );
         mounted = true;
       }
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*abWeekType*/
-      128) set_data(
+      256) set_data(
         t1,
         /*abWeekType*/
-        ctx2[7]
+        ctx2[8]
       );
       if (dirty[0] & /*abWeekType*/
-      128 && button_class_value !== (button_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx2[7].toLowerCase() + " svelte-1eco7z1")) {
+      256 && button_class_value !== (button_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
+      ctx2[8].toLowerCase() + " svelte-1vuxfjd")) {
         attr(button, "class", button_class_value);
       }
       if (dirty[1] & /*abOverridden*/
-      128 && button_title_value !== (button_title_value = /*abOverridden*/
-      ctx2[38] ? "A/B forced for this week \u2014 click to change" : "Click to override this week's A/B")) {
+      512 && button_title_value !== (button_title_value = /*abOverridden*/
+      ctx2[40] ? "A/B forced for this week \u2014 click to change" : "Click to override this week's A/B")) {
         attr(button, "title", button_title_value);
       }
       if (dirty[0] & /*abWeekType*/
-      128 | dirty[1] & /*abOverridden*/
-      128) {
+      256 | dirty[1] & /*abOverridden*/
+      512) {
         toggle_class(
           button,
           "tp-week-ab-badge--forced",
           /*abOverridden*/
-          ctx2[38]
+          ctx2[40]
         );
       }
     },
@@ -18759,8 +18759,8 @@ function create_if_block_46(ctx) {
       t1 = space();
       button = element("button");
       button.textContent = "Today";
-      attr(div0, "class", "tp-nav-backdrop svelte-1eco7z1");
-      attr(input, "class", "tp-nav-date svelte-1eco7z1");
+      attr(div0, "class", "tp-nav-backdrop svelte-1vuxfjd");
+      attr(input, "class", "tp-nav-date svelte-1vuxfjd");
       attr(input, "type", "date");
       input.value = input_value_value = isoOf(
         /*currentDate*/
@@ -18770,8 +18770,8 @@ function create_if_block_46(ctx) {
       ctx[0].settings.academicYear.startDate);
       attr(input, "max", input_max_value = /*plugin*/
       ctx[0].settings.academicYear.endDate);
-      attr(button, "class", "tp-btn svelte-1eco7z1");
-      attr(div1, "class", "tp-nav-pop svelte-1eco7z1");
+      attr(button, "class", "tp-btn svelte-1vuxfjd");
+      attr(div1, "class", "tp-nav-pop svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -18786,19 +18786,19 @@ function create_if_block_46(ctx) {
             div0,
             "click",
             /*click_handler_1*/
-            ctx[114]
+            ctx[116]
           ),
           listen(
             input,
             "change",
             /*onJumpChange*/
-            ctx[62]
+            ctx[64]
           ),
           listen(
             button,
             "click",
             /*click_handler_2*/
-            ctx[115]
+            ctx[117]
           )
         ];
         mounted = true;
@@ -18860,37 +18860,37 @@ function create_if_block_45(ctx) {
       t3 = space();
       button2 = element("button");
       t4 = text("Grid");
-      attr(button0, "class", "tp-mode-btn svelte-1eco7z1");
+      attr(button0, "class", "tp-mode-btn svelte-1vuxfjd");
       attr(button0, "role", "tab");
       attr(button0, "aria-selected", button0_aria_selected_value = /*viewMode*/
-      ctx[6] === "day");
+      ctx[7] === "day");
       toggle_class(
         button0,
         "tp-mode-btn--on",
         /*viewMode*/
-        ctx[6] === "day"
+        ctx[7] === "day"
       );
-      attr(button1, "class", "tp-mode-btn svelte-1eco7z1");
+      attr(button1, "class", "tp-mode-btn svelte-1vuxfjd");
       attr(button1, "role", "tab");
       attr(button1, "aria-selected", button1_aria_selected_value = /*viewMode*/
-      ctx[6] === "agenda");
+      ctx[7] === "agenda");
       toggle_class(
         button1,
         "tp-mode-btn--on",
         /*viewMode*/
-        ctx[6] === "agenda"
+        ctx[7] === "agenda"
       );
-      attr(button2, "class", "tp-mode-btn svelte-1eco7z1");
+      attr(button2, "class", "tp-mode-btn svelte-1vuxfjd");
       attr(button2, "role", "tab");
       attr(button2, "aria-selected", button2_aria_selected_value = /*viewMode*/
-      ctx[6] === "grid");
+      ctx[7] === "grid");
       toggle_class(
         button2,
         "tp-mode-btn--on",
         /*viewMode*/
-        ctx[6] === "grid"
+        ctx[7] === "grid"
       );
-      attr(div, "class", "tp-mobile-modes svelte-1eco7z1");
+      attr(div, "class", "tp-mobile-modes svelte-1vuxfjd");
       attr(div, "role", "tablist");
       attr(div, "aria-label", "View mode");
     },
@@ -18910,19 +18910,19 @@ function create_if_block_45(ctx) {
             button0,
             "click",
             /*click_handler_4*/
-            ctx[117]
+            ctx[119]
           ),
           listen(
             button1,
             "click",
             /*click_handler_5*/
-            ctx[118]
+            ctx[120]
           ),
           listen(
             button2,
             "click",
             /*click_handler_6*/
-            ctx[119]
+            ctx[121]
           )
         ];
         mounted = true;
@@ -18930,45 +18930,45 @@ function create_if_block_45(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*viewMode*/
-      64 && button0_aria_selected_value !== (button0_aria_selected_value = /*viewMode*/
-      ctx2[6] === "day")) {
+      128 && button0_aria_selected_value !== (button0_aria_selected_value = /*viewMode*/
+      ctx2[7] === "day")) {
         attr(button0, "aria-selected", button0_aria_selected_value);
       }
       if (dirty[0] & /*viewMode*/
-      64) {
+      128) {
         toggle_class(
           button0,
           "tp-mode-btn--on",
           /*viewMode*/
-          ctx2[6] === "day"
+          ctx2[7] === "day"
         );
       }
       if (dirty[0] & /*viewMode*/
-      64 && button1_aria_selected_value !== (button1_aria_selected_value = /*viewMode*/
-      ctx2[6] === "agenda")) {
+      128 && button1_aria_selected_value !== (button1_aria_selected_value = /*viewMode*/
+      ctx2[7] === "agenda")) {
         attr(button1, "aria-selected", button1_aria_selected_value);
       }
       if (dirty[0] & /*viewMode*/
-      64) {
+      128) {
         toggle_class(
           button1,
           "tp-mode-btn--on",
           /*viewMode*/
-          ctx2[6] === "agenda"
+          ctx2[7] === "agenda"
         );
       }
       if (dirty[0] & /*viewMode*/
-      64 && button2_aria_selected_value !== (button2_aria_selected_value = /*viewMode*/
-      ctx2[6] === "grid")) {
+      128 && button2_aria_selected_value !== (button2_aria_selected_value = /*viewMode*/
+      ctx2[7] === "grid")) {
         attr(button2, "aria-selected", button2_aria_selected_value);
       }
       if (dirty[0] & /*viewMode*/
-      64) {
+      128) {
         toggle_class(
           button2,
           "tp-mode-btn--on",
           /*viewMode*/
-          ctx2[6] === "grid"
+          ctx2[7] === "grid"
         );
       }
     },
@@ -18985,7 +18985,7 @@ function create_if_block_43(ctx) {
   let div;
   let each_value_9 = ensure_array_like(
     /*DAYS*/
-    ctx[3]
+    ctx[4]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_9.length; i += 1) {
@@ -18997,7 +18997,7 @@ function create_if_block_43(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-day-strip svelte-1eco7z1");
+      attr(div, "class", "tp-day-strip svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -19009,11 +19009,11 @@ function create_if_block_43(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*DAYS, selectedOffset, currentMonday*/
-      44 | dirty[2] & /*selectDay, dayHasItems*/
-      1536) {
+      88 | dirty[2] & /*selectDay, dayHasItems*/
+      6144) {
         each_value_9 = ensure_array_like(
           /*DAYS*/
-          ctx2[3]
+          ctx2[4]
         );
         let i;
         for (i = 0; i < each_value_9.length; i += 1) {
@@ -19045,7 +19045,7 @@ function create_if_block_44(ctx) {
   return {
     c() {
       span = element("span");
-      attr(span, "class", "tp-day-pill-dot svelte-1eco7z1");
+      attr(span, "class", "tp-day-pill-dot svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -19062,24 +19062,24 @@ function create_each_block_92(ctx) {
   let span0;
   let t0_value = (
     /*day*/
-    ctx[192].label + ""
+    ctx[195].label + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = addDaysLocal(
     /*currentMonday*/
-    ctx[2],
+    ctx[3],
     /*day*/
-    ctx[192].offset
+    ctx[195].offset
   ).getDate() + "";
   let t2;
   let t3;
   let show_if = (
     /*dayHasItems*/
-    ctx[72](
+    ctx[74](
       /*day*/
-      ctx[192]
+      ctx[195]
     )
   );
   let t4;
@@ -19090,9 +19090,9 @@ function create_each_block_92(ctx) {
   function click_handler_7() {
     return (
       /*click_handler_7*/
-      ctx[120](
+      ctx[122](
         /*day*/
-        ctx[192]
+        ctx[195]
       )
     );
   }
@@ -19107,23 +19107,23 @@ function create_each_block_92(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-pill-dow svelte-1eco7z1");
-      attr(span1, "class", "tp-day-pill-num svelte-1eco7z1");
-      attr(button, "class", "tp-day-pill svelte-1eco7z1");
+      attr(span0, "class", "tp-day-pill-dow svelte-1vuxfjd");
+      attr(span1, "class", "tp-day-pill-num svelte-1vuxfjd");
+      attr(button, "class", "tp-day-pill svelte-1vuxfjd");
       attr(button, "aria-label", button_aria_label_value = /*day*/
-      ctx[192].label);
+      ctx[195].label);
       toggle_class(
         button,
         "tp-day-pill--sel",
         /*day*/
-        ctx[192].offset === /*selectedOffset*/
-        ctx[5]
+        ctx[195].offset === /*selectedOffset*/
+        ctx[6]
       );
       toggle_class(button, "tp-day-pill--today", isToday(
         /*day*/
-        ctx[192].offset,
+        ctx[195].offset,
         /*currentMonday*/
-        ctx[2]
+        ctx[3]
       ));
     },
     m(target, anchor) {
@@ -19144,20 +19144,20 @@ function create_each_block_92(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*DAYS*/
-      8 && t0_value !== (t0_value = /*day*/
-      ctx[192].label + "")) set_data(t0, t0_value);
+      16 && t0_value !== (t0_value = /*day*/
+      ctx[195].label + "")) set_data(t0, t0_value);
       if (dirty[0] & /*currentMonday, DAYS*/
-      12 && t2_value !== (t2_value = addDaysLocal(
+      24 && t2_value !== (t2_value = addDaysLocal(
         /*currentMonday*/
-        ctx[2],
+        ctx[3],
         /*day*/
-        ctx[192].offset
+        ctx[195].offset
       ).getDate() + "")) set_data(t2, t2_value);
       if (dirty[0] & /*DAYS*/
-      8) show_if = /*dayHasItems*/
-      ctx[72](
+      16) show_if = /*dayHasItems*/
+      ctx[74](
         /*day*/
-        ctx[192]
+        ctx[195]
       );
       if (show_if) {
         if (if_block) {
@@ -19171,27 +19171,27 @@ function create_each_block_92(ctx) {
         if_block = null;
       }
       if (dirty[0] & /*DAYS*/
-      8 && button_aria_label_value !== (button_aria_label_value = /*day*/
-      ctx[192].label)) {
+      16 && button_aria_label_value !== (button_aria_label_value = /*day*/
+      ctx[195].label)) {
         attr(button, "aria-label", button_aria_label_value);
       }
       if (dirty[0] & /*DAYS, selectedOffset*/
-      40) {
+      80) {
         toggle_class(
           button,
           "tp-day-pill--sel",
           /*day*/
-          ctx[192].offset === /*selectedOffset*/
-          ctx[5]
+          ctx[195].offset === /*selectedOffset*/
+          ctx[6]
         );
       }
       if (dirty[0] & /*DAYS, currentMonday*/
-      12) {
+      24) {
         toggle_class(button, "tp-day-pill--today", isToday(
           /*day*/
-          ctx[192].offset,
+          ctx[195].offset,
           /*currentMonday*/
-          ctx[2]
+          ctx[3]
         ));
       }
     },
@@ -19219,7 +19219,7 @@ function create_else_block_12(ctx) {
   let t4;
   let each_value_8 = ensure_array_like(
     /*renderDays*/
-    ctx[20]
+    ctx[21]
   );
   let each_blocks_2 = [];
   for (let i = 0; i < each_value_8.length; i += 1) {
@@ -19227,7 +19227,7 @@ function create_else_block_12(ctx) {
   }
   let each_value_7 = ensure_array_like(
     /*hourMarks*/
-    ctx[28]
+    ctx[30]
   );
   let each_blocks_1 = [];
   for (let i = 0; i < each_value_7.length; i += 1) {
@@ -19235,15 +19235,15 @@ function create_else_block_12(ctx) {
   }
   let if_block0 = (
     /*nowTop*/
-    ctx[27] !== null && create_if_block_40(ctx)
+    ctx[29] !== null && create_if_block_40(ctx)
   );
   let if_block1 = (
     /*nowTop*/
-    ctx[27] !== null && create_if_block_39(ctx)
+    ctx[29] !== null && create_if_block_39(ctx)
   );
   let each_value_3 = ensure_array_like(
     /*renderDays*/
-    ctx[20]
+    ctx[21]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_3.length; i += 1) {
@@ -19274,17 +19274,17 @@ function create_else_block_12(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div0, "class", "tp-axis-head-gutter svelte-1eco7z1");
-      attr(div1, "class", "tp-axis-head svelte-1eco7z1");
-      attr(div2, "class", "tp-axis-gutter svelte-1eco7z1");
+      attr(div0, "class", "tp-axis-head-gutter svelte-1vuxfjd");
+      attr(div1, "class", "tp-axis-head svelte-1vuxfjd");
+      attr(div2, "class", "tp-axis-gutter svelte-1vuxfjd");
       set_style(
         div2,
         "height",
         /*axisHeight*/
-        ctx[29] + "px"
+        ctx[31] + "px"
       );
-      attr(div3, "class", "tp-axis-body svelte-1eco7z1");
-      attr(div4, "class", "tp-axis svelte-1eco7z1");
+      attr(div3, "class", "tp-axis-body svelte-1vuxfjd");
+      attr(div4, "class", "tp-axis svelte-1vuxfjd");
       set_style(div4, "--grid-colour", colourToCss(
         /*plugin*/
         ctx[0].settings.gridLineColour,
@@ -19307,7 +19307,7 @@ function create_else_block_12(ctx) {
         /*plugin*/
         ((_b2 = ctx[0].settings.blockBorderWeight) != null ? _b2 : 1) + "px"
       );
-      attr(div5, "class", "tp-table-scroll svelte-1eco7z1");
+      attr(div5, "class", "tp-table-scroll svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, div5, anchor);
@@ -19338,15 +19338,15 @@ function create_else_block_12(ctx) {
           each_blocks[i].m(div3, null);
         }
       }
-      ctx[141](div3);
+      ctx[143](div3);
     },
     p(ctx2, dirty) {
       var _a2, _b2;
       if (dirty[0] & /*renderDays, currentMonday, dayOverrideMap*/
-      68157444) {
+      136314888) {
         each_value_8 = ensure_array_like(
           /*renderDays*/
-          ctx2[20]
+          ctx2[21]
         );
         let i;
         for (i = 0; i < each_value_8.length; i += 1) {
@@ -19365,10 +19365,10 @@ function create_else_block_12(ctx) {
         each_blocks_2.length = each_value_8.length;
       }
       if (dirty[0] & /*hourMarks, _axis, PX_PER_MIN*/
-      268436224) {
+      1073743360) {
         each_value_7 = ensure_array_like(
           /*hourMarks*/
-          ctx2[28]
+          ctx2[30]
         );
         let i;
         for (i = 0; i < each_value_7.length; i += 1) {
@@ -19388,7 +19388,7 @@ function create_else_block_12(ctx) {
       }
       if (
         /*nowTop*/
-        ctx2[27] !== null
+        ctx2[29] !== null
       ) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
@@ -19401,18 +19401,18 @@ function create_else_block_12(ctx) {
         if_block0.d(1);
         if_block0 = null;
       }
-      if (dirty[0] & /*axisHeight*/
-      536870912) {
+      if (dirty[1] & /*axisHeight*/
+      1) {
         set_style(
           div2,
           "height",
           /*axisHeight*/
-          ctx2[29] + "px"
+          ctx2[31] + "px"
         );
       }
       if (
         /*nowTop*/
-        ctx2[27] !== null
+        ctx2[29] !== null
       ) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
@@ -19425,13 +19425,13 @@ function create_else_block_12(ctx) {
         if_block1.d(1);
         if_block1 = null;
       }
-      if (dirty[0] & /*axisHeight, dayOverrideMap, renderDays, plugin, currentMonday, _axis, PX_PER_MIN, gridFocusKey, _eventExternalMap, _slotMap, _dateEventMap, dragOverKey, rejectKey, hourMarks*/
-      1947431685 | dirty[1] & /*computeMerges, getDateEventLabel, onEventDragStart, onDragEnd, openChipMenu, onCellKeydown, _eventPlanMap, _preparedEventMap, _showPrepared, getPeriodTypeColour, isSlotExcluded, onCellDragOver, onCellDragLeave, onCellDrop, getSlotLabel, onChipDragStart, _slotExternalMap, _slotPlanMap, _preparedSlotMap, effRoom, effNote, _showDirected, slotIsDirected*/
-      134215807 | dirty[2] & /*_isMobileApp, openPlan, toggleEventPrep, isClassId, toggleSlotPrep, openEventPicker*/
-      61632) {
+      if (dirty[0] & /*dayOverrideMap, renderDays, plugin, currentMonday, _axis, PX_PER_MIN, gridFocusKey, _themeBg, _slotMap, _dateEventMap, dragOverKey, rejectKey, hourMarks*/
+      1478944265 | dirty[1] & /*axisHeight, computeMerges, getDateEventLabel, onEventDragStart, onDragEnd, openChipMenu, onCellKeydown, _eventExternalMap, _eventPlanMap, _preparedEventMap, _showPrepared, getPeriodTypeColour, isSlotExcluded, onCellDragOver, onCellDragLeave, onCellDrop, getSlotLabel, onChipDragStart, _slotExternalMap, _slotPlanMap, _preparedSlotMap, effRoom, effNote, _showDirected, slotIsDirected*/
+      536863231 | dirty[2] & /*_isMobileApp, openPlan, toggleEventPrep, isClassId, toggleSlotPrep, openEventPicker*/
+      246528) {
         each_value_3 = ensure_array_like(
           /*renderDays*/
-          ctx2[20]
+          ctx2[21]
         );
         let i;
         for (i = 0; i < each_value_3.length; i += 1) {
@@ -19493,7 +19493,7 @@ function create_else_block_12(ctx) {
       if (if_block0) if_block0.d();
       if (if_block1) if_block1.d();
       destroy_each(each_blocks, detaching);
-      ctx[141](null);
+      ctx[143](null);
     }
   };
 }
@@ -19501,7 +19501,7 @@ function create_if_block3(ctx) {
   let div;
   let each_value = ensure_array_like(
     /*DAYS*/
-    ctx[3]
+    ctx[4]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value.length; i += 1) {
@@ -19513,7 +19513,7 @@ function create_if_block3(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-agenda svelte-1eco7z1");
+      attr(div, "class", "tp-agenda svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -19525,12 +19525,12 @@ function create_if_block3(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dayOverrideMap, DAYS, plugin, _dateEventMap, currentMonday, _slotMap*/
-      67305485 | dirty[1] & /*getDateEventLabel, openChipMenu, getSlotLabel, isSlotExcluded, effRoom*/
-      67551232 | dirty[2] & /*dayHasItems, subjectEmoji*/
-      3072) {
+      134610969 | dirty[1] & /*getDateEventLabel, openChipMenu, getSlotLabel, isSlotExcluded, effRoom*/
+      270204928 | dirty[2] & /*dayHasItems, subjectEmoji*/
+      12288) {
         each_value = ensure_array_like(
           /*DAYS*/
-          ctx2[3]
+          ctx2[4]
         );
         let i;
         for (i = 0; i < each_value.length; i += 1) {
@@ -19563,7 +19563,7 @@ function create_if_block_42(ctx) {
     c() {
       span = element("span");
       span.textContent = "Inset";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-1eco7z1");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -19581,7 +19581,7 @@ function create_if_block_41(ctx) {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-1eco7z1");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -19600,16 +19600,16 @@ function create_each_block_82(ctx) {
   let span0;
   let t0_value = (
     /*day*/
-    ctx[192].label + ""
+    ctx[195].label + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = getDayDate(
     /*day*/
-    ctx[192].offset,
+    ctx[195].offset,
     /*currentMonday*/
-    ctx[2]
+    ctx[3]
   ) + "";
   let t2;
   let t3;
@@ -19617,14 +19617,14 @@ function create_each_block_82(ctx) {
   function select_block_type_3(ctx2, dirty) {
     if (
       /*dayOverride*/
-      ctx2[209] === "holiday"
+      ctx2[212] === "holiday"
     ) return create_if_block_41;
     if (
       /*dayOverride*/
-      ctx2[209] === "inset"
+      ctx2[212] === "inset"
     ) return create_if_block_42;
   }
-  let current_block_type = select_block_type_3(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
+  let current_block_type = select_block_type_3(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]);
   let if_block = current_block_type && current_block_type(ctx);
   return {
     c() {
@@ -19639,28 +19639,28 @@ function create_each_block_82(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-name svelte-1eco7z1");
-      attr(span1, "class", "tp-day-date svelte-1eco7z1");
-      attr(span2, "class", "tp-day-label svelte-1eco7z1");
-      attr(div0, "class", "tp-th-day-inner svelte-1eco7z1");
-      attr(div1, "class", "tp-axis-head-day svelte-1eco7z1");
+      attr(span0, "class", "tp-day-name svelte-1vuxfjd");
+      attr(span1, "class", "tp-day-date svelte-1vuxfjd");
+      attr(span2, "class", "tp-day-label svelte-1vuxfjd");
+      attr(div0, "class", "tp-th-day-inner svelte-1vuxfjd");
+      attr(div1, "class", "tp-axis-head-day svelte-1vuxfjd");
       toggle_class(div1, "tp-th-day--today", isToday(
         /*day*/
-        ctx[192].offset,
+        ctx[195].offset,
         /*currentMonday*/
-        ctx[2]
+        ctx[3]
       ));
       toggle_class(
         div1,
         "tp-th-day--holiday",
         /*dayOverride*/
-        ctx[209] === "holiday"
+        ctx[212] === "holiday"
       );
       toggle_class(
         div1,
         "tp-th-day--inset",
         /*dayOverride*/
-        ctx[209] === "inset"
+        ctx[212] === "inset"
       );
     },
     m(target, anchor) {
@@ -19678,14 +19678,14 @@ function create_each_block_82(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*renderDays*/
-      1048576 && t0_value !== (t0_value = /*day*/
-      ctx2[192].label + "")) set_data(t0, t0_value);
+      2097152 && t0_value !== (t0_value = /*day*/
+      ctx2[195].label + "")) set_data(t0, t0_value);
       if (dirty[0] & /*renderDays, currentMonday*/
-      1048580 && t2_value !== (t2_value = getDayDate(
+      2097160 && t2_value !== (t2_value = getDayDate(
         /*day*/
-        ctx2[192].offset,
+        ctx2[195].offset,
         /*currentMonday*/
-        ctx2[2]
+        ctx2[3]
       ) + "")) set_data(t2, t2_value);
       if (current_block_type !== (current_block_type = select_block_type_3(ctx2, dirty))) {
         if (if_block) if_block.d(1);
@@ -19696,30 +19696,30 @@ function create_each_block_82(ctx) {
         }
       }
       if (dirty[0] & /*renderDays, currentMonday*/
-      1048580) {
+      2097160) {
         toggle_class(div1, "tp-th-day--today", isToday(
           /*day*/
-          ctx2[192].offset,
+          ctx2[195].offset,
           /*currentMonday*/
-          ctx2[2]
+          ctx2[3]
         ));
       }
       if (dirty[0] & /*dayOverrideMap, renderDays*/
-      68157440) {
+      136314880) {
         toggle_class(
           div1,
           "tp-th-day--holiday",
           /*dayOverride*/
-          ctx2[209] === "holiday"
+          ctx2[212] === "holiday"
         );
       }
       if (dirty[0] & /*dayOverrideMap, renderDays*/
-      68157440) {
+      136314880) {
         toggle_class(
           div1,
           "tp-th-day--inset",
           /*dayOverride*/
-          ctx2[209] === "inset"
+          ctx2[212] === "inset"
         );
       }
     },
@@ -19737,21 +19737,21 @@ function create_each_block_72(ctx) {
   let div;
   let t_value = fmtAxisTime(
     /*hm*/
-    ctx[269]
+    ctx[272]
   ) + "";
   let t;
   return {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-hour svelte-1eco7z1");
+      attr(div, "class", "tp-axis-hour svelte-1vuxfjd");
       set_style(
         div,
         "top",
         /*hm*/
-        (ctx[269] - /*_axis*/
-        ctx[9].start) * /*PX_PER_MIN*/
-        ctx[8] + "px"
+        (ctx[272] - /*_axis*/
+        ctx[10].start) * /*PX_PER_MIN*/
+        ctx[9] + "px"
       );
     },
     m(target, anchor) {
@@ -19760,19 +19760,19 @@ function create_each_block_72(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*hourMarks*/
-      268435456 && t_value !== (t_value = fmtAxisTime(
+      1073741824 && t_value !== (t_value = fmtAxisTime(
         /*hm*/
-        ctx2[269]
+        ctx2[272]
       ) + "")) set_data(t, t_value);
       if (dirty[0] & /*hourMarks, _axis, PX_PER_MIN*/
-      268436224) {
+      1073743360) {
         set_style(
           div,
           "top",
           /*hm*/
-          (ctx2[269] - /*_axis*/
-          ctx2[9].start) * /*PX_PER_MIN*/
-          ctx2[8] + "px"
+          (ctx2[272] - /*_axis*/
+          ctx2[10].start) * /*PX_PER_MIN*/
+          ctx2[9] + "px"
         );
       }
     },
@@ -19791,14 +19791,14 @@ function create_if_block_40(ctx) {
       div = element("div");
       t = text(
         /*currentTimeStr*/
-        ctx[25]
+        ctx[26]
       );
-      attr(div, "class", "tp-now-badge svelte-1eco7z1");
+      attr(div, "class", "tp-now-badge svelte-1vuxfjd");
       set_style(
         div,
         "top",
         /*nowTop*/
-        ctx[27] + "px"
+        ctx[29] + "px"
       );
     },
     m(target, anchor) {
@@ -19807,18 +19807,18 @@ function create_if_block_40(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*currentTimeStr*/
-      33554432) set_data(
+      67108864) set_data(
         t,
         /*currentTimeStr*/
-        ctx2[25]
+        ctx2[26]
       );
       if (dirty[0] & /*nowTop*/
-      134217728) {
+      536870912) {
         set_style(
           div,
           "top",
           /*nowTop*/
-          ctx2[27] + "px"
+          ctx2[29] + "px"
         );
       }
     },
@@ -19834,12 +19834,12 @@ function create_if_block_39(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-now-line tp-now-line--week svelte-1eco7z1");
+      attr(div, "class", "tp-now-line tp-now-line--week svelte-1vuxfjd");
       set_style(
         div,
         "top",
         /*nowTop*/
-        ctx[27] + 6 + "px"
+        ctx[29] + 6 + "px"
       );
     },
     m(target, anchor) {
@@ -19847,12 +19847,12 @@ function create_if_block_39(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*nowTop*/
-      134217728) {
+      536870912) {
         set_style(
           div,
           "top",
           /*nowTop*/
-          ctx2[27] + 6 + "px"
+          ctx2[29] + 6 + "px"
         );
       }
     },
@@ -19868,14 +19868,14 @@ function create_each_block_62(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-axis-line svelte-1eco7z1");
+      attr(div, "class", "tp-axis-line svelte-1vuxfjd");
       set_style(
         div,
         "top",
         /*hm*/
-        (ctx[269] - /*_axis*/
-        ctx[9].start) * /*PX_PER_MIN*/
-        ctx[8] + "px"
+        (ctx[272] - /*_axis*/
+        ctx[10].start) * /*PX_PER_MIN*/
+        ctx[9] + "px"
       );
     },
     m(target, anchor) {
@@ -19883,14 +19883,14 @@ function create_each_block_62(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*hourMarks, _axis, PX_PER_MIN*/
-      268436224) {
+      1073743360) {
         set_style(
           div,
           "top",
           /*hm*/
-          (ctx2[269] - /*_axis*/
-          ctx2[9].start) * /*PX_PER_MIN*/
-          ctx2[8] + "px"
+          (ctx2[272] - /*_axis*/
+          ctx2[10].start) * /*PX_PER_MIN*/
+          ctx2[9] + "px"
         );
       }
     },
@@ -19909,11 +19909,11 @@ function create_else_block_22(ctx) {
     /*plugin*/
     ctx[0].settings.academicYear,
     /*day*/
-    ctx[192].key
+    ctx[195].key
   ));
   const get_key = (ctx2) => (
     /*period*/
-    ctx2[197].id
+    ctx2[200].id
   );
   for (let i = 0; i < each_value_4.length; i += 1) {
     let child_ctx = get_each_context_42(ctx, each_value_4, i);
@@ -19936,15 +19936,15 @@ function create_else_block_22(ctx) {
       insert(target, each_1_anchor, anchor);
     },
     p(ctx2, dirty) {
-      if (dirty[0] & /*renderDays, currentMonday, plugin, _axis, PX_PER_MIN, gridFocusKey, _eventExternalMap, _slotMap, _dateEventMap, dragOverKey, rejectKey*/
-      1075016453 | dirty[1] & /*computeMerges, getDateEventLabel, onEventDragStart, onDragEnd, openChipMenu, onCellKeydown, _eventPlanMap, _preparedEventMap, _showPrepared, getPeriodTypeColour, isSlotExcluded, onCellDragOver, onCellDragLeave, onCellDrop, getSlotLabel, onChipDragStart, _slotExternalMap, _slotPlanMap, _preparedSlotMap, effRoom, effNote, _showDirected, slotIsDirected*/
-      134215807 | dirty[2] & /*_isMobileApp, openPlan, toggleEventPrep, isClassId, toggleSlotPrep, openEventPicker*/
-      61632) {
+      if (dirty[0] & /*renderDays, currentMonday, plugin, _axis, PX_PER_MIN, gridFocusKey, _themeBg, _slotMap, _dateEventMap, dragOverKey, rejectKey*/
+      270984713 | dirty[1] & /*computeMerges, getDateEventLabel, onEventDragStart, onDragEnd, openChipMenu, onCellKeydown, _eventExternalMap, _eventPlanMap, _preparedEventMap, _showPrepared, getPeriodTypeColour, isSlotExcluded, onCellDragOver, onCellDragLeave, onCellDrop, getSlotLabel, onChipDragStart, _slotExternalMap, _slotPlanMap, _preparedSlotMap, effRoom, effNote, _showDirected, slotIsDirected*/
+      536863230 | dirty[2] & /*_isMobileApp, openPlan, toggleEventPrep, isClassId, toggleSlotPrep, openEventPicker*/
+      246528) {
         each_value_4 = ensure_array_like(getPeriodsForDay(
           /*plugin*/
           ctx2[0].settings.academicYear,
           /*day*/
-          ctx2[192].key
+          ctx2[195].key
         ));
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_4, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block_42, each_1_anchor, get_each_context_42);
       }
@@ -19963,14 +19963,14 @@ function create_if_block_102(ctx) {
   let div;
   let t_value = (
     /*dayOverride*/
-    ctx[209] === "holiday" ? "Holiday" : "INSET"
+    ctx[212] === "holiday" ? "Holiday" : "INSET"
   );
   let t;
   return {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-override-label svelte-1eco7z1");
+      attr(div, "class", "tp-axis-override-label svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -19978,8 +19978,8 @@ function create_if_block_102(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dayOverrideMap, renderDays*/
-      68157440 && t_value !== (t_value = /*dayOverride*/
-      ctx2[209] === "holiday" ? "Holiday" : "INSET")) set_data(t, t_value);
+      136314880 && t_value !== (t_value = /*dayOverride*/
+      ctx2[212] === "holiday" ? "Holiday" : "INSET")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -19998,34 +19998,34 @@ function create_else_block_32(ctx) {
   let dispose;
   let if_block0 = (
     /*slot*/
-    (ctx[217] ? 1 : 0) + /*devEvents*/
-    ctx[218].length >= 2 && create_if_block_38(get_if_ctx_3(ctx))
+    (ctx[220] ? 1 : 0) + /*devEvents*/
+    ctx[221].length >= 2 && create_if_block_38(get_if_ctx_3(ctx))
   );
   let if_block1 = !/*slot*/
-  ctx[217] && /*devEvents*/
-  ctx[218].length === 0 && create_if_block_37(ctx);
+  ctx[220] && /*devEvents*/
+  ctx[221].length === 0 && create_if_block_37(ctx);
   function select_block_type_6(ctx2, dirty) {
     if (
       /*slot*/
-      ctx2[217] || /*devEvents*/
-      ctx2[218].length > 0
+      ctx2[220] || /*devEvents*/
+      ctx2[221].length > 0
     ) return create_if_block_232;
     return create_else_block_4;
   }
-  let current_block_type = select_block_type_6(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
+  let current_block_type = select_block_type_6(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]);
   let if_block2 = current_block_type(ctx);
   let if_block3 = (
     /*_partial*/
-    ctx[232] && create_if_block_202(ctx)
+    ctx[235] && create_if_block_202(ctx)
   );
   function dragover_handler(...args) {
     return (
       /*dragover_handler*/
-      ctx[139](
+      ctx[141](
         /*day*/
-        ctx[192],
+        ctx[195],
         /*period*/
-        ctx[197],
+        ctx[200],
         ...args
       )
     );
@@ -20033,11 +20033,11 @@ function create_else_block_32(ctx) {
   function drop_handler(...args) {
     return (
       /*drop_handler*/
-      ctx[140](
+      ctx[142](
         /*day*/
-        ctx[192],
+        ctx[195],
         /*period*/
-        ctx[197],
+        ctx[200],
         ...args
       )
     );
@@ -20053,54 +20053,54 @@ function create_else_block_32(ctx) {
       t2 = space();
       if (if_block3) if_block3.c();
       t3 = space();
-      attr(div, "class", "tp-block svelte-1eco7z1");
+      attr(div, "class", "tp-block svelte-1vuxfjd");
       set_style(
         div,
         "top",
         /*bTop*/
-        ctx[214] + "px"
+        ctx[217] + "px"
       );
       set_style(
         div,
         "height",
         /*bHeight*/
-        ctx[215] + "px"
+        ctx[218] + "px"
       );
       set_style(
         div,
         "--bh",
         /*bHeight*/
-        ctx[215] + "px"
+        ctx[218] + "px"
       );
       set_style(div, "--tint", hexToRgba4(
         /*tc*/
-        ctx[213],
+        ctx[216],
         0.08
       ));
       set_style(div, "background", hexToRgba4(
         /*tc*/
-        ctx[213],
+        ctx[216],
         0.08
       ));
       set_style(div, "border-left", "3px solid " + hexToRgba4(
         /*tc*/
-        ctx[213],
+        ctx[216],
         0.55
       ));
       toggle_class(div, "tp-block--empty", !/*slot*/
-      ctx[217] && /*devEvents*/
-      ctx[218].length === 0);
+      ctx[220] && /*devEvents*/
+      ctx[221].length === 0);
       toggle_class(
         div,
         "tp-block--dragover",
         /*isOver*/
-        ctx[220]
+        ctx[223]
       );
       toggle_class(
         div,
         "tp-block--reject",
         /*isReject*/
-        ctx[221]
+        ctx[224]
       );
     },
     m(target, anchor) {
@@ -20120,7 +20120,7 @@ function create_else_block_32(ctx) {
             div,
             "dragleave",
             /*onCellDragLeave*/
-            ctx[54]
+            ctx[56]
           ),
           listen(div, "drop", drop_handler)
         ];
@@ -20131,8 +20131,8 @@ function create_else_block_32(ctx) {
       ctx = new_ctx;
       if (
         /*slot*/
-        (ctx[217] ? 1 : 0) + /*devEvents*/
-        ctx[218].length >= 2
+        (ctx[220] ? 1 : 0) + /*devEvents*/
+        ctx[221].length >= 2
       ) {
         if (if_block0) {
           if_block0.p(get_if_ctx_3(ctx), dirty);
@@ -20146,8 +20146,8 @@ function create_else_block_32(ctx) {
         if_block0 = null;
       }
       if (!/*slot*/
-      ctx[217] && /*devEvents*/
-      ctx[218].length === 0) {
+      ctx[220] && /*devEvents*/
+      ctx[221].length === 0) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
         } else {
@@ -20171,7 +20171,7 @@ function create_else_block_32(ctx) {
       }
       if (
         /*_partial*/
-        ctx[232]
+        ctx[235]
       ) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
@@ -20185,80 +20185,80 @@ function create_else_block_32(ctx) {
         if_block3 = null;
       }
       if (dirty[0] & /*plugin, renderDays, _axis, PX_PER_MIN*/
-      1049345) {
+      2098689) {
         set_style(
           div,
           "top",
           /*bTop*/
-          ctx[214] + "px"
+          ctx[217] + "px"
         );
       }
       if (dirty[0] & /*plugin, renderDays, PX_PER_MIN*/
-      1048833) {
+      2097665) {
         set_style(
           div,
           "height",
           /*bHeight*/
-          ctx[215] + "px"
+          ctx[218] + "px"
         );
       }
       if (dirty[0] & /*plugin, renderDays, PX_PER_MIN*/
-      1048833) {
+      2097665) {
         set_style(
           div,
           "--bh",
           /*bHeight*/
-          ctx[215] + "px"
+          ctx[218] + "px"
         );
       }
       if (dirty[0] & /*plugin, renderDays*/
-      1048577) {
+      2097153) {
         set_style(div, "--tint", hexToRgba4(
           /*tc*/
-          ctx[213],
+          ctx[216],
           0.08
         ));
       }
       if (dirty[0] & /*plugin, renderDays*/
-      1048577) {
+      2097153) {
         set_style(div, "background", hexToRgba4(
           /*tc*/
-          ctx[213],
+          ctx[216],
           0.08
         ));
       }
       if (dirty[0] & /*plugin, renderDays*/
-      1048577) {
+      2097153) {
         set_style(div, "border-left", "3px solid " + hexToRgba4(
           /*tc*/
-          ctx[213],
+          ctx[216],
           0.55
         ));
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap*/
-      1245189 | dirty[1] & /*isSlotExcluded*/
-      16384) {
+      2490377 | dirty[1] & /*isSlotExcluded*/
+      65536) {
         toggle_class(div, "tp-block--empty", !/*slot*/
-        ctx[217] && /*devEvents*/
-        ctx[218].length === 0);
+        ctx[220] && /*devEvents*/
+        ctx[221].length === 0);
       }
       if (dirty[0] & /*dragOverKey, renderDays, plugin, _slotMap, currentMonday*/
-      1187845 | dirty[1] & /*isSlotExcluded*/
-      16384) {
+      2375689 | dirty[1] & /*isSlotExcluded*/
+      65536) {
         toggle_class(
           div,
           "tp-block--dragover",
           /*isOver*/
-          ctx[220]
+          ctx[223]
         );
       }
       if (dirty[0] & /*rejectKey, renderDays, plugin*/
-      1064961) {
+      2129921) {
         toggle_class(
           div,
           "tp-block--reject",
           /*isReject*/
-          ctx[221]
+          ctx[224]
         );
       }
     },
@@ -20286,7 +20286,7 @@ function create_if_block_112(ctx) {
   let span0;
   let t1_value = (
     /*_mRange*/
-    ctx[257] + ""
+    ctx[260] + ""
   );
   let t1;
   let t2;
@@ -20294,7 +20294,7 @@ function create_if_block_112(ctx) {
   let span1;
   let t3_value = (
     /*_mlbl*/
-    ctx[253].code + ""
+    ctx[256].code + ""
   );
   let t3;
   let t4;
@@ -20304,13 +20304,13 @@ function create_if_block_112(ctx) {
   let div1;
   let show_if = (
     /*_showPrepared*/
-    ctx[35] && /*isClassId*/
-    (ctx[74](
+    ctx[37] && /*isClassId*/
+    (ctx[76](
       /*_mev*/
-      ctx[241].classId
+      ctx[244].classId
     ) || !!/*_mev*/
-    (ctx[241].title && /*_mev*/
-    ctx[241].title.trim()))
+    (ctx[244].title && /*_mev*/
+    ctx[244].title.trim()))
   );
   let t7;
   let t8;
@@ -20322,32 +20322,32 @@ function create_if_block_112(ctx) {
   let dispose;
   let if_block0 = (
     /*_mLeadMins*/
-    ctx[251] > 0 && create_if_block_182(ctx)
+    ctx[254] > 0 && create_if_block_182(ctx)
   );
   let if_block1 = (
     /*_mlbl*/
-    ctx[253].notes && create_if_block_172(ctx)
+    ctx[256].notes && create_if_block_172(ctx)
   );
   let if_block2 = (
     /*_mlbl*/
-    ctx[253].classroom && create_if_block_162(ctx)
+    ctx[256].classroom && create_if_block_162(ctx)
   );
   let if_block3 = show_if && create_if_block_152(ctx);
   let if_block4 = (
     /*_mPlan*/
-    ctx[254] && create_if_block_142(ctx)
+    ctx[257] && create_if_block_142(ctx)
   );
   let if_block5 = (
     /*_mExt*/
-    ctx[256] && !/*_isMobileApp*/
-    ctx[69] && create_if_block_132(ctx)
+    ctx[259] && !/*_isMobileApp*/
+    ctx[71] && create_if_block_132(ctx)
   );
   function dragstart_handler(...args) {
     return (
       /*dragstart_handler*/
-      ctx[126](
+      ctx[128](
         /*_mev*/
-        ctx[241],
+        ctx[244],
         ...args
       )
     );
@@ -20355,20 +20355,20 @@ function create_if_block_112(ctx) {
   function click_handler_13(...args) {
     return (
       /*click_handler_13*/
-      ctx[127](
+      ctx[129](
         /*dayDate*/
-        ctx[208],
+        ctx[211],
         /*_first*/
-        ctx[242],
+        ctx[245],
         /*_mev*/
-        ctx[241],
+        ctx[244],
         ...args
       )
     );
   }
   let if_block6 = (
     /*_mTrailMins*/
-    ctx[252] > 0 && create_if_block_122(ctx)
+    ctx[255] > 0 && create_if_block_122(ctx)
   );
   return {
     c() {
@@ -20398,65 +20398,71 @@ function create_if_block_112(ctx) {
       t9 = space();
       if (if_block6) if_block6.c();
       if_block6_anchor = empty();
-      attr(span0, "class", "tp-chip-period-time svelte-1eco7z1");
-      attr(span1, "class", "tp-chip-code svelte-1eco7z1");
-      attr(div0, "class", "tp-chip-body svelte-1eco7z1");
-      attr(div1, "class", "tp-chip-marks svelte-1eco7z1");
-      attr(div2, "class", "tp-chip-footer svelte-1eco7z1");
-      attr(div3, "class", "tp-chip tp-chip--event svelte-1eco7z1");
+      attr(span0, "class", "tp-chip-period-time svelte-1vuxfjd");
+      attr(span1, "class", "tp-chip-code svelte-1vuxfjd");
+      attr(div0, "class", "tp-chip-body svelte-1vuxfjd");
+      attr(div1, "class", "tp-chip-marks svelte-1vuxfjd");
+      attr(div2, "class", "tp-chip-footer svelte-1vuxfjd");
+      attr(div3, "class", "tp-chip tp-chip--event svelte-1vuxfjd");
       attr(div3, "role", "button");
       attr(div3, "tabindex", div3_tabindex_value = /*gridFocusKey*/
-      ctx[12] === `${/*day*/
-      ctx[192].key}:${/*_first*/
-      ctx[242].id}:merged` ? 0 : -1);
+      ctx[13] === `${/*day*/
+      ctx[195].key}:${/*_first*/
+      ctx[245].id}:merged` ? 0 : -1);
       attr(div3, "draggable", "true");
       attr(div3, "data-gridkey", div3_data_gridkey_value = `${/*day*/
-      ctx[192].key}:${/*_first*/
-      ctx[242].id}:merged`);
+      ctx[195].key}:${/*_first*/
+      ctx[245].id}:merged`);
+      set_style(div3, "--chip-fg", chipFg(
+        /*_mlbl*/
+        ctx[256].colour,
+        /*_themeBg*/
+        ctx[28]
+      ));
       set_style(div3, "--ctint", hexToRgba4(
         /*_mlbl*/
-        ctx[253].colour,
+        ctx[256].colour,
         0.22
       ));
       set_style(div3, "border-left", "3px solid " + /*_mlbl*/
-      ctx[253].colour);
+      ctx[256].colour);
       set_style(div3, "background", hexToRgba4(
         /*_mlbl*/
-        ctx[253].colour,
+        ctx[256].colour,
         0.22
       ));
-      attr(div4, "class", "tp-event-stack svelte-1eco7z1");
-      attr(div5, "class", "tp-block tp-block--merged svelte-1eco7z1");
+      attr(div4, "class", "tp-event-stack svelte-1vuxfjd");
+      attr(div5, "class", "tp-block tp-block--merged svelte-1vuxfjd");
       set_style(
         div5,
         "top",
         /*_mTop*/
-        ctx[249] + "px"
+        ctx[252] + "px"
       );
       set_style(
         div5,
         "height",
         /*_mH*/
-        ctx[250] + "px"
+        ctx[253] + "px"
       );
       set_style(
         div5,
         "--bh",
         /*_mH*/
-        ctx[250] + "px"
+        ctx[253] + "px"
       );
       set_style(div5, "--tint", hexToRgba4(
         /*_mlbl*/
-        ctx[253].colour,
+        ctx[256].colour,
         0.08
       ));
       set_style(div5, "background", hexToRgba4(
         /*_mlbl*/
-        ctx[253].colour,
+        ctx[256].colour,
         0.08
       ));
       set_style(div5, "border-left", "3px solid " + /*_mlbl*/
-      ctx[253].colour);
+      ctx[256].colour);
     },
     m(target, anchor) {
       if (if_block0) if_block0.m(target, anchor);
@@ -20492,14 +20498,14 @@ function create_if_block_112(ctx) {
             div3,
             "dragend",
             /*onDragEnd*/
-            ctx[56]
+            ctx[58]
           ),
           listen(div3, "click", click_handler_13),
           listen(
             div3,
             "keydown",
             /*onCellKeydown*/
-            ctx[50]
+            ctx[52]
           )
         ];
         mounted = true;
@@ -20509,7 +20515,7 @@ function create_if_block_112(ctx) {
       ctx = new_ctx;
       if (
         /*_mLeadMins*/
-        ctx[251] > 0
+        ctx[254] > 0
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -20523,14 +20529,14 @@ function create_if_block_112(ctx) {
         if_block0 = null;
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 && t1_value !== (t1_value = /*_mRange*/
-      ctx[257] + "")) set_data(t1, t1_value);
+      2097161 && t1_value !== (t1_value = /*_mRange*/
+      ctx[260] + "")) set_data(t1, t1_value);
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 && t3_value !== (t3_value = /*_mlbl*/
-      ctx[253].code + "")) set_data(t3, t3_value);
+      2097161 && t3_value !== (t3_value = /*_mlbl*/
+      ctx[256].code + "")) set_data(t3, t3_value);
       if (
         /*_mlbl*/
-        ctx[253].notes
+        ctx[256].notes
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -20545,7 +20551,7 @@ function create_if_block_112(ctx) {
       }
       if (
         /*_mlbl*/
-        ctx[253].classroom
+        ctx[256].classroom
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
@@ -20559,15 +20565,15 @@ function create_if_block_112(ctx) {
         if_block2 = null;
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 | dirty[1] & /*_showPrepared*/
-      16) show_if = /*_showPrepared*/
-      ctx[35] && /*isClassId*/
-      (ctx[74](
+      2097161 | dirty[1] & /*_showPrepared*/
+      64) show_if = /*_showPrepared*/
+      ctx[37] && /*isClassId*/
+      (ctx[76](
         /*_mev*/
-        ctx[241].classId
+        ctx[244].classId
       ) || !!/*_mev*/
-      (ctx[241].title && /*_mev*/
-      ctx[241].title.trim()));
+      (ctx[244].title && /*_mev*/
+      ctx[244].title.trim()));
       if (show_if) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
@@ -20582,7 +20588,7 @@ function create_if_block_112(ctx) {
       }
       if (
         /*_mPlan*/
-        ctx[254]
+        ctx[257]
       ) {
         if (if_block4) {
           if_block4.p(ctx, dirty);
@@ -20597,8 +20603,8 @@ function create_if_block_112(ctx) {
       }
       if (
         /*_mExt*/
-        ctx[256] && !/*_isMobileApp*/
-        ctx[69]
+        ctx[259] && !/*_isMobileApp*/
+        ctx[71]
       ) {
         if (if_block5) {
           if_block5.p(ctx, dirty);
@@ -20612,90 +20618,99 @@ function create_if_block_112(ctx) {
         if_block5 = null;
       }
       if (dirty[0] & /*gridFocusKey, renderDays, currentMonday, plugin*/
-      1052677 && div3_tabindex_value !== (div3_tabindex_value = /*gridFocusKey*/
-      ctx[12] === `${/*day*/
-      ctx[192].key}:${/*_first*/
-      ctx[242].id}:merged` ? 0 : -1)) {
+      2105353 && div3_tabindex_value !== (div3_tabindex_value = /*gridFocusKey*/
+      ctx[13] === `${/*day*/
+      ctx[195].key}:${/*_first*/
+      ctx[245].id}:merged` ? 0 : -1)) {
         attr(div3, "tabindex", div3_tabindex_value);
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 && div3_data_gridkey_value !== (div3_data_gridkey_value = `${/*day*/
-      ctx[192].key}:${/*_first*/
-      ctx[242].id}:merged`)) {
+      2097161 && div3_data_gridkey_value !== (div3_data_gridkey_value = `${/*day*/
+      ctx[195].key}:${/*_first*/
+      ctx[245].id}:merged`)) {
         attr(div3, "data-gridkey", div3_data_gridkey_value);
       }
+      if (dirty[0] & /*renderDays, currentMonday, plugin, _themeBg*/
+      270532617) {
+        set_style(div3, "--chip-fg", chipFg(
+          /*_mlbl*/
+          ctx[256].colour,
+          /*_themeBg*/
+          ctx[28]
+        ));
+      }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581) {
+      2097161) {
         set_style(div3, "--ctint", hexToRgba4(
           /*_mlbl*/
-          ctx[253].colour,
+          ctx[256].colour,
           0.22
         ));
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581) {
+      2097161) {
         set_style(div3, "border-left", "3px solid " + /*_mlbl*/
-        ctx[253].colour);
+        ctx[256].colour);
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581) {
+      2097161) {
         set_style(div3, "background", hexToRgba4(
           /*_mlbl*/
-          ctx[253].colour,
+          ctx[256].colour,
           0.22
         ));
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin, _axis, PX_PER_MIN*/
-      1049349) {
+      2098697) {
         set_style(
           div5,
           "top",
           /*_mTop*/
-          ctx[249] + "px"
+          ctx[252] + "px"
         );
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin, PX_PER_MIN*/
-      1048837) {
+      2097673) {
         set_style(
           div5,
           "height",
           /*_mH*/
-          ctx[250] + "px"
+          ctx[253] + "px"
         );
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin, PX_PER_MIN*/
-      1048837) {
+      2097673) {
         set_style(
           div5,
           "--bh",
           /*_mH*/
-          ctx[250] + "px"
+          ctx[253] + "px"
         );
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581) {
+      2097161) {
         set_style(div5, "--tint", hexToRgba4(
           /*_mlbl*/
-          ctx[253].colour,
+          ctx[256].colour,
           0.08
         ));
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581) {
+      2097161) {
         set_style(div5, "background", hexToRgba4(
           /*_mlbl*/
-          ctx[253].colour,
+          ctx[256].colour,
           0.08
         ));
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581) {
+      2097161) {
         set_style(div5, "border-left", "3px solid " + /*_mlbl*/
-        ctx[253].colour);
+        ctx[256].colour);
       }
       if (
         /*_mTrailMins*/
-        ctx[252] > 0
+        ctx[255] > 0
       ) {
         if (if_block6) {
           if_block6.p(ctx, dirty);
@@ -20736,16 +20751,16 @@ function create_if_block_38(ctx) {
     c() {
       div = element("div");
       t = text("\u26A0");
-      attr(div, "class", "tp-block-clash svelte-1eco7z1");
+      attr(div, "class", "tp-block-clash svelte-1vuxfjd");
       attr(div, "title", div_title_value = /*_showDirected*/
-      ctx[34] && /*_dirOcc*/
-      ctx[268] >= 2 ? "Double-booked \u2014 directed time is counted twice here" : "Double-booked block");
+      ctx[36] && /*_dirOcc*/
+      ctx[271] >= 2 ? "Double-booked \u2014 directed time is counted twice here" : "Double-booked block");
       toggle_class(
         div,
         "tp-block-clash--directed",
         /*_showDirected*/
-        ctx[34] && /*_dirOcc*/
-        ctx[268] >= 2
+        ctx[36] && /*_dirOcc*/
+        ctx[271] >= 2
       );
     },
     m(target, anchor) {
@@ -20754,21 +20769,21 @@ function create_if_block_38(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap*/
-      1245189 | dirty[1] & /*_showDirected*/
-      8 && div_title_value !== (div_title_value = /*_showDirected*/
-      ctx2[34] && /*_dirOcc*/
-      ctx2[268] >= 2 ? "Double-booked \u2014 directed time is counted twice here" : "Double-booked block")) {
+      2490377 | dirty[1] & /*_showDirected*/
+      32 && div_title_value !== (div_title_value = /*_showDirected*/
+      ctx2[36] && /*_dirOcc*/
+      ctx2[271] >= 2 ? "Double-booked \u2014 directed time is counted twice here" : "Double-booked block")) {
         attr(div, "title", div_title_value);
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap*/
-      1245189 | dirty[1] & /*_showDirected, isSlotExcluded, slotIsDirected*/
-      20488) {
+      2490377 | dirty[1] & /*_showDirected, isSlotExcluded, slotIsDirected*/
+      81952) {
         toggle_class(
           div,
           "tp-block-clash--directed",
           /*_showDirected*/
-          ctx2[34] && /*_dirOcc*/
-          ctx2[268] >= 2
+          ctx2[36] && /*_dirOcc*/
+          ctx2[271] >= 2
         );
       }
     },
@@ -20784,20 +20799,20 @@ function create_if_block_37(ctx) {
   let span0;
   let t0_value = (
     /*period*/
-    ctx[197].name + ""
+    ctx[200].name + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = (
     /*period*/
-    ctx[197].start + ""
+    ctx[200].start + ""
   );
   let t2;
   let t3;
   let t4_value = (
     /*period*/
-    ctx[197].end + ""
+    ctx[200].end + ""
   );
   let t4;
   return {
@@ -20810,9 +20825,9 @@ function create_if_block_37(ctx) {
       t2 = text(t2_value);
       t3 = text("\u2013");
       t4 = text(t4_value);
-      attr(span0, "class", "tp-block-name svelte-1eco7z1");
-      attr(span1, "class", "tp-block-time svelte-1eco7z1");
-      attr(div, "class", "tp-block-label svelte-1eco7z1");
+      attr(span0, "class", "tp-block-name svelte-1vuxfjd");
+      attr(span1, "class", "tp-block-time svelte-1vuxfjd");
+      attr(div, "class", "tp-block-label svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -20826,14 +20841,14 @@ function create_if_block_37(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*plugin, renderDays*/
-      1048577 && t0_value !== (t0_value = /*period*/
-      ctx2[197].name + "")) set_data(t0, t0_value);
+      2097153 && t0_value !== (t0_value = /*period*/
+      ctx2[200].name + "")) set_data(t0, t0_value);
       if (dirty[0] & /*plugin, renderDays*/
-      1048577 && t2_value !== (t2_value = /*period*/
-      ctx2[197].start + "")) set_data(t2, t2_value);
+      2097153 && t2_value !== (t2_value = /*period*/
+      ctx2[200].start + "")) set_data(t2, t2_value);
       if (dirty[0] & /*plugin, renderDays*/
-      1048577 && t4_value !== (t4_value = /*period*/
-      ctx2[197].end + "")) set_data(t4, t4_value);
+      2097153 && t4_value !== (t4_value = /*period*/
+      ctx2[200].end + "")) set_data(t4, t4_value);
     },
     d(detaching) {
       if (detaching) {
@@ -20852,11 +20867,11 @@ function create_else_block_4(ctx) {
   function click_handler_22(...args) {
     return (
       /*click_handler_22*/
-      ctx[138](
+      ctx[140](
         /*dayDate*/
-        ctx[208],
+        ctx[211],
         /*period*/
-        ctx[197],
+        ctx[200],
         ...args
       )
     );
@@ -20868,12 +20883,12 @@ function create_else_block_4(ctx) {
       attr(button, "class", "tp-cell-add-event");
       attr(button, "title", "Add one-off event to this slot");
       attr(button, "tabindex", button_tabindex_value = /*gridFocusKey*/
-      ctx[12] === `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:add` ? 0 : -1);
+      ctx[13] === `${/*day*/
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:add` ? 0 : -1);
       attr(button, "data-gridkey", button_data_gridkey_value = `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:add`);
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:add`);
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -20884,7 +20899,7 @@ function create_else_block_4(ctx) {
             button,
             "keydown",
             /*onCellKeydown*/
-            ctx[50]
+            ctx[52]
           ),
           listen(button, "click", click_handler_22)
         ];
@@ -20894,16 +20909,16 @@ function create_else_block_4(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*gridFocusKey, renderDays, plugin*/
-      1052673 && button_tabindex_value !== (button_tabindex_value = /*gridFocusKey*/
-      ctx[12] === `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:add` ? 0 : -1)) {
+      2105345 && button_tabindex_value !== (button_tabindex_value = /*gridFocusKey*/
+      ctx[13] === `${/*day*/
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:add` ? 0 : -1)) {
         attr(button, "tabindex", button_tabindex_value);
       }
       if (dirty[0] & /*renderDays, plugin*/
-      1048577 && button_data_gridkey_value !== (button_data_gridkey_value = `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:add`)) {
+      2097153 && button_data_gridkey_value !== (button_data_gridkey_value = `${/*day*/
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:add`)) {
         attr(button, "data-gridkey", button_data_gridkey_value);
       }
     },
@@ -20924,15 +20939,15 @@ function create_if_block_232(ctx) {
   let div_style_value;
   let if_block = (
     /*slot*/
-    ctx[217] && create_if_block_30(get_if_ctx_22(ctx))
+    ctx[220] && create_if_block_30(get_if_ctx_22(ctx))
   );
   let each_value_5 = ensure_array_like(
     /*devEvents*/
-    ctx[218]
+    ctx[221]
   );
   const get_key = (ctx2) => (
     /*devEv*/
-    ctx2[258].id
+    ctx2[261].id
   );
   for (let i = 0; i < each_value_5.length; i += 1) {
     let child_ctx = get_each_context_52(ctx, each_value_5, i);
@@ -20947,16 +20962,16 @@ function create_if_block_232(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-event-stack svelte-1eco7z1");
+      attr(div, "class", "tp-event-stack svelte-1vuxfjd");
       attr(div, "style", div_style_value = /*_partial*/
-      ctx[232] ? `--stack-h:${/*_stackH*/
-      ctx[236]}px; --stack-top:${/*_stackTop*/
-      ctx[237]}px;` : "");
+      ctx[235] ? `--stack-h:${/*_stackH*/
+      ctx[239]}px; --stack-top:${/*_stackTop*/
+      ctx[240]}px;` : "");
       toggle_class(
         div,
         "tp-event-stack--partial",
         /*_partial*/
-        ctx[232]
+        ctx[235]
       );
     },
     m(target, anchor) {
@@ -20972,7 +20987,7 @@ function create_if_block_232(ctx) {
     p(ctx2, dirty) {
       if (
         /*slot*/
-        ctx2[217]
+        ctx2[220]
       ) {
         if (if_block) {
           if_block.p(get_if_ctx_22(ctx2), dirty);
@@ -20985,31 +21000,31 @@ function create_if_block_232(ctx) {
         if_block.d(1);
         if_block = null;
       }
-      if (dirty[0] & /*gridFocusKey, renderDays, plugin, _dateEventMap, currentMonday, _eventExternalMap, _slotMap, PX_PER_MIN*/
-      1074991365 | dirty[1] & /*getDateEventLabel, onEventDragStart, onDragEnd, openChipMenu, onCellKeydown, _eventPlanMap, _preparedEventMap, _showPrepared, isSlotExcluded*/
-      103563314 | dirty[2] & /*_isMobileApp, openPlan, toggleEventPrep, isClassId*/
-      53376) {
+      if (dirty[0] & /*gridFocusKey, renderDays, plugin, _dateEventMap, _themeBg, currentMonday, _slotMap, PX_PER_MIN*/
+      270934537 | dirty[1] & /*getDateEventLabel, onEventDragStart, onDragEnd, openChipMenu, onCellKeydown, _eventExternalMap, _eventPlanMap, _preparedEventMap, _showPrepared, isSlotExcluded*/
+      414253258 | dirty[2] & /*_isMobileApp, openPlan, toggleEventPrep, isClassId*/
+      213504) {
         each_value_5 = ensure_array_like(
           /*devEvents*/
-          ctx2[218]
+          ctx2[221]
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_5, each_1_lookup, div, destroy_block, create_each_block_52, null, get_each_context_52);
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
-      1245445 && div_style_value !== (div_style_value = /*_partial*/
-      ctx2[232] ? `--stack-h:${/*_stackH*/
-      ctx2[236]}px; --stack-top:${/*_stackTop*/
-      ctx2[237]}px;` : "")) {
+      2490889 && div_style_value !== (div_style_value = /*_partial*/
+      ctx2[235] ? `--stack-h:${/*_stackH*/
+      ctx2[239]}px; --stack-top:${/*_stackTop*/
+      ctx2[240]}px;` : "")) {
         attr(div, "style", div_style_value);
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
-      1245445 | dirty[1] & /*isSlotExcluded*/
-      16384) {
+      2490889 | dirty[1] & /*isSlotExcluded*/
+      65536) {
         toggle_class(
           div,
           "tp-event-stack--partial",
           /*_partial*/
-          ctx2[232]
+          ctx2[235]
         );
       }
     },
@@ -21029,15 +21044,15 @@ function create_if_block_30(ctx) {
   let span0;
   let t0_value = (
     /*_partial*/
-    ctx[232] ? `${minutesToTime(
+    ctx[235] ? `${minutesToTime(
       /*_soleStartMin*/
-      ctx[229]
+      ctx[232]
     )}\u2013${/*_occEnd*/
-    ctx[234]} \xB7 ${/*_occMins*/
-    ctx[226]} min` : `${/*period*/
-    ctx[197].name} \xB7 ${/*period*/
-    ctx[197].start}\u2013${/*period*/
-    ctx[197].end}`
+    ctx[237]} \xB7 ${/*_occMins*/
+    ctx[229]} min` : `${/*period*/
+    ctx[200].name} \xB7 ${/*period*/
+    ctx[200].start}\u2013${/*period*/
+    ctx[200].end}`
   );
   let t0;
   let t1;
@@ -21045,43 +21060,43 @@ function create_if_block_30(ctx) {
   let span1;
   let t2_value = (
     /*lbl*/
-    ctx[259].code + ""
+    ctx[262].code + ""
   );
   let t2;
   let t3;
   let t4;
   let show_if_2 = (
     /*effNote*/
-    ctx[47](
+    ctx[49](
       /*slot*/
-      ctx[217].id,
+      ctx[220].id,
       /*dayDate*/
-      ctx[208],
+      ctx[211],
       /*lbl*/
-      ctx[259].notes
+      ctx[262].notes
     )
   );
   let t5;
   let div2;
   let show_if_1 = (
     /*effRoom*/
-    ctx[48](
+    ctx[50](
       /*slot*/
-      ctx[217].id,
+      ctx[220].id,
       /*dayDate*/
-      ctx[208],
+      ctx[211],
       /*lbl*/
-      ctx[259].classroom
+      ctx[262].classroom
     )
   );
   let t6;
   let div1;
   let show_if = (
     /*_showPrepared*/
-    ctx[35] && /*isClassId*/
-    ctx[74](
+    ctx[37] && /*isClassId*/
+    ctx[76](
       /*slot*/
-      ctx[217].classId
+      ctx[220].classId
     )
   );
   let t7;
@@ -21092,27 +21107,27 @@ function create_if_block_30(ctx) {
   let dispose;
   let if_block0 = (
     /*lbl*/
-    (ctx[259].year || /*lbl*/
-    ctx[259].subjectName) && create_if_block_36(ctx)
+    (ctx[262].year || /*lbl*/
+    ctx[262].subjectName) && create_if_block_36(ctx)
   );
   let if_block1 = show_if_2 && create_if_block_35(ctx);
   let if_block2 = show_if_1 && create_if_block_34(ctx);
   let if_block3 = show_if && create_if_block_33(ctx);
   let if_block4 = (
     /*slotPlanPath*/
-    ctx[265] && create_if_block_32(ctx)
+    ctx[268] && create_if_block_32(ctx)
   );
   let if_block5 = (
     /*slotExternal*/
-    ctx[267] && !/*_isMobileApp*/
-    ctx[69] && create_if_block_31(ctx)
+    ctx[270] && !/*_isMobileApp*/
+    ctx[71] && create_if_block_31(ctx)
   );
   function dragstart_handler_1(...args) {
     return (
       /*dragstart_handler_1*/
-      ctx[131](
+      ctx[133](
         /*slot*/
-        ctx[217],
+        ctx[220],
         ...args
       )
     );
@@ -21120,13 +21135,13 @@ function create_if_block_30(ctx) {
   function click_handler_17(...args) {
     return (
       /*click_handler_17*/
-      ctx[132](
+      ctx[134](
         /*dayDate*/
-        ctx[208],
+        ctx[211],
         /*period*/
-        ctx[197],
+        ctx[200],
         /*slot*/
-        ctx[217],
+        ctx[220],
         ...args
       )
     );
@@ -21154,33 +21169,39 @@ function create_if_block_30(ctx) {
       if (if_block4) if_block4.c();
       t8 = space();
       if (if_block5) if_block5.c();
-      attr(span0, "class", "tp-chip-period-time svelte-1eco7z1");
-      attr(span1, "class", "tp-chip-code svelte-1eco7z1");
-      attr(div0, "class", "tp-chip-body svelte-1eco7z1");
-      attr(div1, "class", "tp-chip-marks svelte-1eco7z1");
-      attr(div2, "class", "tp-chip-footer svelte-1eco7z1");
-      attr(div3, "class", "tp-chip svelte-1eco7z1");
+      attr(span0, "class", "tp-chip-period-time svelte-1vuxfjd");
+      attr(span1, "class", "tp-chip-code svelte-1vuxfjd");
+      attr(div0, "class", "tp-chip-body svelte-1vuxfjd");
+      attr(div1, "class", "tp-chip-marks svelte-1vuxfjd");
+      attr(div2, "class", "tp-chip-footer svelte-1vuxfjd");
+      attr(div3, "class", "tp-chip svelte-1vuxfjd");
       attr(div3, "draggable", "true");
       attr(div3, "role", "button");
       attr(div3, "tabindex", div3_tabindex_value = /*gridFocusKey*/
-      ctx[12] === `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:slot` ? 0 : -1);
+      ctx[13] === `${/*day*/
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:slot` ? 0 : -1);
       attr(div3, "data-gridkey", div3_data_gridkey_value = `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:slot`);
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:slot`);
+      set_style(div3, "--chip-fg", chipFg(
+        /*lbl*/
+        ctx[262].colour,
+        /*_themeBg*/
+        ctx[28]
+      ));
       set_style(div3, "--ctint", hexToRgba4(
         /*lbl*/
-        ctx[259].colour,
+        ctx[262].colour,
         0.22
       ));
       set_style(div3, "background", hexToRgba4(
         /*lbl*/
-        ctx[259].colour,
+        ctx[262].colour,
         0.22
       ));
       set_style(div3, "border-left", "3px solid " + /*lbl*/
-      ctx[259].colour);
+      ctx[262].colour);
     },
     m(target, anchor) {
       insert(target, div3, anchor);
@@ -21211,14 +21232,14 @@ function create_if_block_30(ctx) {
             div3,
             "dragend",
             /*onDragEnd*/
-            ctx[56]
+            ctx[58]
           ),
           listen(div3, "click", click_handler_17),
           listen(
             div3,
             "keydown",
             /*onCellKeydown*/
-            ctx[50]
+            ctx[52]
           )
         ];
         mounted = true;
@@ -21227,23 +21248,23 @@ function create_if_block_30(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
-      1245445 && t0_value !== (t0_value = /*_partial*/
-      ctx[232] ? `${minutesToTime(
+      2490889 && t0_value !== (t0_value = /*_partial*/
+      ctx[235] ? `${minutesToTime(
         /*_soleStartMin*/
-        ctx[229]
+        ctx[232]
       )}\u2013${/*_occEnd*/
-      ctx[234]} \xB7 ${/*_occMins*/
-      ctx[226]} min` : `${/*period*/
-      ctx[197].name} \xB7 ${/*period*/
-      ctx[197].start}\u2013${/*period*/
-      ctx[197].end}`)) set_data(t0, t0_value);
+      ctx[237]} \xB7 ${/*_occMins*/
+      ctx[229]} min` : `${/*period*/
+      ctx[200].name} \xB7 ${/*period*/
+      ctx[200].start}\u2013${/*period*/
+      ctx[200].end}`)) set_data(t0, t0_value);
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653 && t2_value !== (t2_value = /*lbl*/
-      ctx[259].code + "")) set_data(t2, t2_value);
+      2359305 && t2_value !== (t2_value = /*lbl*/
+      ctx[262].code + "")) set_data(t2, t2_value);
       if (
         /*lbl*/
-        ctx[259].year || /*lbl*/
-        ctx[259].subjectName
+        ctx[262].year || /*lbl*/
+        ctx[262].subjectName
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -21257,14 +21278,14 @@ function create_if_block_30(ctx) {
         if_block0 = null;
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653) show_if_2 = /*effNote*/
-      ctx[47](
+      2359305) show_if_2 = /*effNote*/
+      ctx[49](
         /*slot*/
-        ctx[217].id,
+        ctx[220].id,
         /*dayDate*/
-        ctx[208],
+        ctx[211],
         /*lbl*/
-        ctx[259].notes
+        ctx[262].notes
       );
       if (show_if_2) {
         if (if_block1) {
@@ -21279,14 +21300,14 @@ function create_if_block_30(ctx) {
         if_block1 = null;
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653) show_if_1 = /*effRoom*/
-      ctx[48](
+      2359305) show_if_1 = /*effRoom*/
+      ctx[50](
         /*slot*/
-        ctx[217].id,
+        ctx[220].id,
         /*dayDate*/
-        ctx[208],
+        ctx[211],
         /*lbl*/
-        ctx[259].classroom
+        ctx[262].classroom
       );
       if (show_if_1) {
         if (if_block2) {
@@ -21301,12 +21322,12 @@ function create_if_block_30(ctx) {
         if_block2 = null;
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653 | dirty[1] & /*_showPrepared*/
-      16) show_if = /*_showPrepared*/
-      ctx[35] && /*isClassId*/
-      ctx[74](
+      2359305 | dirty[1] & /*_showPrepared*/
+      64) show_if = /*_showPrepared*/
+      ctx[37] && /*isClassId*/
+      ctx[76](
         /*slot*/
-        ctx[217].classId
+        ctx[220].classId
       );
       if (show_if) {
         if (if_block3) {
@@ -21322,7 +21343,7 @@ function create_if_block_30(ctx) {
       }
       if (
         /*slotPlanPath*/
-        ctx[265]
+        ctx[268]
       ) {
         if (if_block4) {
           if_block4.p(ctx, dirty);
@@ -21337,8 +21358,8 @@ function create_if_block_30(ctx) {
       }
       if (
         /*slotExternal*/
-        ctx[267] && !/*_isMobileApp*/
-        ctx[69]
+        ctx[270] && !/*_isMobileApp*/
+        ctx[71]
       ) {
         if (if_block5) {
           if_block5.p(ctx, dirty);
@@ -21352,38 +21373,47 @@ function create_if_block_30(ctx) {
         if_block5 = null;
       }
       if (dirty[0] & /*gridFocusKey, renderDays, plugin*/
-      1052673 && div3_tabindex_value !== (div3_tabindex_value = /*gridFocusKey*/
-      ctx[12] === `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:slot` ? 0 : -1)) {
+      2105345 && div3_tabindex_value !== (div3_tabindex_value = /*gridFocusKey*/
+      ctx[13] === `${/*day*/
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:slot` ? 0 : -1)) {
         attr(div3, "tabindex", div3_tabindex_value);
       }
       if (dirty[0] & /*renderDays, plugin*/
-      1048577 && div3_data_gridkey_value !== (div3_data_gridkey_value = `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:slot`)) {
+      2097153 && div3_data_gridkey_value !== (div3_data_gridkey_value = `${/*day*/
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:slot`)) {
         attr(div3, "data-gridkey", div3_data_gridkey_value);
       }
+      if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _themeBg*/
+      270794761) {
+        set_style(div3, "--chip-fg", chipFg(
+          /*lbl*/
+          ctx[262].colour,
+          /*_themeBg*/
+          ctx[28]
+        ));
+      }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653) {
+      2359305) {
         set_style(div3, "--ctint", hexToRgba4(
           /*lbl*/
-          ctx[259].colour,
+          ctx[262].colour,
           0.22
         ));
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653) {
+      2359305) {
         set_style(div3, "background", hexToRgba4(
           /*lbl*/
-          ctx[259].colour,
+          ctx[262].colour,
           0.22
         ));
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653) {
+      2359305) {
         set_style(div3, "border-left", "3px solid " + /*lbl*/
-        ctx[259].colour);
+        ctx[262].colour);
       }
     },
     d(detaching) {
@@ -21405,16 +21435,16 @@ function create_if_block_36(ctx) {
   let span;
   let t_value = [
     /*lbl*/
-    ctx[259].year,
+    ctx[262].year,
     /*lbl*/
-    ctx[259].subjectName
+    ctx[262].subjectName
   ].filter(Boolean).join(" \xB7 ") + "";
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-1eco7z1");
+      attr(span, "class", "tp-chip-meta svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21422,11 +21452,11 @@ function create_if_block_36(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653 && t_value !== (t_value = [
+      2359305 && t_value !== (t_value = [
         /*lbl*/
-        ctx2[259].year,
+        ctx2[262].year,
         /*lbl*/
-        ctx2[259].subjectName
+        ctx2[262].subjectName
       ].filter(Boolean).join(" \xB7 ") + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -21440,13 +21470,13 @@ function create_if_block_35(ctx) {
   let span;
   let t_value = (
     /*effNote*/
-    ctx[47](
+    ctx[49](
       /*slot*/
-      ctx[217].id,
+      ctx[220].id,
       /*dayDate*/
-      ctx[208],
+      ctx[211],
       /*lbl*/
-      ctx[259].notes
+      ctx[262].notes
     ) + ""
   );
   let t;
@@ -21454,7 +21484,7 @@ function create_if_block_35(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-1eco7z1");
+      attr(span, "class", "tp-chip-notes svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21462,14 +21492,14 @@ function create_if_block_35(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653 && t_value !== (t_value = /*effNote*/
-      ctx2[47](
+      2359305 && t_value !== (t_value = /*effNote*/
+      ctx2[49](
         /*slot*/
-        ctx2[217].id,
+        ctx2[220].id,
         /*dayDate*/
-        ctx2[208],
+        ctx2[211],
         /*lbl*/
-        ctx2[259].notes
+        ctx2[262].notes
       ) + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -21483,13 +21513,13 @@ function create_if_block_34(ctx) {
   let span;
   let t_value = (
     /*effRoom*/
-    ctx[48](
+    ctx[50](
       /*slot*/
-      ctx[217].id,
+      ctx[220].id,
       /*dayDate*/
-      ctx[208],
+      ctx[211],
       /*lbl*/
-      ctx[259].classroom
+      ctx[262].classroom
     ) + ""
   );
   let t;
@@ -21497,7 +21527,7 @@ function create_if_block_34(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-1eco7z1");
+      attr(span, "class", "tp-chip-room svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21505,14 +21535,14 @@ function create_if_block_34(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653 && t_value !== (t_value = /*effRoom*/
-      ctx2[48](
+      2359305 && t_value !== (t_value = /*effRoom*/
+      ctx2[50](
         /*slot*/
-        ctx2[217].id,
+        ctx2[220].id,
         /*dayDate*/
-        ctx2[208],
+        ctx2[211],
         /*lbl*/
-        ctx2[259].classroom
+        ctx2[262].classroom
       ) + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -21532,28 +21562,28 @@ function create_if_block_33(ctx) {
   function click_handler_14() {
     return (
       /*click_handler_14*/
-      ctx[128](
+      ctx[130](
         /*slot*/
-        ctx[217],
+        ctx[220],
         /*dayDate*/
-        ctx[208]
+        ctx[211]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-prep-tick svelte-1eco7z1");
+      attr(button, "class", "tp-prep-tick svelte-1vuxfjd");
       attr(button, "title", button_title_value = /*slotPrepared*/
-      ctx[266] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared");
+      ctx[269] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared");
       attr(button, "aria-label", "Toggle lesson prepared");
       attr(button, "aria-pressed", button_aria_pressed_value = /*slotPrepared*/
-      ctx[266]);
+      ctx[269]);
       toggle_class(
         button,
         "tp-prep-tick--on",
         /*slotPrepared*/
-        ctx[266]
+        ctx[269]
       );
     },
     m(target, anchor) {
@@ -21562,7 +21592,7 @@ function create_if_block_33(ctx) {
         dispose = [
           listen(button, "click", stop_propagation(click_handler_14)),
           action_destroyer(obsIcon_action = /*obsIcon*/
-          ctx[41].call(null, button, "check"))
+          ctx[43].call(null, button, "check"))
         ];
         mounted = true;
       }
@@ -21570,25 +21600,25 @@ function create_if_block_33(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653 | dirty[1] & /*_preparedSlotMap*/
-      4 && button_title_value !== (button_title_value = /*slotPrepared*/
-      ctx[266] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared")) {
+      2359305 | dirty[1] & /*_preparedSlotMap*/
+      16 && button_title_value !== (button_title_value = /*slotPrepared*/
+      ctx[269] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared")) {
         attr(button, "title", button_title_value);
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653 | dirty[1] & /*_preparedSlotMap*/
-      4 && button_aria_pressed_value !== (button_aria_pressed_value = /*slotPrepared*/
-      ctx[266])) {
+      2359305 | dirty[1] & /*_preparedSlotMap*/
+      16 && button_aria_pressed_value !== (button_aria_pressed_value = /*slotPrepared*/
+      ctx[269])) {
         attr(button, "aria-pressed", button_aria_pressed_value);
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653 | dirty[1] & /*_preparedSlotMap, isSlotExcluded*/
-      16388) {
+      2359305 | dirty[1] & /*_preparedSlotMap, isSlotExcluded*/
+      65552) {
         toggle_class(
           button,
           "tp-prep-tick--on",
           /*slotPrepared*/
-          ctx[266]
+          ctx[269]
         );
       }
     },
@@ -21609,16 +21639,16 @@ function create_if_block_32(ctx) {
   function click_handler_15() {
     return (
       /*click_handler_15*/
-      ctx[129](
+      ctx[131](
         /*slotPlanPath*/
-        ctx[265]
+        ctx[268]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-1eco7z1");
+      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-1vuxfjd");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -21628,7 +21658,7 @@ function create_if_block_32(ctx) {
         dispose = [
           listen(button, "click", stop_propagation(click_handler_15)),
           action_destroyer(obsIcon_action = /*obsIcon*/
-          ctx[41].call(null, button, "file-text"))
+          ctx[43].call(null, button, "file-text"))
         ];
         mounted = true;
       }
@@ -21654,18 +21684,18 @@ function create_if_block_31(ctx) {
   function click_handler_16() {
     return (
       /*click_handler_16*/
-      ctx[130](
+      ctx[132](
         /*slotExternal*/
-        ctx[267]
+        ctx[270]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-ext-mark svelte-1eco7z1");
+      attr(button, "class", "tp-ext-mark svelte-1vuxfjd");
       attr(button, "title", button_title_value = /*slotExternal*/
-      ctx[267].kind === "folder" ? "Open external folder" : "Open external file");
+      ctx[270].kind === "folder" ? "Open external folder" : "Open external file");
       attr(button, "aria-label", "Open external resource");
     },
     m(target, anchor) {
@@ -21674,11 +21704,11 @@ function create_if_block_31(ctx) {
         dispose = [
           listen(button, "click", stop_propagation(click_handler_16)),
           action_destroyer(obsIcon_action = /*obsIcon*/
-          ctx[41].call(
+          ctx[43].call(
             null,
             button,
             /*slotExternal*/
-            ctx[267].kind === "folder" ? "folder" : "paperclip"
+            ctx[270].kind === "folder" ? "folder" : "paperclip"
           ))
         ];
         mounted = true;
@@ -21687,17 +21717,17 @@ function create_if_block_31(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653 | dirty[1] & /*_slotExternalMap*/
-      1 && button_title_value !== (button_title_value = /*slotExternal*/
-      ctx[267].kind === "folder" ? "Open external folder" : "Open external file")) {
+      2359305 | dirty[1] & /*_slotExternalMap*/
+      4 && button_title_value !== (button_title_value = /*slotExternal*/
+      ctx[270].kind === "folder" ? "Open external folder" : "Open external file")) {
         attr(button, "title", button_title_value);
       }
       if (obsIcon_action && is_function(obsIcon_action.update) && dirty[0] & /*_slotMap, renderDays, plugin, currentMonday*/
-      1179653 | dirty[1] & /*_slotExternalMap*/
-      1) obsIcon_action.update.call(
+      2359305 | dirty[1] & /*_slotExternalMap*/
+      4) obsIcon_action.update.call(
         null,
         /*slotExternal*/
-        ctx[267].kind === "folder" ? "folder" : "paperclip"
+        ctx[270].kind === "folder" ? "folder" : "paperclip"
       );
     },
     d(detaching) {
@@ -21713,14 +21743,14 @@ function create_if_block_29(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[259].meta + ""
+    ctx[262].meta + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-1eco7z1");
+      attr(span, "class", "tp-chip-meta svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21728,8 +21758,8 @@ function create_if_block_29(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      1114113 && t_value !== (t_value = /*lbl*/
-      ctx2[259].meta + "")) set_data(t, t_value);
+      2228225 && t_value !== (t_value = /*lbl*/
+      ctx2[262].meta + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -21742,14 +21772,14 @@ function create_if_block_28(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[259].notes + ""
+    ctx[262].notes + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-1eco7z1");
+      attr(span, "class", "tp-chip-notes svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21757,8 +21787,8 @@ function create_if_block_28(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      1114113 && t_value !== (t_value = /*lbl*/
-      ctx2[259].notes + "")) set_data(t, t_value);
+      2228225 && t_value !== (t_value = /*lbl*/
+      ctx2[262].notes + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -21771,14 +21801,14 @@ function create_if_block_27(ctx) {
   let span;
   let t_value = (
     /*lbl*/
-    ctx[259].classroom + ""
+    ctx[262].classroom + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-1eco7z1");
+      attr(span, "class", "tp-chip-room svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21786,8 +21816,8 @@ function create_if_block_27(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      1114113 && t_value !== (t_value = /*lbl*/
-      ctx2[259].classroom + "")) set_data(t, t_value);
+      2228225 && t_value !== (t_value = /*lbl*/
+      ctx2[262].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -21806,26 +21836,26 @@ function create_if_block_262(ctx) {
   function click_handler_18() {
     return (
       /*click_handler_18*/
-      ctx[133](
+      ctx[135](
         /*devEv*/
-        ctx[258]
+        ctx[261]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-prep-tick svelte-1eco7z1");
+      attr(button, "class", "tp-prep-tick svelte-1vuxfjd");
       attr(button, "title", button_title_value = /*evPrepared*/
-      ctx[261] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared");
+      ctx[264] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared");
       attr(button, "aria-label", "Toggle lesson prepared");
       attr(button, "aria-pressed", button_aria_pressed_value = /*evPrepared*/
-      ctx[261]);
+      ctx[264]);
       toggle_class(
         button,
         "tp-prep-tick--on",
         /*evPrepared*/
-        ctx[261]
+        ctx[264]
       );
     },
     m(target, anchor) {
@@ -21834,7 +21864,7 @@ function create_if_block_262(ctx) {
         dispose = [
           listen(button, "click", stop_propagation(click_handler_18)),
           action_destroyer(obsIcon_action = /*obsIcon*/
-          ctx[41].call(null, button, "check"))
+          ctx[43].call(null, button, "check"))
         ];
         mounted = true;
       }
@@ -21842,25 +21872,25 @@ function create_if_block_262(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      1114113 | dirty[1] & /*_preparedEventMap*/
-      2 && button_title_value !== (button_title_value = /*evPrepared*/
-      ctx[261] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared")) {
+      2228225 | dirty[1] & /*_preparedEventMap*/
+      8 && button_title_value !== (button_title_value = /*evPrepared*/
+      ctx[264] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared")) {
         attr(button, "title", button_title_value);
       }
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      1114113 | dirty[1] & /*_preparedEventMap*/
-      2 && button_aria_pressed_value !== (button_aria_pressed_value = /*evPrepared*/
-      ctx[261])) {
+      2228225 | dirty[1] & /*_preparedEventMap*/
+      8 && button_aria_pressed_value !== (button_aria_pressed_value = /*evPrepared*/
+      ctx[264])) {
         attr(button, "aria-pressed", button_aria_pressed_value);
       }
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      1114113 | dirty[1] & /*_preparedEventMap*/
-      2) {
+      2228225 | dirty[1] & /*_preparedEventMap*/
+      8) {
         toggle_class(
           button,
           "tp-prep-tick--on",
           /*evPrepared*/
-          ctx[261]
+          ctx[264]
         );
       }
     },
@@ -21881,16 +21911,16 @@ function create_if_block_252(ctx) {
   function click_handler_19() {
     return (
       /*click_handler_19*/
-      ctx[134](
+      ctx[136](
         /*evPlanPath*/
-        ctx[260]
+        ctx[263]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-1eco7z1");
+      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-1vuxfjd");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -21900,7 +21930,7 @@ function create_if_block_252(ctx) {
         dispose = [
           listen(button, "click", stop_propagation(click_handler_19)),
           action_destroyer(obsIcon_action = /*obsIcon*/
-          ctx[41].call(null, button, "file-text"))
+          ctx[43].call(null, button, "file-text"))
         ];
         mounted = true;
       }
@@ -21926,18 +21956,18 @@ function create_if_block_242(ctx) {
   function click_handler_20() {
     return (
       /*click_handler_20*/
-      ctx[135](
+      ctx[137](
         /*evExternal*/
-        ctx[262]
+        ctx[265]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-ext-mark svelte-1eco7z1");
+      attr(button, "class", "tp-ext-mark svelte-1vuxfjd");
       attr(button, "title", button_title_value = /*evExternal*/
-      ctx[262].kind === "folder" ? "Open external folder" : "Open external file");
+      ctx[265].kind === "folder" ? "Open external folder" : "Open external file");
       attr(button, "aria-label", "Open external resource");
     },
     m(target, anchor) {
@@ -21946,11 +21976,11 @@ function create_if_block_242(ctx) {
         dispose = [
           listen(button, "click", stop_propagation(click_handler_20)),
           action_destroyer(obsIcon_action = /*obsIcon*/
-          ctx[41].call(
+          ctx[43].call(
             null,
             button,
             /*evExternal*/
-            ctx[262].kind === "folder" ? "folder" : "paperclip"
+            ctx[265].kind === "folder" ? "folder" : "paperclip"
           ))
         ];
         mounted = true;
@@ -21958,16 +21988,18 @@ function create_if_block_242(ctx) {
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*_eventExternalMap, _dateEventMap, renderDays, plugin*/
-      1074855937 && button_title_value !== (button_title_value = /*evExternal*/
-      ctx[262].kind === "folder" ? "Open external folder" : "Open external file")) {
+      if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
+      2228225 | dirty[1] & /*_eventExternalMap*/
+      2 && button_title_value !== (button_title_value = /*evExternal*/
+      ctx[265].kind === "folder" ? "Open external folder" : "Open external file")) {
         attr(button, "title", button_title_value);
       }
-      if (obsIcon_action && is_function(obsIcon_action.update) && dirty[0] & /*_eventExternalMap, _dateEventMap, renderDays, plugin*/
-      1074855937) obsIcon_action.update.call(
+      if (obsIcon_action && is_function(obsIcon_action.update) && dirty[0] & /*_dateEventMap, renderDays, plugin*/
+      2228225 | dirty[1] & /*_eventExternalMap*/
+      2) obsIcon_action.update.call(
         null,
         /*evExternal*/
-        ctx[262].kind === "folder" ? "folder" : "paperclip"
+        ctx[265].kind === "folder" ? "folder" : "paperclip"
       );
     },
     d(detaching) {
@@ -21984,15 +22016,15 @@ function create_each_block_52(key_2, ctx) {
   let span0;
   let t0_value = (
     /*_partial*/
-    ctx[232] ? `${minutesToTime(
+    ctx[235] ? `${minutesToTime(
       /*_soleStartMin*/
-      ctx[229]
+      ctx[232]
     )}\u2013${/*_occEnd*/
-    ctx[234]} \xB7 ${/*_occMins*/
-    ctx[226]} min` : `${/*period*/
-    ctx[197].name} \xB7 ${/*period*/
-    ctx[197].start}\u2013${/*period*/
-    ctx[197].end}`
+    ctx[237]} \xB7 ${/*_occMins*/
+    ctx[229]} min` : `${/*period*/
+    ctx[200].name} \xB7 ${/*period*/
+    ctx[200].start}\u2013${/*period*/
+    ctx[200].end}`
   );
   let t0;
   let t1;
@@ -22000,7 +22032,7 @@ function create_each_block_52(key_2, ctx) {
   let span1;
   let t2_value = (
     /*lbl*/
-    ctx[259].code + ""
+    ctx[262].code + ""
   );
   let t2;
   let t3;
@@ -22011,13 +22043,13 @@ function create_each_block_52(key_2, ctx) {
   let div1;
   let show_if = (
     /*_showPrepared*/
-    ctx[35] && /*isClassId*/
-    (ctx[74](
+    ctx[37] && /*isClassId*/
+    (ctx[76](
       /*devEv*/
-      ctx[258].classId
+      ctx[261].classId
     ) || !!/*devEv*/
-    (ctx[258].title && /*devEv*/
-    ctx[258].title.trim()))
+    (ctx[261].title && /*devEv*/
+    ctx[261].title.trim()))
   );
   let t7;
   let t8;
@@ -22028,32 +22060,32 @@ function create_each_block_52(key_2, ctx) {
   let dispose;
   let if_block0 = (
     /*lbl*/
-    ctx[259].meta && create_if_block_29(ctx)
+    ctx[262].meta && create_if_block_29(ctx)
   );
   let if_block1 = (
     /*lbl*/
-    ctx[259].notes && create_if_block_28(ctx)
+    ctx[262].notes && create_if_block_28(ctx)
   );
   let if_block2 = (
     /*lbl*/
-    ctx[259].classroom && create_if_block_27(ctx)
+    ctx[262].classroom && create_if_block_27(ctx)
   );
   let if_block3 = show_if && create_if_block_262(ctx);
   let if_block4 = (
     /*evPlanPath*/
-    ctx[260] && create_if_block_252(ctx)
+    ctx[263] && create_if_block_252(ctx)
   );
   let if_block5 = (
     /*evExternal*/
-    ctx[262] && !/*_isMobileApp*/
-    ctx[69] && create_if_block_242(ctx)
+    ctx[265] && !/*_isMobileApp*/
+    ctx[71] && create_if_block_242(ctx)
   );
   function dragstart_handler_2(...args) {
     return (
       /*dragstart_handler_2*/
-      ctx[136](
+      ctx[138](
         /*devEv*/
-        ctx[258],
+        ctx[261],
         ...args
       )
     );
@@ -22061,13 +22093,13 @@ function create_each_block_52(key_2, ctx) {
   function click_handler_21(...args) {
     return (
       /*click_handler_21*/
-      ctx[137](
+      ctx[139](
         /*dayDate*/
-        ctx[208],
+        ctx[211],
         /*period*/
-        ctx[197],
+        ctx[200],
         /*devEv*/
-        ctx[258],
+        ctx[261],
         ...args
       )
     );
@@ -22098,33 +22130,39 @@ function create_each_block_52(key_2, ctx) {
       t8 = space();
       if (if_block5) if_block5.c();
       t9 = space();
-      attr(span0, "class", "tp-chip-period-time svelte-1eco7z1");
-      attr(span1, "class", "tp-chip-code svelte-1eco7z1");
-      attr(div0, "class", "tp-chip-body svelte-1eco7z1");
-      attr(div1, "class", "tp-chip-marks svelte-1eco7z1");
-      attr(div2, "class", "tp-chip-footer svelte-1eco7z1");
-      attr(div3, "class", "tp-chip tp-chip--event svelte-1eco7z1");
+      attr(span0, "class", "tp-chip-period-time svelte-1vuxfjd");
+      attr(span1, "class", "tp-chip-code svelte-1vuxfjd");
+      attr(div0, "class", "tp-chip-body svelte-1vuxfjd");
+      attr(div1, "class", "tp-chip-marks svelte-1vuxfjd");
+      attr(div2, "class", "tp-chip-footer svelte-1vuxfjd");
+      attr(div3, "class", "tp-chip tp-chip--event svelte-1vuxfjd");
       attr(div3, "role", "button");
       attr(div3, "tabindex", div3_tabindex_value = /*gridFocusKey*/
-      ctx[12] === `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:ev:${/*devEv*/
-      ctx[258].id}` ? 0 : -1);
+      ctx[13] === `${/*day*/
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:ev:${/*devEv*/
+      ctx[261].id}` ? 0 : -1);
       attr(div3, "data-gridkey", div3_data_gridkey_value = `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:ev:${/*devEv*/
-      ctx[258].id}`);
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:ev:${/*devEv*/
+      ctx[261].id}`);
       attr(div3, "draggable", "true");
+      set_style(div3, "--chip-fg", chipFg(
+        /*lbl*/
+        ctx[262].colour,
+        /*_themeBg*/
+        ctx[28]
+      ));
       set_style(div3, "--ctint", hexToRgba4(
         /*lbl*/
-        ctx[259].colour,
+        ctx[262].colour,
         0.22
       ));
       set_style(div3, "border-left", "3px solid " + /*lbl*/
-      ctx[259].colour);
+      ctx[262].colour);
       set_style(div3, "background", hexToRgba4(
         /*lbl*/
-        ctx[259].colour,
+        ctx[262].colour,
         0.22
       ));
       this.first = div3;
@@ -22159,14 +22197,14 @@ function create_each_block_52(key_2, ctx) {
             div3,
             "dragend",
             /*onDragEnd*/
-            ctx[56]
+            ctx[58]
           ),
           listen(div3, "click", click_handler_21),
           listen(
             div3,
             "keydown",
             /*onCellKeydown*/
-            ctx[50]
+            ctx[52]
           )
         ];
         mounted = true;
@@ -22175,22 +22213,22 @@ function create_each_block_52(key_2, ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
-      1245445 && t0_value !== (t0_value = /*_partial*/
-      ctx[232] ? `${minutesToTime(
+      2490889 && t0_value !== (t0_value = /*_partial*/
+      ctx[235] ? `${minutesToTime(
         /*_soleStartMin*/
-        ctx[229]
+        ctx[232]
       )}\u2013${/*_occEnd*/
-      ctx[234]} \xB7 ${/*_occMins*/
-      ctx[226]} min` : `${/*period*/
-      ctx[197].name} \xB7 ${/*period*/
-      ctx[197].start}\u2013${/*period*/
-      ctx[197].end}`)) set_data(t0, t0_value);
+      ctx[237]} \xB7 ${/*_occMins*/
+      ctx[229]} min` : `${/*period*/
+      ctx[200].name} \xB7 ${/*period*/
+      ctx[200].start}\u2013${/*period*/
+      ctx[200].end}`)) set_data(t0, t0_value);
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      1114113 && t2_value !== (t2_value = /*lbl*/
-      ctx[259].code + "")) set_data(t2, t2_value);
+      2228225 && t2_value !== (t2_value = /*lbl*/
+      ctx[262].code + "")) set_data(t2, t2_value);
       if (
         /*lbl*/
-        ctx[259].meta
+        ctx[262].meta
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -22205,7 +22243,7 @@ function create_each_block_52(key_2, ctx) {
       }
       if (
         /*lbl*/
-        ctx[259].notes
+        ctx[262].notes
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -22220,7 +22258,7 @@ function create_each_block_52(key_2, ctx) {
       }
       if (
         /*lbl*/
-        ctx[259].classroom
+        ctx[262].classroom
       ) {
         if (if_block2) {
           if_block2.p(ctx, dirty);
@@ -22234,15 +22272,15 @@ function create_each_block_52(key_2, ctx) {
         if_block2 = null;
       }
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      1114113 | dirty[1] & /*_showPrepared*/
-      16) show_if = /*_showPrepared*/
-      ctx[35] && /*isClassId*/
-      (ctx[74](
+      2228225 | dirty[1] & /*_showPrepared*/
+      64) show_if = /*_showPrepared*/
+      ctx[37] && /*isClassId*/
+      (ctx[76](
         /*devEv*/
-        ctx[258].classId
+        ctx[261].classId
       ) || !!/*devEv*/
-      (ctx[258].title && /*devEv*/
-      ctx[258].title.trim()));
+      (ctx[261].title && /*devEv*/
+      ctx[261].title.trim()));
       if (show_if) {
         if (if_block3) {
           if_block3.p(ctx, dirty);
@@ -22257,7 +22295,7 @@ function create_each_block_52(key_2, ctx) {
       }
       if (
         /*evPlanPath*/
-        ctx[260]
+        ctx[263]
       ) {
         if (if_block4) {
           if_block4.p(ctx, dirty);
@@ -22272,8 +22310,8 @@ function create_each_block_52(key_2, ctx) {
       }
       if (
         /*evExternal*/
-        ctx[262] && !/*_isMobileApp*/
-        ctx[69]
+        ctx[265] && !/*_isMobileApp*/
+        ctx[71]
       ) {
         if (if_block5) {
           if_block5.p(ctx, dirty);
@@ -22287,38 +22325,47 @@ function create_each_block_52(key_2, ctx) {
         if_block5 = null;
       }
       if (dirty[0] & /*gridFocusKey, renderDays, plugin, _dateEventMap*/
-      1118209 && div3_tabindex_value !== (div3_tabindex_value = /*gridFocusKey*/
-      ctx[12] === `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:ev:${/*devEv*/
-      ctx[258].id}` ? 0 : -1)) {
+      2236417 && div3_tabindex_value !== (div3_tabindex_value = /*gridFocusKey*/
+      ctx[13] === `${/*day*/
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:ev:${/*devEv*/
+      ctx[261].id}` ? 0 : -1)) {
         attr(div3, "tabindex", div3_tabindex_value);
       }
       if (dirty[0] & /*renderDays, plugin, _dateEventMap*/
-      1114113 && div3_data_gridkey_value !== (div3_data_gridkey_value = `${/*day*/
-      ctx[192].key}:${/*period*/
-      ctx[197].id}:ev:${/*devEv*/
-      ctx[258].id}`)) {
+      2228225 && div3_data_gridkey_value !== (div3_data_gridkey_value = `${/*day*/
+      ctx[195].key}:${/*period*/
+      ctx[200].id}:ev:${/*devEv*/
+      ctx[261].id}`)) {
         attr(div3, "data-gridkey", div3_data_gridkey_value);
       }
+      if (dirty[0] & /*_dateEventMap, renderDays, plugin, _themeBg*/
+      270663681) {
+        set_style(div3, "--chip-fg", chipFg(
+          /*lbl*/
+          ctx[262].colour,
+          /*_themeBg*/
+          ctx[28]
+        ));
+      }
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      1114113) {
+      2228225) {
         set_style(div3, "--ctint", hexToRgba4(
           /*lbl*/
-          ctx[259].colour,
+          ctx[262].colour,
           0.22
         ));
       }
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      1114113) {
+      2228225) {
         set_style(div3, "border-left", "3px solid " + /*lbl*/
-        ctx[259].colour);
+        ctx[262].colour);
       }
       if (dirty[0] & /*_dateEventMap, renderDays, plugin*/
-      1114113) {
+      2228225) {
         set_style(div3, "background", hexToRgba4(
           /*lbl*/
-          ctx[259].colour,
+          ctx[262].colour,
           0.22
         ));
       }
@@ -22343,7 +22390,7 @@ function create_if_block_202(ctx) {
   let div;
   let t1_value = (
     /*_occMins*/
-    ctx[226] + ""
+    ctx[229] + ""
   );
   let t1;
   let t2;
@@ -22351,12 +22398,12 @@ function create_if_block_202(ctx) {
   let if_block1_anchor;
   let if_block0 = (
     /*_leadMins*/
-    ctx[230] > 0 && create_if_block_222(ctx)
+    ctx[233] > 0 && create_if_block_222(ctx)
   );
   let if_block1 = (
     /*_occEndMin*/
-    ctx[233] < /*_blockEndMin*/
-    ctx[228] && create_if_block_212(ctx)
+    ctx[236] < /*_blockEndMin*/
+    ctx[231] && create_if_block_212(ctx)
   );
   return {
     c() {
@@ -22368,7 +22415,7 @@ function create_if_block_202(ctx) {
       t3 = space();
       if (if_block1) if_block1.c();
       if_block1_anchor = empty();
-      attr(div, "class", "tp-block-durbadge svelte-1eco7z1");
+      attr(div, "class", "tp-block-durbadge svelte-1vuxfjd");
     },
     m(target, anchor) {
       if (if_block0) if_block0.m(target, anchor);
@@ -22383,7 +22430,7 @@ function create_if_block_202(ctx) {
     p(ctx2, dirty) {
       if (
         /*_leadMins*/
-        ctx2[230] > 0
+        ctx2[233] > 0
       ) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
@@ -22397,12 +22444,12 @@ function create_if_block_202(ctx) {
         if_block0 = null;
       }
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap*/
-      1245189 && t1_value !== (t1_value = /*_occMins*/
-      ctx2[226] + "")) set_data(t1, t1_value);
+      2490377 && t1_value !== (t1_value = /*_occMins*/
+      ctx2[229] + "")) set_data(t1, t1_value);
       if (
         /*_occEndMin*/
-        ctx2[233] < /*_blockEndMin*/
-        ctx2[228]
+        ctx2[236] < /*_blockEndMin*/
+        ctx2[231]
       ) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
@@ -22432,13 +22479,13 @@ function create_if_block_222(ctx) {
   let div;
   let t0_value = (
     /*period*/
-    ctx[197].start + ""
+    ctx[200].start + ""
   );
   let t0;
   let t1;
   let t2_value = minutesToTime(
     /*_soleStartMin*/
-    ctx[229]
+    ctx[232]
   ) + "";
   let t2;
   return {
@@ -22447,12 +22494,12 @@ function create_if_block_222(ctx) {
       t0 = text(t0_value);
       t1 = text("\u2013");
       t2 = text(t2_value);
-      attr(div, "class", "tp-block-free tp-block-free--lead svelte-1eco7z1");
+      attr(div, "class", "tp-block-free tp-block-free--lead svelte-1vuxfjd");
       set_style(
         div,
         "height",
         /*_stackTop*/
-        ctx[237] + "px"
+        ctx[240] + "px"
       );
     },
     m(target, anchor) {
@@ -22463,20 +22510,20 @@ function create_if_block_222(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*plugin, renderDays*/
-      1048577 && t0_value !== (t0_value = /*period*/
-      ctx2[197].start + "")) set_data(t0, t0_value);
+      2097153 && t0_value !== (t0_value = /*period*/
+      ctx2[200].start + "")) set_data(t0, t0_value);
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap*/
-      1245189 && t2_value !== (t2_value = minutesToTime(
+      2490377 && t2_value !== (t2_value = minutesToTime(
         /*_soleStartMin*/
-        ctx2[229]
+        ctx2[232]
       ) + "")) set_data(t2, t2_value);
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
-      1245445) {
+      2490889) {
         set_style(
           div,
           "height",
           /*_stackTop*/
-          ctx2[237] + "px"
+          ctx2[240] + "px"
         );
       }
     },
@@ -22491,13 +22538,13 @@ function create_if_block_212(ctx) {
   let div;
   let t0_value = (
     /*_occEnd*/
-    ctx[234] + ""
+    ctx[237] + ""
   );
   let t0;
   let t1;
   let t2_value = (
     /*period*/
-    ctx[197].end + ""
+    ctx[200].end + ""
   );
   let t2;
   return {
@@ -22506,10 +22553,10 @@ function create_if_block_212(ctx) {
       t0 = text(t0_value);
       t1 = text("\u2013");
       t2 = text(t2_value);
-      attr(div, "class", "tp-block-free svelte-1eco7z1");
+      attr(div, "class", "tp-block-free svelte-1vuxfjd");
       set_style(div, "top", 3 + /*_stackTop*/
-      ctx[237] + /*_stackH*/
-      ctx[236] + "px");
+      ctx[240] + /*_stackH*/
+      ctx[239] + "px");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -22519,16 +22566,16 @@ function create_if_block_212(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap*/
-      1245189 && t0_value !== (t0_value = /*_occEnd*/
-      ctx2[234] + "")) set_data(t0, t0_value);
+      2490377 && t0_value !== (t0_value = /*_occEnd*/
+      ctx2[237] + "")) set_data(t0, t0_value);
       if (dirty[0] & /*plugin, renderDays*/
-      1048577 && t2_value !== (t2_value = /*period*/
-      ctx2[197].end + "")) set_data(t2, t2_value);
+      2097153 && t2_value !== (t2_value = /*period*/
+      ctx2[200].end + "")) set_data(t2, t2_value);
       if (dirty[0] & /*_slotMap, renderDays, plugin, currentMonday, _dateEventMap, PX_PER_MIN*/
-      1245445) {
+      2490889) {
         set_style(div, "top", 3 + /*_stackTop*/
-        ctx2[237] + /*_stackH*/
-        ctx2[236] + "px");
+        ctx2[240] + /*_stackH*/
+        ctx2[239] + "px");
       }
     },
     d(detaching) {
@@ -22542,13 +22589,13 @@ function create_if_block_182(ctx) {
   let div;
   let t0_value = (
     /*_first*/
-    ctx[242].start + ""
+    ctx[245].start + ""
   );
   let t0;
   let t1;
   let t2_value = minutesToTime(
     /*_mStartMin*/
-    ctx[247]
+    ctx[250]
   ) + "";
   let t2;
   return {
@@ -22557,21 +22604,21 @@ function create_if_block_182(ctx) {
       t0 = text(t0_value);
       t1 = text("\u2013");
       t2 = text(t2_value);
-      attr(div, "class", "tp-merged-gap svelte-1eco7z1");
+      attr(div, "class", "tp-merged-gap svelte-1vuxfjd");
       set_style(
         div,
         "top",
         /*_mFirstStartMin*/
-        (ctx[245] - /*_axis*/
-        ctx[9].start) * /*PX_PER_MIN*/
-        ctx[8] + "px"
+        (ctx[248] - /*_axis*/
+        ctx[10].start) * /*PX_PER_MIN*/
+        ctx[9] + "px"
       );
       set_style(
         div,
         "height",
         /*_mLeadMins*/
-        ctx[251] * /*PX_PER_MIN*/
-        ctx[8] + "px"
+        ctx[254] * /*PX_PER_MIN*/
+        ctx[9] + "px"
       );
     },
     m(target, anchor) {
@@ -22582,32 +22629,32 @@ function create_if_block_182(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 && t0_value !== (t0_value = /*_first*/
-      ctx2[242].start + "")) set_data(t0, t0_value);
+      2097161 && t0_value !== (t0_value = /*_first*/
+      ctx2[245].start + "")) set_data(t0, t0_value);
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 && t2_value !== (t2_value = minutesToTime(
+      2097161 && t2_value !== (t2_value = minutesToTime(
         /*_mStartMin*/
-        ctx2[247]
+        ctx2[250]
       ) + "")) set_data(t2, t2_value);
       if (dirty[0] & /*renderDays, currentMonday, plugin, _axis, PX_PER_MIN*/
-      1049349) {
+      2098697) {
         set_style(
           div,
           "top",
           /*_mFirstStartMin*/
-          (ctx2[245] - /*_axis*/
-          ctx2[9].start) * /*PX_PER_MIN*/
-          ctx2[8] + "px"
+          (ctx2[248] - /*_axis*/
+          ctx2[10].start) * /*PX_PER_MIN*/
+          ctx2[9] + "px"
         );
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin, PX_PER_MIN*/
-      1048837) {
+      2097673) {
         set_style(
           div,
           "height",
           /*_mLeadMins*/
-          ctx2[251] * /*PX_PER_MIN*/
-          ctx2[8] + "px"
+          ctx2[254] * /*PX_PER_MIN*/
+          ctx2[9] + "px"
         );
       }
     },
@@ -22622,14 +22669,14 @@ function create_if_block_172(ctx) {
   let span;
   let t_value = (
     /*_mlbl*/
-    ctx[253].notes + ""
+    ctx[256].notes + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-1eco7z1");
+      attr(span, "class", "tp-chip-notes svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -22637,8 +22684,8 @@ function create_if_block_172(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 && t_value !== (t_value = /*_mlbl*/
-      ctx2[253].notes + "")) set_data(t, t_value);
+      2097161 && t_value !== (t_value = /*_mlbl*/
+      ctx2[256].notes + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -22651,14 +22698,14 @@ function create_if_block_162(ctx) {
   let span;
   let t_value = (
     /*_mlbl*/
-    ctx[253].classroom + ""
+    ctx[256].classroom + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-1eco7z1");
+      attr(span, "class", "tp-chip-room svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -22666,8 +22713,8 @@ function create_if_block_162(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 && t_value !== (t_value = /*_mlbl*/
-      ctx2[253].classroom + "")) set_data(t, t_value);
+      2097161 && t_value !== (t_value = /*_mlbl*/
+      ctx2[256].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -22686,26 +22733,26 @@ function create_if_block_152(ctx) {
   function click_handler_10() {
     return (
       /*click_handler_10*/
-      ctx[123](
+      ctx[125](
         /*_mev*/
-        ctx[241]
+        ctx[244]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-prep-tick svelte-1eco7z1");
+      attr(button, "class", "tp-prep-tick svelte-1vuxfjd");
       attr(button, "title", button_title_value = /*_mPrep*/
-      ctx[255] ? "Marked prepared \u2014 click to clear" : "Mark prepared");
+      ctx[258] ? "Marked prepared \u2014 click to clear" : "Mark prepared");
       attr(button, "aria-label", "Toggle prepared");
       attr(button, "aria-pressed", button_aria_pressed_value = /*_mPrep*/
-      ctx[255]);
+      ctx[258]);
       toggle_class(
         button,
         "tp-prep-tick--on",
         /*_mPrep*/
-        ctx[255]
+        ctx[258]
       );
     },
     m(target, anchor) {
@@ -22714,7 +22761,7 @@ function create_if_block_152(ctx) {
         dispose = [
           listen(button, "click", stop_propagation(click_handler_10)),
           action_destroyer(obsIcon_action = /*obsIcon*/
-          ctx[41].call(null, button, "check"))
+          ctx[43].call(null, button, "check"))
         ];
         mounted = true;
       }
@@ -22722,25 +22769,25 @@ function create_if_block_152(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 | dirty[1] & /*_preparedEventMap*/
-      2 && button_title_value !== (button_title_value = /*_mPrep*/
-      ctx[255] ? "Marked prepared \u2014 click to clear" : "Mark prepared")) {
+      2097161 | dirty[1] & /*_preparedEventMap*/
+      8 && button_title_value !== (button_title_value = /*_mPrep*/
+      ctx[258] ? "Marked prepared \u2014 click to clear" : "Mark prepared")) {
         attr(button, "title", button_title_value);
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 | dirty[1] & /*_preparedEventMap*/
-      2 && button_aria_pressed_value !== (button_aria_pressed_value = /*_mPrep*/
-      ctx[255])) {
+      2097161 | dirty[1] & /*_preparedEventMap*/
+      8 && button_aria_pressed_value !== (button_aria_pressed_value = /*_mPrep*/
+      ctx[258])) {
         attr(button, "aria-pressed", button_aria_pressed_value);
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 | dirty[1] & /*_preparedEventMap, computeMerges*/
-      2050) {
+      2097161 | dirty[1] & /*_preparedEventMap, computeMerges*/
+      8200) {
         toggle_class(
           button,
           "tp-prep-tick--on",
           /*_mPrep*/
-          ctx[255]
+          ctx[258]
         );
       }
     },
@@ -22761,16 +22808,16 @@ function create_if_block_142(ctx) {
   function click_handler_11() {
     return (
       /*click_handler_11*/
-      ctx[124](
+      ctx[126](
         /*_mPlan*/
-        ctx[254]
+        ctx[257]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-1eco7z1");
+      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-1vuxfjd");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -22780,7 +22827,7 @@ function create_if_block_142(ctx) {
         dispose = [
           listen(button, "click", stop_propagation(click_handler_11)),
           action_destroyer(obsIcon_action = /*obsIcon*/
-          ctx[41].call(null, button, "file-text"))
+          ctx[43].call(null, button, "file-text"))
         ];
         mounted = true;
       }
@@ -22806,18 +22853,18 @@ function create_if_block_132(ctx) {
   function click_handler_12() {
     return (
       /*click_handler_12*/
-      ctx[125](
+      ctx[127](
         /*_mExt*/
-        ctx[256]
+        ctx[259]
       )
     );
   }
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-ext-mark svelte-1eco7z1");
+      attr(button, "class", "tp-ext-mark svelte-1vuxfjd");
       attr(button, "title", button_title_value = /*_mExt*/
-      ctx[256].kind === "folder" ? "Open external folder" : "Open external file");
+      ctx[259].kind === "folder" ? "Open external folder" : "Open external file");
       attr(button, "aria-label", "Open external resource");
     },
     m(target, anchor) {
@@ -22826,11 +22873,11 @@ function create_if_block_132(ctx) {
         dispose = [
           listen(button, "click", stop_propagation(click_handler_12)),
           action_destroyer(obsIcon_action = /*obsIcon*/
-          ctx[41].call(
+          ctx[43].call(
             null,
             button,
             /*_mExt*/
-            ctx[256].kind === "folder" ? "folder" : "paperclip"
+            ctx[259].kind === "folder" ? "folder" : "paperclip"
           ))
         ];
         mounted = true;
@@ -22838,16 +22885,18 @@ function create_if_block_132(ctx) {
     },
     p(new_ctx, dirty) {
       ctx = new_ctx;
-      if (dirty[0] & /*_eventExternalMap, renderDays, currentMonday, plugin*/
-      1074790405 && button_title_value !== (button_title_value = /*_mExt*/
-      ctx[256].kind === "folder" ? "Open external folder" : "Open external file")) {
+      if (dirty[0] & /*renderDays, currentMonday, plugin*/
+      2097161 | dirty[1] & /*_eventExternalMap*/
+      2 && button_title_value !== (button_title_value = /*_mExt*/
+      ctx[259].kind === "folder" ? "Open external folder" : "Open external file")) {
         attr(button, "title", button_title_value);
       }
-      if (obsIcon_action && is_function(obsIcon_action.update) && dirty[0] & /*_eventExternalMap, renderDays, currentMonday, plugin*/
-      1074790405) obsIcon_action.update.call(
+      if (obsIcon_action && is_function(obsIcon_action.update) && dirty[0] & /*renderDays, currentMonday, plugin*/
+      2097161 | dirty[1] & /*_eventExternalMap*/
+      2) obsIcon_action.update.call(
         null,
         /*_mExt*/
-        ctx[256].kind === "folder" ? "folder" : "paperclip"
+        ctx[259].kind === "folder" ? "folder" : "paperclip"
       );
     },
     d(detaching) {
@@ -22863,13 +22912,13 @@ function create_if_block_122(ctx) {
   let div;
   let t0_value = minutesToTime(
     /*_mEndMin*/
-    ctx[248]
+    ctx[251]
   ) + "";
   let t0;
   let t1;
   let t2_value = (
     /*_last*/
-    ctx[243].end + ""
+    ctx[246].end + ""
   );
   let t2;
   return {
@@ -22878,21 +22927,21 @@ function create_if_block_122(ctx) {
       t0 = text(t0_value);
       t1 = text("\u2013");
       t2 = text(t2_value);
-      attr(div, "class", "tp-merged-gap svelte-1eco7z1");
+      attr(div, "class", "tp-merged-gap svelte-1vuxfjd");
       set_style(
         div,
         "top",
         /*_mEndMin*/
-        (ctx[248] - /*_axis*/
-        ctx[9].start) * /*PX_PER_MIN*/
-        ctx[8] + "px"
+        (ctx[251] - /*_axis*/
+        ctx[10].start) * /*PX_PER_MIN*/
+        ctx[9] + "px"
       );
       set_style(
         div,
         "height",
         /*_mTrailMins*/
-        ctx[252] * /*PX_PER_MIN*/
-        ctx[8] + "px"
+        ctx[255] * /*PX_PER_MIN*/
+        ctx[9] + "px"
       );
     },
     m(target, anchor) {
@@ -22903,32 +22952,32 @@ function create_if_block_122(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 && t0_value !== (t0_value = minutesToTime(
+      2097161 && t0_value !== (t0_value = minutesToTime(
         /*_mEndMin*/
-        ctx2[248]
+        ctx2[251]
       ) + "")) set_data(t0, t0_value);
       if (dirty[0] & /*renderDays, currentMonday, plugin*/
-      1048581 && t2_value !== (t2_value = /*_last*/
-      ctx2[243].end + "")) set_data(t2, t2_value);
+      2097161 && t2_value !== (t2_value = /*_last*/
+      ctx2[246].end + "")) set_data(t2, t2_value);
       if (dirty[0] & /*renderDays, currentMonday, plugin, _axis, PX_PER_MIN*/
-      1049349) {
+      2098697) {
         set_style(
           div,
           "top",
           /*_mEndMin*/
-          (ctx2[248] - /*_axis*/
-          ctx2[9].start) * /*PX_PER_MIN*/
-          ctx2[8] + "px"
+          (ctx2[251] - /*_axis*/
+          ctx2[10].start) * /*PX_PER_MIN*/
+          ctx2[9] + "px"
         );
       }
       if (dirty[0] & /*renderDays, currentMonday, plugin, PX_PER_MIN*/
-      1048837) {
+      2097673) {
         set_style(
           div,
           "height",
           /*_mTrailMins*/
-          ctx2[252] * /*PX_PER_MIN*/
-          ctx2[8] + "px"
+          ctx2[255] * /*PX_PER_MIN*/
+          ctx2[9] + "px"
         );
       }
     },
@@ -22945,18 +22994,18 @@ function create_each_block_42(key_2, ctx) {
   let if_block_anchor;
   function select_block_type_5(ctx2, dirty) {
     if (dirty[0] & /*renderDays, currentMonday, plugin*/
-    1048581) show_if = null;
+    2097161) show_if = null;
     if (
       /*dayMerges*/
-      ctx2[212].starts[
+      ctx2[215].starts[
         /*period*/
-        ctx2[197].id
+        ctx2[200].id
       ]
     ) return create_if_block_112;
     if (show_if == null) show_if = !!/*dayMerges*/
-    ctx2[212].consumed.has(
+    ctx2[215].consumed.has(
       /*period*/
-      ctx2[197].id
+      ctx2[200].id
     );
     if (show_if) return create_if_block_192;
     return create_else_block_32;
@@ -22965,7 +23014,7 @@ function create_each_block_42(key_2, ctx) {
     if (type === create_if_block_112) return get_if_ctx_12(ctx2);
     return ctx2;
   }
-  let current_block_type = select_block_type_5(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
+  let current_block_type = select_block_type_5(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]);
   let if_block = current_block_type(select_block_ctx(ctx, current_block_type));
   return {
     key: key_2,
@@ -23009,7 +23058,7 @@ function create_each_block_32(ctx) {
   let t1;
   let each_value_6 = ensure_array_like(
     /*hourMarks*/
-    ctx[28]
+    ctx[30]
   );
   let each_blocks = [];
   for (let i = 0; i < each_value_6.length; i += 1) {
@@ -23018,7 +23067,7 @@ function create_each_block_32(ctx) {
   function select_block_type_4(ctx2, dirty) {
     if (
       /*dayOverride*/
-      ctx2[209]
+      ctx2[212]
     ) return create_if_block_102;
     return create_else_block_22;
   }
@@ -23026,7 +23075,7 @@ function create_each_block_32(ctx) {
     if (type === create_else_block_22) return get_else_ctx(ctx2);
     return ctx2;
   }
-  let current_block_type = select_block_type_4(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
+  let current_block_type = select_block_type_4(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]);
   let if_block = current_block_type(select_block_ctx(ctx, current_block_type));
   return {
     c() {
@@ -23037,24 +23086,24 @@ function create_each_block_32(ctx) {
       t0 = space();
       if_block.c();
       t1 = space();
-      attr(div, "class", "tp-axis-col svelte-1eco7z1");
+      attr(div, "class", "tp-axis-col svelte-1vuxfjd");
       set_style(
         div,
         "height",
         /*axisHeight*/
-        ctx[29] + "px"
+        ctx[31] + "px"
       );
       toggle_class(
         div,
         "tp-axis-col--holiday",
         /*dayOverride*/
-        ctx[209] === "holiday"
+        ctx[212] === "holiday"
       );
       toggle_class(
         div,
         "tp-axis-col--inset",
         /*dayOverride*/
-        ctx[209] === "inset"
+        ctx[212] === "inset"
       );
     },
     m(target, anchor) {
@@ -23070,10 +23119,10 @@ function create_each_block_32(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*hourMarks, _axis, PX_PER_MIN*/
-      268436224) {
+      1073743360) {
         each_value_6 = ensure_array_like(
           /*hourMarks*/
-          ctx2[28]
+          ctx2[30]
         );
         let i;
         for (i = 0; i < each_value_6.length; i += 1) {
@@ -23101,31 +23150,31 @@ function create_each_block_32(ctx) {
           if_block.m(div, t1);
         }
       }
-      if (dirty[0] & /*axisHeight*/
-      536870912) {
+      if (dirty[1] & /*axisHeight*/
+      1) {
         set_style(
           div,
           "height",
           /*axisHeight*/
-          ctx2[29] + "px"
+          ctx2[31] + "px"
         );
       }
       if (dirty[0] & /*dayOverrideMap, renderDays*/
-      68157440) {
+      136314880) {
         toggle_class(
           div,
           "tp-axis-col--holiday",
           /*dayOverride*/
-          ctx2[209] === "holiday"
+          ctx2[212] === "holiday"
         );
       }
       if (dirty[0] & /*dayOverrideMap, renderDays*/
-      68157440) {
+      136314880) {
         toggle_class(
           div,
           "tp-axis-col--inset",
           /*dayOverride*/
-          ctx2[209] === "inset"
+          ctx2[212] === "inset"
         );
       }
     },
@@ -23144,7 +23193,7 @@ function create_if_block_92(ctx) {
     c() {
       span = element("span");
       span.textContent = "INSET";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-1eco7z1");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -23162,7 +23211,7 @@ function create_if_block_82(ctx) {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-1eco7z1");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -23179,20 +23228,20 @@ function create_else_block2(ctx) {
   let each_1_lookup = /* @__PURE__ */ new Map();
   let t;
   let show_if = !/*dayHasItems*/
-  ctx[72](
+  ctx[74](
     /*day*/
-    ctx[192]
+    ctx[195]
   );
   let if_block_anchor;
   let each_value_1 = ensure_array_like(getPeriodsForDay(
     /*plugin*/
     ctx[0].settings.academicYear,
     /*day*/
-    ctx[192].key
+    ctx[195].key
   ));
   const get_key = (ctx2) => (
     /*period*/
-    ctx2[197].id
+    ctx2[200].id
   );
   for (let i = 0; i < each_value_1.length; i += 1) {
     let child_ctx = get_each_context_13(ctx, each_value_1, i);
@@ -23221,22 +23270,22 @@ function create_else_block2(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_dateEventMap, DAYS, plugin, currentMonday, _slotMap*/
-      196621 | dirty[1] & /*getDateEventLabel, openChipMenu, getSlotLabel, isSlotExcluded, effRoom*/
-      67551232 | dirty[2] & /*subjectEmoji*/
-      2048) {
+      393241 | dirty[1] & /*getDateEventLabel, openChipMenu, getSlotLabel, isSlotExcluded, effRoom*/
+      270204928 | dirty[2] & /*subjectEmoji*/
+      8192) {
         each_value_1 = ensure_array_like(getPeriodsForDay(
           /*plugin*/
           ctx2[0].settings.academicYear,
           /*day*/
-          ctx2[192].key
+          ctx2[195].key
         ));
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx2, each_value_1, each_1_lookup, t.parentNode, destroy_block, create_each_block_13, t, get_each_context_13);
       }
       if (dirty[0] & /*DAYS*/
-      8) show_if = !/*dayHasItems*/
-      ctx2[72](
+      16) show_if = !/*dayHasItems*/
+      ctx2[74](
         /*day*/
-        ctx2[192]
+        ctx2[195]
       );
       if (show_if) {
         if (if_block) {
@@ -23266,14 +23315,14 @@ function create_if_block_110(ctx) {
   let div;
   let t_value = (
     /*aOverride*/
-    ctx[194] === "holiday" ? "Holiday" : "INSET day"
+    ctx[197] === "holiday" ? "Holiday" : "INSET day"
   );
   let t;
   return {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-agenda-empty svelte-1eco7z1");
+      attr(div, "class", "tp-agenda-empty svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -23281,8 +23330,8 @@ function create_if_block_110(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*dayOverrideMap, DAYS*/
-      67108872 && t_value !== (t_value = /*aOverride*/
-      ctx2[194] === "holiday" ? "Holiday" : "INSET day")) set_data(t, t_value);
+      134217744 && t_value !== (t_value = /*aOverride*/
+      ctx2[197] === "holiday" ? "Holiday" : "INSET day")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -23296,54 +23345,54 @@ function create_if_block_52(ctx) {
   let span0;
   let t0_value = (
     /*period*/
-    ctx[197].name + ""
+    ctx[200].name + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = (
     /*subjectEmoji*/
-    ctx[73](
+    ctx[75](
       /*aSlot*/
-      ctx[199].classId
+      ctx[202].classId
     ) + ""
   );
   let t2;
   let t3;
   let t4_value = (
     /*sl*/
-    ctx[207].code + ""
+    ctx[210].code + ""
   );
   let t4;
   let t5;
   let show_if = (
     /*effRoom*/
-    ctx[48](
+    ctx[50](
       /*aSlot*/
-      ctx[199].id,
+      ctx[202].id,
       /*aDate*/
-      ctx[193],
+      ctx[196],
       /*sl*/
-      ctx[207].classroom
+      ctx[210].classroom
     )
   );
   let mounted;
   let dispose;
   let if_block0 = (
     /*sl*/
-    ctx[207].subjectName && create_if_block_72(ctx)
+    ctx[210].subjectName && create_if_block_72(ctx)
   );
   let if_block1 = show_if && create_if_block_62(ctx);
   function click_handler_8(...args) {
     return (
       /*click_handler_8*/
-      ctx[121](
+      ctx[123](
         /*aDate*/
-        ctx[193],
+        ctx[196],
         /*period*/
-        ctx[197],
+        ctx[200],
         /*aSlot*/
-        ctx[199],
+        ctx[202],
         ...args
       )
     );
@@ -23361,14 +23410,14 @@ function create_if_block_52(ctx) {
       if (if_block0) if_block0.c();
       t5 = space();
       if (if_block1) if_block1.c();
-      attr(span0, "class", "tp-agenda-period svelte-1eco7z1");
-      attr(span1, "class", "tp-agenda-main svelte-1eco7z1");
-      attr(button, "class", "tp-agenda-row svelte-1eco7z1");
+      attr(span0, "class", "tp-agenda-period svelte-1vuxfjd");
+      attr(span1, "class", "tp-agenda-main svelte-1vuxfjd");
+      attr(button, "class", "tp-agenda-row svelte-1vuxfjd");
       set_style(button, "border-left", "3px solid " + /*sl*/
-      ctx[207].colour);
+      ctx[210].colour);
       set_style(button, "background", hexToRgba4(
         /*sl*/
-        ctx[207].colour,
+        ctx[210].colour,
         0.16
       ));
     },
@@ -23392,20 +23441,20 @@ function create_if_block_52(ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*plugin, DAYS*/
-      9 && t0_value !== (t0_value = /*period*/
-      ctx[197].name + "")) set_data(t0, t0_value);
+      17 && t0_value !== (t0_value = /*period*/
+      ctx[200].name + "")) set_data(t0, t0_value);
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
-      131085 && t2_value !== (t2_value = /*subjectEmoji*/
-      ctx[73](
+      262169 && t2_value !== (t2_value = /*subjectEmoji*/
+      ctx[75](
         /*aSlot*/
-        ctx[199].classId
+        ctx[202].classId
       ) + "")) set_data(t2, t2_value);
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
-      131085 && t4_value !== (t4_value = /*sl*/
-      ctx[207].code + "")) set_data(t4, t4_value);
+      262169 && t4_value !== (t4_value = /*sl*/
+      ctx[210].code + "")) set_data(t4, t4_value);
       if (
         /*sl*/
-        ctx[207].subjectName
+        ctx[210].subjectName
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -23419,14 +23468,14 @@ function create_if_block_52(ctx) {
         if_block0 = null;
       }
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
-      131085) show_if = /*effRoom*/
-      ctx[48](
+      262169) show_if = /*effRoom*/
+      ctx[50](
         /*aSlot*/
-        ctx[199].id,
+        ctx[202].id,
         /*aDate*/
-        ctx[193],
+        ctx[196],
         /*sl*/
-        ctx[207].classroom
+        ctx[210].classroom
       );
       if (show_if) {
         if (if_block1) {
@@ -23441,15 +23490,15 @@ function create_if_block_52(ctx) {
         if_block1 = null;
       }
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
-      131085) {
+      262169) {
         set_style(button, "border-left", "3px solid " + /*sl*/
-        ctx[207].colour);
+        ctx[210].colour);
       }
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
-      131085) {
+      262169) {
         set_style(button, "background", hexToRgba4(
           /*sl*/
-          ctx[207].colour,
+          ctx[210].colour,
           0.16
         ));
       }
@@ -23469,7 +23518,7 @@ function create_if_block_72(ctx) {
   let t0;
   let t1_value = (
     /*sl*/
-    ctx[207].subjectName + ""
+    ctx[210].subjectName + ""
   );
   let t1;
   return {
@@ -23483,8 +23532,8 @@ function create_if_block_72(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
-      131085 && t1_value !== (t1_value = /*sl*/
-      ctx2[207].subjectName + "")) set_data(t1, t1_value);
+      262169 && t1_value !== (t1_value = /*sl*/
+      ctx2[210].subjectName + "")) set_data(t1, t1_value);
     },
     d(detaching) {
       if (detaching) {
@@ -23498,13 +23547,13 @@ function create_if_block_62(ctx) {
   let span;
   let t_value = (
     /*effRoom*/
-    ctx[48](
+    ctx[50](
       /*aSlot*/
-      ctx[199].id,
+      ctx[202].id,
       /*aDate*/
-      ctx[193],
+      ctx[196],
       /*sl*/
-      ctx[207].classroom
+      ctx[210].classroom
     ) + ""
   );
   let t;
@@ -23512,7 +23561,7 @@ function create_if_block_62(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-agenda-room svelte-1eco7z1");
+      attr(span, "class", "tp-agenda-room svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -23520,14 +23569,14 @@ function create_if_block_62(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_slotMap, DAYS, plugin, currentMonday*/
-      131085 && t_value !== (t_value = /*effRoom*/
-      ctx2[48](
+      262169 && t_value !== (t_value = /*effRoom*/
+      ctx2[50](
         /*aSlot*/
-        ctx2[199].id,
+        ctx2[202].id,
         /*aDate*/
-        ctx2[193],
+        ctx2[196],
         /*sl*/
-        ctx2[207].classroom
+        ctx2[210].classroom
       ) + "")) set_data(t, t_value);
     },
     d(detaching) {
@@ -23541,7 +23590,7 @@ function create_if_block_48(ctx) {
   let t0;
   let t1_value = (
     /*el*/
-    ctx[204].meta + ""
+    ctx[207].meta + ""
   );
   let t1;
   return {
@@ -23555,8 +23604,8 @@ function create_if_block_48(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
-      65545 && t1_value !== (t1_value = /*el*/
-      ctx2[204].meta + "")) set_data(t1, t1_value);
+      131089 && t1_value !== (t1_value = /*el*/
+      ctx2[207].meta + "")) set_data(t1, t1_value);
     },
     d(detaching) {
       if (detaching) {
@@ -23570,14 +23619,14 @@ function create_if_block_310(ctx) {
   let span;
   let t_value = (
     /*el*/
-    ctx[204].classroom + ""
+    ctx[207].classroom + ""
   );
   let t;
   return {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-agenda-room svelte-1eco7z1");
+      attr(span, "class", "tp-agenda-room svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -23585,8 +23634,8 @@ function create_if_block_310(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
-      65545 && t_value !== (t_value = /*el*/
-      ctx2[204].classroom + "")) set_data(t, t_value);
+      131089 && t_value !== (t_value = /*el*/
+      ctx2[207].classroom + "")) set_data(t, t_value);
     },
     d(detaching) {
       if (detaching) {
@@ -23600,14 +23649,14 @@ function create_each_block_22(key_2, ctx) {
   let span0;
   let t0_value = (
     /*period*/
-    ctx[197].name + ""
+    ctx[200].name + ""
   );
   let t0;
   let t1;
   let span1;
   let t2_value = (
     /*el*/
-    ctx[204].code + ""
+    ctx[207].code + ""
   );
   let t2;
   let t3;
@@ -23615,22 +23664,22 @@ function create_each_block_22(key_2, ctx) {
   let dispose;
   let if_block0 = (
     /*el*/
-    ctx[204].meta && create_if_block_48(ctx)
+    ctx[207].meta && create_if_block_48(ctx)
   );
   let if_block1 = (
     /*el*/
-    ctx[204].classroom && create_if_block_310(ctx)
+    ctx[207].classroom && create_if_block_310(ctx)
   );
   function click_handler_9(...args) {
     return (
       /*click_handler_9*/
-      ctx[122](
+      ctx[124](
         /*aDate*/
-        ctx[193],
+        ctx[196],
         /*period*/
-        ctx[197],
+        ctx[200],
         /*aEv*/
-        ctx[203],
+        ctx[206],
         ...args
       )
     );
@@ -23648,14 +23697,14 @@ function create_each_block_22(key_2, ctx) {
       if (if_block0) if_block0.c();
       t3 = space();
       if (if_block1) if_block1.c();
-      attr(span0, "class", "tp-agenda-period svelte-1eco7z1");
-      attr(span1, "class", "tp-agenda-main svelte-1eco7z1");
-      attr(button, "class", "tp-agenda-row tp-agenda-row--event svelte-1eco7z1");
+      attr(span0, "class", "tp-agenda-period svelte-1vuxfjd");
+      attr(span1, "class", "tp-agenda-main svelte-1vuxfjd");
+      attr(button, "class", "tp-agenda-row tp-agenda-row--event svelte-1vuxfjd");
       set_style(button, "border-left", "3px solid " + /*el*/
-      ctx[204].colour);
+      ctx[207].colour);
       set_style(button, "background", hexToRgba4(
         /*el*/
-        ctx[204].colour,
+        ctx[207].colour,
         0.16
       ));
       this.first = button;
@@ -23678,14 +23727,14 @@ function create_each_block_22(key_2, ctx) {
     p(new_ctx, dirty) {
       ctx = new_ctx;
       if (dirty[0] & /*plugin, DAYS*/
-      9 && t0_value !== (t0_value = /*period*/
-      ctx[197].name + "")) set_data(t0, t0_value);
+      17 && t0_value !== (t0_value = /*period*/
+      ctx[200].name + "")) set_data(t0, t0_value);
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
-      65545 && t2_value !== (t2_value = /*el*/
-      ctx[204].code + "")) set_data(t2, t2_value);
+      131089 && t2_value !== (t2_value = /*el*/
+      ctx[207].code + "")) set_data(t2, t2_value);
       if (
         /*el*/
-        ctx[204].meta
+        ctx[207].meta
       ) {
         if (if_block0) {
           if_block0.p(ctx, dirty);
@@ -23700,7 +23749,7 @@ function create_each_block_22(key_2, ctx) {
       }
       if (
         /*el*/
-        ctx[204].classroom
+        ctx[207].classroom
       ) {
         if (if_block1) {
           if_block1.p(ctx, dirty);
@@ -23714,15 +23763,15 @@ function create_each_block_22(key_2, ctx) {
         if_block1 = null;
       }
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
-      65545) {
+      131089) {
         set_style(button, "border-left", "3px solid " + /*el*/
-        ctx[204].colour);
+        ctx[207].colour);
       }
       if (dirty[0] & /*_dateEventMap, DAYS, plugin*/
-      65545) {
+      131089) {
         set_style(button, "background", hexToRgba4(
           /*el*/
-          ctx[204].colour,
+          ctx[207].colour,
           0.16
         ));
       }
@@ -23746,15 +23795,15 @@ function create_each_block_13(key_2, ctx) {
   let each_1_anchor;
   let if_block = (
     /*aSlot*/
-    ctx[199] && create_if_block_52(get_if_ctx2(ctx))
+    ctx[202] && create_if_block_52(get_if_ctx2(ctx))
   );
   let each_value_2 = ensure_array_like(
     /*aEvents*/
-    ctx[200]
+    ctx[203]
   );
   const get_key = (ctx2) => (
     /*aEv*/
-    ctx2[203].id
+    ctx2[206].id
   );
   for (let i = 0; i < each_value_2.length; i += 1) {
     let child_ctx = get_each_context_22(ctx, each_value_2, i);
@@ -23789,7 +23838,7 @@ function create_each_block_13(key_2, ctx) {
       ctx = new_ctx;
       if (
         /*aSlot*/
-        ctx[199]
+        ctx[202]
       ) {
         if (if_block) {
           if_block.p(get_if_ctx2(ctx), dirty);
@@ -23803,11 +23852,11 @@ function create_each_block_13(key_2, ctx) {
         if_block = null;
       }
       if (dirty[0] & /*_dateEventMap, DAYS, plugin, currentMonday*/
-      65549 | dirty[1] & /*getDateEventLabel, openChipMenu*/
-      67371008) {
+      131097 | dirty[1] & /*getDateEventLabel, openChipMenu*/
+      269484032) {
         each_value_2 = ensure_array_like(
           /*aEvents*/
-          ctx[200]
+          ctx[203]
         );
         each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value_2, each_1_lookup, each_1_anchor.parentNode, destroy_block, create_each_block_22, each_1_anchor, get_each_context_22);
       }
@@ -23831,7 +23880,7 @@ function create_if_block_210(ctx) {
     c() {
       div = element("div");
       div.textContent = "No lessons";
-      attr(div, "class", "tp-agenda-empty svelte-1eco7z1");
+      attr(div, "class", "tp-agenda-empty svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -23849,15 +23898,15 @@ function create_each_block3(ctx) {
   let span;
   let t0_value = (
     /*day*/
-    ctx[192].label + ""
+    ctx[195].label + ""
   );
   let t0;
   let t1;
   let t2_value = addDaysLocal(
     /*currentMonday*/
-    ctx[2],
+    ctx[3],
     /*day*/
-    ctx[192].offset
+    ctx[195].offset
   ).getDate() + "";
   let t2;
   let t3;
@@ -23866,23 +23915,23 @@ function create_each_block3(ctx) {
   function select_block_type_1(ctx2, dirty) {
     if (
       /*aOverride*/
-      ctx2[194] === "holiday"
+      ctx2[197] === "holiday"
     ) return create_if_block_82;
     if (
       /*aOverride*/
-      ctx2[194] === "inset"
+      ctx2[197] === "inset"
     ) return create_if_block_92;
   }
-  let current_block_type = select_block_type_1(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
+  let current_block_type = select_block_type_1(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]);
   let if_block0 = current_block_type && current_block_type(ctx);
   function select_block_type_2(ctx2, dirty) {
     if (
       /*aOverride*/
-      ctx2[194]
+      ctx2[197]
     ) return create_if_block_110;
     return create_else_block2;
   }
-  let current_block_type_1 = select_block_type_2(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
+  let current_block_type_1 = select_block_type_2(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]);
   let if_block1 = current_block_type_1(ctx);
   return {
     c() {
@@ -23897,15 +23946,15 @@ function create_each_block3(ctx) {
       t4 = space();
       if_block1.c();
       t5 = space();
-      attr(span, "class", "tp-agenda-dayname svelte-1eco7z1");
-      attr(div0, "class", "tp-agenda-head svelte-1eco7z1");
+      attr(span, "class", "tp-agenda-dayname svelte-1vuxfjd");
+      attr(div0, "class", "tp-agenda-head svelte-1vuxfjd");
       toggle_class(div0, "tp-agenda-head--today", isToday(
         /*day*/
-        ctx[192].offset,
+        ctx[195].offset,
         /*currentMonday*/
-        ctx[2]
+        ctx[3]
       ));
-      attr(div1, "class", "tp-agenda-day svelte-1eco7z1");
+      attr(div1, "class", "tp-agenda-day svelte-1vuxfjd");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -23922,14 +23971,14 @@ function create_each_block3(ctx) {
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*DAYS*/
-      8 && t0_value !== (t0_value = /*day*/
-      ctx2[192].label + "")) set_data(t0, t0_value);
+      16 && t0_value !== (t0_value = /*day*/
+      ctx2[195].label + "")) set_data(t0, t0_value);
       if (dirty[0] & /*currentMonday, DAYS*/
-      12 && t2_value !== (t2_value = addDaysLocal(
+      24 && t2_value !== (t2_value = addDaysLocal(
         /*currentMonday*/
-        ctx2[2],
+        ctx2[3],
         /*day*/
-        ctx2[192].offset
+        ctx2[195].offset
       ).getDate() + "")) set_data(t2, t2_value);
       if (current_block_type !== (current_block_type = select_block_type_1(ctx2, dirty))) {
         if (if_block0) if_block0.d(1);
@@ -23940,12 +23989,12 @@ function create_each_block3(ctx) {
         }
       }
       if (dirty[0] & /*DAYS, currentMonday*/
-      12) {
+      24) {
         toggle_class(div0, "tp-agenda-head--today", isToday(
           /*day*/
-          ctx2[192].offset,
+          ctx2[195].offset,
           /*currentMonday*/
-          ctx2[2]
+          ctx2[3]
         ));
       }
       if (current_block_type_1 === (current_block_type_1 = select_block_type_2(ctx2, dirty)) && if_block1) {
@@ -23977,12 +24026,12 @@ function create_fragment3(ctx) {
   let span0;
   let t0_value = (
     /*isDayMode*/
-    (ctx[4] ? (
+    (ctx[5] ? (
       /*selectedDayLong*/
-      ctx[19]
+      ctx[20]
     ) : (
       /*weekLabel*/
-      ctx[40]
+      ctx[42]
     )) + ""
   );
   let t0;
@@ -23991,12 +24040,12 @@ function create_fragment3(ctx) {
   let span1;
   let t3_value = (
     /*isDayMode*/
-    (ctx[4] ? (
+    (ctx[5] ? (
       /*selectedDayDateStr*/
-      ctx[18]
+      ctx[19]
     ) : (
       /*dateRange*/
-      ctx[39]
+      ctx[41]
     )) + ""
   );
   let t3;
@@ -24050,29 +24099,29 @@ function create_fragment3(ctx) {
   let dispose;
   let if_block0 = (
     /*abEnabled*/
-    ctx[10] && /*abWeekType*/
-    ctx[7] && create_if_block_47(ctx)
+    ctx[11] && /*abWeekType*/
+    ctx[8] && create_if_block_47(ctx)
   );
   let if_block1 = (
     /*jumpOpen*/
-    ctx[15] && create_if_block_46(ctx)
+    ctx[16] && create_if_block_46(ctx)
   );
   let if_block2 = (
     /*_isMobileApp*/
-    ctx[69] && create_if_block_45(ctx)
+    ctx[71] && create_if_block_45(ctx)
   );
   let if_block3 = (
     /*isDayMode*/
-    ctx[4] && create_if_block_43(ctx)
+    ctx[5] && create_if_block_43(ctx)
   );
   function select_block_type(ctx2, dirty) {
     if (
       /*isAgendaMode*/
-      ctx2[21]
+      ctx2[22]
     ) return create_if_block3;
     return create_else_block_12;
   }
-  let current_block_type = select_block_type(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
+  let current_block_type = select_block_type(ctx, [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]);
   let if_block4 = current_block_type(ctx);
   return {
     c() {
@@ -24098,7 +24147,7 @@ function create_fragment3(ctx) {
       span3 = element("span");
       t8 = text(
         /*navCentreLabel*/
-        ctx[22]
+        ctx[23]
       );
       t9 = space();
       span4 = element("span");
@@ -24131,55 +24180,55 @@ function create_fragment3(ctx) {
       if (if_block3) if_block3.c();
       t24 = space();
       if_block4.c();
-      attr(span0, "class", "tp-week-label svelte-1eco7z1");
-      attr(span1, "class", "tp-date-range svelte-1eco7z1");
-      attr(div0, "class", "tp-header-identity svelte-1eco7z1");
-      attr(button0, "class", "tp-btn tp-nav-arrow svelte-1eco7z1");
+      attr(span0, "class", "tp-week-label svelte-1vuxfjd");
+      attr(span1, "class", "tp-date-range svelte-1vuxfjd");
+      attr(div0, "class", "tp-header-identity svelte-1vuxfjd");
+      attr(button0, "class", "tp-btn tp-nav-arrow svelte-1vuxfjd");
       attr(button0, "aria-label", "Previous week");
       attr(button0, "title", "Previous week");
       button0.disabled = button0_disabled_value = !/*canGoPrev*/
-      ctx[24];
-      attr(span2, "class", "tp-nav-centre-icon svelte-1eco7z1");
-      attr(span3, "class", "tp-nav-centre-label svelte-1eco7z1");
-      attr(span4, "class", "tp-nav-caret svelte-1eco7z1");
-      attr(button1, "class", "tp-btn tp-nav-centre svelte-1eco7z1");
+      ctx[25];
+      attr(span2, "class", "tp-nav-centre-icon svelte-1vuxfjd");
+      attr(span3, "class", "tp-nav-centre-label svelte-1vuxfjd");
+      attr(span4, "class", "tp-nav-caret svelte-1vuxfjd");
+      attr(button1, "class", "tp-btn tp-nav-centre svelte-1vuxfjd");
       attr(button1, "aria-haspopup", "true");
       attr(
         button1,
         "aria-expanded",
         /*jumpOpen*/
-        ctx[15]
+        ctx[16]
       );
       attr(button1, "title", "Jump to a date");
-      attr(div1, "class", "tp-nav-jump svelte-1eco7z1");
-      attr(button2, "class", "tp-btn tp-nav-arrow svelte-1eco7z1");
+      attr(div1, "class", "tp-nav-jump svelte-1vuxfjd");
+      attr(button2, "class", "tp-btn tp-nav-arrow svelte-1vuxfjd");
       attr(button2, "aria-label", "Next week");
       attr(button2, "title", "Next week");
       button2.disabled = button2_disabled_value = !/*canGoNext*/
-      ctx[23];
-      attr(nav, "class", "tp-nav svelte-1eco7z1");
+      ctx[24];
+      attr(nav, "class", "tp-nav svelte-1vuxfjd");
       attr(nav, "aria-label", "Week navigation");
-      attr(span5, "class", "tp-btn-icon svelte-1eco7z1");
-      attr(button3, "class", "tp-btn tp-action-btn svelte-1eco7z1");
+      attr(span5, "class", "tp-btn-icon svelte-1vuxfjd");
+      attr(button3, "class", "tp-btn tp-action-btn svelte-1vuxfjd");
       attr(button3, "aria-label", "Add event");
-      attr(span6, "class", "tp-btn-icon svelte-1eco7z1");
-      attr(button4, "class", "tp-btn tp-action-btn svelte-1eco7z1");
+      attr(span6, "class", "tp-btn-icon svelte-1vuxfjd");
+      attr(button4, "class", "tp-btn tp-action-btn svelte-1vuxfjd");
       attr(button4, "aria-label", "Lesson overview");
       attr(button4, "title", "Lesson overview");
-      attr(span7, "class", "tp-btn-icon svelte-1eco7z1");
-      attr(button5, "class", "tp-btn tp-action-btn svelte-1eco7z1");
+      attr(span7, "class", "tp-btn-icon svelte-1vuxfjd");
+      attr(button5, "class", "tp-btn tp-action-btn svelte-1vuxfjd");
       attr(button5, "aria-label", "Edit timetable");
-      attr(button6, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-1eco7z1");
+      attr(button6, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-1vuxfjd");
       attr(button6, "aria-label", "Settings");
-      attr(button7, "class", "tp-btn tp-overflow-btn svelte-1eco7z1");
+      attr(button7, "class", "tp-btn tp-overflow-btn svelte-1vuxfjd");
       attr(button7, "aria-label", "More options");
-      attr(div2, "class", "tp-header-actions svelte-1eco7z1");
-      attr(header, "class", "tp-header svelte-1eco7z1");
-      attr(div3, "class", "tp-week-view svelte-1eco7z1");
+      attr(div2, "class", "tp-header-actions svelte-1vuxfjd");
+      attr(header, "class", "tp-header svelte-1vuxfjd");
+      attr(div3, "class", "tp-week-view svelte-1vuxfjd");
       attr(div3, "data-tp-view", div3_data_tp_view_value = /*isDayMode*/
-      ctx[4] ? "day" : (
+      ctx[5] ? "day" : (
         /*isAgendaMode*/
-        ctx[21] ? "agenda" : "grid"
+        ctx[22] ? "agenda" : "grid"
       ));
     },
     m(target, anchor) {
@@ -24234,87 +24283,88 @@ function create_fragment3(ctx) {
       if (if_block3) if_block3.m(div3, null);
       append(div3, t24);
       if_block4.m(div3, null);
+      ctx[144](div3);
       if (!mounted) {
         dispose = [
           listen(
             button0,
             "click",
             /*onPrev*/
-            ctx[58]
+            ctx[60]
           ),
           action_destroyer(obsIcon_action = /*obsIcon*/
-          ctx[41].call(null, span2, "calendar")),
+          ctx[43].call(null, span2, "calendar")),
           listen(
             button1,
             "click",
             /*click_handler*/
-            ctx[113]
+            ctx[115]
           ),
           listen(
             button2,
             "click",
             /*onNext*/
-            ctx[59]
+            ctx[61]
           ),
           action_destroyer(obsIcon_action_1 = /*obsIcon*/
-          ctx[41].call(null, span5, "calendar-plus")),
+          ctx[43].call(null, span5, "calendar-plus")),
           listen(
             button3,
             "click",
             /*click_handler_3*/
-            ctx[116]
+            ctx[118]
           ),
           action_destroyer(obsIcon_action_2 = /*obsIcon*/
-          ctx[41].call(null, span6, "list-checks")),
+          ctx[43].call(null, span6, "list-checks")),
           listen(
             button4,
             "click",
             /*onOpenOverview*/
-            ctx[60]
+            ctx[62]
           ),
           action_destroyer(obsIcon_action_3 = /*obsIcon*/
-          ctx[41].call(null, span7, "layout-grid")),
+          ctx[43].call(null, span7, "layout-grid")),
           listen(
             button5,
             "click",
             /*onOpenTimetable*/
-            ctx[64]
+            ctx[66]
           ),
           listen(
             button6,
             "click",
             /*onOpenSettings*/
-            ctx[65]
+            ctx[67]
           ),
           action_destroyer(obsIcon_action_4 = /*obsIcon*/
-          ctx[41].call(null, button6, "settings")),
+          ctx[43].call(null, button6, "settings")),
           listen(
             button7,
             "click",
             /*showOverflowMenu*/
-            ctx[67]
+            ctx[69]
           ),
           action_destroyer(obsIcon_action_5 = /*obsIcon*/
-          ctx[41].call(null, button7, "more-horizontal"))
+          ctx[43].call(null, button7, "more-horizontal"))
         ];
         mounted = true;
       }
     },
     p(ctx2, dirty) {
       if (dirty[0] & /*isDayMode, selectedDayLong*/
-      524304 | dirty[1] & /*weekLabel*/
-      512 && t0_value !== (t0_value = /*isDayMode*/
-      (ctx2[4] ? (
+      1048608 | dirty[1] & /*weekLabel*/
+      2048 && t0_value !== (t0_value = /*isDayMode*/
+      (ctx2[5] ? (
         /*selectedDayLong*/
-        ctx2[19]
+        ctx2[20]
       ) : (
         /*weekLabel*/
-        ctx2[40]
+        ctx2[42]
       )) + "")) set_data(t0, t0_value);
       if (
         /*abEnabled*/
-        ctx2[10] && /*abWeekType*/
-        ctx2[7]
+        ctx2[11] && /*abWeekType*/
+        ctx2[8]
       ) {
         if (if_block0) {
           if_block0.p(ctx2, dirty);
@@ -24328,38 +24378,38 @@ function create_fragment3(ctx) {
         if_block0 = null;
       }
       if (dirty[0] & /*isDayMode, selectedDayDateStr*/
-      262160 | dirty[1] & /*dateRange*/
-      256 && t3_value !== (t3_value = /*isDayMode*/
-      (ctx2[4] ? (
+      524320 | dirty[1] & /*dateRange*/
+      1024 && t3_value !== (t3_value = /*isDayMode*/
+      (ctx2[5] ? (
         /*selectedDayDateStr*/
-        ctx2[18]
+        ctx2[19]
       ) : (
         /*dateRange*/
-        ctx2[39]
+        ctx2[41]
       )) + "")) set_data(t3, t3_value);
       if (dirty[0] & /*canGoPrev*/
-      16777216 && button0_disabled_value !== (button0_disabled_value = !/*canGoPrev*/
-      ctx2[24])) {
+      33554432 && button0_disabled_value !== (button0_disabled_value = !/*canGoPrev*/
+      ctx2[25])) {
         button0.disabled = button0_disabled_value;
       }
       if (dirty[0] & /*navCentreLabel*/
-      4194304) set_data(
+      8388608) set_data(
         t8,
         /*navCentreLabel*/
-        ctx2[22]
+        ctx2[23]
       );
       if (dirty[0] & /*jumpOpen*/
-      32768) {
+      65536) {
         attr(
           button1,
           "aria-expanded",
           /*jumpOpen*/
-          ctx2[15]
+          ctx2[16]
         );
       }
       if (
         /*jumpOpen*/
-        ctx2[15]
+        ctx2[16]
       ) {
         if (if_block1) {
           if_block1.p(ctx2, dirty);
@@ -24373,17 +24423,17 @@ function create_fragment3(ctx) {
         if_block1 = null;
       }
       if (dirty[0] & /*canGoNext*/
-      8388608 && button2_disabled_value !== (button2_disabled_value = !/*canGoNext*/
-      ctx2[23])) {
+      16777216 && button2_disabled_value !== (button2_disabled_value = !/*canGoNext*/
+      ctx2[24])) {
         button2.disabled = button2_disabled_value;
       }
       if (
         /*_isMobileApp*/
-        ctx2[69]
+        ctx2[71]
       ) if_block2.p(ctx2, dirty);
       if (
         /*isDayMode*/
-        ctx2[4]
+        ctx2[5]
       ) {
         if (if_block3) {
           if_block3.p(ctx2, dirty);
@@ -24407,10 +24457,10 @@ function create_fragment3(ctx) {
         }
       }
       if (dirty[0] & /*isDayMode, isAgendaMode*/
-      2097168 && div3_data_tp_view_value !== (div3_data_tp_view_value = /*isDayMode*/
-      ctx2[4] ? "day" : (
+      4194336 && div3_data_tp_view_value !== (div3_data_tp_view_value = /*isDayMode*/
+      ctx2[5] ? "day" : (
         /*isAgendaMode*/
-        ctx2[21] ? "agenda" : "grid"
+        ctx2[22] ? "agenda" : "grid"
       ))) {
         attr(div3, "data-tp-view", div3_data_tp_view_value);
       }
@@ -24426,6 +24476,7 @@ function create_fragment3(ctx) {
       if (if_block2) if_block2.d();
       if (if_block3) if_block3.d();
       if_block4.d();
+      ctx[144](null);
       mounted = false;
       run_all(dispose);
     }
@@ -24447,6 +24498,34 @@ function minutesToTime(mins) {
 }
 function fmtAxisTime(m) {
   return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+}
+function _parseColour(c) {
+  const t = c.trim();
+  if (t.startsWith("#")) {
+    let h = t.slice(1);
+    if (h.length === 3) h = h.split("").map((x) => x + x).join("");
+    if (h.length >= 6) return [
+      parseInt(h.slice(0, 2), 16),
+      parseInt(h.slice(2, 4), 16),
+      parseInt(h.slice(4, 6), 16)
+    ];
+    return null;
+  }
+  const m = t.match(/rgba?\(([^)]+)\)/);
+  if (m) {
+    const ps = m[1].split(",").map((n) => parseFloat(n));
+    if (ps.length >= 3 && ps.slice(0, 3).every((n) => !isNaN(n))) return [ps[0], ps[1], ps[2]];
+  }
+  return null;
+}
+function chipFg(colour, bg, alpha = 0.22) {
+  const fg = _parseColour(colour), b = _parseColour(bg);
+  if (!fg || !b) return "";
+  const r = fg[0] * alpha + b[0] * (1 - alpha);
+  const g = fg[1] * alpha + b[1] * (1 - alpha);
+  const bl = fg[2] * alpha + b[2] * (1 - alpha);
+  const lum = (0.299 * r + 0.587 * g + 0.114 * bl) / 255;
+  return lum > 0.58 ? "#1c1c1e" : "#f2f2f3";
 }
 function hexToRgba4(hex, alpha) {
   const clean = hex.replace("#", "");
@@ -24539,6 +24618,7 @@ function instance3($$self, $$props, $$invalidate) {
   let axisHeight;
   let hourMarks;
   let nowTop;
+  let _themeBg;
   let currentTimeStr;
   let isCurrentWeek;
   let canGoWeekPrev;
@@ -24581,7 +24661,7 @@ function instance3($$self, $$props, $$invalidate) {
   ];
   let _tick = 0;
   function invalidate() {
-    $$invalidate(100, _tick++, _tick);
+    $$invalidate(102, _tick++, _tick);
   }
   function prevWeek() {
     onPrev();
@@ -24649,6 +24729,7 @@ function instance3($$self, $$props, $$invalidate) {
     var _a3, _b3;
     return resolveColour((_b3 = (_a3 = _periodTypes.find((t) => t.id === typeId)) === null || _a3 === void 0 ? void 0 : _a3.colour) !== null && _b3 !== void 0 ? _b3 : "#888888");
   }
+  let _rootEl;
   function getSlot(day2, periodId) {
     return _slotMap[day2 + ":" + periodId];
   }
@@ -24735,11 +24816,11 @@ function instance3($$self, $$props, $$invalidate) {
     if (!gridBodyEl) return;
     const cells = gridBodyEl.querySelectorAll("[data-gridkey]");
     if (cells.length === 0) {
-      $$invalidate(12, gridFocusKey = null);
+      $$invalidate(13, gridFocusKey = null);
       return;
     }
     if (gridFocusKey && gridBodyEl.querySelector(`[data-gridkey="${gridCssEsc(gridFocusKey)}"]`)) return;
-    $$invalidate(12, gridFocusKey = cells[0].getAttribute("data-gridkey"));
+    $$invalidate(13, gridFocusKey = cells[0].getAttribute("data-gridkey"));
   });
   function gridNeighbour(cur, dir) {
     if (!gridBodyEl) return null;
@@ -24791,7 +24872,7 @@ function instance3($$self, $$props, $$invalidate) {
       const next = gridNeighbour(el, k);
       if (next) {
         e.preventDefault();
-        $$invalidate(12, gridFocusKey = next.getAttribute("data-gridkey"));
+        $$invalidate(13, gridFocusKey = next.getAttribute("data-gridkey"));
         next.focus();
       }
     }
@@ -24803,10 +24884,10 @@ function instance3($$self, $$props, $$invalidate) {
   let rejectTimer = null;
   function flashReject(key) {
     if (rejectTimer) clearTimeout(rejectTimer);
-    $$invalidate(14, rejectKey = key);
+    $$invalidate(15, rejectKey = key);
     rejectTimer = setTimeout(
       () => {
-        $$invalidate(14, rejectKey = null);
+        $$invalidate(15, rejectKey = null);
         rejectTimer = null;
       },
       600
@@ -24833,20 +24914,20 @@ function instance3($$self, $$props, $$invalidate) {
     e.preventDefault();
     if (isDropRejected(day2, periodId)) {
       if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
-      $$invalidate(13, dragOverKey = null);
+      $$invalidate(14, dragOverKey = null);
       return;
     }
     if (e.dataTransfer) e.dataTransfer.dropEffect = e.ctrlKey || e.metaKey ? "copy" : "move";
-    $$invalidate(13, dragOverKey = cellKey(day2, periodId));
+    $$invalidate(14, dragOverKey = cellKey(day2, periodId));
   }
   function onCellDragLeave(e) {
     const rel = e.relatedTarget;
-    if (!(rel === null || rel === void 0 ? void 0 : rel.closest(".tp-td-cell"))) $$invalidate(13, dragOverKey = null);
+    if (!(rel === null || rel === void 0 ? void 0 : rel.closest(".tp-td-cell"))) $$invalidate(14, dragOverKey = null);
   }
   async function onCellDrop(e, day2, periodId) {
     var _a3;
     e.preventDefault();
-    $$invalidate(13, dragOverKey = null);
+    $$invalidate(14, dragOverKey = null);
     const copy = e.ctrlKey || e.metaKey;
     if (isDropRejected(day2, periodId)) {
       flashReject(cellKey(day2, periodId));
@@ -24920,7 +25001,7 @@ function instance3($$self, $$props, $$invalidate) {
   function onDragEnd() {
     dragSlotId = null;
     dragEventId = null;
-    $$invalidate(13, dragOverKey = null);
+    $$invalidate(14, dragOverKey = null);
   }
   function openChipMenu(e, type, date, periodId, slot, event) {
     var _a3, _b3, _c2, _d2;
@@ -25132,7 +25213,7 @@ function instance3($$self, $$props, $$invalidate) {
   let nowMinutes = 0;
   function updateNow() {
     const n = /* @__PURE__ */ new Date();
-    $$invalidate(102, nowMinutes = n.getHours() * 60 + n.getMinutes());
+    $$invalidate(104, nowMinutes = n.getHours() * 60 + n.getMinutes());
   }
   updateNow();
   const _nowInterval = setInterval(updateNow, 6e4);
@@ -25186,7 +25267,7 @@ function instance3($$self, $$props, $$invalidate) {
     const s = _ayStart();
     const e = _ayEnd();
     $$invalidate(1, currentDate = d < s ? s : d > e ? e : d);
-    $$invalidate(15, jumpOpen = false);
+    $$invalidate(16, jumpOpen = false);
   }
   function onJumpChange(e) {
     jumpToDate(e.currentTarget.value);
@@ -25539,11 +25620,11 @@ function instance3($$self, $$props, $$invalidate) {
       classIdForCount: ev.classId
     });
   }
-  const click_handler = () => $$invalidate(15, jumpOpen = !jumpOpen);
-  const click_handler_1 = () => $$invalidate(15, jumpOpen = false);
+  const click_handler = () => $$invalidate(16, jumpOpen = !jumpOpen);
+  const click_handler_1 = () => $$invalidate(16, jumpOpen = false);
   const click_handler_2 = () => {
     onToday();
-    $$invalidate(15, jumpOpen = false);
+    $$invalidate(16, jumpOpen = false);
   };
   const click_handler_3 = () => onAddEvent();
   const click_handler_4 = () => setMobileMode("day");
@@ -25573,71 +25654,77 @@ function instance3($$self, $$props, $$invalidate) {
   function div3_binding($$value) {
     binding_callbacks[$$value ? "unshift" : "push"](() => {
       gridBodyEl = $$value;
-      $$invalidate(11, gridBodyEl);
+      $$invalidate(12, gridBodyEl);
+    });
+  }
+  function div3_binding_1($$value) {
+    binding_callbacks[$$value ? "unshift" : "push"](() => {
+      _rootEl = $$value;
+      $$invalidate(2, _rootEl);
     });
   }
   $$self.$$set = ($$props2) => {
     if ("plugin" in $$props2) $$invalidate(0, plugin = $$props2.plugin);
-    if ("initialDate" in $$props2) $$invalidate(78, initialDate = $$props2.initialDate);
+    if ("initialDate" in $$props2) $$invalidate(80, initialDate = $$props2.initialDate);
   };
   $$self.$$.update = () => {
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: $$invalidate(3, DAYS2 = _dep2(_tick, ALL_DAYS.filter((d) => {
+    512) {
+      $: $$invalidate(4, DAYS2 = _dep2(_tick, ALL_DAYS.filter((d) => {
         var _a3;
         return ((_a3 = plugin.settings.schoolDays) !== null && _a3 !== void 0 ? _a3 : ["monday", "tuesday", "wednesday", "thursday", "friday"]).includes(d.key);
       })));
     }
     if ($$self.$$.dirty[2] & /*initialDate*/
-    65536 | $$self.$$.dirty[3] & /*_lastInitialDate*/
-    256) {
+    262144 | $$self.$$.dirty[3] & /*_lastInitialDate*/
+    1024) {
       $: if (initialDate !== _lastInitialDate) {
-        $$invalidate(101, _lastInitialDate = initialDate);
+        $$invalidate(103, _lastInitialDate = initialDate);
         $$invalidate(1, currentDate = new Date(initialDate));
       }
     }
     if ($$self.$$.dirty[0] & /*currentDate*/
     2) {
-      $: $$invalidate(2, currentMonday = getMondayOfWeek(currentDate));
+      $: $$invalidate(3, currentMonday = getMondayOfWeek(currentDate));
     }
     if ($$self.$$.dirty[0] & /*currentMonday*/
-    4) {
+    8) {
       $: currentWeekKey = weekKey(currentMonday);
     }
     if ($$self.$$.dirty[0] & /*currentDate*/
     2) {
-      $: $$invalidate(40, weekLabel = getWeekLabel(currentDate));
+      $: $$invalidate(42, weekLabel = getWeekLabel(currentDate));
     }
     if ($$self.$$.dirty[0] & /*currentDate*/
     2) {
-      $: $$invalidate(39, dateRange = formatDateRange(currentDate));
+      $: $$invalidate(41, dateRange = formatDateRange(currentDate));
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: $$invalidate(10, abEnabled = _dep2(_tick, !!plugin.settings.academicYear.abWeekEnabled));
+    512) {
+      $: $$invalidate(11, abEnabled = _dep2(_tick, !!plugin.settings.academicYear.abWeekEnabled));
     }
     if ($$self.$$.dirty[0] & /*abEnabled, currentDate, plugin*/
-    1027 | $$self.$$.dirty[2] & /*_a*/
-    2097152 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: $$invalidate(7, abWeekType = _dep2(_tick, abEnabled ? getAbWeekType(
+    2051 | $$self.$$.dirty[2] & /*_a*/
+    8388608 | $$self.$$.dirty[3] & /*_tick*/
+    512) {
+      $: $$invalidate(8, abWeekType = _dep2(_tick, abEnabled ? getAbWeekType(
         currentDate,
         plugin.settings.academicYear,
-        $$invalidate(83, _a2 = plugin.settings.weekOverrides) !== null && _a2 !== void 0 ? _a2 : [],
+        $$invalidate(85, _a2 = plugin.settings.weekOverrides) !== null && _a2 !== void 0 ? _a2 : [],
         plugin.settings.schoolDays
       ) : null));
     }
     if ($$self.$$.dirty[0] & /*plugin, currentMonday*/
-    5 | $$self.$$.dirty[2] & /*_b*/
-    4194304 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: $$invalidate(38, abOverridden = _dep2(_tick, ($$invalidate(84, _b2 = plugin.settings.weekOverrides) !== null && _b2 !== void 0 ? _b2 : []).some((o) => o.abWeekOverride && getMondayOfWeek(/* @__PURE__ */ new Date(o.startDate + "T12:00:00")).getTime() === currentMonday.getTime())));
+    9 | $$self.$$.dirty[2] & /*_b*/
+    16777216 | $$self.$$.dirty[3] & /*_tick*/
+    512) {
+      $: $$invalidate(40, abOverridden = _dep2(_tick, ($$invalidate(86, _b2 = plugin.settings.weekOverrides) !== null && _b2 !== void 0 ? _b2 : []).some((o) => o.abWeekOverride && getMondayOfWeek(/* @__PURE__ */ new Date(o.startDate + "T12:00:00")).getTime() === currentMonday.getTime())));
     }
     if ($$self.$$.dirty[0] & /*plugin, DAYS, currentMonday*/
-    13) {
-      $: $$invalidate(26, dayOverrideMap = (() => {
+    25) {
+      $: $$invalidate(27, dayOverrideMap = (() => {
         var _a3;
         const map = {};
         const overrides = (_a3 = plugin.settings.weekOverrides) !== null && _a3 !== void 0 ? _a3 : [];
@@ -25655,68 +25742,66 @@ function instance3($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
+    512) {
       $: _periods = _dep2(_tick, plugin.settings.academicYear.periods);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[2] & /*_c*/
-    8388608 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: _periodTypes = _dep2(_tick, $$invalidate(85, _c = plugin.settings.periodTypes) !== null && _c !== void 0 ? _c : []);
+    33554432 | $$self.$$.dirty[3] & /*_tick*/
+    512) {
+      $: _periodTypes = _dep2(_tick, $$invalidate(87, _c = plugin.settings.periodTypes) !== null && _c !== void 0 ? _c : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[2] & /*_d*/
-    16777216 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: $$invalidate(108, _templates = _dep2(_tick, $$invalidate(86, _d = plugin.settings.timetableTemplates) !== null && _d !== void 0 ? _d : []));
+    67108864 | $$self.$$.dirty[3] & /*_tick*/
+    512) {
+      $: $$invalidate(110, _templates = _dep2(_tick, $$invalidate(88, _d = plugin.settings.timetableTemplates) !== null && _d !== void 0 ? _d : []));
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[2] & /*_e*/
-    33554432 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: _classes = _dep2(_tick, $$invalidate(87, _e = plugin.settings.classes) !== null && _e !== void 0 ? _e : []);
+    134217728 | $$self.$$.dirty[3] & /*_tick*/
+    512) {
+      $: _classes = _dep2(_tick, $$invalidate(89, _e = plugin.settings.classes) !== null && _e !== void 0 ? _e : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[2] & /*_f*/
-    67108864 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: _subjects = _dep2(_tick, $$invalidate(88, _f = plugin.settings.subjects) !== null && _f !== void 0 ? _f : []);
+    268435456 | $$self.$$.dirty[3] & /*_tick*/
+    512) {
+      $: _subjects = _dep2(_tick, $$invalidate(90, _f = plugin.settings.subjects) !== null && _f !== void 0 ? _f : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[2] & /*_g*/
-    134217728 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: _activities = _dep2(_tick, $$invalidate(89, _g = plugin.settings.activities) !== null && _g !== void 0 ? _g : []);
+    536870912 | $$self.$$.dirty[3] & /*_tick*/
+    512) {
+      $: _activities = _dep2(_tick, $$invalidate(91, _g = plugin.settings.activities) !== null && _g !== void 0 ? _g : []);
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[2] & /*_h*/
-    268435456 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: $$invalidate(109, _dateEvents = _dep2(_tick, $$invalidate(90, _h = plugin.settings.dateEvents) !== null && _h !== void 0 ? _h : []));
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[2] & /*_j*/
-    536870912 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: _slotExclusions = _dep2(_tick, $$invalidate(91, _j = plugin.settings.slotExclusions) !== null && _j !== void 0 ? _j : []);
-    }
-    if ($$self.$$.dirty[0] & /*plugin*/
-    1 | $$self.$$.dirty[2] & /*_k*/
     1073741824 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: $$invalidate(112, _planLinks = _dep2(_tick, $$invalidate(92, _k = plugin.settings.lessonPlanLinks) !== null && _k !== void 0 ? _k : []));
+    512) {
+      $: $$invalidate(111, _dateEvents = _dep2(_tick, $$invalidate(92, _h = plugin.settings.dateEvents) !== null && _h !== void 0 ? _h : []));
+    }
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[3] & /*_tick, _j*/
+    513) {
+      $: _slotExclusions = _dep2(_tick, $$invalidate(93, _j = plugin.settings.slotExclusions) !== null && _j !== void 0 ? _j : []);
+    }
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[3] & /*_tick, _k*/
+    514) {
+      $: $$invalidate(114, _planLinks = _dep2(_tick, $$invalidate(94, _k = plugin.settings.lessonPlanLinks) !== null && _k !== void 0 ? _k : []));
     }
     if ($$self.$$.dirty[3] & /*_planLinks*/
-    524288) {
-      $: $$invalidate(37, _slotPlanMap = (() => {
+    2097152) {
+      $: $$invalidate(39, _slotPlanMap = (() => {
         const m = {};
         for (const l of _planLinks) if (l.slotId && l.date) m[l.slotId + "|" + l.date] = l.path;
         return m;
       })());
     }
     if ($$self.$$.dirty[3] & /*_planLinks*/
-    524288) {
-      $: $$invalidate(36, _eventPlanMap = (() => {
+    2097152) {
+      $: $$invalidate(38, _eventPlanMap = (() => {
         const m = {};
         for (const l of _planLinks) if (l.eventId) m[l.eventId] = l.path;
         return m;
@@ -25724,30 +25809,30 @@ function instance3($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[3] & /*_tick, _l*/
-    129) {
-      $: $$invalidate(111, _preparedMarks = _dep2(_tick, $$invalidate(93, _l = plugin.settings.preparedMarks) !== null && _l !== void 0 ? _l : []));
+    516) {
+      $: $$invalidate(113, _preparedMarks = _dep2(_tick, $$invalidate(95, _l = plugin.settings.preparedMarks) !== null && _l !== void 0 ? _l : []));
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[3] & /*_tick, _m*/
-    130) {
-      $: $$invalidate(35, _showPrepared = _dep2(_tick, $$invalidate(94, _m = plugin.settings.showPreparedMark) !== null && _m !== void 0 ? _m : true));
+    520) {
+      $: $$invalidate(37, _showPrepared = _dep2(_tick, $$invalidate(96, _m = plugin.settings.showPreparedMark) !== null && _m !== void 0 ? _m : true));
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[3] & /*_tick, _o, _p*/
-    140) {
-      $: $$invalidate(34, _showDirected = _dep2(_tick, $$invalidate(96, _p = $$invalidate(95, _o = plugin.settings.directedTime) === null || _o === void 0 ? void 0 : _o.enabled) !== null && _p !== void 0 ? _p : false));
+    560) {
+      $: $$invalidate(36, _showDirected = _dep2(_tick, $$invalidate(98, _p = $$invalidate(97, _o = plugin.settings.directedTime) === null || _o === void 0 ? void 0 : _o.enabled) !== null && _p !== void 0 ? _p : false));
     }
     if ($$self.$$.dirty[3] & /*_preparedMarks*/
-    262144) {
-      $: $$invalidate(33, _preparedSlotMap = (() => {
+    1048576) {
+      $: $$invalidate(35, _preparedSlotMap = (() => {
         const m = {};
         for (const k of _preparedMarks) if (k.slotId && k.date) m[k.slotId + "|" + k.date] = true;
         return m;
       })());
     }
     if ($$self.$$.dirty[3] & /*_preparedMarks*/
-    262144) {
-      $: $$invalidate(32, _preparedEventMap = (() => {
+    1048576) {
+      $: $$invalidate(34, _preparedEventMap = (() => {
         const m = {};
         for (const k of _preparedMarks) if (k.eventId) m[k.eventId] = true;
         return m;
@@ -25755,29 +25840,29 @@ function instance3($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[3] & /*_tick, _q*/
-    144) {
-      $: $$invalidate(110, _externalLinks = _dep2(_tick, $$invalidate(97, _q = plugin.settings.externalLinks) !== null && _q !== void 0 ? _q : []));
+    576) {
+      $: $$invalidate(112, _externalLinks = _dep2(_tick, $$invalidate(99, _q = plugin.settings.externalLinks) !== null && _q !== void 0 ? _q : []));
     }
     if ($$self.$$.dirty[3] & /*_externalLinks*/
-    131072) {
-      $: $$invalidate(31, _slotExternalMap = (() => {
+    524288) {
+      $: $$invalidate(33, _slotExternalMap = (() => {
         const m = {};
         for (const l of _externalLinks) if (l.slotId && l.date) m[l.slotId + "|" + l.date] = { path: l.path, kind: externalKindOf(l) };
         return m;
       })());
     }
     if ($$self.$$.dirty[3] & /*_externalLinks*/
-    131072) {
-      $: $$invalidate(30, _eventExternalMap = (() => {
+    524288) {
+      $: $$invalidate(32, _eventExternalMap = (() => {
         const m = {};
         for (const l of _externalLinks) if (l.eventId) m[l.eventId] = { path: l.path, kind: externalKindOf(l) };
         return m;
       })());
     }
     if ($$self.$$.dirty[0] & /*currentMonday*/
-    4 | $$self.$$.dirty[3] & /*_dateEvents*/
-    65536) {
-      $: $$invalidate(16, _dateEventMap = (() => {
+    8 | $$self.$$.dirty[3] & /*_dateEvents*/
+    262144) {
+      $: $$invalidate(17, _dateEventMap = (() => {
         var _a3;
         var _b3;
         const m = {};
@@ -25804,9 +25889,9 @@ function instance3($$self, $$props, $$invalidate) {
       })());
     }
     if ($$self.$$.dirty[0] & /*abEnabled, abWeekType, DAYS, currentMonday*/
-    1164 | $$self.$$.dirty[3] & /*_templates*/
-    32768) {
-      $: $$invalidate(17, _slotMap = (() => {
+    2328 | $$self.$$.dirty[3] & /*_templates*/
+    131072) {
+      $: $$invalidate(18, _slotMap = (() => {
         const _ab = abEnabled;
         const _wt = abWeekType;
         const m = {};
@@ -25824,13 +25909,13 @@ function instance3($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: $$invalidate(8, PX_PER_MIN = _dep2(_tick, plugin.getGridScale()) / 60);
+    512) {
+      $: $$invalidate(9, PX_PER_MIN = _dep2(_tick, plugin.getGridScale()) / 60);
     }
     if ($$self.$$.dirty[0] & /*DAYS, plugin*/
-    9 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: $$invalidate(9, _axis = (() => {
+    17 | $$self.$$.dirty[3] & /*_tick*/
+    512) {
+      $: $$invalidate(10, _axis = (() => {
         const _t = _tick;
         let min = 24 * 60, max = 0;
         for (const day2 of DAYS2) {
@@ -25847,32 +25932,37 @@ function instance3($$self, $$props, $$invalidate) {
       })());
     }
     if ($$self.$$.dirty[0] & /*_axis, PX_PER_MIN*/
-    768) {
-      $: $$invalidate(29, axisHeight = (_axis.end - _axis.start) * PX_PER_MIN);
+    1536) {
+      $: $$invalidate(31, axisHeight = (_axis.end - _axis.start) * PX_PER_MIN);
     }
     if ($$self.$$.dirty[0] & /*_axis*/
-    512) {
-      $: $$invalidate(28, hourMarks = (() => {
+    1024) {
+      $: $$invalidate(30, hourMarks = (() => {
         const marks = [];
         for (let m = Math.ceil(_axis.start / 60) * 60; m <= _axis.end; m += 60) marks.push(m);
         return marks;
       })());
     }
     if ($$self.$$.dirty[0] & /*currentMonday*/
-    4) {
-      $: $$invalidate(107, isCurrentWeek = (() => {
+    8) {
+      $: $$invalidate(109, isCurrentWeek = (() => {
         const thisMonday = getMondayOfWeek(/* @__PURE__ */ new Date());
         return currentMonday.getTime() === thisMonday.getTime();
       })());
     }
     if ($$self.$$.dirty[0] & /*_axis, PX_PER_MIN*/
-    768 | $$self.$$.dirty[3] & /*isCurrentWeek, nowMinutes*/
-    16896) {
-      $: $$invalidate(27, nowTop = isCurrentWeek && nowMinutes >= _axis.start && nowMinutes <= _axis.end ? (nowMinutes - _axis.start) * PX_PER_MIN : null);
+    1536 | $$self.$$.dirty[3] & /*isCurrentWeek, nowMinutes*/
+    67584) {
+      $: $$invalidate(29, nowTop = isCurrentWeek && nowMinutes >= _axis.start && nowMinutes <= _axis.end ? (nowMinutes - _axis.start) * PX_PER_MIN : null);
+    }
+    if ($$self.$$.dirty[0] & /*_rootEl*/
+    4 | $$self.$$.dirty[3] & /*_tick*/
+    512) {
+      $: $$invalidate(28, _themeBg = _dep2(_tick, _rootEl ? getComputedStyle(_rootEl).getPropertyValue("--background-primary").trim() : ""));
     }
     if ($$self.$$.dirty[3] & /*nowMinutes*/
-    512) {
-      $: $$invalidate(25, currentTimeStr = (() => {
+    2048) {
+      $: $$invalidate(26, currentTimeStr = (() => {
         const h = Math.floor(nowMinutes / 60);
         const m = nowMinutes % 60;
         return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
@@ -25880,52 +25970,52 @@ function instance3($$self, $$props, $$invalidate) {
     }
     if ($$self.$$.dirty[0] & /*currentDate*/
     2 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: $$invalidate(106, canGoWeekPrev = _dep2(_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart()));
+    512) {
+      $: $$invalidate(108, canGoWeekPrev = _dep2(_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart()));
     }
     if ($$self.$$.dirty[0] & /*currentDate*/
     2 | $$self.$$.dirty[3] & /*_tick*/
-    128) {
-      $: $$invalidate(105, canGoWeekNext = _dep2(_tick, getMondayOfWeek(addWeeks(currentDate, 1)) <= _ayEnd()));
+    512) {
+      $: $$invalidate(107, canGoWeekNext = _dep2(_tick, getMondayOfWeek(addWeeks(currentDate, 1)) <= _ayEnd()));
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[3] & /*_tick, _r*/
-    160) {
-      $: $$invalidate(6, viewMode = _dep2(_tick, _isMobileApp ? $$invalidate(98, _r = plugin.settings.mobileViewMode) !== null && _r !== void 0 ? _r : "day" : "grid"));
+    640) {
+      $: $$invalidate(7, viewMode = _dep2(_tick, _isMobileApp ? $$invalidate(100, _r = plugin.settings.mobileViewMode) !== null && _r !== void 0 ? _r : "day" : "grid"));
     }
     if ($$self.$$.dirty[0] & /*viewMode*/
-    64) {
-      $: $$invalidate(4, isDayMode = _isMobileApp && viewMode === "day");
+    128) {
+      $: $$invalidate(5, isDayMode = _isMobileApp && viewMode === "day");
     }
     if ($$self.$$.dirty[0] & /*isDayMode, currentDate*/
-    18 | $$self.$$.dirty[3] & /*canGoWeekPrev*/
-    8192) {
-      $: $$invalidate(24, canGoPrev = isDayMode ? !!_stepSchoolDay(currentDate, -1) : canGoWeekPrev);
+    34 | $$self.$$.dirty[3] & /*canGoWeekPrev*/
+    32768) {
+      $: $$invalidate(25, canGoPrev = isDayMode ? !!_stepSchoolDay(currentDate, -1) : canGoWeekPrev);
     }
     if ($$self.$$.dirty[0] & /*isDayMode, currentDate*/
-    18 | $$self.$$.dirty[3] & /*canGoWeekNext*/
-    4096) {
-      $: $$invalidate(23, canGoNext = isDayMode ? !!_stepSchoolDay(currentDate, 1) : canGoWeekNext);
+    34 | $$self.$$.dirty[3] & /*canGoWeekNext*/
+    16384) {
+      $: $$invalidate(24, canGoNext = isDayMode ? !!_stepSchoolDay(currentDate, 1) : canGoWeekNext);
     }
     if ($$self.$$.dirty[0] & /*plugin, currentMonday*/
-    5) {
+    9) {
       $: plugin.notifySidebar(currentMonday);
     }
     if ($$self.$$.dirty[0] & /*isDayMode, currentDate, currentMonday*/
-    22) {
-      $: $$invalidate(22, navCentreLabel = (isDayMode ? currentDate : currentMonday).toLocaleDateString(void 0, {
+    42) {
+      $: $$invalidate(23, navCentreLabel = (isDayMode ? currentDate : currentMonday).toLocaleDateString(void 0, {
         weekday: "short",
         day: "numeric",
         month: "short"
       }));
     }
     if ($$self.$$.dirty[0] & /*viewMode*/
-    64) {
-      $: $$invalidate(21, isAgendaMode = _isMobileApp && viewMode === "agenda");
+    128) {
+      $: $$invalidate(22, isAgendaMode = _isMobileApp && viewMode === "agenda");
     }
     if ($$self.$$.dirty[0] & /*currentMonday, currentDate*/
-    6) {
-      $: $$invalidate(5, selectedOffset = (() => {
+    10) {
+      $: $$invalidate(6, selectedOffset = (() => {
         const a = new Date(currentMonday);
         a.setHours(0, 0, 0, 0);
         const b = new Date(currentDate);
@@ -25934,27 +26024,27 @@ function instance3($$self, $$props, $$invalidate) {
       })());
     }
     if ($$self.$$.dirty[0] & /*DAYS, selectedOffset*/
-    40 | $$self.$$.dirty[3] & /*_tick, _s*/
-    192) {
-      $: $$invalidate(104, selectedDay = _dep2(_tick, $$invalidate(99, _s = DAYS2.find((d) => d.offset === selectedOffset)) !== null && _s !== void 0 ? _s : DAYS2[0]));
+    80 | $$self.$$.dirty[3] & /*_tick, _s*/
+    768) {
+      $: $$invalidate(106, selectedDay = _dep2(_tick, $$invalidate(101, _s = DAYS2.find((d) => d.offset === selectedOffset)) !== null && _s !== void 0 ? _s : DAYS2[0]));
     }
     if ($$self.$$.dirty[0] & /*isDayMode, DAYS*/
-    24 | $$self.$$.dirty[3] & /*selectedDay*/
-    2048) {
-      $: $$invalidate(20, renderDays = isDayMode && selectedDay ? [selectedDay] : DAYS2);
+    48 | $$self.$$.dirty[3] & /*selectedDay*/
+    8192) {
+      $: $$invalidate(21, renderDays = isDayMode && selectedDay ? [selectedDay] : DAYS2);
     }
     if ($$self.$$.dirty[0] & /*currentMonday*/
-    4 | $$self.$$.dirty[3] & /*selectedDay*/
-    2048) {
-      $: $$invalidate(103, selectedDateObj = addDaysLocal(currentMonday, selectedDay ? selectedDay.offset : 0));
+    8 | $$self.$$.dirty[3] & /*selectedDay*/
+    8192) {
+      $: $$invalidate(105, selectedDateObj = addDaysLocal(currentMonday, selectedDay ? selectedDay.offset : 0));
     }
     if ($$self.$$.dirty[3] & /*selectedDateObj*/
-    1024) {
-      $: $$invalidate(19, selectedDayLong = selectedDateObj.toLocaleDateString("en-GB", { weekday: "long" }));
+    4096) {
+      $: $$invalidate(20, selectedDayLong = selectedDateObj.toLocaleDateString("en-GB", { weekday: "long" }));
     }
     if ($$self.$$.dirty[3] & /*selectedDateObj*/
-    1024) {
-      $: $$invalidate(18, selectedDayDateStr = selectedDateObj.toLocaleDateString("en-GB", {
+    4096) {
+      $: $$invalidate(19, selectedDayDateStr = selectedDateObj.toLocaleDateString("en-GB", {
         day: "numeric",
         month: "long",
         year: "numeric"
@@ -25964,6 +26054,7 @@ function instance3($$self, $$props, $$invalidate) {
   return [
     plugin,
     currentDate,
+    _rootEl,
     currentMonday,
     DAYS2,
     isDayMode,
@@ -25989,6 +26080,7 @@ function instance3($$self, $$props, $$invalidate) {
     canGoPrev,
     currentTimeStr,
     dayOverrideMap,
+    _themeBg,
     nowTop,
     hourMarks,
     axisHeight,
@@ -26103,7 +26195,8 @@ function instance3($$self, $$props, $$invalidate) {
     click_handler_22,
     dragover_handler,
     drop_handler,
-    div3_binding
+    div3_binding,
+    div3_binding_1
   ];
 }
 var WeekView = class extends SvelteComponent {
@@ -26117,27 +26210,27 @@ var WeekView = class extends SvelteComponent {
       safe_not_equal,
       {
         plugin: 0,
-        initialDate: 78,
-        prevWeek: 79,
-        nextWeek: 80,
-        updateSize: 81,
-        refreshEvents: 82
+        initialDate: 80,
+        prevWeek: 81,
+        nextWeek: 82,
+        updateSize: 83,
+        refreshEvents: 84
       },
       add_css3,
-      [-1, -1, -1, -1, -1, -1, -1, -1, -1]
+      [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
     );
   }
   get prevWeek() {
-    return this.$$.ctx[79];
+    return this.$$.ctx[81];
   }
   get nextWeek() {
-    return this.$$.ctx[80];
+    return this.$$.ctx[82];
   }
   get updateSize() {
     return updateSize;
   }
   get refreshEvents() {
-    return this.$$.ctx[82];
+    return this.$$.ctx[84];
   }
 };
 var WeekView_default = WeekView;
