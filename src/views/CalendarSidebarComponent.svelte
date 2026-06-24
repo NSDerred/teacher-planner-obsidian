@@ -2,10 +2,12 @@
   import type TeacherPlannerPlugin from "../main";
   import type { SchoolDay } from "../types";
   import { getMondayOfWeek, weekKey } from "../utils/weekUtils";
-  import { readWeekNote, writeWeekNote } from "../utils/weekNoteFiles";
+  import { readWeekNote, writeWeekNote, weekNoteFilePath } from "../utils/weekNoteFiles";
   import { calcDirectedTime, fmtMins } from "../utils/directedTimeUtils";
-  import { setIcon, MarkdownRenderer } from "obsidian";
-  import { tick } from "svelte";
+  import { setIcon, MarkdownRenderer, TFile } from "obsidian";
+  import type { TAbstractFile, EventRef } from "obsidian";
+  import { tick, onMount, onDestroy } from "svelte";
+  import { createEmbeddableEditor, type EmbeddableEditorHandle } from "../utils/embeddableEditor";
 
   function icon(node: HTMLElement, name: string) {
     setIcon(node, name);
@@ -157,6 +159,94 @@
     editing = false;
   }
 
+  // ── Live (formatted) week-note editor ─────────────────────────────────────
+  // When week notes are file-backed, embed Obsidian's own Markdown editor so the
+  // note formats as you type. Falls back to the textarea above if file mode is off
+  // or the internal editor API can't be resolved (liveUnavailable).
+  let liveEl: HTMLDivElement | undefined;
+  let liveHandle: EmbeddableEditorHandle | null = null;
+  let liveUnavailable = false;
+  let liveKey = "";
+  let mounting = false;
+  let saveTimer: number | undefined;
+  let suppressReload = false;
+  $: useLive = fileMode && !liveUnavailable;
+
+  function scheduleLiveSave(v: string) {
+    if (saveTimer) window.clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(() => { void flushLiveSave(v); }, 600);
+  }
+  async function flushLiveSave(v: string) {
+    if (saveTimer) { window.clearTimeout(saveTimer); saveTimer = undefined; }
+    suppressReload = true;
+    await writeWeekNote(plugin, liveKey, v);
+    notesValue = v;
+    window.setTimeout(() => { suppressReload = false; }, 80);
+  }
+  async function mountLive() {
+    if (!liveEl || mounting) return;
+    mounting = true;
+    try {
+      const key = currentWeekKey;
+      destroyLive();
+      const body = await readWeekNote(plugin, key);
+      liveHandle = createEmbeddableEditor(plugin.app, liveEl, {
+        value: body,
+        cls: "tp-sb-notes-live-cm",
+        onChange: (v) => scheduleLiveSave(v),
+        onBlur: (v) => { void flushLiveSave(v); },
+      });
+      if (!liveHandle) { liveUnavailable = true; return; }
+      liveKey = key;
+      notesValue = body;
+    } finally {
+      mounting = false;
+    }
+  }
+  function destroyLive() {
+    if (saveTimer) { window.clearTimeout(saveTimer); saveTimer = undefined; }
+    if (liveHandle) { liveHandle.destroy(); liveHandle = null; }
+    liveKey = "";
+  }
+  async function reloadLive() {
+    const body = await readWeekNote(plugin, liveKey);
+    if (liveHandle && liveHandle.value !== body) liveHandle.setValue(body);
+    notesValue = body;
+  }
+  function onVaultModify(file: TAbstractFile) {
+    if (suppressReload || !liveHandle || !liveKey) return;
+    if (!(file instanceof TFile)) return;
+    if (file.path !== weekNoteFilePath(plugin, liveKey)) return;
+    void reloadLive();
+  }
+  async function openWeekNoteInPane() {
+    const key = currentWeekKey;
+    if (liveHandle) await flushLiveSave(liveHandle.value);
+    const path = weekNoteFilePath(plugin, key);
+    let f = plugin.app.vault.getAbstractFileByPath(path);
+    if (!(f instanceof TFile)) {
+      await writeWeekNote(plugin, key, liveHandle?.value ?? notesValue ?? "");
+      f = plugin.app.vault.getAbstractFileByPath(path);
+    }
+    if (!(f instanceof TFile)) return;
+    const where = plugin.settings.weekNoteOpenIn ?? "tab";
+    const leaf = where === "current"
+      ? plugin.app.workspace.getLeaf(false)
+      : plugin.app.workspace.getLeaf(where === "split" ? "split" : "tab");
+    await leaf.openFile(f);
+  }
+
+  // Mount / remount when the editor becomes usable or the week changes; tear down otherwise.
+  $: if (useLive && liveEl && currentWeekKey !== liveKey) void mountLive();
+  $: if (!useLive && liveHandle) destroyLive();
+
+  let modifyRef: EventRef | undefined;
+  onMount(() => { modifyRef = plugin.app.vault.on("modify", onVaultModify); });
+  onDestroy(() => {
+    if (modifyRef) plugin.app.vault.offref(modifyRef);
+    destroyLive();
+  });
+
   // ── Notes: formatting toolbar ────────────────────────────────────────
   const HL_YELLOW = "#fff3a3";
   const HL_COLOURS = [
@@ -175,6 +265,7 @@
 
   // Wrap the current selection (or drop the cursor between the markers)
   function wrapSelection(before: string, after: string) {
+    if (useLive && liveHandle) { liveHandle.wrapSelection(before, after); return; }
     ensureEditing();
     const ta = textareaEl;
     if (!ta) return;
@@ -190,6 +281,15 @@
 
   // Add a per-line prefix across the selected lines (heading / lists)
   function linePrefix(kind: "heading" | "bullet" | "number") {
+    if (useLive && liveHandle) {
+      liveHandle.transformSelectedLines((ln, i) => {
+        const bare = ln.replace(/^(#{1,6}\s+|[-*]\s+|\d+\.\s+)/, "");
+        if (kind === "heading") return ln.startsWith("## ") ? bare : "## " + bare;
+        if (kind === "bullet")  return /^[-*]\s+/.test(ln) ? bare : "- " + bare;
+        return /^\d+\.\s+/.test(ln) ? bare : (i + 1) + ". " + bare;
+      });
+      return;
+    }
     ensureEditing();
     const ta = textareaEl;
     if (!ta) return;
@@ -310,26 +410,35 @@
           </div>
         {/if}
       </div>
+      {#if useLive}
+        <span class="tp-fmt-spacer"></span>
+        <button class="tp-fmt-btn" aria-label="Open week note in a pane" title="Open full note"
+                on:click={openWeekNoteInPane} use:icon={"arrows-diagonal"}></button>
+      {/if}
     </div>
 
     <!-- Editor + rendered preview overlay -->
     <div class="tp-sb-notes-body">
-      <textarea
-        class="tp-sb-notes-textarea"
-        bind:this={textareaEl}
-        placeholder={notesPlaceholder}
-        value={notesValue}
-        on:blur={onNotesBlur}
-      ></textarea>
-      <div
-        class="tp-sb-notes-preview"
-        class:tp-sb-notes-preview--hidden={editing || !notesValue.trim()}
-        bind:this={previewEl}
-        role="button"
-        tabindex="0"
-        on:click={enterEdit}
-        on:keydown={(e) => e.key === "Enter" && enterEdit()}
-      ></div>
+      {#if useLive}
+        <div class="tp-sb-notes-live" bind:this={liveEl}></div>
+      {:else}
+        <textarea
+          class="tp-sb-notes-textarea"
+          bind:this={textareaEl}
+          placeholder={notesPlaceholder}
+          value={notesValue}
+          on:blur={onNotesBlur}
+        ></textarea>
+        <div
+          class="tp-sb-notes-preview"
+          class:tp-sb-notes-preview--hidden={editing || !notesValue.trim()}
+          bind:this={previewEl}
+          role="button"
+          tabindex="0"
+          on:click={enterEdit}
+          on:keydown={(e) => e.key === "Enter" && enterEdit()}
+        ></div>
+      {/if}
     </div>
   </div>
 
@@ -487,6 +596,11 @@
 
   /* Editor body + preview overlay */
   .tp-sb-notes-body { position: relative; flex: 1; display: flex; min-height: 0; }
+  .tp-sb-notes-live { flex: 1; min-height: 0; overflow: auto; }
+  .tp-sb-notes-live :global(.cm-editor) { height: 100%; background: transparent; }
+  .tp-sb-notes-live :global(.cm-scroller) { font-family: var(--font-text); font-size: 13px; line-height: 1.5; }
+  .tp-sb-notes-live :global(.cm-content) { padding: 4px 6px; }
+  .tp-fmt-spacer { margin-left: auto; }
   .tp-sb-notes-textarea {
     flex: 1; resize: none; width: 100%;
     box-sizing: border-box; padding: 10px 12px;

@@ -827,7 +827,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         }));
     new Setting(containerEl)
       .setName("Store week notes as vault files")
-      .setDesc("Save each week's sidebar note as a markdown file (\"Week note - <Monday date>\") so it's searchable and linkable. Enabling moves existing week notes out of the plugin data file.")
+      .setDesc("Save each week's sidebar note as a markdown file (\"Week note - <Monday date>\") so it's searchable and linkable, and enables the live (formatted) editor in the sidebar. Enabling moves existing week notes out of the plugin data file.")
       .addToggle(t => t.setValue(this.plugin.settings.weekNoteFiles ?? false)
         .onChange(async v => {
           this.plugin.settings.weekNoteFiles = v;
@@ -853,6 +853,15 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })(); });
         });
+      new Setting(containerEl)
+        .setName("Open week note in")
+        .setDesc("Where the open-in-pane button opens the full week note.")
+        .addDropdown(d => d
+          .addOption("tab", "New tab")
+          .addOption("split", "Split right")
+          .addOption("current", "Current pane")
+          .setValue(this.plugin.settings.weekNoteOpenIn ?? "tab")
+          .onChange(v => { this.plugin.settings.weekNoteOpenIn = v as "tab" | "split" | "current"; this.plugin.requestSave(); }));
     }
 
     new Setting(containerEl).setName("Export").setHeading();

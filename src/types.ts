@@ -267,6 +267,8 @@ export interface TeacherPlannerSettings {
   weekNotesFolder?: string;
   /** Confirm before destructive deletes (remove event / lesson / subject / class …). Default on. Global. */
   confirmBeforeDelete?: boolean;
+  /** Where the "open full note" button opens the week note. Global. Default "tab". */
+  weekNoteOpenIn?: "tab" | "split" | "current";
   notesHeight?: number;
   gridLineColour?: string;
   gridLineWeight?: number;
@@ -398,6 +400,8 @@ export interface GlobalPluginData {
   themeMode?: PlannerThemeMode;
   /** Confirm before destructive deletes. Global (cross-planner). Default on. */
   confirmBeforeDelete?: boolean;
+  /** Where the "open full note" button opens the week note. Global. Default "tab". */
+  weekNoteOpenIn?: "tab" | "split" | "current";
   /** All planner records. Always at least one once setup is complete; empty array triggers the wizard. */
   planners: PlannerRecord[];
 }

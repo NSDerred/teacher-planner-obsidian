@@ -144,6 +144,7 @@ export const DEFAULT_PLANNER: PlannerRecord = {
   dateEvents: [],
   slotExclusions: [],
   weekNotes: {},
+  weekNoteFiles: true,
   notesHeight: 120,
   lessonNoteTemplate: DEFAULT_SETTINGS.lessonNoteTemplate,
   lessonNoteTitleTemplate: DEFAULT_SETTINGS.lessonNoteTitleTemplate,
@@ -170,5 +171,6 @@ export const DEFAULT_GLOBAL_DATA: GlobalPluginData = {
   blockBorderColour: "theme:border",
   blockBorderWeight: 1,
   confirmBeforeDelete: true,
+  weekNoteOpenIn: "tab",
   planners: [],
 };

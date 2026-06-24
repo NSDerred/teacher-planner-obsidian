@@ -245,7 +245,7 @@ export default class TeacherPlannerPlugin extends Plugin {
   private static readonly GLOBAL_FIELDS: ReadonlyArray<keyof GlobalPluginData & keyof TeacherPlannerSettings> = [
     "gridLineColour", "gridLineWeight", "blockBorderColour", "blockBorderWeight",
     "theme", "themeMode",
-    "confirmBeforeDelete",
+    "confirmBeforeDelete", "weekNoteOpenIn",
   ];
 
   /** Populate plugin.settings from the active planner + global visual settings. */
@@ -285,6 +285,7 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.plannerData.blockBorderColour = this.plannerData.blockBorderColour ?? DEFAULT_GLOBAL_DATA.blockBorderColour;
     this.plannerData.blockBorderWeight = this.plannerData.blockBorderWeight ?? DEFAULT_GLOBAL_DATA.blockBorderWeight;
     this.plannerData.confirmBeforeDelete = this.plannerData.confirmBeforeDelete ?? DEFAULT_GLOBAL_DATA.confirmBeforeDelete;
+    this.plannerData.weekNoteOpenIn = this.plannerData.weekNoteOpenIn ?? DEFAULT_GLOBAL_DATA.weekNoteOpenIn;
   }
 
   async createPlanner(record: PlannerRecord) {
@@ -456,6 +457,7 @@ export default class TeacherPlannerPlugin extends Plugin {
       blockBorderColour:  raw.blockBorderColour ?? DEFAULT_GLOBAL_DATA.blockBorderColour,
       blockBorderWeight:  raw.blockBorderWeight ?? DEFAULT_GLOBAL_DATA.blockBorderWeight,
       confirmBeforeDelete: raw.confirmBeforeDelete ?? DEFAULT_GLOBAL_DATA.confirmBeforeDelete,
+      weekNoteOpenIn: raw.weekNoteOpenIn ?? DEFAULT_GLOBAL_DATA.weekNoteOpenIn,
       theme:              raw.theme,
       themeMode:          raw.themeMode,
       planners:           [planner],
