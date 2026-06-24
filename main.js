@@ -17572,7 +17572,7 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
         showClashWarning(clashes);
       })();
     });
-    window.setTimeout(() => titleInput.focus(), 50);
+    if (!isEdit) window.setTimeout(() => titleInput.focus(), 50);
   }
   onClose() {
     this.contentEl.empty();

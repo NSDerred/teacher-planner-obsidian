@@ -493,7 +493,11 @@ export class AddDateEventModal extends Modal {
       showClashWarning(clashes);
     })(); });
 
-    window.setTimeout(() => titleInput.focus(), 50);
+    // Auto-focus the title only when ADDING a new event. In edit mode the field is
+    // pre-filled, so focusing it would immediately fire the focus handler and pop the
+    // suggestion / "create new event" combo over a form the user may only want to glance
+    // at (or tweak elsewhere). Opening edit mode unfocused keeps it a clean filled form.
+    if (!isEdit) window.setTimeout(() => titleInput.focus(), 50);
   }
 
   onClose() { this.contentEl.empty(); }
