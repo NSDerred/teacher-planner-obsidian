@@ -772,6 +772,15 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         s.sliderEl.after(valueLabel);
       });
 
+    new Setting(containerEl).setName("Timetable editor zoom (this device)")
+      .setDesc("Vertical zoom of the timetable editor, in pixels per hour. Stored per device — not synced. Also adjustable from the editor's own zoom control.")
+      .addSlider(s => {
+        const valueLabel = createSpan({ cls: "tp-slider-value", text: `${this.plugin.getEditorScale()} px/hr` });
+        s.setLimits(60, 240, 6).setValue(this.plugin.getEditorScale())
+          .onChange(v => { this.plugin.setEditorScale(v); valueLabel.setText(`${v} px/hr`); });
+        s.sliderEl.after(valueLabel);
+      });
+
     new Setting(containerEl).setName("Reset grid visuals")
       .setDesc("Restore both colours to your Obsidian theme and weights to 1px.")
       .addButton(btn => btn.setButtonText("Reset to theme defaults").setClass("mod-warning")

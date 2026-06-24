@@ -3,7 +3,7 @@
   import type { TimetableEditorModal } from "./TimetableEditorModal";
   import type { TimetableSlot, SchoolPeriod, TimetableTemplate, SchoolDay } from "../types";
   import { AddTimetableTemplateModal } from "./AddTimetableTemplateModal";
-  import { setIcon } from "obsidian";
+  import { setIcon, Platform } from "obsidian";
   import { ConfirmModal } from "../settings/SettingsTab";
   import { resolveColour } from "../utils/themeColours";
   import { periodAppliesTo, periodLengthMinutes, getPeriodsForDay } from "../utils/scheduleUtils";
@@ -15,6 +15,7 @@
 
   export let plugin: TeacherPlannerPlugin;
   export let modal: TimetableEditorModal;
+  const isMobile = Platform.isMobile;
 
   const ALL_DAYS: { key: SchoolDay; label: string }[] = [
     { key: "monday",    label: "Mon" },
@@ -541,7 +542,12 @@
   }
 
   // ── Time-axis layout (each day column shows its own schedule's blocks) ──────
-  const TE_PX = 1.7; // pixels per minute
+  // Vertical zoom in px/hour (per-device, shared with the Settings slider via
+  // plugin.getEditorScale/setEditorScale). TE_PX is px/minute for the layout maths.
+  let _teScale = plugin.getEditorScale();
+  $: TE_PX = _teScale / 60;
+  function setZoom(pxPerHour: number): void { _teScale = plugin.setEditorScale(pxPerHour); }
+  function nudgeZoom(delta: number): void { setZoom(_teScale + delta); }
   function getDayPeriods(day: SchoolDay): SchoolPeriod[] { return getPeriodsForDay(plugin.settings.academicYear, day); }
   $: _axisStart = periods.length ? Math.min(...periods.map(p => tMin(p.start))) : 8 * 60;
   $: _axisEnd   = periods.length ? Math.max(...periods.map(p => tMin(p.end)))   : 16 * 60;
@@ -655,6 +661,17 @@
         class:tp-te-week-tab--active={activeWeek === "B"}
         on:click={() => { activeWeek = "B"; closePicker(); }}
       >Week B</button>
+    </div>
+  {/if}
+
+  <!-- ── Vertical zoom (desktop) ─────────────────────────────────────────────── -->
+  {#if !isMobile}
+    <div class="tp-te-zoom">
+      <span class="tp-te-zoom-label">Zoom</span>
+      <button class="tp-te-zoom-btn" title="Zoom out" aria-label="Zoom out" on:click={() => nudgeZoom(-12)} use:icon={"minus"}></button>
+      <input class="tp-te-zoom-slider" type="range" min="60" max="240" step="6"
+        value={_teScale} on:input={(e) => setZoom(+e.currentTarget.value)} aria-label="Timetable editor zoom" />
+      <button class="tp-te-zoom-btn" title="Zoom in" aria-label="Zoom in" on:click={() => nudgeZoom(12)} use:icon={"plus"}></button>
     </div>
   {/if}
 
@@ -1057,4 +1074,11 @@
   .tp-te-btn-primary:hover { filter: brightness(1.08); }
   .tp-te-chip { cursor: grab; }
   .tp-te-chip:active { cursor: grabbing; }
+  /* ── Vertical zoom control ─────────────────────────────────────────────── */
+  .tp-te-zoom { display: flex; align-items: center; gap: 8px; padding: 2px 2px 8px; }
+  .tp-te-zoom-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .tp-te-zoom-slider { flex: 0 1 200px; max-width: 240px; }
+  .tp-te-zoom-btn { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border-radius: 5px; border: 1px solid var(--background-modifier-border); background: var(--background-secondary); color: var(--text-normal); cursor: pointer; }
+  .tp-te-zoom-btn:hover { background: var(--background-modifier-hover); }
+  .tp-te-zoom-btn :global(svg) { width: 14px; height: 14px; }
 </style>

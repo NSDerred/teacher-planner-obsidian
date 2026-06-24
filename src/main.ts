@@ -198,6 +198,23 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.refreshViews();
   }
 
+  // Timetable-editor time-axis zoom — same per-device local-storage approach as the
+  // week grid, but a separate value so the editor and week view zoom independently.
+  private static readonly EDITOR_SCALE_KEY = "teacher-planner:teScale";
+  /** Timetable-editor scale in pixels per hour. Per-device; default 102 (≈1.7 px/min). */
+  getEditorScale(): number {
+    const raw = window.localStorage.getItem(TeacherPlannerPlugin.EDITOR_SCALE_KEY);
+    const n = raw != null ? parseInt(raw, 10) : NaN;
+    if (!isNaN(n) && n >= 60 && n <= 240) return n;
+    return 102;
+  }
+  /** Persist the editor scale (clamped 60–240 px/hr) and return the value actually stored. */
+  setEditorScale(pxPerHour: number): number {
+    const clamped = Math.max(60, Math.min(240, Math.round(pxPerHour)));
+    window.localStorage.setItem(TeacherPlannerPlugin.EDITOR_SCALE_KEY, String(clamped));
+    return clamped;
+  }
+
   // ── Planner management ──────────────────────────────────────────────────────────────────────────
 
   getActivePlanner(): PlannerRecord | undefined {
