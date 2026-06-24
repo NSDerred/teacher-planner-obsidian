@@ -1133,7 +1133,7 @@
 
 
 
-<div class="tp-week-view" data-tp-theme={plugin.settings.theme ?? "carbon"} data-tp-mode={plugin.settings.themeMode ?? "dark"} data-tp-view={isDayMode ? "day" : isAgendaMode ? "agenda" : "grid"}>
+<div class="tp-week-view" data-tp-view={isDayMode ? "day" : isAgendaMode ? "agenda" : "grid"}>
 
   <!-- ── Header ─────────────────────────────────────────────────────────── -->
   <header class="tp-header">
@@ -1712,7 +1712,7 @@
   /* Lesson plan + prepared indicators — own line, pinned to chip bottom, size scales with --mark-size */
   .tp-chip-marks { margin-left:auto; display:flex; gap:calc(var(--mark-size) * 0.3); align-items:center; justify-content:flex-end; flex-shrink:0; }
   .tp-plan-mark { width:var(--mark-size); height:var(--mark-size); display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; line-height:0; box-sizing:border-box; flex-shrink:0; }
-  button.tp-plan-mark--linked { color:#43a047; opacity:1; cursor:pointer; }
+  button.tp-plan-mark--linked { color:var(--color-green); opacity:1; cursor:pointer; }
   button.tp-plan-mark--linked:hover { opacity:0.7; }
   .tp-plan-mark :global(svg) { width:var(--mark-size); height:var(--mark-size); }
   .tp-ext-mark { width:var(--mark-size); height:var(--mark-size); display:inline-flex; align-items:center; justify-content:center; background:none; border:none; padding:0; line-height:0; box-sizing:border-box; flex-shrink:0; color:var(--text-muted); cursor:pointer; opacity:0.85; }
@@ -1720,7 +1720,7 @@
   .tp-ext-mark :global(svg) { width:var(--mark-size); height:var(--mark-size); }
   .tp-prep-tick { width:var(--mark-size); height:var(--mark-size); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1.5px solid var(--text-muted); padding:0; line-height:0; cursor:pointer; color:var(--text-muted); opacity:0; transition:opacity 80ms ease; box-sizing:border-box; flex-shrink:0; }
   .tp-chip:hover .tp-prep-tick { opacity:0.55; }
-  button.tp-prep-tick--on { opacity:1 !important; background:#43a047; border-color:#43a047; color:#fff; }
+  button.tp-prep-tick--on { opacity:1 !important; background:var(--color-green); border-color:var(--color-green); color:#fff; }
   .tp-prep-tick :global(svg) { width:calc(var(--mark-size) * 0.7); height:calc(var(--mark-size) * 0.7); }
 
   /* Current time indicator */

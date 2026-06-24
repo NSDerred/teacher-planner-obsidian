@@ -627,120 +627,6 @@
 .tp-preset-swatches .tp-preset-swatch.tp-preset-swatch--theme { border-radius: 50%; background: var(--background-modifier-border); outline: 1px dashed var(--text-muted); outline-offset: 1px; margin-right: 4px; }
 .tp-preset-swatches .tp-preset-swatch--theme.tp-preset-swatch--active { outline-color: var(--interactive-accent); outline-style: solid; }
 
-/* ── Slate dark ── */
-[data-tp-theme="slate"][data-tp-mode="dark"] {
-  --background-primary:             #1e2330;
-  --background-secondary:           #252b3b;
-  --background-modifier-border:     #3a4155;
-  --background-modifier-hover:      rgba(94,129,244,0.12);
-  --background-modifier-form-field: #1a1f2e;
-  --text-normal:                    #d0d6e8;
-  --text-muted:                     #8892a8;
-  --text-faint:                     #5a6278;
-  --interactive-accent:             #5e81f4;
-  --interactive-accent-hover:       #6e8ff5;
-  --text-on-accent:                 #ffffff;
-  --color-red:                      #f38ba8;
-  --color-yellow:                   #f9e2af;
-  --tp-block-alpha:                 0.28;
-  color-scheme: dark;
-}
-
-/* ── Slate light ── */
-[data-tp-theme="slate"][data-tp-mode="light"] {
-  --background-primary:             #edf0f8;
-  --background-secondary:           #dde2f0;
-  --background-modifier-border:     #b8c2dd;
-  --background-modifier-hover:      rgba(50,80,220,0.09);
-  --background-modifier-form-field: #f5f7fc;
-  --text-normal:                    #1c2340;
-  --text-muted:                     #556090;
-  --text-faint:                     #8090bb;
-  --interactive-accent:             #3a5ce4;
-  --interactive-accent-hover:       #2a4cc8;
-  --text-on-accent:                 #ffffff;
-  --color-red:                      #c0392b;
-  --color-yellow:                   #9a7000;
-  --tp-block-alpha:                 0.18;
-  color-scheme: light;
-}
-
-/* ── Chalk dark ── */
-[data-tp-theme="chalk"][data-tp-mode="dark"] {
-  --background-primary:             #1e1e28;
-  --background-secondary:           #26262f;
-  --background-modifier-border:     #3c3c4a;
-  --background-modifier-hover:      rgba(120,140,255,0.12);
-  --background-modifier-form-field: #18181f;
-  --text-normal:                    #dcdce8;
-  --text-muted:                     #9090a8;
-  --text-faint:                     #606078;
-  --interactive-accent:             #7b8eff;
-  --interactive-accent-hover:       #8a9dff;
-  --text-on-accent:                 #ffffff;
-  --color-red:                      #f38ba8;
-  --color-yellow:                   #f9e2af;
-  --tp-block-alpha:                 0.28;
-  color-scheme: dark;
-}
-
-/* ── Chalk light (soft) ── */
-[data-tp-theme="chalk"][data-tp-mode="light"] {
-  --background-primary:             #f8f8f8;
-  --background-secondary:           #efefef;
-  --background-modifier-border:     #d4d4d4;
-  --background-modifier-hover:      rgba(74,108,247,0.08);
-  --background-modifier-form-field: #ffffff;
-  --text-normal:                    #1e1e1e;
-  --text-muted:                     #666666;
-  --text-faint:                     #999999;
-  --interactive-accent:             #4a6cf7;
-  --interactive-accent-hover:       #3558e8;
-  --text-on-accent:                 #ffffff;
-  --color-red:                      #d04040;
-  --color-yellow:                   #b58800;
-  --tp-block-alpha:                 0.18;
-  color-scheme: light;
-}
-
-/* ── Paper dark ── */
-[data-tp-theme="paper"][data-tp-mode="dark"] {
-  --background-primary:             #2a2318;
-  --background-secondary:           #322b1e;
-  --background-modifier-border:     #4a3f2e;
-  --background-modifier-hover:      rgba(200,150,60,0.12);
-  --background-modifier-form-field: #221c12;
-  --text-normal:                    #e8dcc8;
-  --text-muted:                     #a8967a;
-  --text-faint:                     #7a6a50;
-  --interactive-accent:             #d4a040;
-  --interactive-accent-hover:       #e0b050;
-  --text-on-accent:                 #1a1208;
-  --color-red:                      #e07060;
-  --color-yellow:                   #e5c07b;
-  --tp-block-alpha:                 0.28;
-  color-scheme: dark;
-}
-
-/* ── Paper light (warm cream) ── */
-[data-tp-theme="paper"][data-tp-mode="light"] {
-  --background-primary:             #fdf6e3;
-  --background-secondary:           #f5edda;
-  --background-modifier-border:     #d9c9a8;
-  --background-modifier-hover:      rgba(181,115,32,0.10);
-  --background-modifier-form-field: #fff8ee;
-  --text-normal:                    #3a2e1a;
-  --text-muted:                     #8a7a5a;
-  --text-faint:                     #b0a070;
-  --interactive-accent:             #b57320;
-  --interactive-accent-hover:       #9d6418;
-  --text-on-accent:                 #ffffff;
-  --color-red:                      #c0392b;
-  --color-yellow:                   #b58800;
-  --tp-block-alpha:                 0.18;
-  color-scheme: light;
-}
-
 /* ── Date event chips ────────────────────────────────────────────────────────
    Events are wrapped in .tp-event-stack which fills the cell and arranges
    events as equal-width columns (flex row). Each chip is flex:1 inside.
@@ -797,7 +683,6 @@
 /* ── Theme toggle button ─────────────────────────────────────────────────────
    Slightly distinct from plain nav buttons so it reads as a mode control.
    ────────────────────────────────────────────────────────────────────────── */
-
 
 /* ── Chip action bar ─────────────────────────────────────────────────────────
    Compact row of icon buttons shown on chip hover (notes, open note, etc.)

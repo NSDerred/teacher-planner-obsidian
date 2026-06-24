@@ -375,10 +375,10 @@
   .tp-lo-ic { border:none; background:transparent; box-shadow:none; cursor:pointer; color:var(--text-faint); display:inline-flex; padding:4px; border-radius:4px; }
   .tp-lo-ic:hover { background:var(--background-modifier-hover); color:var(--text-normal); }
   .tp-lo-ic :global(svg) { width:16px; height:16px; }
-  .tp-lo-ic--plan { color:#43a047; }
+  .tp-lo-ic--plan { color:var(--color-green); }
   .tp-lo-prep { width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1.5px solid var(--text-muted); padding:0; line-height:0; cursor:pointer; color:var(--text-muted); box-sizing:border-box; flex-shrink:0; }
   .tp-lo-prep:hover { color:var(--text-normal); border-color:var(--text-normal); }
-  button.tp-lo-prep--on { background:#43a047; border-color:#43a047; color:#fff; }
+  button.tp-lo-prep--on { background:var(--color-green); border-color:var(--color-green); color:#fff; }
   .tp-lo-prep :global(svg) { width:12px; height:12px; }
 
   .tp-lo-noteedit { width:100%; box-sizing:border-box; margin-top:0; padding:9px 11px; border:1px solid var(--interactive-accent); border-radius:6px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:13px; line-height:1.4; font-family:var(--font-interface); resize:vertical; }

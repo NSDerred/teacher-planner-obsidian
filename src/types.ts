@@ -223,8 +223,6 @@ export interface BulkApplyJournal {
   entries: { slotId: string; date: string; prevPath?: string }[];
 }
 
-export type PlannerTheme = "carbon" | "paper";
-export type PlannerThemeMode = "light" | "dark";
 
 /** Settings for the directed time tracker feature. */
 export interface DirectedTimeSettings {
@@ -280,8 +278,6 @@ export interface TeacherPlannerSettings {
   lessonNoteTitleTemplate?: string;
   /** Template for generated event-note titles. Tokens: {{date}} {{period}} {{event}}. */
   eventNoteTitleTemplate?: string;
-  theme?: PlannerTheme;
-  themeMode?: PlannerThemeMode;
   /** Lesson plan links (issue #— linkable reusable plans). */
   lessonPlanLinks?: LessonPlanLink[];
   /** Folder for new lesson plans. Empty → "<plannerFolder>/Plans". */
@@ -395,9 +391,6 @@ export interface GlobalPluginData {
   gridLineWeight: number;
   blockBorderColour: string;
   blockBorderWeight: number;
-  /** Optional global theme overrides — applied via the data-tp-theme attribute. */
-  theme?: PlannerTheme;
-  themeMode?: PlannerThemeMode;
   /** Confirm before destructive deletes. Global (cross-planner). Default on. */
   confirmBeforeDelete?: boolean;
   /** Where the "open full note" button opens the week note. Global. Default "tab". */
