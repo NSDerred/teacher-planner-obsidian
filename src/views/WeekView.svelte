@@ -564,6 +564,21 @@
 
   function onDragEnd() { dragSlotId = null; dragEventId = null; dragOverKey = null; }
 
+  // Show a Menu anchored to the pointer for mouse opens, or to the triggering element
+  // for keyboard opens. A keyboard-activated click — native on a <button>, or the
+  // synthetic click dispatched from onCellKeydown for chips — reports clientX/clientY = 0,
+  // which would otherwise send showAtMouseEvent to the top-left of the screen. In that
+  // case anchor below-left of the focused element instead.
+  function showMenuAt(menu: Menu, e: MouseEvent): void {
+    const t = e.currentTarget;
+    if (e.clientX === 0 && e.clientY === 0 && t instanceof HTMLElement) {
+      const r = t.getBoundingClientRect();
+      menu.showAtPosition({ x: Math.round(r.left), y: Math.round(r.bottom) });
+    } else {
+      menu.showAtMouseEvent(e);
+    }
+  }
+
   // ── Chip action menu (Obsidian native Menu) ──────────────────────────────
   function openChipMenu(
     e: MouseEvent,
@@ -693,7 +708,7 @@
       }));
       menu.addItem(i => i.setTitle("Remove event").setIcon("trash-2").onClick(() => removeDateEvent(event.id)));
     }
-    menu.showAtMouseEvent(e);
+    showMenuAt(menu, e);
   }
 
   function changeColour(classId: string) {
@@ -856,7 +871,7 @@
     menu.addItem(i => i.setTitle("Change pattern from here on").setDisabled(true));
     menu.addItem(i => i.setTitle("Make this an A week (shift the rest)").setChecked(!!cur && cur.anchor && cur.value === "A").onClick(() => setAbOverride("A", true)));
     menu.addItem(i => i.setTitle("Make this a B week (shift the rest)").setChecked(!!cur && cur.anchor && cur.value === "B").onClick(() => setAbOverride("B", true)));
-    menu.showAtMouseEvent(e);
+    showMenuAt(menu, e);
   }
 
   function onOpenTimetable() { new TimetableEditorModal(plugin.app, plugin).open(); }
@@ -876,7 +891,7 @@
     menu.addItem(i => i.setTitle("+ Event").setIcon("calendar-plus").onClick(() => onAddEvent()));
     menu.addItem(i => i.setTitle("Timetable").setIcon("layout-grid").onClick(onOpenTimetable));
     menu.addItem(i => i.setTitle("Settings").setIcon("settings").onClick(onOpenSettings));
-    menu.showAtMouseEvent(e);
+    showMenuAt(menu, e);
   }
 
   function onEditDateEvent(event: DateEvent) {

@@ -24351,6 +24351,18 @@ function gridCssEsc(v) {
   const C = window.CSS;
   return C && C.escape ? C.escape(v) : v.replace(/["\\]/g, "\\$&");
 }
+function showMenuAt(menu, e) {
+  const t = e.currentTarget;
+  if (e.clientX === 0 && e.clientY === 0 && t instanceof HTMLElement) {
+    const r = t.getBoundingClientRect();
+    menu.showAtPosition({
+      x: Math.round(r.left),
+      y: Math.round(r.bottom)
+    });
+  } else {
+    menu.showAtMouseEvent(e);
+  }
+}
 function isoOf(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
@@ -24922,7 +24934,7 @@ function instance3($$self, $$props, $$invalidate) {
       }));
       menu.addItem((i) => i.setTitle("Remove event").setIcon("trash-2").onClick(() => removeDateEvent(event.id)));
     }
-    menu.showAtMouseEvent(e);
+    showMenuAt(menu, e);
   }
   function changeColour(classId) {
     var _a3, _b3, _c2, _d2;
@@ -25089,7 +25101,7 @@ function instance3($$self, $$props, $$invalidate) {
     menu.addItem((i) => i.setTitle("Change pattern from here on").setDisabled(true));
     menu.addItem((i) => i.setTitle("Make this an A week (shift the rest)").setChecked(!!cur && cur.anchor && cur.value === "A").onClick(() => setAbOverride("A", true)));
     menu.addItem((i) => i.setTitle("Make this a B week (shift the rest)").setChecked(!!cur && cur.anchor && cur.value === "B").onClick(() => setAbOverride("B", true)));
-    menu.showAtMouseEvent(e);
+    showMenuAt(menu, e);
   }
   function onOpenTimetable() {
     new TimetableEditorModal(plugin.app, plugin).open();
@@ -25108,7 +25120,7 @@ function instance3($$self, $$props, $$invalidate) {
     menu.addItem((i) => i.setTitle("+ Event").setIcon("calendar-plus").onClick(() => onAddEvent()));
     menu.addItem((i) => i.setTitle("Timetable").setIcon("layout-grid").onClick(onOpenTimetable));
     menu.addItem((i) => i.setTitle("Settings").setIcon("settings").onClick(onOpenSettings));
-    menu.showAtMouseEvent(e);
+    showMenuAt(menu, e);
   }
   function onEditDateEvent(event) {
     new AddDateEventModal(plugin.app, plugin, event, () => invalidate()).open();
