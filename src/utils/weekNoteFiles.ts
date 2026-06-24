@@ -4,7 +4,7 @@ import { formatUkDate } from "./noteTitleUtils";
 
 /**
  * Opt-in "week notes as vault files" mode. Each week's sidebar note is stored as
- * a markdown file named "Week note - <UK Monday date>.md" instead of inside
+ * a markdown file named "Wn - <UK Monday date>.md" instead of inside
  * data.json, so the notes are searchable, linkable and don't bloat the plugin
  * data file. Keyed by the Monday's ISO date (the same key used by weekNotes).
  */
@@ -16,7 +16,7 @@ export function weekNotesFolder(plugin: TeacherPlannerPlugin): string {
 }
 
 export function weekNoteFileName(mondayIso: string): string {
-  return `Week note - ${formatUkDate(mondayIso)}`;
+  return `Wn - ${formatUkDate(mondayIso)}`;
 }
 
 export function weekNoteFilePath(plugin: TeacherPlannerPlugin, mondayIso: string): string {

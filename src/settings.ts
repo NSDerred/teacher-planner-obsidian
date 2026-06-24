@@ -61,7 +61,7 @@ export const DEFAULT_SETTINGS: TeacherPlannerSettings = {
     { id: "activity-cover",     label: "Cover",          colour: "#e05555", activityType: "directed" as const },
     { id: "activity-cpd",       label: "CPD",            colour: "#cba6f7", activityType: "directed" as const },
     { id: "activity-duty",      label: "Duty",           colour: "#d4903a", activityType: "directed" as const },
-    { id: "activity-meeting",   label: "Meeting 1",      colour: "#4a90d9", activityType: "directed" as const },
+    { id: "activity-meeting",   label: "Meeting",           colour: "#4a90d9", activityType: "directed" as const },
     { id: "activity-protected", label: "Protected time", colour: "#9070cc", activityType: "directed" as const },
     { id: "activity-trapped",   label: "Trapped time",   colour: "#89dceb", activityType: "directed" as const },
     { id: "activity-tutor",     label: "Tutor",          colour: "#f0956a", activityType: "directed" as const },

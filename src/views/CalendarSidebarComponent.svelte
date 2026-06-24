@@ -170,6 +170,7 @@
   let mounting = false;
   let saveTimer: number | undefined;
   let suppressReload = false;
+  let liveEmpty = true;
   $: useLive = fileMode && !liveUnavailable;
 
   function scheduleLiveSave(v: string) {
@@ -193,12 +194,13 @@
       liveHandle = createEmbeddableEditor(plugin.app, liveEl, {
         value: body,
         cls: "tp-sb-notes-live-cm",
-        onChange: (v) => scheduleLiveSave(v),
+        onChange: (v) => { liveEmpty = !v.trim(); scheduleLiveSave(v); },
         onBlur: (v) => { void flushLiveSave(v); },
       });
       if (!liveHandle) { liveUnavailable = true; return; }
       liveKey = key;
       notesValue = body;
+      liveEmpty = !body.trim();
     } finally {
       mounting = false;
     }
@@ -413,14 +415,17 @@
       {#if useLive}
         <span class="tp-fmt-spacer"></span>
         <button class="tp-fmt-btn" aria-label="Open week note in a pane" title="Open full note"
-                on:click={openWeekNoteInPane} use:icon={"arrows-diagonal"}></button>
+                on:click={openWeekNoteInPane} use:icon={"maximize-2"}></button>
       {/if}
     </div>
 
     <!-- Editor + rendered preview overlay -->
     <div class="tp-sb-notes-body">
       {#if useLive}
-        <div class="tp-sb-notes-live" bind:this={liveEl}></div>
+        <div class="tp-sb-notes-live-wrap">
+          <div class="tp-sb-notes-live" bind:this={liveEl}></div>
+          {#if liveEmpty}<div class="tp-sb-notes-live-ph">{notesPlaceholder}</div>{/if}
+        </div>
       {:else}
         <textarea
           class="tp-sb-notes-textarea"
@@ -596,7 +601,9 @@
 
   /* Editor body + preview overlay */
   .tp-sb-notes-body { position: relative; flex: 1; display: flex; min-height: 0; }
+  .tp-sb-notes-live-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
   .tp-sb-notes-live { flex: 1; min-height: 0; overflow: auto; }
+  .tp-sb-notes-live-ph { position: absolute; top: 4px; left: 8px; right: 8px; pointer-events: none; color: var(--text-faint); font-style: italic; font-size: 12px; line-height: 1.5; }
   .tp-sb-notes-live :global(.cm-editor) { height: 100%; background: transparent; }
   .tp-sb-notes-live :global(.cm-scroller) { font-family: var(--font-text); font-size: 13px; line-height: 1.5; }
   .tp-sb-notes-live :global(.cm-content) { padding: 4px 6px; }
