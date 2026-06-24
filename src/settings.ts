@@ -169,5 +169,6 @@ export const DEFAULT_GLOBAL_DATA: GlobalPluginData = {
   gridLineWeight: 1,
   blockBorderColour: "theme:border",
   blockBorderWeight: 1,
+  confirmBeforeDelete: true,
   planners: [],
 };

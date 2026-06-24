@@ -265,6 +265,8 @@ export interface TeacherPlannerSettings {
   weekNoteFiles?: boolean;
   /** Folder for week-note files. Empty → "<plannerFolder>/Week notes". */
   weekNotesFolder?: string;
+  /** Confirm before destructive deletes (remove event / lesson / subject / class …). Default on. Global. */
+  confirmBeforeDelete?: boolean;
   notesHeight?: number;
   gridLineColour?: string;
   gridLineWeight?: number;
@@ -394,6 +396,8 @@ export interface GlobalPluginData {
   /** Optional global theme overrides — applied via the data-tp-theme attribute. */
   theme?: PlannerTheme;
   themeMode?: PlannerThemeMode;
+  /** Confirm before destructive deletes. Global (cross-planner). Default on. */
+  confirmBeforeDelete?: boolean;
   /** All planner records. Always at least one once setup is complete; empty array triggers the wizard. */
   planners: PlannerRecord[];
 }

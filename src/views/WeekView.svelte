@@ -14,7 +14,7 @@
   } from "../utils/weekUtils";
   import { TimetableEditorModal } from "../modals/TimetableEditorModal";
   import { SlotNotesModal } from "../modals/SlotNotesModal";
-  import { ColourPickerModal, ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
+  import { ColourPickerModal, ConfirmModal, TextPromptModal, confirmDelete } from "../settings/SettingsTab";
   import { AddDateEventModal } from "../modals/AddDateEventModal";
   import { lessonNoteFrontmatter } from "../utils/lessonNoteFiles";
   import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
@@ -649,7 +649,7 @@
       menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
       menu.addItem(i => i.setTitle("Change colour").setIcon("palette").onClick(() => changeColour(slot.classId)));
-      menu.addItem(i => i.setTitle("Remove from timetable").setIcon("trash-2").onClick(() => removeSlot(slot.id)));
+      menu.addItem(i => i.setTitle("Remove from timetable").setIcon("trash-2").onClick(() => confirmDelete(plugin, "Remove this lesson from the timetable? It is removed from the timetable template (every week), not just this date.", () => removeSlot(slot.id))));
     } else if (type === "event" && event) {
       menu.addItem(i => i.setTitle("Edit").setIcon("pencil").onClick(() => onEditDateEvent(event)));
       {
@@ -706,7 +706,7 @@
         if (event.title && event.title.trim()) changeEventColour(event);
         else changeColour(event.classId);
       }));
-      menu.addItem(i => i.setTitle("Remove event").setIcon("trash-2").onClick(() => removeDateEvent(event.id)));
+      menu.addItem(i => i.setTitle("Remove event").setIcon("trash-2").onClick(() => confirmDelete(plugin, `Remove this event${event.title && event.title.trim() ? ` “${event.title.trim()}”` : ""}?`, () => removeDateEvent(event.id))));
     }
     showMenuAt(menu, e);
   }

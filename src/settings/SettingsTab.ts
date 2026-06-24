@@ -156,6 +156,20 @@ export class ConfirmModal extends Modal {
   onClose() { this.contentEl.empty(); }
 }
 
+/**
+ * Run a destructive action, optionally behind a confirmation dialog. Honours the
+ * global "Confirm before deleting" setting (default on): when on, shows a ConfirmModal
+ * with a "Delete" button; when off, runs the action immediately.
+ */
+export function confirmDelete(
+  plugin: TeacherPlannerPlugin,
+  message: string,
+  onConfirm: () => void | Promise<void>,
+): void {
+  if (plugin.settings.confirmBeforeDelete === false) { void onConfirm(); return; }
+  new ConfirmModal(plugin.app, message, onConfirm, "Delete").open();
+}
+
 export class TeacherPlannerSettingTab extends PluginSettingTab {
   plugin: TeacherPlannerPlugin;
   /** JSON snapshot taken when the tab opens — used to detect unsaved changes on close. */
@@ -841,6 +855,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     // ── Reset ──────────────────────────────────────────────────────────────
     new Setting(containerEl).setName("Reset").setHeading();
+    new Setting(containerEl).setName("Confirm before deleting")
+      .setDesc("Ask for confirmation before destructive actions — removing an event or lesson, or deleting a subject, class, activity or block type. Applies across all planners.")
+      .addToggle(t => t.setValue(this.plugin.settings.confirmBeforeDelete !== false)
+        .onChange(v => { this.plugin.settings.confirmBeforeDelete = v; this.plugin.requestSave(); }));
     new Setting(containerEl).setName("Reset periods to defaults")
       .addButton(btn => btn.setButtonText("Reset periods").setClass("mod-warning")
         .onClick(async () => {
@@ -1112,7 +1130,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const delSubjectBtn = header.createEl("button", { cls: "tp-icon-btn" });
     setIcon(delSubjectBtn, "trash-2");
     delSubjectBtn.title = "Delete subject and all its classes";
-    delSubjectBtn.addEventListener("click", () => { void (async () => {
+    delSubjectBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete subject "${subject.name}" and all its classes? Lessons for those classes are removed from the timetable.`, async () => {
       this.plugin.settings.subjects = this.plugin.settings.subjects.filter(s => s.id !== subject.id);
       this.plugin.settings.classes = this.plugin.settings.classes.filter(c => c.subjectId !== subject.id);
       this.plugin.settings.timetable = this.plugin.settings.timetable.filter(
@@ -1120,7 +1138,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       );
       await this.plugin.saveSettings();
       container.empty(); this.renderSubjectsList(container);
-    })(); });
+    }));
 
     if (activeClasses.length > 0) {
       const classesEl = block.createDiv("tp-class-rows");
@@ -1201,12 +1219,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete class" });
     setIcon(delBtn, "trash-2");
-    delBtn.addEventListener("click", () => { void (async () => {
+    delBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete class "${cls.code}"? It is removed from the timetable too.`, async () => {
       this.plugin.settings.classes = this.plugin.settings.classes.filter(c => c.id !== cls.id);
       this.plugin.settings.timetable = this.plugin.settings.timetable.filter(t => t.classId !== cls.id);
       await this.plugin.saveSettings();
       parentContainer.empty(); this.renderSubjectsList(parentContainer);
-    })(); });
+    }));
   }
 
   /**
@@ -1386,11 +1404,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete" });
     setIcon(delBtn, "trash-2");
-    delBtn.addEventListener("click", () => { void (async () => {
+    delBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete "${activity.label}"?`, async () => {
       this.plugin.settings.activities = this.plugin.settings.activities.filter(a => a.id !== activity.id);
       await this.plugin.saveSettings();
       outerContainer.empty(); this.renderActivitiesList(outerContainer, typeFilter);
-    })(); });
+    }));
   }
 
   private renderPeriodTypesList(container: HTMLElement) {
@@ -1429,11 +1447,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     })(); });
     const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete type" });
     setIcon(delBtn, "trash-2");
-    delBtn.addEventListener("click", () => { void (async () => {
+    delBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete block type "${pt.label}"?`, async () => {
       this.plugin.settings.periodTypes = this.plugin.settings.periodTypes.filter(t => t.id !== pt.id);
       await this.plugin.saveSettings();
       container.empty(); this.renderPeriodTypesList(container);
-    })(); });
+    }));
   }
 
   private getMondayStr(date: Date): string {

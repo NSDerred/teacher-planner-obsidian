@@ -181,6 +181,7 @@ var init_settings = __esm({
       gridLineWeight: 1,
       blockBorderColour: "theme:border",
       blockBorderWeight: 1,
+      confirmBeforeDelete: true,
       planners: []
     };
   }
@@ -9706,6 +9707,7 @@ __export(SettingsTab_exports, {
   TeacherPlannerSettingTab: () => TeacherPlannerSettingTab,
   TextPromptModal: () => TextPromptModal,
   closeEmojiPicker: () => closeEmojiPicker,
+  confirmDelete: () => confirmDelete,
   openEmojiPicker: () => openEmojiPicker
 });
 function closeEmojiPicker() {
@@ -9749,6 +9751,13 @@ function openEmojiPicker(anchor, current, onSelect) {
     activeDocument.addEventListener("keydown", onKeyDown, true);
   }, 0);
   _activeEmojiCleanup = cleanup;
+}
+function confirmDelete(plugin, message, onConfirm) {
+  if (plugin.settings.confirmBeforeDelete === false) {
+    void onConfirm();
+    return;
+  }
+  new ConfirmModal(plugin.app, message, onConfirm, "Delete").open();
 }
 var import_obsidian11, SUBJECT_EMOJIS, _activeEmojiCleanup, TextPromptModal, ConfirmModal, TeacherPlannerSettingTab, SettingsAppliedModal, ColourPickerModal, DeletePlannerModal, BackupPickModal, BackupExportModal, TemplatePickModal;
 var init_SettingsTab = __esm({
@@ -10463,6 +10472,10 @@ var init_SettingsTab = __esm({
         new import_obsidian11.Setting(containerEl).setName("Export").setHeading();
         new import_obsidian11.Setting(containerEl).setName("Export planner data").setDesc("Export timetable and events as Excel or CSV, or as an iCal calendar (.ics) for Google, Apple or Outlook calendar \u2014 to your Planner folder or anywhere on your computer.").addButton((btn) => btn.setButtonText("Export data\u2026").setCta().onClick(() => new ExportModal(this.app, this.plugin).open()));
         new import_obsidian11.Setting(containerEl).setName("Reset").setHeading();
+        new import_obsidian11.Setting(containerEl).setName("Confirm before deleting").setDesc("Ask for confirmation before destructive actions \u2014 removing an event or lesson, or deleting a subject, class, activity or block type. Applies across all planners.").addToggle((t) => t.setValue(this.plugin.settings.confirmBeforeDelete !== false).onChange((v) => {
+          this.plugin.settings.confirmBeforeDelete = v;
+          this.plugin.requestSave();
+        }));
         new import_obsidian11.Setting(containerEl).setName("Reset periods to defaults").addButton((btn) => btn.setButtonText("Reset periods").setClass("mod-warning").onClick(async () => {
           this.getSelectedSchedule().periods = DEFAULT_SETTINGS.academicYear.periods.map((p) => ({ ...p }));
           await this.plugin.saveSettings();
@@ -10705,18 +10718,16 @@ var init_SettingsTab = __esm({
         const delSubjectBtn = header.createEl("button", { cls: "tp-icon-btn" });
         (0, import_obsidian11.setIcon)(delSubjectBtn, "trash-2");
         delSubjectBtn.title = "Delete subject and all its classes";
-        delSubjectBtn.addEventListener("click", () => {
-          void (async () => {
-            this.plugin.settings.subjects = this.plugin.settings.subjects.filter((s) => s.id !== subject.id);
-            this.plugin.settings.classes = this.plugin.settings.classes.filter((c) => c.subjectId !== subject.id);
-            this.plugin.settings.timetable = this.plugin.settings.timetable.filter(
-              (t) => !subjectClasses.map((c) => c.id).includes(t.classId)
-            );
-            await this.plugin.saveSettings();
-            container.empty();
-            this.renderSubjectsList(container);
-          })();
-        });
+        delSubjectBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete subject "${subject.name}" and all its classes? Lessons for those classes are removed from the timetable.`, async () => {
+          this.plugin.settings.subjects = this.plugin.settings.subjects.filter((s) => s.id !== subject.id);
+          this.plugin.settings.classes = this.plugin.settings.classes.filter((c) => c.subjectId !== subject.id);
+          this.plugin.settings.timetable = this.plugin.settings.timetable.filter(
+            (t) => !subjectClasses.map((c) => c.id).includes(t.classId)
+          );
+          await this.plugin.saveSettings();
+          container.empty();
+          this.renderSubjectsList(container);
+        }));
         if (activeClasses.length > 0) {
           const classesEl = block.createDiv("tp-class-rows");
           for (const cls of activeClasses) this.renderClassRow(classesEl, cls, subject, container, false);
@@ -10809,15 +10820,13 @@ var init_SettingsTab = __esm({
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete class" });
         (0, import_obsidian11.setIcon)(delBtn, "trash-2");
-        delBtn.addEventListener("click", () => {
-          void (async () => {
-            this.plugin.settings.classes = this.plugin.settings.classes.filter((c) => c.id !== cls.id);
-            this.plugin.settings.timetable = this.plugin.settings.timetable.filter((t) => t.classId !== cls.id);
-            await this.plugin.saveSettings();
-            parentContainer.empty();
-            this.renderSubjectsList(parentContainer);
-          })();
-        });
+        delBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete class "${cls.code}"? It is removed from the timetable too.`, async () => {
+          this.plugin.settings.classes = this.plugin.settings.classes.filter((c) => c.id !== cls.id);
+          this.plugin.settings.timetable = this.plugin.settings.timetable.filter((t) => t.classId !== cls.id);
+          await this.plugin.saveSettings();
+          parentContainer.empty();
+          this.renderSubjectsList(parentContainer);
+        }));
       }
       /**
        * Render a filtered list of activities.
@@ -11052,14 +11061,12 @@ var init_SettingsTab = __esm({
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete" });
         (0, import_obsidian11.setIcon)(delBtn, "trash-2");
-        delBtn.addEventListener("click", () => {
-          void (async () => {
-            this.plugin.settings.activities = this.plugin.settings.activities.filter((a) => a.id !== activity.id);
-            await this.plugin.saveSettings();
-            outerContainer.empty();
-            this.renderActivitiesList(outerContainer, typeFilter);
-          })();
-        });
+        delBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete "${activity.label}"?`, async () => {
+          this.plugin.settings.activities = this.plugin.settings.activities.filter((a) => a.id !== activity.id);
+          await this.plugin.saveSettings();
+          outerContainer.empty();
+          this.renderActivitiesList(outerContainer, typeFilter);
+        }));
       }
       renderPeriodTypesList(container) {
         var _a2;
@@ -11105,14 +11112,12 @@ var init_SettingsTab = __esm({
         });
         const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete type" });
         (0, import_obsidian11.setIcon)(delBtn, "trash-2");
-        delBtn.addEventListener("click", () => {
-          void (async () => {
-            this.plugin.settings.periodTypes = this.plugin.settings.periodTypes.filter((t) => t.id !== pt.id);
-            await this.plugin.saveSettings();
-            container.empty();
-            this.renderPeriodTypesList(container);
-          })();
-        });
+        delBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete block type "${pt.label}"?`, async () => {
+          this.plugin.settings.periodTypes = this.plugin.settings.periodTypes.filter((t) => t.id !== pt.id);
+          await this.plugin.saveSettings();
+          container.empty();
+          this.renderPeriodTypesList(container);
+        }));
       }
       getMondayStr(date) {
         const d = new Date(date);
@@ -17412,16 +17417,14 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
     if (isEdit) {
       const delBtn = footer.createEl("button", { text: "Delete event", cls: "tp-btn tp-btn--danger" });
       delBtn.setCssStyles({ marginRight: "auto" });
-      delBtn.addEventListener("click", () => {
-        void (async () => {
-          var _a3;
-          if (!this.existingEvent) return;
-          this.plugin.settings.dateEvents = ((_a3 = this.plugin.settings.dateEvents) != null ? _a3 : []).filter((e) => e.id !== this.existingEvent.id);
-          await this.plugin.saveSettings();
-          this.onSaved();
-          this.close();
-        })();
-      });
+      delBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete this event${title.trim() ? ` \u201C${title.trim()}\u201D` : ""}?`, async () => {
+        var _a3;
+        if (!this.existingEvent) return;
+        this.plugin.settings.dateEvents = ((_a3 = this.plugin.settings.dateEvents) != null ? _a3 : []).filter((e) => e.id !== this.existingEvent.id);
+        await this.plugin.saveSettings();
+        this.onSaved();
+        this.close();
+      }));
     }
     footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
     const orderedSelected = () => periodsForDate(date).filter((p) => selected.has(p.id)).map((p) => p.id);
@@ -24857,7 +24860,7 @@ function instance3($$self, $$props, $$invalidate) {
       menu.addItem((i) => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
       menu.addItem((i) => i.setTitle("Change colour").setIcon("palette").onClick(() => changeColour(slot.classId)));
-      menu.addItem((i) => i.setTitle("Remove from timetable").setIcon("trash-2").onClick(() => removeSlot(slot.id)));
+      menu.addItem((i) => i.setTitle("Remove from timetable").setIcon("trash-2").onClick(() => confirmDelete(plugin, "Remove this lesson from the timetable? It is removed from the timetable template (every week), not just this date.", () => removeSlot(slot.id))));
     } else if (type === "event" && event) {
       menu.addItem((i) => i.setTitle("Edit").setIcon("pencil").onClick(() => onEditDateEvent(event)));
       {
@@ -24932,7 +24935,11 @@ function instance3($$self, $$props, $$invalidate) {
         if (event.title && event.title.trim()) changeEventColour(event);
         else changeColour(event.classId);
       }));
-      menu.addItem((i) => i.setTitle("Remove event").setIcon("trash-2").onClick(() => removeDateEvent(event.id)));
+      menu.addItem((i) => i.setTitle("Remove event").setIcon("trash-2").onClick(() => confirmDelete(
+        plugin,
+        `Remove this event${event.title && event.title.trim() ? ` \u201C${event.title.trim()}\u201D` : ""}?`,
+        () => removeDateEvent(event.id)
+      )));
     }
     showMenuAt(menu, e);
   }
@@ -31189,7 +31196,7 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
   }
   /** Write plugin.settings back to the active planner record and global visual settings. */
   syncSettingsToPlanner() {
-    var _a2, _b2, _c, _d, _e, _f, _g, _h, _i;
+    var _a2, _b2, _c, _d, _e, _f, _g, _h, _i, _j;
     const planner = this.getActivePlanner();
     if (planner) {
       for (const k of _TeacherPlannerPlugin.PLANNER_FIELDS) {
@@ -31208,6 +31215,7 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
     this.plannerData.gridLineWeight = (_g = this.plannerData.gridLineWeight) != null ? _g : DEFAULT_GLOBAL_DATA.gridLineWeight;
     this.plannerData.blockBorderColour = (_h = this.plannerData.blockBorderColour) != null ? _h : DEFAULT_GLOBAL_DATA.blockBorderColour;
     this.plannerData.blockBorderWeight = (_i = this.plannerData.blockBorderWeight) != null ? _i : DEFAULT_GLOBAL_DATA.blockBorderWeight;
+    this.plannerData.confirmBeforeDelete = (_j = this.plannerData.confirmBeforeDelete) != null ? _j : DEFAULT_GLOBAL_DATA.confirmBeforeDelete;
   }
   async createPlanner(record) {
     this.plannerData.planners.push(record);
@@ -31304,7 +31312,7 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
    * The migrated planner keeps its original plannerFolder so existing note links are not broken.
    */
   migrateFromLegacy(raw) {
-    var _a2, _b2, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v;
+    var _a2, _b2, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
     const planner = {
       id: "planner-" + Date.now(),
       name: (_b2 = (_a2 = raw.academicYear) == null ? void 0 : _a2.name) != null ? _b2 : "My Planner",
@@ -31333,6 +31341,7 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
       gridLineWeight: (_t = raw.gridLineWeight) != null ? _t : DEFAULT_GLOBAL_DATA.gridLineWeight,
       blockBorderColour: (_u = raw.blockBorderColour) != null ? _u : DEFAULT_GLOBAL_DATA.blockBorderColour,
       blockBorderWeight: (_v = raw.blockBorderWeight) != null ? _v : DEFAULT_GLOBAL_DATA.blockBorderWeight,
+      confirmBeforeDelete: (_w = raw.confirmBeforeDelete) != null ? _w : DEFAULT_GLOBAL_DATA.confirmBeforeDelete,
       theme: raw.theme,
       themeMode: raw.themeMode,
       planners: [planner]
@@ -31537,7 +31546,8 @@ _TeacherPlannerPlugin.GLOBAL_FIELDS = [
   "blockBorderColour",
   "blockBorderWeight",
   "theme",
-  "themeMode"
+  "themeMode",
+  "confirmBeforeDelete"
 ];
 // ── Migrations ────────────────────────────────────────────────────────────
 //

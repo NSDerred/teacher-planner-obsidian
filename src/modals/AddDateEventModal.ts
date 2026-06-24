@@ -4,7 +4,7 @@ import type { DateEvent, SchoolDay, SchoolPeriod } from "../types";
 import { getPeriodsForDay } from "../utils/scheduleUtils";
 import { eventPeriodIds, sumPeriodMinutes } from "../utils/eventUtils";
 import { CLASS_COLOUR_PALETTE } from "../settings";
-import { ColourPickerModal, ConfirmModal } from "../settings/SettingsTab";
+import { ColourPickerModal, ConfirmModal, confirmDelete } from "../settings/SettingsTab";
 import { blockOccupants } from "../utils/clashUtils";
 
 const DAY_OF_WEEK: Record<number, SchoolDay> = {
@@ -351,12 +351,12 @@ export class AddDateEventModal extends Modal {
     if (isEdit) {
       const delBtn = footer.createEl("button", { text: "Delete event", cls: "tp-btn tp-btn--danger" });
       delBtn.setCssStyles({ marginRight: "auto" });
-      delBtn.addEventListener("click", () => { void (async () => {
+      delBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete this event${title.trim() ? ` “${title.trim()}”` : ""}?`, async () => {
         if (!this.existingEvent) return;
         this.plugin.settings.dateEvents = (this.plugin.settings.dateEvents ?? []).filter(e => e.id !== this.existingEvent!.id);
         await this.plugin.saveSettings();
         this.onSaved(); this.close();
-      })(); });
+      }));
     }
     footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
 
