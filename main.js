@@ -26411,7 +26411,7 @@ function around(obj, factories) {
 function resolveEditorPrototype(app) {
   const reg = app;
   const widget = reg.embedRegistry.embedByExtension.md(
-    { app, containerEl: document.createElement("div") },
+    { app, containerEl: activeDocument.createElement("div") },
     null,
     ""
   );

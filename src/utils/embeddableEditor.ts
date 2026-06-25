@@ -91,15 +91,17 @@ export interface EmbeddableEditorHandle {
 function resolveEditorPrototype(app: App): Constructor<ScrollableMarkdownEditor> {
   const reg = app as unknown as EmbedRegistryApp;
   const widget = reg.embedRegistry.embedByExtension.md(
-    { app, containerEl: document.createElement("div") },
+    { app, containerEl: activeDocument.createElement("div") },
     null,
     "",
   );
   widget.editable = true;
   widget.showEditor();
-  const proto = Object.getPrototypeOf(Object.getPrototypeOf(widget.editMode as object));
+  const proto = Object.getPrototypeOf(Object.getPrototypeOf(widget.editMode as object)) as {
+    constructor: Constructor<ScrollableMarkdownEditor>;
+  };
   widget.unload();
-  return proto.constructor as Constructor<ScrollableMarkdownEditor>;
+  return proto.constructor;
 }
 
 let cachedCtor: Constructor<EmbeddableEditorHandle> | null = null;
