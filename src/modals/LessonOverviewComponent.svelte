@@ -189,9 +189,31 @@
     const el = listEl?.querySelector<HTMLElement>(`[data-week="${m}"]`);
     if (el) el.scrollIntoView({ block: "start" });
   }
+
+  // Prepared-tick contrast: pick black/white from --color-green's luminance so the
+  // tick stays visible on light or dark theme greens.
+  let _prepRootEl: HTMLElement;
+  function _prepContrast(green: string): string {
+    const t = green.trim();
+    let r = 0, g = 0, b = 0;
+    if (t.startsWith("#")) {
+      let h = t.slice(1);
+      if (h.length === 3) h = h.split("").map(x => x + x).join("");
+      if (h.length < 6) return "#fff";
+      r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); b = parseInt(h.slice(4, 6), 16);
+    } else {
+      const m = t.match(/rgba?\(([^)]+)\)/);
+      if (!m) return "#fff";
+      const ps = m[1].split(",").map(n => parseFloat(n));
+      if (ps.length < 3 || ps.slice(0, 3).some(n => isNaN(n))) return "#fff";
+      [r, g, b] = ps;
+    }
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5 ? "#000" : "#fff";
+  }
+  $: _prepFg = _prepRootEl ? _prepContrast(getComputedStyle(_prepRootEl).getPropertyValue("--color-green")) : "#fff";
 </script>
 
-<div class="tp-lo">
+<div class="tp-lo" bind:this={_prepRootEl} style="--tp-prep-fg:{_prepFg}">
   <div class="tp-lo-head"><h3 class="tp-lo-title">Lesson overview</h3></div>
   <div class="tp-lo-search">
     <span class="tp-lo-search-icon" use:obsIcon={"search"}></span>
@@ -378,7 +400,7 @@
   .tp-lo-ic--plan { color:var(--color-green); }
   .tp-lo-prep { width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1.5px solid var(--text-muted); padding:0; line-height:0; cursor:pointer; color:var(--text-muted); box-sizing:border-box; flex-shrink:0; }
   .tp-lo-prep:hover { color:var(--text-normal); border-color:var(--text-normal); }
-  button.tp-lo-prep--on { background:var(--color-green); border-color:var(--color-green); color:#fff; }
+  button.tp-lo-prep--on { background:var(--color-green); border-color:var(--color-green); color:var(--tp-prep-fg, #fff); }
   .tp-lo-prep :global(svg) { width:12px; height:12px; }
 
   .tp-lo-noteedit { width:100%; box-sizing:border-box; margin-top:0; padding:9px 11px; border:1px solid var(--interactive-accent); border-radius:6px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:13px; line-height:1.4; font-family:var(--font-interface); resize:vertical; }
