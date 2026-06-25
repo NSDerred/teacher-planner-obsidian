@@ -1646,7 +1646,7 @@
   .tp-axis-head { position:sticky; top:0; z-index:10; display:flex; gap:6px; padding-right:6px; background:var(--background-primary); border-bottom:1px solid var(--background-modifier-border); }
   .tp-axis-head-gutter { width:48px; flex-shrink:0; }
   .tp-axis-head-day { flex:1; min-width:0; padding:8px 6px; font-size:12px; font-weight:600; color:var(--text-muted); border-radius:6px 6px 0 0; background:var(--background-primary); }
-  .tp-th-day--today   { color:var(--today-colour, var(--interactive-accent)); background:color-mix(in srgb,var(--today-colour, var(--interactive-accent)) 14%,var(--background-primary)); }
+  .tp-th-day--today   { color:var(--text-normal); font-weight:700; border-top:2px solid var(--today-colour, var(--interactive-accent)); border-radius:6px 6px 0 0; background:color-mix(in srgb,var(--today-colour, var(--interactive-accent)) 14%,var(--background-primary)); }
   .tp-th-day--holiday { background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important; color:var(--color-yellow,#d4a017) !important; }
   .tp-th-day--inset   { background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important; color:var(--interactive-accent) !important; }
   .tp-th-day-inner { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }

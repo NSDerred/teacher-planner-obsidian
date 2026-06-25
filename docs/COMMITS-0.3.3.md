@@ -22,3 +22,5 @@ Today's column now gets a subtle accent wash (option C: 9% column tint + 14% hea
 - Files: `src/views/WeekView.svelte`, `src/settings/SettingsTab.ts`, `src/types.ts`, `src/settings.ts`, `src/main.ts`
 - Status: built (svelte-check 0/0, tsc 0, production build OK); awaiting in-app visual confirmation.
 
+Readability follow-up: colouring the header text with a custom highlight colour could be low-contrast on some themes/pale colours. Keep today's header day-name in the theme's normal bold text and move the colour cue to a 2px top accent border (in `--today-colour`) plus the existing wash, so it stays legible for any colour or theme. The column tint and header wash are unchanged.
+
