@@ -1687,7 +1687,6 @@
     height:auto !important;
     min-height:max(var(--bh, 20px), 48px);
     z-index:30;
-    padding-bottom:6px;
     background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;
     box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);
     outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border));
@@ -1696,11 +1695,12 @@
   /* On hover a block with a chip keeps its timetable footprint as the hit-area,
      while the in-flow stack grows to reveal full details. */
   .tp-block:hover .tp-event-stack {
-    position:relative; inset:auto; height:auto; margin:3px;
+    position:relative; inset:auto; height:auto; min-height:calc(var(--bh, 48px) - 6px); margin:3px;
   }
   .tp-block:hover .tp-block-label { padding:4px 8px; }
   .tp-block:hover .tp-chip {
     container-type:normal;
+    min-height:calc(var(--bh, 48px) - 12px);
     background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important;
   }
   .tp-block:hover .tp-chip-body { overflow:visible; }

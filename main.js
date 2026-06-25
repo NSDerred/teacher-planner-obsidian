@@ -18027,7 +18027,7 @@ init_noteTitleUtils();
 init_settings();
 init_runtime();
 function add_css3(target) {
-  append_styles(target, "svelte-dwpzh", '.tp-week-view.svelte-dwpzh.svelte-dwpzh{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-dwpzh.svelte-dwpzh{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-dwpzh.svelte-dwpzh{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-dwpzh.svelte-dwpzh{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-dwpzh.svelte-dwpzh{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-dwpzh.svelte-dwpzh{display:flex;align-items:center;gap:4px}.tp-nav-arrow.svelte-dwpzh.svelte-dwpzh{padding:4px 11px;font-size:18px;line-height:1}.tp-nav-jump.svelte-dwpzh.svelte-dwpzh{position:relative;display:inline-flex}.tp-nav-centre.svelte-dwpzh.svelte-dwpzh{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;font-size:13px;font-weight:600}.tp-nav-centre-icon.svelte-dwpzh svg{width:14px;height:14px}.tp-nav-centre-label.svelte-dwpzh.svelte-dwpzh{white-space:nowrap}.tp-nav-caret.svelte-dwpzh.svelte-dwpzh{font-size:10px;color:var(--text-muted)}.tp-nav-backdrop.svelte-dwpzh.svelte-dwpzh{position:fixed;inset:0;z-index:40}.tp-nav-pop.svelte-dwpzh.svelte-dwpzh{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:6px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:8px;padding:8px;box-shadow:0 4px 18px rgba(0,0,0,0.32)}.tp-nav-date.svelte-dwpzh.svelte-dwpzh{font-size:13px;padding:4px 6px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-modifier-form-field);color:var(--text-normal);font-family:var(--font-interface)}.tp-header-actions.svelte-dwpzh.svelte-dwpzh{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-dwpzh.svelte-dwpzh{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}button.tp-week-ab-badge.svelte-dwpzh.svelte-dwpzh{border:none;cursor:pointer;font-family:var(--font-interface);line-height:1.5}button.tp-week-ab-badge.svelte-dwpzh.svelte-dwpzh:hover{opacity:0.85}.tp-week-ab-badge--forced.svelte-dwpzh.svelte-dwpzh{outline:1.5px dashed currentColor;outline-offset:1px}.tp-week-ab-badge--b.svelte-dwpzh.svelte-dwpzh{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-dwpzh.svelte-dwpzh{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-dwpzh.svelte-dwpzh:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-dwpzh.svelte-dwpzh:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-dwpzh.svelte-dwpzh{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-dwpzh.svelte-dwpzh:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-dwpzh svg,.tp-btn-icon.svelte-dwpzh svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-dwpzh.svelte-dwpzh{padding:5px 8px}.tp-action-btn--icon-only.svelte-dwpzh svg{width:15px;height:15px}.tp-overflow-btn.svelte-dwpzh.svelte-dwpzh{display:none}.tp-table-scroll.svelte-dwpzh.svelte-dwpzh{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-dwpzh.svelte-dwpzh{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-dwpzh.svelte-dwpzh{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-dwpzh.svelte-dwpzh{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-dwpzh.svelte-dwpzh{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-dwpzh.svelte-dwpzh{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-dwpzh.svelte-dwpzh{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-dwpzh.svelte-dwpzh{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-dwpzh.svelte-dwpzh{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-dwpzh.svelte-dwpzh{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-dwpzh.svelte-dwpzh{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-dwpzh.svelte-dwpzh{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-dwpzh.svelte-dwpzh{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-dwpzh.svelte-dwpzh{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-dwpzh.svelte-dwpzh{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-dwpzh.svelte-dwpzh{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0;position:relative}.tp-axis-gutter.svelte-dwpzh.svelte-dwpzh{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-dwpzh.svelte-dwpzh{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-dwpzh.svelte-dwpzh{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-dwpzh.svelte-dwpzh{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-dwpzh.svelte-dwpzh{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-dwpzh.svelte-dwpzh{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-dwpzh.svelte-dwpzh{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-chip.svelte-dwpzh.svelte-dwpzh:focus-visible{outline:2px solid var(--interactive-accent);outline-offset:-2px;border-radius:4px}.tp-block.svelte-dwpzh.svelte-dwpzh{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block-clash.svelte-dwpzh.svelte-dwpzh{position:absolute;top:1px;right:3px;z-index:6;font-size:11px;line-height:1;color:var(--color-yellow,#e0af68);cursor:help}.tp-block-clash--directed.svelte-dwpzh.svelte-dwpzh{color:var(--color-red,#f38ba8);font-size:13px;font-weight:700}.tp-block--dragover.svelte-dwpzh.svelte-dwpzh{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-dwpzh.svelte-dwpzh{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-dwpzh.svelte-dwpzh{display:flex;flex-direction:column;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-dwpzh.svelte-dwpzh{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-dwpzh.svelte-dwpzh{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-dwpzh:hover .tp-block-time.svelte-dwpzh{display:block}.tp-block.svelte-dwpzh.svelte-dwpzh:hover{height:auto !important;min-height:max(var(--bh, 20px), 48px);z-index:30;padding-bottom:6px;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border));overflow:visible}.tp-block.svelte-dwpzh:hover .tp-event-stack.svelte-dwpzh{position:relative;inset:auto;height:auto;margin:3px}.tp-block.svelte-dwpzh:hover .tp-block-label.svelte-dwpzh{padding:4px 8px}.tp-block.svelte-dwpzh:hover .tp-chip.svelte-dwpzh{container-type:normal;background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important}.tp-block.svelte-dwpzh:hover .tp-chip-body.svelte-dwpzh{overflow:visible}.tp-block.svelte-dwpzh:hover .tp-chip-notes.svelte-dwpzh{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}.tp-chip-period-time.svelte-dwpzh.svelte-dwpzh{display:none;font-size:12px;color:var(--text-muted);opacity:0.85;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-dwpzh:hover .tp-chip-period-time.svelte-dwpzh{display:block}.tp-chip.svelte-dwpzh.svelte-dwpzh{--mark-size:14px;position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--chip-fg, var(--text-normal));container-type:size;container-name:chip}.tp-chip-body.svelte-dwpzh.svelte-dwpzh{flex:0 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}.tp-chip-footer.svelte-dwpzh.svelte-dwpzh{flex-shrink:0;display:flex;align-items:center;gap:4px}.tp-chip.svelte-dwpzh.svelte-dwpzh:hover{filter:brightness(1.08)}.tp-chip-code.svelte-dwpzh.svelte-dwpzh{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-dwpzh.svelte-dwpzh{font-size:13px;color:var(--chip-fg, var(--text-normal));opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-dwpzh.svelte-dwpzh{font-size:12px;color:var(--chip-fg, var(--text-normal));opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0;font-style:italic}.tp-chip-notes.svelte-dwpzh.svelte-dwpzh{font-size:12px;color:var(--chip-fg, var(--text-normal));opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-dwpzh.svelte-dwpzh,.tp-chip-notes.svelte-dwpzh.svelte-dwpzh{display:none}.tp-chip-code.svelte-dwpzh.svelte-dwpzh{font-size:13px}.tp-chip-room.svelte-dwpzh.svelte-dwpzh{font-size:11px}.tp-chip-marks.svelte-dwpzh.svelte-dwpzh{--mark-size:12px}}@container chip (max-height: 44px){.tp-chip-code.svelte-dwpzh.svelte-dwpzh{font-size:12px}.tp-chip-room.svelte-dwpzh.svelte-dwpzh{font-size:10px}.tp-chip-marks.svelte-dwpzh.svelte-dwpzh{--mark-size:11px}}@container chip (max-height: 34px){.tp-chip-room.svelte-dwpzh.svelte-dwpzh{display:none}.tp-chip-code.svelte-dwpzh.svelte-dwpzh{font-size:11px}.tp-chip-marks.svelte-dwpzh.svelte-dwpzh{--mark-size:10px}}@container chip (max-height: 30px){.tp-chip-footer.svelte-dwpzh.svelte-dwpzh{display:none}}@container chip (max-width: 90px){.tp-chip-code.svelte-dwpzh.svelte-dwpzh{font-size:13px}.tp-chip-room.svelte-dwpzh.svelte-dwpzh{font-size:10px}.tp-chip-marks.svelte-dwpzh.svelte-dwpzh{--mark-size:12px}}@container chip (max-width: 60px){.tp-chip-code.svelte-dwpzh.svelte-dwpzh{font-size:11px}.tp-chip-room.svelte-dwpzh.svelte-dwpzh{font-size:9px}.tp-chip-marks.svelte-dwpzh.svelte-dwpzh{--mark-size:10px}}@container chip (max-width: 84px){.tp-chip-footer.svelte-dwpzh.svelte-dwpzh{flex-direction:column;align-items:stretch;gap:1px}.tp-chip-marks.svelte-dwpzh.svelte-dwpzh{margin-left:0;align-self:flex-end}}.tp-chip-marks.svelte-dwpzh.svelte-dwpzh{margin-left:auto;display:flex;gap:calc(var(--mark-size) * 0.3);align-items:center;justify-content:flex-end;flex-shrink:0}.tp-plan-mark.svelte-dwpzh.svelte-dwpzh{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0}button.tp-plan-mark--linked.svelte-dwpzh.svelte-dwpzh{color:var(--color-green);opacity:1;cursor:pointer}button.tp-plan-mark--linked.svelte-dwpzh.svelte-dwpzh:hover{opacity:0.7}.tp-plan-mark.svelte-dwpzh svg{width:var(--mark-size);height:var(--mark-size);filter:drop-shadow(0 0 1px var(--background-primary))}.tp-ext-mark.svelte-dwpzh.svelte-dwpzh{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0;color:var(--text-muted);cursor:pointer;opacity:0.85}.tp-ext-mark.svelte-dwpzh.svelte-dwpzh:hover{opacity:1}.tp-ext-mark.svelte-dwpzh svg{width:var(--mark-size);height:var(--mark-size);filter:drop-shadow(0 0 1px var(--background-primary))}.tp-prep-tick.svelte-dwpzh.svelte-dwpzh{width:var(--mark-size);height:var(--mark-size);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1.5px solid var(--text-muted);padding:0;line-height:0;cursor:pointer;color:var(--text-muted);opacity:0;transition:opacity 80ms ease;box-sizing:border-box;flex-shrink:0}.tp-chip.svelte-dwpzh:hover .tp-prep-tick.svelte-dwpzh{opacity:0.55}button.tp-prep-tick--on.svelte-dwpzh.svelte-dwpzh{opacity:1 !important;background:var(--color-green);border-color:var(--color-green);color:var(--tp-prep-fg, #fff);box-shadow:0 0 0 1.5px var(--background-primary)}.tp-prep-tick.svelte-dwpzh svg{width:calc(var(--mark-size) * 0.7);height:calc(var(--mark-size) * 0.7)}.tp-now-line.svelte-dwpzh.svelte-dwpzh{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-line--week.svelte-dwpzh.svelte-dwpzh{left:48px;right:6px}.tp-now-badge.svelte-dwpzh.svelte-dwpzh{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-dwpzh.svelte-dwpzh{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack--partial.svelte-dwpzh.svelte-dwpzh{bottom:auto;top:calc(3px + var(--stack-top, 0px));height:var(--stack-h, auto)}.tp-block-free.svelte-dwpzh.svelte-dwpzh{position:absolute;left:6px;right:6px;bottom:3px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;pointer-events:none;z-index:2}.tp-block-free--lead.svelte-dwpzh.svelte-dwpzh{top:3px;bottom:auto}.tp-merged-gap.svelte-dwpzh.svelte-dwpzh{position:absolute;left:4px;right:4px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;pointer-events:none;z-index:1}.tp-block-durbadge.svelte-dwpzh.svelte-dwpzh{position:absolute;top:4px;right:4px;font-size:10px;font-weight:700;line-height:1.5;padding:0 4px;border-radius:3px;background:var(--interactive-accent);color:var(--text-on-accent, #fff);pointer-events:none;z-index:4}.tp-block.svelte-dwpzh:hover .tp-block-free.svelte-dwpzh,.tp-block.svelte-dwpzh:hover .tp-block-durbadge.svelte-dwpzh{display:none}.tp-event-stack.svelte-dwpzh .tp-chip.svelte-dwpzh{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-dwpzh.svelte-dwpzh{display:none}@container (max-width: 680px){.tp-action-btn.svelte-dwpzh.svelte-dwpzh{display:none}.tp-overflow-btn.svelte-dwpzh.svelte-dwpzh{display:inline-flex !important}.tp-header.svelte-dwpzh.svelte-dwpzh{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-dwpzh.svelte-dwpzh{justify-content:center}.tp-header-identity.svelte-dwpzh.svelte-dwpzh{min-width:0;overflow:hidden}.tp-week-label.svelte-dwpzh.svelte-dwpzh{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-dwpzh.svelte-dwpzh{display:none}.tp-axis-head-day.svelte-dwpzh.svelte-dwpzh{padding:5px 2px}.tp-day-name.svelte-dwpzh.svelte-dwpzh{font-size:12px}.tp-day-date.svelte-dwpzh.svelte-dwpzh{font-size:10px}.tp-day-override-badge.svelte-dwpzh.svelte-dwpzh{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-dwpzh.svelte-dwpzh{min-width:440px}.tp-axis-head-gutter.svelte-dwpzh.svelte-dwpzh,.tp-axis-gutter.svelte-dwpzh.svelte-dwpzh{width:30px}.tp-now-line--week.svelte-dwpzh.svelte-dwpzh{left:30px}.tp-axis-hour.svelte-dwpzh.svelte-dwpzh{right:3px;font-size:9px}.tp-day-name.svelte-dwpzh.svelte-dwpzh{font-size:11px}.tp-day-date.svelte-dwpzh.svelte-dwpzh{font-size:10px}}.tp-mobile-modes.svelte-dwpzh.svelte-dwpzh{display:flex;gap:5px;padding:6px 12px;border-bottom:1px solid var(--background-modifier-border);background:var(--background-secondary);flex-shrink:0}.tp-mode-btn.svelte-dwpzh.svelte-dwpzh{flex:1;padding:6px 0;font-size:13px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-primary);color:var(--text-muted);cursor:pointer;font-family:var(--font-interface)}.tp-mode-btn--on.svelte-dwpzh.svelte-dwpzh{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent);font-weight:600}.tp-day-strip.svelte-dwpzh.svelte-dwpzh{display:flex;gap:5px;padding:8px 10px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0}.tp-day-pill.svelte-dwpzh.svelte-dwpzh{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 5px;border:1px solid transparent;border-radius:9px;background:var(--background-secondary);color:var(--text-muted);cursor:pointer;min-width:0}.tp-day-pill-dow.svelte-dwpzh.svelte-dwpzh{font-size:10px;text-transform:uppercase;letter-spacing:0.03em}.tp-day-pill-num.svelte-dwpzh.svelte-dwpzh{font-size:15px;font-weight:600;color:var(--text-normal)}.tp-day-pill--today.svelte-dwpzh .tp-day-pill-num.svelte-dwpzh{color:var(--interactive-accent)}.tp-day-pill--sel.svelte-dwpzh.svelte-dwpzh{background:color-mix(in srgb,var(--interactive-accent) 18%,var(--background-secondary));outline:1.5px solid var(--interactive-accent)}.tp-day-pill-dot.svelte-dwpzh.svelte-dwpzh{width:4px;height:4px;border-radius:50%;background:var(--interactive-accent)}.tp-week-view[data-tp-view="day"].svelte-dwpzh .tp-axis.svelte-dwpzh{min-width:0}.tp-week-view[data-tp-view="day"].svelte-dwpzh .tp-axis-head.svelte-dwpzh{display:none}.tp-agenda.svelte-dwpzh.svelte-dwpzh{flex:1 1 0;overflow:auto;min-height:0;padding:8px 10px 16px}.tp-agenda-day.svelte-dwpzh.svelte-dwpzh{margin-bottom:12px}.tp-agenda-head.svelte-dwpzh.svelte-dwpzh{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-muted);padding:2px 2px 6px;position:sticky;top:0;background:var(--background-primary);z-index:2}.tp-agenda-head--today.svelte-dwpzh.svelte-dwpzh{color:var(--interactive-accent)}.tp-agenda-dayname.svelte-dwpzh.svelte-dwpzh{text-transform:uppercase;letter-spacing:0.03em}.tp-agenda-row.svelte-dwpzh.svelte-dwpzh{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:none;border-radius:0 7px 7px 0;padding:8px 10px;margin-bottom:5px;color:var(--text-normal);cursor:pointer;font-size:13px;font-family:var(--font-interface)}.tp-agenda-period.svelte-dwpzh.svelte-dwpzh{font-size:11px;color:var(--text-muted);min-width:64px;flex-shrink:0}.tp-agenda-main.svelte-dwpzh.svelte-dwpzh{flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-agenda-room.svelte-dwpzh.svelte-dwpzh{font-size:11px;font-style:italic;color:var(--text-muted);flex-shrink:0}.tp-agenda-empty.svelte-dwpzh.svelte-dwpzh{font-size:12px;color:var(--text-faint);padding:2px 4px 6px;font-style:italic}');
+  append_styles(target, "svelte-o1le12", '.tp-week-view.svelte-o1le12.svelte-o1le12{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:var(--background-primary);font-family:var(--font-interface);container-type:inline-size}.tp-header.svelte-o1le12.svelte-o1le12{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0;background:var(--background-secondary)}.tp-header-identity.svelte-o1le12.svelte-o1le12{display:flex;flex-direction:column;gap:1px;min-width:0}.tp-week-label.svelte-o1le12.svelte-o1le12{font-size:15px;font-weight:700;color:var(--text-normal);line-height:1.2}.tp-date-range.svelte-o1le12.svelte-o1le12{font-size:13px;color:var(--text-muted)}.tp-nav.svelte-o1le12.svelte-o1le12{display:flex;align-items:center;gap:4px}.tp-nav-arrow.svelte-o1le12.svelte-o1le12{padding:4px 11px;font-size:18px;line-height:1}.tp-nav-jump.svelte-o1le12.svelte-o1le12{position:relative;display:inline-flex}.tp-nav-centre.svelte-o1le12.svelte-o1le12{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;font-size:13px;font-weight:600}.tp-nav-centre-icon.svelte-o1le12 svg{width:14px;height:14px}.tp-nav-centre-label.svelte-o1le12.svelte-o1le12{white-space:nowrap}.tp-nav-caret.svelte-o1le12.svelte-o1le12{font-size:10px;color:var(--text-muted)}.tp-nav-backdrop.svelte-o1le12.svelte-o1le12{position:fixed;inset:0;z-index:40}.tp-nav-pop.svelte-o1le12.svelte-o1le12{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:6px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:8px;padding:8px;box-shadow:0 4px 18px rgba(0,0,0,0.32)}.tp-nav-date.svelte-o1le12.svelte-o1le12{font-size:13px;padding:4px 6px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-modifier-form-field);color:var(--text-normal);font-family:var(--font-interface)}.tp-header-actions.svelte-o1le12.svelte-o1le12{display:flex;gap:6px;justify-content:flex-end}.tp-week-ab-badge.svelte-o1le12.svelte-o1le12{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;font-size:12px;font-weight:700;vertical-align:middle;background:var(--interactive-accent);color:var(--text-on-accent)}button.tp-week-ab-badge.svelte-o1le12.svelte-o1le12{border:none;cursor:pointer;font-family:var(--font-interface);line-height:1.5}button.tp-week-ab-badge.svelte-o1le12.svelte-o1le12:hover{opacity:0.85}.tp-week-ab-badge--forced.svelte-o1le12.svelte-o1le12{outline:1.5px dashed currentColor;outline-offset:1px}.tp-week-ab-badge--b.svelte-o1le12.svelte-o1le12{background:var(--color-yellow,#f59e0b);color:#1e1e2e}.tp-btn.svelte-o1le12.svelte-o1le12{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-primary);color:var(--text-normal);font-size:13px;font-family:var(--font-interface);cursor:pointer;transition:background 0.1s;white-space:nowrap}.tp-btn.svelte-o1le12.svelte-o1le12:hover{background:var(--background-modifier-hover)}.tp-btn.svelte-o1le12.svelte-o1le12:disabled{opacity:0.38;cursor:default;pointer-events:none}.tp-btn-accent.svelte-o1le12.svelte-o1le12{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-btn-accent.svelte-o1le12.svelte-o1le12:hover{background:var(--interactive-accent);opacity:0.88}.tp-btn.svelte-o1le12 svg,.tp-btn-icon.svelte-o1le12 svg{width:14px;height:14px;flex-shrink:0}.tp-action-btn--icon-only.svelte-o1le12.svelte-o1le12{padding:5px 8px}.tp-action-btn--icon-only.svelte-o1le12 svg{width:15px;height:15px}.tp-overflow-btn.svelte-o1le12.svelte-o1le12{display:none}.tp-table-scroll.svelte-o1le12.svelte-o1le12{flex:1 1 0;overflow:auto;min-height:0}.tp-axis.svelte-o1le12.svelte-o1le12{display:flex;flex-direction:column;min-width:520px}.tp-axis-head.svelte-o1le12.svelte-o1le12{position:sticky;top:0;z-index:10;display:flex;gap:6px;padding-right:6px;background:var(--background-primary);border-bottom:1px solid var(--background-modifier-border)}.tp-axis-head-gutter.svelte-o1le12.svelte-o1le12{width:48px;flex-shrink:0}.tp-axis-head-day.svelte-o1le12.svelte-o1le12{flex:1;min-width:0;padding:8px 6px;font-size:12px;font-weight:600;color:var(--text-muted);border-radius:6px 6px 0 0;background:var(--background-primary)}.tp-th-day--today.svelte-o1le12.svelte-o1le12{color:var(--interactive-accent)}.tp-th-day--holiday.svelte-o1le12.svelte-o1le12{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important;color:var(--color-yellow,#d4a017) !important}.tp-th-day--inset.svelte-o1le12.svelte-o1le12{background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important;color:var(--interactive-accent) !important}.tp-th-day-inner.svelte-o1le12.svelte-o1le12{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.tp-day-label.svelte-o1le12.svelte-o1le12{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}.tp-day-name.svelte-o1le12.svelte-o1le12{font-size:13px;font-weight:700;white-space:nowrap}.tp-day-date.svelte-o1le12.svelte-o1le12{font-size:11px;color:var(--text-normal);opacity:0.85;white-space:nowrap}.tp-day-override-badge.svelte-o1le12.svelte-o1le12{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;letter-spacing:0.03em;text-transform:uppercase}.tp-day-override-badge--holiday.svelte-o1le12.svelte-o1le12{background:var(--color-yellow,#f59e0b);color:#1a1a1a}.tp-day-override-badge--inset.svelte-o1le12.svelte-o1le12{background:var(--interactive-accent);color:var(--text-on-accent,#fff)}.tp-axis-body.svelte-o1le12.svelte-o1le12{display:flex;align-items:flex-start;gap:6px;padding:6px 6px 12px 0;position:relative}.tp-axis-gutter.svelte-o1le12.svelte-o1le12{width:48px;flex-shrink:0;position:relative}.tp-axis-hour.svelte-o1le12.svelte-o1le12{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--text-muted);white-space:nowrap}.tp-axis-col.svelte-o1le12.svelte-o1le12{flex:1;min-width:0;position:relative;background:var(--background-secondary);border-radius:6px}.tp-axis-line.svelte-o1le12.svelte-o1le12{position:absolute;left:0;right:0;border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent);pointer-events:none}.tp-axis-col--holiday.svelte-o1le12.svelte-o1le12{background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent)}.tp-axis-col--inset.svelte-o1le12.svelte-o1le12{background:color-mix(in srgb,var(--interactive-accent) 6%,transparent)}.tp-axis-override-label.svelte-o1le12.svelte-o1le12{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);opacity:0.55;pointer-events:none}.tp-chip.svelte-o1le12.svelte-o1le12:focus-visible{outline:2px solid var(--interactive-accent);outline-offset:-2px;border-radius:4px}.tp-block.svelte-o1le12.svelte-o1le12{position:absolute;left:4px;right:4px;border:1px solid var(--background-modifier-border);border-radius:4px;box-sizing:border-box;overflow:hidden;transition:background 0.1s;z-index:2;container-type:inline-size;container-name:block}.tp-block-clash.svelte-o1le12.svelte-o1le12{position:absolute;top:1px;right:3px;z-index:6;font-size:11px;line-height:1;color:var(--color-yellow,#e0af68);cursor:help}.tp-block-clash--directed.svelte-o1le12.svelte-o1le12{color:var(--color-red,#f38ba8);font-size:13px;font-weight:700}.tp-block--dragover.svelte-o1le12.svelte-o1le12{background:color-mix(in srgb,var(--interactive-accent) 20%,transparent) !important;outline:2px dashed var(--interactive-accent);outline-offset:-2px}.tp-block--reject.svelte-o1le12.svelte-o1le12{background:color-mix(in srgb,var(--color-red,#f38ba8) 28%,transparent) !important;transition:background 0s}.tp-block-label.svelte-o1le12.svelte-o1le12{display:flex;flex-direction:column;padding:2px 6px;pointer-events:none;min-width:0}.tp-block-name.svelte-o1le12.svelte-o1le12{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block-time.svelte-o1le12.svelte-o1le12{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-o1le12:hover .tp-block-time.svelte-o1le12{display:block}.tp-block.svelte-o1le12.svelte-o1le12:hover{height:auto !important;min-height:max(var(--bh, 20px), 48px);z-index:30;background:linear-gradient(var(--tint, transparent), var(--tint, transparent)) var(--background-secondary) !important;box-shadow:0 4px 16px rgba(0, 0, 0, 0.45);outline:1px solid var(--background-modifier-border-hover, var(--background-modifier-border));overflow:visible}.tp-block.svelte-o1le12:hover .tp-event-stack.svelte-o1le12{position:relative;inset:auto;height:auto;min-height:calc(var(--bh, 48px) - 6px);margin:3px}.tp-block.svelte-o1le12:hover .tp-block-label.svelte-o1le12{padding:4px 8px}.tp-block.svelte-o1le12:hover .tp-chip.svelte-o1le12{container-type:normal;min-height:calc(var(--bh, 48px) - 12px);background:linear-gradient(var(--ctint, transparent), var(--ctint, transparent)) var(--background-secondary) !important}.tp-block.svelte-o1le12:hover .tp-chip-body.svelte-o1le12{overflow:visible}.tp-block.svelte-o1le12:hover .tp-chip-notes.svelte-o1le12{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}.tp-chip-period-time.svelte-o1le12.svelte-o1le12{display:none;font-size:12px;color:var(--text-muted);opacity:0.85;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-block.svelte-o1le12:hover .tp-chip-period-time.svelte-o1le12{display:block}.tp-chip.svelte-o1le12.svelte-o1le12{--mark-size:14px;position:absolute;inset:3px;border-radius:4px;padding:4px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;user-select:none;transition:filter 0.1s;box-sizing:border-box;color:var(--chip-fg, var(--text-normal));container-type:size;container-name:chip}.tp-chip-body.svelte-o1le12.svelte-o1le12{flex:0 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:2px}.tp-chip-footer.svelte-o1le12.svelte-o1le12{flex-shrink:0;display:flex;align-items:center;gap:4px}.tp-chip.svelte-o1le12.svelte-o1le12:hover{filter:brightness(1.08)}.tp-chip-code.svelte-o1le12.svelte-o1le12{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-meta.svelte-o1le12.svelte-o1le12{font-size:13px;color:var(--chip-fg, var(--text-normal));opacity:0.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-chip-room.svelte-o1le12.svelte-o1le12{font-size:12px;color:var(--chip-fg, var(--text-normal));opacity:0.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0;font-style:italic}.tp-chip-notes.svelte-o1le12.svelte-o1le12{font-size:12px;color:var(--chip-fg, var(--text-normal));opacity:0.75;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical;line-height:1.3;flex-shrink:1}@container chip (max-height: 58px){.tp-chip-meta.svelte-o1le12.svelte-o1le12,.tp-chip-notes.svelte-o1le12.svelte-o1le12{display:none}.tp-chip-code.svelte-o1le12.svelte-o1le12{font-size:13px}.tp-chip-room.svelte-o1le12.svelte-o1le12{font-size:11px}.tp-chip-marks.svelte-o1le12.svelte-o1le12{--mark-size:12px}}@container chip (max-height: 44px){.tp-chip-code.svelte-o1le12.svelte-o1le12{font-size:12px}.tp-chip-room.svelte-o1le12.svelte-o1le12{font-size:10px}.tp-chip-marks.svelte-o1le12.svelte-o1le12{--mark-size:11px}}@container chip (max-height: 34px){.tp-chip-room.svelte-o1le12.svelte-o1le12{display:none}.tp-chip-code.svelte-o1le12.svelte-o1le12{font-size:11px}.tp-chip-marks.svelte-o1le12.svelte-o1le12{--mark-size:10px}}@container chip (max-height: 30px){.tp-chip-footer.svelte-o1le12.svelte-o1le12{display:none}}@container chip (max-width: 90px){.tp-chip-code.svelte-o1le12.svelte-o1le12{font-size:13px}.tp-chip-room.svelte-o1le12.svelte-o1le12{font-size:10px}.tp-chip-marks.svelte-o1le12.svelte-o1le12{--mark-size:12px}}@container chip (max-width: 60px){.tp-chip-code.svelte-o1le12.svelte-o1le12{font-size:11px}.tp-chip-room.svelte-o1le12.svelte-o1le12{font-size:9px}.tp-chip-marks.svelte-o1le12.svelte-o1le12{--mark-size:10px}}@container chip (max-width: 84px){.tp-chip-footer.svelte-o1le12.svelte-o1le12{flex-direction:column;align-items:stretch;gap:1px}.tp-chip-marks.svelte-o1le12.svelte-o1le12{margin-left:0;align-self:flex-end}}.tp-chip-marks.svelte-o1le12.svelte-o1le12{margin-left:auto;display:flex;gap:calc(var(--mark-size) * 0.3);align-items:center;justify-content:flex-end;flex-shrink:0}.tp-plan-mark.svelte-o1le12.svelte-o1le12{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0}button.tp-plan-mark--linked.svelte-o1le12.svelte-o1le12{color:var(--color-green);opacity:1;cursor:pointer}button.tp-plan-mark--linked.svelte-o1le12.svelte-o1le12:hover{opacity:0.7}.tp-plan-mark.svelte-o1le12 svg{width:var(--mark-size);height:var(--mark-size);filter:drop-shadow(0 0 1px var(--background-primary))}.tp-ext-mark.svelte-o1le12.svelte-o1le12{width:var(--mark-size);height:var(--mark-size);display:inline-flex;align-items:center;justify-content:center;background:none;border:none;padding:0;line-height:0;box-sizing:border-box;flex-shrink:0;color:var(--text-muted);cursor:pointer;opacity:0.85}.tp-ext-mark.svelte-o1le12.svelte-o1le12:hover{opacity:1}.tp-ext-mark.svelte-o1le12 svg{width:var(--mark-size);height:var(--mark-size);filter:drop-shadow(0 0 1px var(--background-primary))}.tp-prep-tick.svelte-o1le12.svelte-o1le12{width:var(--mark-size);height:var(--mark-size);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1.5px solid var(--text-muted);padding:0;line-height:0;cursor:pointer;color:var(--text-muted);opacity:0;transition:opacity 80ms ease;box-sizing:border-box;flex-shrink:0}.tp-chip.svelte-o1le12:hover .tp-prep-tick.svelte-o1le12{opacity:0.55}button.tp-prep-tick--on.svelte-o1le12.svelte-o1le12{opacity:1 !important;background:var(--color-green);border-color:var(--color-green);color:var(--tp-prep-fg, #fff);box-shadow:0 0 0 1.5px var(--background-primary)}.tp-prep-tick.svelte-o1le12 svg{width:calc(var(--mark-size) * 0.7);height:calc(var(--mark-size) * 0.7)}.tp-now-line.svelte-o1le12.svelte-o1le12{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--interactive-accent);opacity:0.9;pointer-events:none;z-index:5}.tp-now-line--week.svelte-o1le12.svelte-o1le12{left:48px;right:6px}.tp-now-badge.svelte-o1le12.svelte-o1le12{position:absolute;right:2px;transform:translateY(-50%);background:var(--interactive-accent);color:var(--text-on-accent,#fff);font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;pointer-events:none;z-index:6;white-space:nowrap;line-height:1.5}.tp-event-stack.svelte-o1le12.svelte-o1le12{position:absolute;top:3px;left:3px;right:3px;bottom:3px;display:flex;flex-direction:row;gap:2px;z-index:3}.tp-event-stack--partial.svelte-o1le12.svelte-o1le12{bottom:auto;top:calc(3px + var(--stack-top, 0px));height:var(--stack-h, auto)}.tp-block-free.svelte-o1le12.svelte-o1le12{position:absolute;left:6px;right:6px;bottom:3px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;pointer-events:none;z-index:2}.tp-block-free--lead.svelte-o1le12.svelte-o1le12{top:3px;bottom:auto}.tp-merged-gap.svelte-o1le12.svelte-o1le12{position:absolute;left:4px;right:4px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;pointer-events:none;z-index:1}.tp-block-durbadge.svelte-o1le12.svelte-o1le12{position:absolute;top:4px;right:4px;font-size:10px;font-weight:700;line-height:1.5;padding:0 4px;border-radius:3px;background:var(--interactive-accent);color:var(--text-on-accent, #fff);pointer-events:none;z-index:4}.tp-block.svelte-o1le12:hover .tp-block-free.svelte-o1le12,.tp-block.svelte-o1le12:hover .tp-block-durbadge.svelte-o1le12{display:none}.tp-event-stack.svelte-o1le12 .tp-chip.svelte-o1le12{position:relative;inset:auto;flex:1;min-width:0}.tp-overflow-btn.svelte-o1le12.svelte-o1le12{display:none}@container (max-width: 680px){.tp-action-btn.svelte-o1le12.svelte-o1le12{display:none}.tp-overflow-btn.svelte-o1le12.svelte-o1le12{display:inline-flex !important}.tp-header.svelte-o1le12.svelte-o1le12{grid-template-columns:auto 1fr auto;gap:6px;padding:6px 10px}.tp-nav.svelte-o1le12.svelte-o1le12{justify-content:center}.tp-header-identity.svelte-o1le12.svelte-o1le12{min-width:0;overflow:hidden}.tp-week-label.svelte-o1le12.svelte-o1le12{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-date-range.svelte-o1le12.svelte-o1le12{display:none}.tp-axis-head-day.svelte-o1le12.svelte-o1le12{padding:5px 2px}.tp-day-name.svelte-o1le12.svelte-o1le12{font-size:12px}.tp-day-date.svelte-o1le12.svelte-o1le12{font-size:10px}.tp-day-override-badge.svelte-o1le12.svelte-o1le12{font-size:9px;padding:1px 4px}}@container (max-width: 480px){.tp-axis.svelte-o1le12.svelte-o1le12{min-width:440px}.tp-axis-head-gutter.svelte-o1le12.svelte-o1le12,.tp-axis-gutter.svelte-o1le12.svelte-o1le12{width:30px}.tp-now-line--week.svelte-o1le12.svelte-o1le12{left:30px}.tp-axis-hour.svelte-o1le12.svelte-o1le12{right:3px;font-size:9px}.tp-day-name.svelte-o1le12.svelte-o1le12{font-size:11px}.tp-day-date.svelte-o1le12.svelte-o1le12{font-size:10px}}.tp-mobile-modes.svelte-o1le12.svelte-o1le12{display:flex;gap:5px;padding:6px 12px;border-bottom:1px solid var(--background-modifier-border);background:var(--background-secondary);flex-shrink:0}.tp-mode-btn.svelte-o1le12.svelte-o1le12{flex:1;padding:6px 0;font-size:13px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-primary);color:var(--text-muted);cursor:pointer;font-family:var(--font-interface)}.tp-mode-btn--on.svelte-o1le12.svelte-o1le12{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent);font-weight:600}.tp-day-strip.svelte-o1le12.svelte-o1le12{display:flex;gap:5px;padding:8px 10px;border-bottom:1px solid var(--background-modifier-border);flex-shrink:0}.tp-day-pill.svelte-o1le12.svelte-o1le12{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 5px;border:1px solid transparent;border-radius:9px;background:var(--background-secondary);color:var(--text-muted);cursor:pointer;min-width:0}.tp-day-pill-dow.svelte-o1le12.svelte-o1le12{font-size:10px;text-transform:uppercase;letter-spacing:0.03em}.tp-day-pill-num.svelte-o1le12.svelte-o1le12{font-size:15px;font-weight:600;color:var(--text-normal)}.tp-day-pill--today.svelte-o1le12 .tp-day-pill-num.svelte-o1le12{color:var(--interactive-accent)}.tp-day-pill--sel.svelte-o1le12.svelte-o1le12{background:color-mix(in srgb,var(--interactive-accent) 18%,var(--background-secondary));outline:1.5px solid var(--interactive-accent)}.tp-day-pill-dot.svelte-o1le12.svelte-o1le12{width:4px;height:4px;border-radius:50%;background:var(--interactive-accent)}.tp-week-view[data-tp-view="day"].svelte-o1le12 .tp-axis.svelte-o1le12{min-width:0}.tp-week-view[data-tp-view="day"].svelte-o1le12 .tp-axis-head.svelte-o1le12{display:none}.tp-agenda.svelte-o1le12.svelte-o1le12{flex:1 1 0;overflow:auto;min-height:0;padding:8px 10px 16px}.tp-agenda-day.svelte-o1le12.svelte-o1le12{margin-bottom:12px}.tp-agenda-head.svelte-o1le12.svelte-o1le12{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-muted);padding:2px 2px 6px;position:sticky;top:0;background:var(--background-primary);z-index:2}.tp-agenda-head--today.svelte-o1le12.svelte-o1le12{color:var(--interactive-accent)}.tp-agenda-dayname.svelte-o1le12.svelte-o1le12{text-transform:uppercase;letter-spacing:0.03em}.tp-agenda-row.svelte-o1le12.svelte-o1le12{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:none;border-radius:0 7px 7px 0;padding:8px 10px;margin-bottom:5px;color:var(--text-normal);cursor:pointer;font-size:13px;font-family:var(--font-interface)}.tp-agenda-period.svelte-o1le12.svelte-o1le12{font-size:11px;color:var(--text-muted);min-width:64px;flex-shrink:0}.tp-agenda-main.svelte-o1le12.svelte-o1le12{flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-agenda-room.svelte-o1le12.svelte-o1le12{font-size:11px;font-style:italic;color:var(--text-muted);flex-shrink:0}.tp-agenda-empty.svelte-o1le12.svelte-o1le12{font-size:12px;color:var(--text-faint);padding:2px 4px 6px;font-style:italic}');
 }
 function get_each_context_32(ctx, list, i) {
   const child_ctx = ctx.slice();
@@ -18677,7 +18677,7 @@ function create_if_block_47(ctx) {
         ctx[8]
       );
       attr(button, "class", button_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx[8].toLowerCase() + " svelte-dwpzh");
+      ctx[8].toLowerCase() + " svelte-o1le12");
       attr(button, "title", button_title_value = /*abOverridden*/
       ctx[41] ? "A/B forced for this week \u2014 click to change" : "Click to override this week's A/B");
       toggle_class(
@@ -18710,7 +18710,7 @@ function create_if_block_47(ctx) {
       );
       if (dirty[0] & /*abWeekType*/
       256 && button_class_value !== (button_class_value = "tp-week-ab-badge tp-week-ab-badge--" + /*abWeekType*/
-      ctx2[8].toLowerCase() + " svelte-dwpzh")) {
+      ctx2[8].toLowerCase() + " svelte-o1le12")) {
         attr(button, "class", button_class_value);
       }
       if (dirty[1] & /*abOverridden*/
@@ -18759,8 +18759,8 @@ function create_if_block_46(ctx) {
       t1 = space();
       button = element("button");
       button.textContent = "Today";
-      attr(div0, "class", "tp-nav-backdrop svelte-dwpzh");
-      attr(input, "class", "tp-nav-date svelte-dwpzh");
+      attr(div0, "class", "tp-nav-backdrop svelte-o1le12");
+      attr(input, "class", "tp-nav-date svelte-o1le12");
       attr(input, "type", "date");
       input.value = input_value_value = isoOf(
         /*currentDate*/
@@ -18770,8 +18770,8 @@ function create_if_block_46(ctx) {
       ctx[0].settings.academicYear.startDate);
       attr(input, "max", input_max_value = /*plugin*/
       ctx[0].settings.academicYear.endDate);
-      attr(button, "class", "tp-btn svelte-dwpzh");
-      attr(div1, "class", "tp-nav-pop svelte-dwpzh");
+      attr(button, "class", "tp-btn svelte-o1le12");
+      attr(div1, "class", "tp-nav-pop svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -18860,7 +18860,7 @@ function create_if_block_45(ctx) {
       t3 = space();
       button2 = element("button");
       t4 = text("Grid");
-      attr(button0, "class", "tp-mode-btn svelte-dwpzh");
+      attr(button0, "class", "tp-mode-btn svelte-o1le12");
       attr(button0, "role", "tab");
       attr(button0, "aria-selected", button0_aria_selected_value = /*viewMode*/
       ctx[7] === "day");
@@ -18870,7 +18870,7 @@ function create_if_block_45(ctx) {
         /*viewMode*/
         ctx[7] === "day"
       );
-      attr(button1, "class", "tp-mode-btn svelte-dwpzh");
+      attr(button1, "class", "tp-mode-btn svelte-o1le12");
       attr(button1, "role", "tab");
       attr(button1, "aria-selected", button1_aria_selected_value = /*viewMode*/
       ctx[7] === "agenda");
@@ -18880,7 +18880,7 @@ function create_if_block_45(ctx) {
         /*viewMode*/
         ctx[7] === "agenda"
       );
-      attr(button2, "class", "tp-mode-btn svelte-dwpzh");
+      attr(button2, "class", "tp-mode-btn svelte-o1le12");
       attr(button2, "role", "tab");
       attr(button2, "aria-selected", button2_aria_selected_value = /*viewMode*/
       ctx[7] === "grid");
@@ -18890,7 +18890,7 @@ function create_if_block_45(ctx) {
         /*viewMode*/
         ctx[7] === "grid"
       );
-      attr(div, "class", "tp-mobile-modes svelte-dwpzh");
+      attr(div, "class", "tp-mobile-modes svelte-o1le12");
       attr(div, "role", "tablist");
       attr(div, "aria-label", "View mode");
     },
@@ -18997,7 +18997,7 @@ function create_if_block_43(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-day-strip svelte-dwpzh");
+      attr(div, "class", "tp-day-strip svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -19045,7 +19045,7 @@ function create_if_block_44(ctx) {
   return {
     c() {
       span = element("span");
-      attr(span, "class", "tp-day-pill-dot svelte-dwpzh");
+      attr(span, "class", "tp-day-pill-dot svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -19107,9 +19107,9 @@ function create_each_block_92(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-pill-dow svelte-dwpzh");
-      attr(span1, "class", "tp-day-pill-num svelte-dwpzh");
-      attr(button, "class", "tp-day-pill svelte-dwpzh");
+      attr(span0, "class", "tp-day-pill-dow svelte-o1le12");
+      attr(span1, "class", "tp-day-pill-num svelte-o1le12");
+      attr(button, "class", "tp-day-pill svelte-o1le12");
       attr(button, "aria-label", button_aria_label_value = /*day*/
       ctx[196].label);
       toggle_class(
@@ -19274,17 +19274,17 @@ function create_else_block_12(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div0, "class", "tp-axis-head-gutter svelte-dwpzh");
-      attr(div1, "class", "tp-axis-head svelte-dwpzh");
-      attr(div2, "class", "tp-axis-gutter svelte-dwpzh");
+      attr(div0, "class", "tp-axis-head-gutter svelte-o1le12");
+      attr(div1, "class", "tp-axis-head svelte-o1le12");
+      attr(div2, "class", "tp-axis-gutter svelte-o1le12");
       set_style(
         div2,
         "height",
         /*axisHeight*/
         ctx[32] + "px"
       );
-      attr(div3, "class", "tp-axis-body svelte-dwpzh");
-      attr(div4, "class", "tp-axis svelte-dwpzh");
+      attr(div3, "class", "tp-axis-body svelte-o1le12");
+      attr(div4, "class", "tp-axis svelte-o1le12");
       set_style(div4, "--grid-colour", colourToCss(
         /*plugin*/
         ctx[0].settings.gridLineColour,
@@ -19307,7 +19307,7 @@ function create_else_block_12(ctx) {
         /*plugin*/
         ((_b2 = ctx[0].settings.blockBorderWeight) != null ? _b2 : 1) + "px"
       );
-      attr(div5, "class", "tp-table-scroll svelte-dwpzh");
+      attr(div5, "class", "tp-table-scroll svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, div5, anchor);
@@ -19514,7 +19514,7 @@ function create_if_block3(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-agenda svelte-dwpzh");
+      attr(div, "class", "tp-agenda svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -19564,7 +19564,7 @@ function create_if_block_42(ctx) {
     c() {
       span = element("span");
       span.textContent = "Inset";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-dwpzh");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -19582,7 +19582,7 @@ function create_if_block_41(ctx) {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-dwpzh");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -19640,11 +19640,11 @@ function create_each_block_82(ctx) {
       t3 = space();
       if (if_block) if_block.c();
       t4 = space();
-      attr(span0, "class", "tp-day-name svelte-dwpzh");
-      attr(span1, "class", "tp-day-date svelte-dwpzh");
-      attr(span2, "class", "tp-day-label svelte-dwpzh");
-      attr(div0, "class", "tp-th-day-inner svelte-dwpzh");
-      attr(div1, "class", "tp-axis-head-day svelte-dwpzh");
+      attr(span0, "class", "tp-day-name svelte-o1le12");
+      attr(span1, "class", "tp-day-date svelte-o1le12");
+      attr(span2, "class", "tp-day-label svelte-o1le12");
+      attr(div0, "class", "tp-th-day-inner svelte-o1le12");
+      attr(div1, "class", "tp-axis-head-day svelte-o1le12");
       toggle_class(div1, "tp-th-day--today", isToday(
         /*day*/
         ctx[196].offset,
@@ -19745,7 +19745,7 @@ function create_each_block_72(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-hour svelte-dwpzh");
+      attr(div, "class", "tp-axis-hour svelte-o1le12");
       set_style(
         div,
         "top",
@@ -19795,7 +19795,7 @@ function create_if_block_40(ctx) {
         /*currentTimeStr*/
         ctx[26]
       );
-      attr(div, "class", "tp-now-badge svelte-dwpzh");
+      attr(div, "class", "tp-now-badge svelte-o1le12");
       set_style(
         div,
         "top",
@@ -19836,7 +19836,7 @@ function create_if_block_39(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-now-line tp-now-line--week svelte-dwpzh");
+      attr(div, "class", "tp-now-line tp-now-line--week svelte-o1le12");
       set_style(
         div,
         "top",
@@ -19870,7 +19870,7 @@ function create_each_block_62(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-axis-line svelte-dwpzh");
+      attr(div, "class", "tp-axis-line svelte-o1le12");
       set_style(
         div,
         "top",
@@ -19973,7 +19973,7 @@ function create_if_block_102(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-axis-override-label svelte-dwpzh");
+      attr(div, "class", "tp-axis-override-label svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -20056,7 +20056,7 @@ function create_else_block_32(ctx) {
       t2 = space();
       if (if_block3) if_block3.c();
       t3 = space();
-      attr(div, "class", "tp-block svelte-dwpzh");
+      attr(div, "class", "tp-block svelte-o1le12");
       set_style(
         div,
         "top",
@@ -20401,12 +20401,12 @@ function create_if_block_112(ctx) {
       t9 = space();
       if (if_block6) if_block6.c();
       if_block6_anchor = empty();
-      attr(span0, "class", "tp-chip-period-time svelte-dwpzh");
-      attr(span1, "class", "tp-chip-code svelte-dwpzh");
-      attr(div0, "class", "tp-chip-body svelte-dwpzh");
-      attr(div1, "class", "tp-chip-marks svelte-dwpzh");
-      attr(div2, "class", "tp-chip-footer svelte-dwpzh");
-      attr(div3, "class", "tp-chip tp-chip--event svelte-dwpzh");
+      attr(span0, "class", "tp-chip-period-time svelte-o1le12");
+      attr(span1, "class", "tp-chip-code svelte-o1le12");
+      attr(div0, "class", "tp-chip-body svelte-o1le12");
+      attr(div1, "class", "tp-chip-marks svelte-o1le12");
+      attr(div2, "class", "tp-chip-footer svelte-o1le12");
+      attr(div3, "class", "tp-chip tp-chip--event svelte-o1le12");
       attr(div3, "role", "button");
       attr(div3, "tabindex", div3_tabindex_value = /*gridFocusKey*/
       ctx[13] === `${/*day*/
@@ -20434,8 +20434,8 @@ function create_if_block_112(ctx) {
         ctx[257].colour,
         0.22
       ));
-      attr(div4, "class", "tp-event-stack svelte-dwpzh");
-      attr(div5, "class", "tp-block tp-block--merged svelte-dwpzh");
+      attr(div4, "class", "tp-event-stack svelte-o1le12");
+      attr(div5, "class", "tp-block tp-block--merged svelte-o1le12");
       set_style(
         div5,
         "top",
@@ -20754,7 +20754,7 @@ function create_if_block_38(ctx) {
     c() {
       div = element("div");
       t = text("\u26A0");
-      attr(div, "class", "tp-block-clash svelte-dwpzh");
+      attr(div, "class", "tp-block-clash svelte-o1le12");
       attr(div, "title", div_title_value = /*_showDirected*/
       ctx[37] && /*_dirOcc*/
       ctx[272] >= 2 ? "Double-booked \u2014 directed time is counted twice here" : "Double-booked block");
@@ -20828,9 +20828,9 @@ function create_if_block_37(ctx) {
       t2 = text(t2_value);
       t3 = text("\u2013");
       t4 = text(t4_value);
-      attr(span0, "class", "tp-block-name svelte-dwpzh");
-      attr(span1, "class", "tp-block-time svelte-dwpzh");
-      attr(div, "class", "tp-block-label svelte-dwpzh");
+      attr(span0, "class", "tp-block-name svelte-o1le12");
+      attr(span1, "class", "tp-block-time svelte-o1le12");
+      attr(div, "class", "tp-block-label svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -20965,7 +20965,7 @@ function create_if_block_232(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div, "class", "tp-event-stack svelte-dwpzh");
+      attr(div, "class", "tp-event-stack svelte-o1le12");
       attr(div, "style", div_style_value = /*_partial*/
       ctx[236] ? `--stack-h:${/*_stackH*/
       ctx[240]}px; --stack-top:${/*_stackTop*/
@@ -21172,12 +21172,12 @@ function create_if_block_30(ctx) {
       if (if_block4) if_block4.c();
       t8 = space();
       if (if_block5) if_block5.c();
-      attr(span0, "class", "tp-chip-period-time svelte-dwpzh");
-      attr(span1, "class", "tp-chip-code svelte-dwpzh");
-      attr(div0, "class", "tp-chip-body svelte-dwpzh");
-      attr(div1, "class", "tp-chip-marks svelte-dwpzh");
-      attr(div2, "class", "tp-chip-footer svelte-dwpzh");
-      attr(div3, "class", "tp-chip svelte-dwpzh");
+      attr(span0, "class", "tp-chip-period-time svelte-o1le12");
+      attr(span1, "class", "tp-chip-code svelte-o1le12");
+      attr(div0, "class", "tp-chip-body svelte-o1le12");
+      attr(div1, "class", "tp-chip-marks svelte-o1le12");
+      attr(div2, "class", "tp-chip-footer svelte-o1le12");
+      attr(div3, "class", "tp-chip svelte-o1le12");
       attr(div3, "draggable", "true");
       attr(div3, "role", "button");
       attr(div3, "tabindex", div3_tabindex_value = /*gridFocusKey*/
@@ -21447,7 +21447,7 @@ function create_if_block_36(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-dwpzh");
+      attr(span, "class", "tp-chip-meta svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21487,7 +21487,7 @@ function create_if_block_35(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-dwpzh");
+      attr(span, "class", "tp-chip-notes svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21530,7 +21530,7 @@ function create_if_block_34(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-dwpzh");
+      attr(span, "class", "tp-chip-room svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21576,7 +21576,7 @@ function create_if_block_33(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-prep-tick svelte-dwpzh");
+      attr(button, "class", "tp-prep-tick svelte-o1le12");
       attr(button, "title", button_title_value = /*slotPrepared*/
       ctx[270] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared");
       attr(button, "aria-label", "Toggle lesson prepared");
@@ -21651,7 +21651,7 @@ function create_if_block_32(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-dwpzh");
+      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-o1le12");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -21696,7 +21696,7 @@ function create_if_block_31(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-ext-mark svelte-dwpzh");
+      attr(button, "class", "tp-ext-mark svelte-o1le12");
       attr(button, "title", button_title_value = /*slotExternal*/
       ctx[271].kind === "folder" ? "Open external folder" : "Open external file");
       attr(button, "aria-label", "Open external resource");
@@ -21753,7 +21753,7 @@ function create_if_block_29(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-meta svelte-dwpzh");
+      attr(span, "class", "tp-chip-meta svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21782,7 +21782,7 @@ function create_if_block_28(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-dwpzh");
+      attr(span, "class", "tp-chip-notes svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21811,7 +21811,7 @@ function create_if_block_27(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-dwpzh");
+      attr(span, "class", "tp-chip-room svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -21848,7 +21848,7 @@ function create_if_block_262(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-prep-tick svelte-dwpzh");
+      attr(button, "class", "tp-prep-tick svelte-o1le12");
       attr(button, "title", button_title_value = /*evPrepared*/
       ctx[265] ? "Marked prepared \u2014 click to clear" : "Mark lesson prepared");
       attr(button, "aria-label", "Toggle lesson prepared");
@@ -21923,7 +21923,7 @@ function create_if_block_252(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-dwpzh");
+      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-o1le12");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -21968,7 +21968,7 @@ function create_if_block_242(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-ext-mark svelte-dwpzh");
+      attr(button, "class", "tp-ext-mark svelte-o1le12");
       attr(button, "title", button_title_value = /*evExternal*/
       ctx[266].kind === "folder" ? "Open external folder" : "Open external file");
       attr(button, "aria-label", "Open external resource");
@@ -22133,12 +22133,12 @@ function create_each_block_52(key_2, ctx) {
       t8 = space();
       if (if_block5) if_block5.c();
       t9 = space();
-      attr(span0, "class", "tp-chip-period-time svelte-dwpzh");
-      attr(span1, "class", "tp-chip-code svelte-dwpzh");
-      attr(div0, "class", "tp-chip-body svelte-dwpzh");
-      attr(div1, "class", "tp-chip-marks svelte-dwpzh");
-      attr(div2, "class", "tp-chip-footer svelte-dwpzh");
-      attr(div3, "class", "tp-chip tp-chip--event svelte-dwpzh");
+      attr(span0, "class", "tp-chip-period-time svelte-o1le12");
+      attr(span1, "class", "tp-chip-code svelte-o1le12");
+      attr(div0, "class", "tp-chip-body svelte-o1le12");
+      attr(div1, "class", "tp-chip-marks svelte-o1le12");
+      attr(div2, "class", "tp-chip-footer svelte-o1le12");
+      attr(div3, "class", "tp-chip tp-chip--event svelte-o1le12");
       attr(div3, "role", "button");
       attr(div3, "tabindex", div3_tabindex_value = /*gridFocusKey*/
       ctx[13] === `${/*day*/
@@ -22418,7 +22418,7 @@ function create_if_block_202(ctx) {
       t3 = space();
       if (if_block1) if_block1.c();
       if_block1_anchor = empty();
-      attr(div, "class", "tp-block-durbadge svelte-dwpzh");
+      attr(div, "class", "tp-block-durbadge svelte-o1le12");
     },
     m(target, anchor) {
       if (if_block0) if_block0.m(target, anchor);
@@ -22497,7 +22497,7 @@ function create_if_block_222(ctx) {
       t0 = text(t0_value);
       t1 = text("\u2013");
       t2 = text(t2_value);
-      attr(div, "class", "tp-block-free tp-block-free--lead svelte-dwpzh");
+      attr(div, "class", "tp-block-free tp-block-free--lead svelte-o1le12");
       set_style(
         div,
         "height",
@@ -22556,7 +22556,7 @@ function create_if_block_212(ctx) {
       t0 = text(t0_value);
       t1 = text("\u2013");
       t2 = text(t2_value);
-      attr(div, "class", "tp-block-free svelte-dwpzh");
+      attr(div, "class", "tp-block-free svelte-o1le12");
       set_style(div, "top", 3 + /*_stackTop*/
       ctx[241] + /*_stackH*/
       ctx[240] + "px");
@@ -22607,7 +22607,7 @@ function create_if_block_182(ctx) {
       t0 = text(t0_value);
       t1 = text("\u2013");
       t2 = text(t2_value);
-      attr(div, "class", "tp-merged-gap svelte-dwpzh");
+      attr(div, "class", "tp-merged-gap svelte-o1le12");
       set_style(
         div,
         "top",
@@ -22679,7 +22679,7 @@ function create_if_block_172(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-notes svelte-dwpzh");
+      attr(span, "class", "tp-chip-notes svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -22708,7 +22708,7 @@ function create_if_block_162(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-chip-room svelte-dwpzh");
+      attr(span, "class", "tp-chip-room svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -22745,7 +22745,7 @@ function create_if_block_152(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-prep-tick svelte-dwpzh");
+      attr(button, "class", "tp-prep-tick svelte-o1le12");
       attr(button, "title", button_title_value = /*_mPrep*/
       ctx[259] ? "Marked prepared \u2014 click to clear" : "Mark prepared");
       attr(button, "aria-label", "Toggle prepared");
@@ -22820,7 +22820,7 @@ function create_if_block_142(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-dwpzh");
+      attr(button, "class", "tp-plan-mark tp-plan-mark--linked svelte-o1le12");
       attr(button, "title", "Open lesson plan");
       attr(button, "aria-label", "Open lesson plan");
     },
@@ -22865,7 +22865,7 @@ function create_if_block_132(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-ext-mark svelte-dwpzh");
+      attr(button, "class", "tp-ext-mark svelte-o1le12");
       attr(button, "title", button_title_value = /*_mExt*/
       ctx[260].kind === "folder" ? "Open external folder" : "Open external file");
       attr(button, "aria-label", "Open external resource");
@@ -22930,7 +22930,7 @@ function create_if_block_122(ctx) {
       t0 = text(t0_value);
       t1 = text("\u2013");
       t2 = text(t2_value);
-      attr(div, "class", "tp-merged-gap svelte-dwpzh");
+      attr(div, "class", "tp-merged-gap svelte-o1le12");
       set_style(
         div,
         "top",
@@ -23089,7 +23089,7 @@ function create_each_block_32(ctx) {
       t0 = space();
       if_block.c();
       t1 = space();
-      attr(div, "class", "tp-axis-col svelte-dwpzh");
+      attr(div, "class", "tp-axis-col svelte-o1le12");
       set_style(
         div,
         "height",
@@ -23197,7 +23197,7 @@ function create_if_block_92(ctx) {
     c() {
       span = element("span");
       span.textContent = "INSET";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-dwpzh");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--inset svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -23215,7 +23215,7 @@ function create_if_block_82(ctx) {
     c() {
       span = element("span");
       span.textContent = "Holiday";
-      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-dwpzh");
+      attr(span, "class", "tp-day-override-badge tp-day-override-badge--holiday svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -23326,7 +23326,7 @@ function create_if_block_110(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-agenda-empty svelte-dwpzh");
+      attr(div, "class", "tp-agenda-empty svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -23414,9 +23414,9 @@ function create_if_block_52(ctx) {
       if (if_block0) if_block0.c();
       t5 = space();
       if (if_block1) if_block1.c();
-      attr(span0, "class", "tp-agenda-period svelte-dwpzh");
-      attr(span1, "class", "tp-agenda-main svelte-dwpzh");
-      attr(button, "class", "tp-agenda-row svelte-dwpzh");
+      attr(span0, "class", "tp-agenda-period svelte-o1le12");
+      attr(span1, "class", "tp-agenda-main svelte-o1le12");
+      attr(button, "class", "tp-agenda-row svelte-o1le12");
       set_style(button, "border-left", "3px solid " + /*sl*/
       ctx[211].colour);
       set_style(button, "background", hexToRgba4(
@@ -23565,7 +23565,7 @@ function create_if_block_62(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-agenda-room svelte-dwpzh");
+      attr(span, "class", "tp-agenda-room svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -23630,7 +23630,7 @@ function create_if_block_310(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-agenda-room svelte-dwpzh");
+      attr(span, "class", "tp-agenda-room svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -23701,9 +23701,9 @@ function create_each_block_22(key_2, ctx) {
       if (if_block0) if_block0.c();
       t3 = space();
       if (if_block1) if_block1.c();
-      attr(span0, "class", "tp-agenda-period svelte-dwpzh");
-      attr(span1, "class", "tp-agenda-main svelte-dwpzh");
-      attr(button, "class", "tp-agenda-row tp-agenda-row--event svelte-dwpzh");
+      attr(span0, "class", "tp-agenda-period svelte-o1le12");
+      attr(span1, "class", "tp-agenda-main svelte-o1le12");
+      attr(button, "class", "tp-agenda-row tp-agenda-row--event svelte-o1le12");
       set_style(button, "border-left", "3px solid " + /*el*/
       ctx[208].colour);
       set_style(button, "background", hexToRgba4(
@@ -23884,7 +23884,7 @@ function create_if_block_210(ctx) {
     c() {
       div = element("div");
       div.textContent = "No lessons";
-      attr(div, "class", "tp-agenda-empty svelte-dwpzh");
+      attr(div, "class", "tp-agenda-empty svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -23950,15 +23950,15 @@ function create_each_block3(ctx) {
       t4 = space();
       if_block1.c();
       t5 = space();
-      attr(span, "class", "tp-agenda-dayname svelte-dwpzh");
-      attr(div0, "class", "tp-agenda-head svelte-dwpzh");
+      attr(span, "class", "tp-agenda-dayname svelte-o1le12");
+      attr(div0, "class", "tp-agenda-head svelte-o1le12");
       toggle_class(div0, "tp-agenda-head--today", isToday(
         /*day*/
         ctx[196].offset,
         /*currentMonday*/
         ctx[3]
       ));
-      attr(div1, "class", "tp-agenda-day svelte-dwpzh");
+      attr(div1, "class", "tp-agenda-day svelte-o1le12");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -24184,18 +24184,18 @@ function create_fragment3(ctx) {
       if (if_block3) if_block3.c();
       t24 = space();
       if_block4.c();
-      attr(span0, "class", "tp-week-label svelte-dwpzh");
-      attr(span1, "class", "tp-date-range svelte-dwpzh");
-      attr(div0, "class", "tp-header-identity svelte-dwpzh");
-      attr(button0, "class", "tp-btn tp-nav-arrow svelte-dwpzh");
+      attr(span0, "class", "tp-week-label svelte-o1le12");
+      attr(span1, "class", "tp-date-range svelte-o1le12");
+      attr(div0, "class", "tp-header-identity svelte-o1le12");
+      attr(button0, "class", "tp-btn tp-nav-arrow svelte-o1le12");
       attr(button0, "aria-label", "Previous week");
       attr(button0, "title", "Previous week");
       button0.disabled = button0_disabled_value = !/*canGoPrev*/
       ctx[25];
-      attr(span2, "class", "tp-nav-centre-icon svelte-dwpzh");
-      attr(span3, "class", "tp-nav-centre-label svelte-dwpzh");
-      attr(span4, "class", "tp-nav-caret svelte-dwpzh");
-      attr(button1, "class", "tp-btn tp-nav-centre svelte-dwpzh");
+      attr(span2, "class", "tp-nav-centre-icon svelte-o1le12");
+      attr(span3, "class", "tp-nav-centre-label svelte-o1le12");
+      attr(span4, "class", "tp-nav-caret svelte-o1le12");
+      attr(button1, "class", "tp-btn tp-nav-centre svelte-o1le12");
       attr(button1, "aria-haspopup", "true");
       attr(
         button1,
@@ -24204,31 +24204,31 @@ function create_fragment3(ctx) {
         ctx[16]
       );
       attr(button1, "title", "Jump to a date");
-      attr(div1, "class", "tp-nav-jump svelte-dwpzh");
-      attr(button2, "class", "tp-btn tp-nav-arrow svelte-dwpzh");
+      attr(div1, "class", "tp-nav-jump svelte-o1le12");
+      attr(button2, "class", "tp-btn tp-nav-arrow svelte-o1le12");
       attr(button2, "aria-label", "Next week");
       attr(button2, "title", "Next week");
       button2.disabled = button2_disabled_value = !/*canGoNext*/
       ctx[24];
-      attr(nav, "class", "tp-nav svelte-dwpzh");
+      attr(nav, "class", "tp-nav svelte-o1le12");
       attr(nav, "aria-label", "Week navigation");
-      attr(span5, "class", "tp-btn-icon svelte-dwpzh");
-      attr(button3, "class", "tp-btn tp-action-btn svelte-dwpzh");
+      attr(span5, "class", "tp-btn-icon svelte-o1le12");
+      attr(button3, "class", "tp-btn tp-action-btn svelte-o1le12");
       attr(button3, "aria-label", "Add event");
-      attr(span6, "class", "tp-btn-icon svelte-dwpzh");
-      attr(button4, "class", "tp-btn tp-action-btn svelte-dwpzh");
+      attr(span6, "class", "tp-btn-icon svelte-o1le12");
+      attr(button4, "class", "tp-btn tp-action-btn svelte-o1le12");
       attr(button4, "aria-label", "Lesson overview");
       attr(button4, "title", "Lesson overview");
-      attr(span7, "class", "tp-btn-icon svelte-dwpzh");
-      attr(button5, "class", "tp-btn tp-action-btn svelte-dwpzh");
+      attr(span7, "class", "tp-btn-icon svelte-o1le12");
+      attr(button5, "class", "tp-btn tp-action-btn svelte-o1le12");
       attr(button5, "aria-label", "Edit timetable");
-      attr(button6, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-dwpzh");
+      attr(button6, "class", "tp-btn tp-action-btn tp-action-btn--icon-only svelte-o1le12");
       attr(button6, "aria-label", "Settings");
-      attr(button7, "class", "tp-btn tp-overflow-btn svelte-dwpzh");
+      attr(button7, "class", "tp-btn tp-overflow-btn svelte-o1le12");
       attr(button7, "aria-label", "More options");
-      attr(div2, "class", "tp-header-actions svelte-dwpzh");
-      attr(header, "class", "tp-header svelte-dwpzh");
-      attr(div3, "class", "tp-week-view svelte-dwpzh");
+      attr(div2, "class", "tp-header-actions svelte-o1le12");
+      attr(header, "class", "tp-header svelte-o1le12");
+      attr(div3, "class", "tp-week-view svelte-o1le12");
       set_style(
         div3,
         "--tp-prep-fg",
