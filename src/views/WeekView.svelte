@@ -313,6 +313,15 @@
     return lum > 0.58 ? "#1c1c1e" : "#f2f2f3";
   }
 
+  // Pure black/white tick for the prepared pill, chosen from --color-green's luminance.
+  function contrastBW(colour: string): string {
+    const c = _parseColour(colour);
+    if (!c) return "#fff";
+    const lum = (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255;
+    return lum > 0.5 ? "#000" : "#fff";
+  }
+  $: _prepFg = _dep(_tick, contrastBW(_rootEl ? getComputedStyle(_rootEl).getPropertyValue("--color-green").trim() : ""));
+
   function hexToRgba(hex: string, alpha: number): string {
     const clean = hex.replace("#", "");
     const r = parseInt(clean.substring(0, 2), 16);
@@ -1168,7 +1177,7 @@
 
 
 
-<div class="tp-week-view" bind:this={_rootEl} data-tp-view={isDayMode ? "day" : isAgendaMode ? "agenda" : "grid"}>
+<div class="tp-week-view" bind:this={_rootEl} style="--tp-prep-fg:{_prepFg}" data-tp-view={isDayMode ? "day" : isAgendaMode ? "agenda" : "grid"}>
 
   <!-- ── Header ─────────────────────────────────────────────────────────── -->
   <header class="tp-header">
@@ -1755,7 +1764,7 @@
   .tp-ext-mark :global(svg) { width:var(--mark-size); height:var(--mark-size); filter:drop-shadow(0 0 1px var(--background-primary)); }
   .tp-prep-tick { width:var(--mark-size); height:var(--mark-size); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1.5px solid var(--text-muted); padding:0; line-height:0; cursor:pointer; color:var(--text-muted); opacity:0; transition:opacity 80ms ease; box-sizing:border-box; flex-shrink:0; }
   .tp-chip:hover .tp-prep-tick { opacity:0.55; }
-  button.tp-prep-tick--on { opacity:1 !important; background:var(--color-green); border-color:var(--color-green); color:#fff; box-shadow:0 0 0 1.5px var(--background-primary); }
+  button.tp-prep-tick--on { opacity:1 !important; background:var(--color-green); border-color:var(--color-green); color:var(--tp-prep-fg, #fff); box-shadow:0 0 0 1.5px var(--background-primary); }
   .tp-prep-tick :global(svg) { width:calc(var(--mark-size) * 0.7); height:calc(var(--mark-size) * 0.7); }
 
   /* Current time indicator */
