@@ -267,6 +267,8 @@ export interface TeacherPlannerSettings {
   confirmBeforeDelete?: boolean;
   /** Where the "open full note" button opens the week note. Global. Default "tab". */
   weekNoteOpenIn?: "tab" | "split" | "current";
+  /** Highlight colour for today's column (a "theme:*" token or hex). Global. Default "theme:accent". */
+  todayHighlightColour?: string;
   notesHeight?: number;
   gridLineColour?: string;
   gridLineWeight?: number;
@@ -395,6 +397,8 @@ export interface GlobalPluginData {
   confirmBeforeDelete?: boolean;
   /** Where the "open full note" button opens the week note. Global. Default "tab". */
   weekNoteOpenIn?: "tab" | "split" | "current";
+  /** Highlight colour for today's column (a "theme:*" token or hex). Default "theme:accent". */
+  todayHighlightColour?: string;
   /** All planner records. Always at least one once setup is complete; empty array triggers the wizard. */
   planners: PlannerRecord[];
 }

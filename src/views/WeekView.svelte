@@ -1291,7 +1291,7 @@
   {:else}
   <!-- ── Time-axis week grid (each day column has its own schedule) ──────── -->
   <div class="tp-table-scroll">
-    <div class="tp-axis" style="--grid-colour:{colourToCss(plugin.settings.gridLineColour, '#555')}; --grid-weight:{plugin.settings.gridLineWeight ?? 1}px; --block-colour:{colourToCss(plugin.settings.blockBorderColour, '#444')}; --block-weight:{plugin.settings.blockBorderWeight ?? 1}px;">
+    <div class="tp-axis" style="--grid-colour:{colourToCss(plugin.settings.gridLineColour, '#555')}; --grid-weight:{plugin.settings.gridLineWeight ?? 1}px; --block-colour:{colourToCss(plugin.settings.blockBorderColour, '#444')}; --block-weight:{plugin.settings.blockBorderWeight ?? 1}px; --today-colour:{colourToCss(plugin.settings.todayHighlightColour, 'var(--interactive-accent)')};">
 
       <div class="tp-axis-head">
         <div class="tp-axis-head-gutter"></div>
@@ -1331,6 +1331,7 @@
           {@const dayDate     = dayISODate(day.offset, currentMonday)}
           {@const dayOverride = dayOverrideMap[day.key]}
           <div class="tp-axis-col"
+            class:tp-axis-col--today={isToday(day.offset, currentMonday)}
             class:tp-axis-col--holiday={dayOverride === "holiday"}
             class:tp-axis-col--inset={dayOverride === "inset"}
             style="height:{axisHeight}px;">
@@ -1645,7 +1646,7 @@
   .tp-axis-head { position:sticky; top:0; z-index:10; display:flex; gap:6px; padding-right:6px; background:var(--background-primary); border-bottom:1px solid var(--background-modifier-border); }
   .tp-axis-head-gutter { width:48px; flex-shrink:0; }
   .tp-axis-head-day { flex:1; min-width:0; padding:8px 6px; font-size:12px; font-weight:600; color:var(--text-muted); border-radius:6px 6px 0 0; background:var(--background-primary); }
-  .tp-th-day--today   { color:var(--interactive-accent); }
+  .tp-th-day--today   { color:var(--today-colour, var(--interactive-accent)); background:color-mix(in srgb,var(--today-colour, var(--interactive-accent)) 14%,var(--background-primary)); }
   .tp-th-day--holiday { background:color-mix(in srgb,var(--color-yellow,#f9e2af) 14%,var(--background-secondary)) !important; color:var(--color-yellow,#d4a017) !important; }
   .tp-th-day--inset   { background:color-mix(in srgb,var(--interactive-accent) 10%,var(--background-secondary)) !important; color:var(--interactive-accent) !important; }
   .tp-th-day-inner { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
@@ -1661,6 +1662,7 @@
   .tp-axis-hour { position:absolute; right:6px; transform:translateY(-50%); font-size:11px; color:var(--text-muted); white-space:nowrap; }
   .tp-axis-col { flex:1; min-width:0; position:relative; background:var(--background-secondary); border-radius:6px; }
   .tp-axis-line { position:absolute; left:0; right:0; border-top:1px solid color-mix(in srgb,var(--grid-colour,var(--background-modifier-border)) 22%,transparent); pointer-events:none; }
+  .tp-axis-col--today   { background:color-mix(in srgb,var(--today-colour, var(--interactive-accent)) 9%,var(--background-secondary)); }
   .tp-axis-col--holiday { background:color-mix(in srgb,var(--color-yellow,#f9e2af) 8%,transparent); }
   .tp-axis-col--inset   { background:color-mix(in srgb,var(--interactive-accent) 6%,transparent); }
   .tp-axis-override-label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); opacity:0.55; pointer-events:none; }

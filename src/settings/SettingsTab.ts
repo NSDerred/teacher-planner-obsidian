@@ -755,6 +755,53 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       gridPresetSwatches.push(chip);
     }
 
+    const todayColourSetting = new Setting(containerEl)
+      .setName("Today's column colour")
+      .setDesc("Tint used to highlight today's column in the week grid.");
+    todayColourSetting.controlEl.setCssStyles({ display: "flex" });
+    todayColourSetting.controlEl.setCssStyles({ alignItems: "center" });
+    todayColourSetting.controlEl.setCssStyles({ gap: "8px" });
+    todayColourSetting.controlEl.setCssStyles({ flexWrap: "wrap" });
+
+    const TODAY_THEME_TOKEN = "theme:accent";
+    const currentTodayColour = this.plugin.settings.todayHighlightColour ?? TODAY_THEME_TOKEN;
+    const todaySwatchBtn = todayColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
+    todaySwatchBtn.setCssStyles({ background: resolveColour(currentTodayColour) });
+
+    const todayPresetRow = todayColourSetting.controlEl.createDiv("tp-preset-swatches");
+    const todayPresetSwatches: HTMLElement[] = [];
+
+    const updateTodayColour = async (colour: string) => {
+      this.plugin.settings.todayHighlightColour = colour;
+      await this.plugin.saveSettings();
+      todaySwatchBtn.setCssStyles({ background: resolveColour(colour) });
+      todayPresetSwatches.forEach(sw => sw.classList.toggle("tp-preset-swatch--active", sw.dataset.colour === colour));
+    };
+
+    todaySwatchBtn.addEventListener("click", () => {
+      new ColourPickerModal(this.app, this.plugin.settings.todayHighlightColour ?? TODAY_THEME_TOKEN, "Today's column", async colour => {
+        await updateTodayColour(colour);
+      }).open();
+    });
+
+    {
+      const chip = todayPresetRow.createEl("button", { cls: "tp-preset-swatch tp-preset-swatch--theme", title: "Follow Obsidian accent (default)" });
+      chip.setCssStyles({ background: resolveColour(TODAY_THEME_TOKEN) });
+      chip.dataset.colour = TODAY_THEME_TOKEN;
+      if (currentTodayColour === TODAY_THEME_TOKEN) chip.classList.add("tp-preset-swatch--active");
+      chip.addEventListener("click", () => { void (async () => { await updateTodayColour(TODAY_THEME_TOKEN); })(); });
+      todayPresetSwatches.push(chip);
+    }
+
+    for (const grey of GREY_PALETTE) {
+      const chip = todayPresetRow.createEl("button", { cls: "tp-preset-swatch", title: grey });
+      chip.setCssStyles({ background: grey });
+      chip.dataset.colour = grey;
+      if (grey === currentTodayColour) chip.classList.add("tp-preset-swatch--active");
+      chip.addEventListener("click", () => { void (async () => { await updateTodayColour(grey); })(); });
+      todayPresetSwatches.push(chip);
+    }
+
     new Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).")
       .addSlider(s => {
         const valueLabel = createSpan({ cls: "tp-slider-value", text: `${this.plugin.settings.gridLineWeight ?? 1}px` });
@@ -789,6 +836,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           this.plugin.settings.gridLineColour = GRID_THEME_TOKEN;
           this.plugin.settings.blockBorderWeight = 1;
           this.plugin.settings.gridLineWeight = 1;
+          this.plugin.settings.todayHighlightColour = "theme:accent";
           await this.plugin.saveSettings();
           new Notice("Grid visuals reset to theme defaults.");
           this.render();

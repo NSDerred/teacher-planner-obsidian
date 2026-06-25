@@ -172,5 +172,6 @@ export const DEFAULT_GLOBAL_DATA: GlobalPluginData = {
   blockBorderWeight: 1,
   confirmBeforeDelete: true,
   weekNoteOpenIn: "tab",
+  todayHighlightColour: "theme:accent",
   planners: [],
 };
