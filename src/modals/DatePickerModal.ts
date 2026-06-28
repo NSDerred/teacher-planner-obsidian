@@ -19,6 +19,10 @@ function isoOf(d: Date): string {
 /**
  * A single, shared month-grid date picker used across the plugin (week view on
  * mobile and desktop, and the lesson overview) so every calendar looks the same.
+ *
+ * Always renders a fixed six-week (42-cell) grid, filling the lead/trail with
+ * adjacent-month days, so the grid height never changes between months (no
+ * layout shift, no empty band) — the standard pattern used by mature pickers.
  */
 export class DatePickerModal extends Modal {
   private opts: DatePickerOptions;
@@ -49,6 +53,7 @@ export class DatePickerModal extends Modal {
     contentEl.addClass("tp-datepicker");
 
     const todayIso = isoOf(new Date());
+    const viewMonth = this.month.getMonth();
 
     // Header: month nav
     const head = contentEl.createDiv("tp-datepicker-head");
@@ -71,25 +76,30 @@ export class DatePickerModal extends Modal {
     const dow = contentEl.createDiv("tp-datepicker-dow");
     for (const d of DOW) dow.createEl("span", { text: d });
 
-    // Day grid
+    // Day grid — always 6 weeks (42 cells), Monday-start, filled with adjacent days.
     const grid = contentEl.createDiv("tp-datepicker-grid");
-    const y = this.month.getFullYear(), m = this.month.getMonth();
-    const lead = (new Date(y, m, 1).getDay() + 6) % 7; // Monday-start offset
-    const days = new Date(y, m + 1, 0).getDate();
-    for (let i = 0; i < lead; i++) grid.createDiv("tp-datepicker-day tp-datepicker-day--blank");
-    for (let d = 1; d <= days; d++) {
-      const iso = isoOf(new Date(y, m, d));
+    const lead = (this.month.getDay() + 6) % 7;
+    const start = new Date(this.month.getFullYear(), this.month.getMonth(), 1 - lead);
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const iso = isoOf(d);
       const inRange = (!this.opts.min || iso >= this.opts.min) && (!this.opts.max || iso <= this.opts.max);
-      const cell = grid.createEl("button", { cls: "tp-datepicker-day", text: String(d) });
+      const cell = grid.createEl("button", { cls: "tp-datepicker-day", text: String(d.getDate()) });
+      if (d.getMonth() !== viewMonth) cell.addClass("tp-datepicker-day--adjacent");
       if (iso === this.selected) cell.addClass("tp-datepicker-day--sel");
       if (iso === todayIso) cell.addClass("tp-datepicker-day--today");
       if (!inRange) { cell.disabled = true; }
       else cell.addEventListener("click", () => { this.opts.onPick(iso); this.close(); });
     }
 
-    // Footer: Today
+    // Footer: selected-date context + Today shortcut
     const foot = contentEl.createDiv("tp-datepicker-foot");
-    const today = foot.createEl("button", { cls: "tp-btn", text: "Today" });
+    const label = foot.createEl("span", { cls: "tp-datepicker-selected" });
+    if (this.selected) {
+      const sd = new Date(this.selected + "T12:00:00");
+      label.setText("Selected: " + sd.toLocaleDateString(undefined, { day: "numeric", month: "short" }));
+    }
+    const today = foot.createEl("button", { cls: "tp-btn tp-datepicker-today", text: "Today" });
     today.addEventListener("click", () => {
       const t = isoOf(new Date());
       const clamped = this.opts.min && t < this.opts.min ? this.opts.min

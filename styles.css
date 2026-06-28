@@ -1462,22 +1462,26 @@
 }
 
 /* ── Shared date picker modal (week view + lesson overview, mobile + desktop) ── */
-.tp-datepicker-modal .modal-content { width: min(360px, 86vw); padding: 16px; }
-.tp-datepicker-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+/* Always six fixed weeks with adjacent-month days, so the grid never shifts. */
+.tp-datepicker-modal .modal-content { width: min(330px, 92vw); padding: 14px; box-sizing: border-box; }
+.tp-datepicker-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .tp-datepicker-title { font-size: 15px; font-weight: 600; color: var(--text-normal); }
-.tp-datepicker-nav { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 1px solid var(--background-modifier-border); border-radius: 8px; background: var(--background-primary); color: var(--text-normal); cursor: pointer; box-shadow: none; }
+.tp-datepicker-nav { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 1px solid var(--background-modifier-border); border-radius: 8px; background: var(--background-primary); color: var(--text-normal); cursor: pointer; box-shadow: none; }
 .tp-datepicker-nav:hover { background: var(--background-modifier-hover); }
 .tp-datepicker-nav .svg-icon { width: 16px; height: 16px; }
-.tp-datepicker-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 6px; }
+.tp-datepicker-dow { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; margin-bottom: 4px; }
 .tp-datepicker-dow span { text-align: center; font-size: 11px; color: var(--text-muted); }
-.tp-datepicker-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.tp-datepicker-day { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; border: none; border-radius: 8px; background: var(--background-secondary); color: var(--text-normal); font-size: 14px; cursor: pointer; padding: 0; font-family: var(--font-interface); box-shadow: none; }
+.tp-datepicker-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+.tp-datepicker-day { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; min-width: 0; border: none; border-radius: 8px; background: var(--background-secondary); color: var(--text-normal); font-size: 13px; cursor: pointer; padding: 0; font-family: var(--font-interface); box-shadow: none; }
 .tp-datepicker-day:hover:not(:disabled) { background: var(--background-modifier-hover); }
-.tp-datepicker-day:disabled { opacity: 0.3; cursor: default; }
-.tp-datepicker-day--blank { background: transparent; pointer-events: none; }
-.tp-datepicker-day--today { outline: 1.5px solid var(--interactive-accent); }
+.tp-datepicker-day:disabled { opacity: 0.35; cursor: default; }
+.tp-datepicker-day--adjacent { background: transparent; color: var(--text-faint); }
+.tp-datepicker-day--adjacent:hover:not(:disabled) { background: var(--background-modifier-hover); }
+.tp-datepicker-day--today { outline: 1.5px solid var(--interactive-accent); outline-offset: -1.5px; }
 .tp-datepicker-day--sel { background: var(--interactive-accent); color: var(--text-on-accent); font-weight: 700; }
-.tp-datepicker-foot { display: flex; justify-content: flex-end; margin-top: 12px; }
+.tp-datepicker-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.tp-datepicker-selected { font-size: 12px; color: var(--text-muted); }
+.tp-datepicker-today { padding: 5px 14px; }
 
 /* ── Add event (mobile): uniform rectangle-with-rounded-corners controls ─────── */
 .modal-content.tp-date-event-modal--mobile input,
@@ -1486,4 +1490,14 @@
 .modal-content.tp-date-event-modal--mobile .tp-period-field,
 .modal-content.tp-date-event-modal--mobile .tp-dur-reset,
 .modal-content.tp-date-event-modal--mobile button.tp-colour-swatch { border-radius: 8px; }
+
+/* ── Timetable editor: mobile full-screen sheet ───────────────────────────── */
+.tp-timetable-modal--mobile .modal-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 12px 14px calc(8px + env(safe-area-inset-bottom, 0px));
+}
 

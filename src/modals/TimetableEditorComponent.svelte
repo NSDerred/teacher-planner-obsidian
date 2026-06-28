@@ -3,8 +3,8 @@
   import type { TimetableEditorModal } from "./TimetableEditorModal";
   import type { TimetableSlot, SchoolPeriod, TimetableTemplate, SchoolDay } from "../types";
   import { AddTimetableTemplateModal } from "./AddTimetableTemplateModal";
-  import { setIcon, Platform } from "obsidian";
-  import { ConfirmModal } from "../settings/SettingsTab";
+  import { setIcon, Platform, Menu } from "obsidian";
+  import { ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
   import { resolveColour } from "../utils/themeColours";
   import { periodAppliesTo, periodLengthMinutes, getPeriodsForDay } from "../utils/scheduleUtils";
 
@@ -275,7 +275,7 @@
   let draftLen = "";
   let draftRoom = "";
 
-  function focusPicker(node: HTMLElement) { setTimeout(() => node.focus(), 30); }
+  function focusPicker(node: HTMLElement) { if (isMobile) return; setTimeout(() => node.focus(), 30); }
 
   function getSlot(day: string, periodId: string, week: "A" | "B" | null): TimetableSlot | undefined {
     if (!abEnabled || !week) return slots.find(s => s.day === day && s.periodId === periodId);
@@ -549,6 +549,26 @@
   function setZoom(pxPerHour: number): void { _teScale = plugin.setEditorScale(pxPerHour); }
   function nudgeZoom(delta: number): void { setZoom(_teScale + delta); }
   function getDayPeriods(day: SchoolDay): SchoolPeriod[] { return getPeriodsForDay(plugin.settings.academicYear, day); }
+
+  // ── Mobile day-at-a-time editor ────────────────────────────────────────────
+  let mobileDay: SchoolDay = "monday";
+  $: if (DAYS.length && !DAYS.some(d => d.key === mobileDay)) mobileDay = DAYS[0].key;
+  function onPickMobileTemplate(e: Event) { switchTemplate((e.currentTarget as HTMLSelectElement).value); }
+  function renameActiveTemplate() {
+    const tmpl = activeTemplate;
+    if (!tmpl) return;
+    new TextPromptModal(plugin.app, "Rename template", tmpl.name, "Template name", async (name: string) => {
+      const v = name.trim(); if (!v) return;
+      tmpl.name = v; await plugin.saveSettings(); invalidate();
+    }).open();
+  }
+  function openMobileTemplateMenu(e: MouseEvent) {
+    const menu = new Menu();
+    menu.addItem(i => i.setTitle("New template").setIcon("plus").onClick(() => openAddTemplate()));
+    if (activeTemplate) menu.addItem(i => i.setTitle("Rename template").setIcon("pencil").onClick(() => renameActiveTemplate()));
+    if (allTemplates.length > 1) menu.addItem(i => i.setTitle("Delete template").setIcon("trash-2").onClick(() => deleteTemplate()));
+    menu.showAtMouseEvent(e);
+  }
   $: _axisStart = periods.length ? Math.min(...periods.map(p => tMin(p.start))) : 8 * 60;
   $: _axisEnd   = periods.length ? Math.max(...periods.map(p => tMin(p.end)))   : 16 * 60;
   $: axisHeight = Math.max(40, (_axisEnd - _axisStart) * TE_PX);
@@ -577,6 +597,17 @@
 <div class="tp-te-wrap">
 
   <!-- ── Template bar ──────────────────────────────────────────────────────── -->
+  {#if isMobile}
+    <div class="tp-te-mtmpl">
+      <select class="tp-te-mtmpl-select" on:change={onPickMobileTemplate}>
+        {#each allTemplates as tmpl (tmpl.id)}
+          <option value={tmpl.id} selected={tmpl.id === activeTemplateId}>{tmpl.name}</option>
+        {/each}
+      </select>
+      <button class="tp-te-mtmpl-menu" aria-label="Template options" on:click={openMobileTemplateMenu} use:icon={"more-vertical"}></button>
+    </div>
+  {/if}
+  {#if !isMobile}
   <div class="tp-te-tmpl-bar">
     <div class="tp-te-tmpl-tabs">
       {#each allTemplates as tmpl (tmpl.id)}
@@ -614,6 +645,7 @@
       {/if}
     </div>
   </div>
+  {/if}
 
   <!-- ── Template edit warning ────────────────────────────────────────────── -->
   {#if activeTemplate}
@@ -676,6 +708,35 @@
   {/if}
 
   <!-- ── Timetable grid ─────────────────────────────────────────────────────── -->
+  {#if isMobile}
+    <div class="tp-te-mday-strip">
+      {#each DAYS as day}
+        <button class="tp-te-mday-pill" class:tp-te-mday-pill--sel={day.key === mobileDay} on:click={() => { mobileDay = day.key; closePicker(); }}>{day.label}</button>
+      {/each}
+    </div>
+    <div class="tp-te-mlist">
+      {#each getDayPeriods(mobileDay) as period (period.id)}
+        {@const slot = _slotGrid[mobileDay + ":" + period.id]}
+        {#if slot}
+          {@const lbl = getLabel(slot)}
+          <button class="tp-te-mrow" style="border-left:3px solid {lbl.colour}; background:{lbl.colour}1f;" on:click={(e) => openPicker(mobileDay, period.id, currentWeek, e.currentTarget)}>
+            <span class="tp-te-mrow-time">{period.name}<br><span>{slotStartOf(slot, period)}</span></span>
+            <span class="tp-te-mrow-body">
+              <span class="tp-te-mrow-code" style="color:{lbl.colour}">{lbl.code}</span>
+              <span class="tp-te-mrow-meta">{[lbl.year ? "Yr" + lbl.year : "", lbl.sub, lbl.classroom].filter(Boolean).join(" · ")}</span>
+              {#if isCustomised(slot, period)}<span class="tp-te-mrow-cust">{slotStartOf(slot, period)} · {getSlotDuration(slot)}m</span>{/if}
+            </span>
+            <span class="tp-te-mrow-chev" use:icon={"chevron-right"}></span>
+          </button>
+        {:else}
+          <button class="tp-te-mrow tp-te-mrow--empty" on:click={(e) => openPicker(mobileDay, period.id, currentWeek, e.currentTarget)}>
+            <span class="tp-te-mrow-time">{period.name}<br><span>{period.start}</span></span>
+            <span class="tp-te-mrow-add">+ assign</span>
+          </button>
+        {/if}
+      {/each}
+    </div>
+  {:else}
   <div class="tp-te-grid-wrap" style="--te-days:{DAYS.length}">
     <div class="tp-te-axis">
       <div class="tp-te-axis-head">
@@ -751,10 +812,15 @@
       </div>
     </div>
   </div>
+  {/if}
 
-  <!-- ── Floating picker ───────────────────────────────────────────────────── -->
-  {#if pickerDay && pickerPeriodId && pickerEl}
-    <div class="tp-te-picker" style={getPickerStyle(pickerEl)}>
+  <!-- ── Class picker (anchored popover on desktop, bottom sheet on mobile) ─── -->
+  {#if pickerDay && pickerPeriodId && (isMobile || pickerEl)}
+    {#if isMobile}
+      <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+      <div class="tp-te-sheet-backdrop" on:click={closePicker}></div>
+    {/if}
+    <div class="tp-te-picker" class:tp-te-picker--sheet={isMobile} style={isMobile ? "" : getPickerStyle(pickerEl)}>
       <div class="tp-te-picker-inner">
         <!-- svelte-ignore a11y-autofocus -->
         <input
@@ -1081,4 +1147,35 @@
   .tp-te-zoom-btn { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border-radius: 5px; border: 1px solid var(--background-modifier-border); background: var(--background-secondary); color: var(--text-normal); cursor: pointer; }
   .tp-te-zoom-btn:hover { background: var(--background-modifier-hover); }
   .tp-te-zoom-btn :global(svg) { width: 14px; height: 14px; }
+
+  /* ── Mobile day-at-a-time editor ─────────────────────────────────────────── */
+  .tp-te-mtmpl { display: flex; gap: 8px; align-items: center; padding: 6px 0 12px; flex-shrink: 0; }
+  .tp-te-mtmpl-select { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--background-modifier-border); border-radius: 8px; background: var(--background-modifier-form-field); color: var(--text-normal); font-size: 15px; font-family: var(--font-interface); }
+  .tp-te-mtmpl-menu { flex: 0 0 auto; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--background-modifier-border); border-radius: 8px; background: var(--background-primary); color: var(--text-normal); cursor: pointer; }
+  .tp-te-mtmpl-menu :global(svg) { width: 18px; height: 18px; }
+
+  .tp-te-mday-strip { display: flex; gap: 5px; margin-bottom: 10px; flex-shrink: 0; }
+  .tp-te-mday-pill { flex: 1; min-width: 0; padding: 8px 0; border: 1px solid var(--background-modifier-border); border-radius: 8px; background: var(--background-secondary); color: var(--text-muted); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .tp-te-mday-pill--sel { background: var(--interactive-accent); color: var(--text-on-accent); border-color: var(--interactive-accent); }
+
+  .tp-te-mlist { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; }
+  .tp-te-mrow { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: none; border-radius: 8px; padding: 10px 12px; min-height: 56px; box-sizing: border-box; background: var(--background-secondary); color: var(--text-normal); cursor: pointer; font-family: var(--font-interface); }
+  .tp-te-mrow--empty { background: transparent; border: 1px dashed var(--background-modifier-border); color: var(--text-muted); min-height: 46px; }
+  .tp-te-mrow-time { width: 64px; flex-shrink: 0; font-size: 11px; color: var(--text-muted); line-height: 1.3; }
+  .tp-te-mrow-time span { font-size: 10px; opacity: 0.8; }
+  .tp-te-mrow-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .tp-te-mrow-code { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tp-te-mrow-meta { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tp-te-mrow-cust { font-size: 11px; color: var(--text-faint); }
+  .tp-te-mrow-add { flex: 1; font-size: 14px; color: var(--interactive-accent); }
+  .tp-te-mrow-chev { flex-shrink: 0; color: var(--text-faint); display: inline-flex; }
+  .tp-te-mrow-chev :global(svg) { width: 18px; height: 18px; }
+
+  /* Class picker as a bottom sheet on mobile */
+  .tp-te-sheet-backdrop { position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.45); }
+  .tp-te-picker--sheet { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: 100%; max-width: 100%; border-radius: 14px 14px 0 0; box-shadow: 0 -6px 24px rgba(0,0,0,0.4); }
+  .tp-te-picker--sheet .tp-te-picker-inner { max-height: 78vh; padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .tp-te-picker--sheet .tp-te-picker-search { font-size: 16px; padding: 9px 12px; }
+  .tp-te-picker--sheet .tp-te-detail input { font-size: 16px; padding: 8px 10px; }
+  .tp-te-picker--sheet .tp-te-picker-item { padding: 10px 10px; }
 </style>

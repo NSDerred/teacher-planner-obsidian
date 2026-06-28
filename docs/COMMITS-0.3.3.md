@@ -126,3 +126,28 @@ Round of mobile polish after testing.
 - Files: `src/modals/DatePickerModal.ts` (new), `src/views/WeekView.svelte`, `src/modals/LessonOverviewComponent.svelte`, `styles.css`
 - svelte-check 0/0, tsc clean, production build OK. Pending phone re-test.
 
+---
+
+## feat(calendar): fixed six-week grid, no layout shift or empty space (desktop + mobile)
+
+Redesign the shared DatePickerModal to current date-picker best practice: always render a fixed six-week (42-cell) grid, filling the lead/trail with muted adjacent-month days instead of blanks. This removes the empty band and stops the footer/arrows moving as months change between five and six rows. Today (accent ring) is now visually distinct from the selection (accent fill); out-of-range days are disabled; a "Selected: …" label gives context. Compact sizing with minmax(0,1fr) cells, min-width:0, and box-sizing means it always fits — fixing the mobile cut-off and horizontal scroll at the same time.
+
+NOTE: the Write tool silently truncated DatePickerModal.ts on the first attempt (the documented Cowork bug); rewritten via shell and verified with file-integrity-guard.
+
+- Files: src/modals/DatePickerModal.ts, styles.css
+- Research: NN/g, Carbon, Ant Design — six-week grids + adjacent days are the standard fix.
+
+## feat(timetable): mobile day-at-a-time editor (chunk 4)
+
+The timetable editor was a wide time-axis grid (600px min-width modal), unusable on a phone. Added a mobile-only layout that reuses all existing assign/clear/save logic:
+
+- Full-screen sheet on mobile (modal forced to 100dvh, no min-width).
+- Template dropdown selector with New / Rename / Delete in an overflow menu (replacing the desktop tab bar).
+- A/B week tabs (reused).
+- Day selector (Mon–Fri) + a vertical list of that day's periods; assigned slots show class/room (+ custom start/length badge), empty slots show "+ assign".
+- Tap a period → the existing class picker, rendered as a bottom sheet on mobile, keeping the same start time / length / room controls, search, clear, and grouped class/activity lists. Search auto-focus is suppressed on mobile so the keyboard doesn't cover the sheet.
+- Drag-to-rearrange stays desktop-only; mobile is tap-to-assign. Desktop layout unchanged.
+
+- Files: src/modals/TimetableEditorComponent.svelte, src/modals/TimetableEditorModal.ts, styles.css
+- svelte-check 0/0, tsc clean, production build OK; file-integrity-guard passed. Pending phone test.
+
