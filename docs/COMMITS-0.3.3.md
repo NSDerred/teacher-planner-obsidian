@@ -181,3 +181,18 @@ Four fixes after device testing.
 - Files: src/modals/AddDateEventModal.ts, src/modals/DatePickerModal.ts, styles.css
 - svelte-check 0/0, tsc clean, production build OK; file-integrity-guard passed. The keyboard behaviour cannot be reproduced in-sandbox — needs on-device confirmation.
 
+---
+
+## fix(mobile): status-bar clearance + settings chevron/shape tidy-ups
+
+- Status bar overlap: the Add event and timetable full-screen sheets clipped under the phone status bar because env(safe-area-inset-top) reports 0 on this Android device and the fallback floors were too small (or absent for add-event). Bumped both: content padding-top to max(40px, ...safe-area-top) and the close X to max(30px, ...), so neither sits under the battery/signal icons; max() still defers to a real inset (notch) when present.
+
+- Settings chevron: Obsidian forces .setting-item into a column layout on mobile, dropping the collapsible section chevron onto its own line. Forced .tp-collapsible-header back to a centred row on mobile so the arrow sits beside the title.
+
+- Settings shapes: added a tp-settings class to the settings container and standardised control corners to 8px rounded rectangles on mobile (text/number/date/time/search inputs, dropdowns, buttons); toggle switches keep their pill shape.
+
+- A full mobile settings redesign is deferred to 0.3.5 (see docs/RELEASE-0.3.5.md).
+
+- Files: styles.css, src/settings/SettingsTab.ts
+- tsc clean, production build OK; file-integrity-guard passed.
+

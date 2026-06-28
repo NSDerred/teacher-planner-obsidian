@@ -9912,6 +9912,7 @@ var init_SettingsTab = __esm({
         var _a2, _b2, _c, _d, _e, _f, _g, _h;
         const { containerEl } = this;
         containerEl.empty();
+        containerEl.addClass("tp-settings");
         this._snapshot = JSON.stringify(this.plugin.settings);
         this.renderPlannersSection(containerEl);
         new import_obsidian11.Setting(containerEl).setName("Academic year").setHeading();

@@ -1436,10 +1436,14 @@
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 16px 0;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top: max(40px, calc(12px + env(safe-area-inset-top, 0px)));
+  padding-bottom: 0;
   display: flex;
   flex-direction: column;
 }
+.tp-date-event-modal--mobile .modal-close-button { top: max(30px, calc(6px + env(safe-area-inset-top, 0px))); }
 .tp-date-event-modal--mobile .tp-modal-desc { font-size: 13px; }
 /* Date full width; Start time + Duration share a row */
 .tp-date-event-modal--mobile .tp-modal-row { flex-wrap: wrap; gap: 10px; }
@@ -1504,10 +1508,10 @@
   box-sizing: border-box;
   padding-left: 14px;
   padding-right: 14px;
-  padding-top: max(20px, calc(8px + env(safe-area-inset-top, 0px)));
+  padding-top: max(40px, calc(12px + env(safe-area-inset-top, 0px)));
   padding-bottom: max(52px, calc(16px + env(safe-area-inset-bottom, 0px)));
 }
-.tp-timetable-modal--mobile .modal-close-button { top: max(10px, env(safe-area-inset-top, 0px)); }
+.tp-timetable-modal--mobile .modal-close-button { top: max(30px, calc(6px + env(safe-area-inset-top, 0px))); }
 
 /* Date field rendered as a button that opens the shared calendar */
 .tp-modal-datebtn { text-align: left; cursor: pointer; font-family: var(--font-interface); }
@@ -1516,4 +1520,22 @@
 /* Date picker: raise the close X clear of the month navigator on mobile */
 .tp-datepicker-modal--mobile .modal-close-button { top: 6px; right: 6px; }
 .tp-datepicker-modal--mobile .modal-content { padding-top: 34px; }
+
+/* ── Settings: mobile tidy-ups (full redesign deferred to 0.3.5) ───────────── */
+/* Keep the collapsible section chevron on the same line as its title (Obsidian
+   forces .setting-item to column layout on mobile, which drops it onto its own row). */
+.is-mobile .tp-collapsible-header {
+  flex-direction: row !important;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+/* Uniform rounded-rectangle controls (toggles keep their pill shape) */
+.is-mobile .tp-settings input[type="text"],
+.is-mobile .tp-settings input[type="number"],
+.is-mobile .tp-settings input[type="date"],
+.is-mobile .tp-settings input[type="time"],
+.is-mobile .tp-settings input[type="search"],
+.is-mobile .tp-settings select,
+.is-mobile .tp-settings .dropdown,
+.is-mobile .tp-settings button:not(.checkbox-container) { border-radius: 8px; }
 

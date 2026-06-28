@@ -212,6 +212,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   private render(): void {
     const { containerEl } = this;
     containerEl.empty();
+    containerEl.addClass("tp-settings");
     // Capture snapshot of current settings so hide() can detect changes
     this._snapshot = JSON.stringify(this.plugin.settings);
 
