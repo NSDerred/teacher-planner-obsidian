@@ -18108,7 +18108,7 @@ var SlotNotesModal = class extends import_obsidian14.Modal {
 init_SettingsTab();
 
 // src/modals/AddDateEventModal.ts
-var import_obsidian15 = require("obsidian");
+var import_obsidian16 = require("obsidian");
 init_scheduleUtils();
 init_eventUtils();
 init_settings();
@@ -18171,6 +18171,88 @@ function blockOccupants(s, dateIso, periodId, opts) {
   return out;
 }
 
+// src/modals/DatePickerModal.ts
+var import_obsidian15 = require("obsidian");
+var DOW2 = ["M", "T", "W", "T", "F", "S", "S"];
+function isoOf(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+var DatePickerModal = class extends import_obsidian15.Modal {
+  constructor(app, opts) {
+    var _a2;
+    super(app);
+    this.opts = opts;
+    const base = opts.value ? /* @__PURE__ */ new Date(opts.value + "T12:00:00") : /* @__PURE__ */ new Date();
+    this.month = new Date(base.getFullYear(), base.getMonth(), 1);
+    this.selected = (_a2 = opts.value) != null ? _a2 : "";
+  }
+  onOpen() {
+    this.modalEl.addClass("tp-datepicker-modal");
+    if (import_obsidian15.Platform.isMobile) this.modalEl.addClass("tp-datepicker-modal--mobile");
+    this.render();
+  }
+  shift(n) {
+    this.month = new Date(this.month.getFullYear(), this.month.getMonth() + n, 1);
+    this.render();
+  }
+  render() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("tp-datepicker");
+    const todayIso = isoOf(/* @__PURE__ */ new Date());
+    const viewMonth = this.month.getMonth();
+    const head = contentEl.createDiv("tp-datepicker-head");
+    const prev = head.createEl("button", { cls: "tp-datepicker-nav" });
+    prev.setAttribute("aria-label", "Previous month");
+    (0, import_obsidian15.setIcon)(prev, "arrow-left");
+    prev.addEventListener("click", () => this.shift(-1));
+    head.createEl("span", {
+      cls: "tp-datepicker-title",
+      text: this.month.toLocaleDateString(void 0, { month: "long", year: "numeric" })
+    });
+    const next = head.createEl("button", { cls: "tp-datepicker-nav" });
+    next.setAttribute("aria-label", "Next month");
+    (0, import_obsidian15.setIcon)(next, "arrow-right");
+    next.addEventListener("click", () => this.shift(1));
+    const dow = contentEl.createDiv("tp-datepicker-dow");
+    for (const d of DOW2) dow.createEl("span", { text: d });
+    const grid = contentEl.createDiv("tp-datepicker-grid");
+    const lead = (this.month.getDay() + 6) % 7;
+    const start = new Date(this.month.getFullYear(), this.month.getMonth(), 1 - lead);
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const iso = isoOf(d);
+      const inRange = (!this.opts.min || iso >= this.opts.min) && (!this.opts.max || iso <= this.opts.max);
+      const cell = grid.createEl("button", { cls: "tp-datepicker-day", text: String(d.getDate()) });
+      if (d.getMonth() !== viewMonth) cell.addClass("tp-datepicker-day--adjacent");
+      if (iso === this.selected) cell.addClass("tp-datepicker-day--sel");
+      if (iso === todayIso) cell.addClass("tp-datepicker-day--today");
+      if (!inRange) {
+        cell.disabled = true;
+      } else cell.addEventListener("click", () => {
+        this.opts.onPick(iso);
+        this.close();
+      });
+    }
+    const foot = contentEl.createDiv("tp-datepicker-foot");
+    const label = foot.createEl("span", { cls: "tp-datepicker-selected" });
+    if (this.selected) {
+      const sd = /* @__PURE__ */ new Date(this.selected + "T12:00:00");
+      label.setText("Selected: " + sd.toLocaleDateString(void 0, { day: "numeric", month: "short" }));
+    }
+    const today = foot.createEl("button", { cls: "tp-btn tp-datepicker-today", text: "Today" });
+    today.addEventListener("click", () => {
+      const t = isoOf(/* @__PURE__ */ new Date());
+      const clamped = this.opts.min && t < this.opts.min ? this.opts.min : this.opts.max && t > this.opts.max ? this.opts.max : t;
+      this.opts.onPick(clamped);
+      this.close();
+    });
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
+
 // src/modals/AddDateEventModal.ts
 var DAY_OF_WEEK = {
   0: "sunday",
@@ -18184,7 +18266,7 @@ var DAY_OF_WEEK = {
 function randomPaletteColour() {
   return CLASS_COLOUR_PALETTE[Math.floor(Math.random() * CLASS_COLOUR_PALETTE.length)];
 }
-var AddDateEventModal = class extends import_obsidian15.Modal {
+var AddDateEventModal = class extends import_obsidian16.Modal {
   constructor(app, plugin, existingEvent, onSaved, prefillDate, prefillPeriodId) {
     super(app);
     this._vvCleanup = null;
@@ -18209,27 +18291,52 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("tp-date-event-modal");
-    if (import_obsidian15.Platform.isMobile) {
+    if (import_obsidian16.Platform.isMobile) {
       this.modalEl.addClass("tp-date-event-modal--mobile");
       contentEl.addClass("tp-date-event-modal--mobile");
+      const setAvail = (bottomInset) => {
+        this.modalEl.style.top = "0px";
+        this.modalEl.style.height = Math.max(220, window.innerHeight - bottomInset) + "px";
+      };
+      const reset = () => {
+        this.modalEl.style.top = "0px";
+        this.modalEl.style.height = window.innerHeight + "px";
+      };
+      reset();
+      const onKbShow = (e) => {
+        var _a3;
+        const kb = (_a3 = e.keyboardHeight) != null ? _a3 : 0;
+        if (kb > 0) setAvail(kb);
+      };
+      const onKbHide = () => reset();
+      window.addEventListener("keyboardWillShow", onKbShow);
+      window.addEventListener("keyboardDidShow", onKbShow);
+      window.addEventListener("keyboardWillHide", onKbHide);
+      window.addEventListener("keyboardDidHide", onKbHide);
       const vv = window.visualViewport;
-      if (vv) {
-        const apply = () => {
-          this.modalEl.style.height = vv.height + "px";
-          this.modalEl.style.top = vv.offsetTop + "px";
-        };
-        apply();
-        vv.addEventListener("resize", apply);
-        vv.addEventListener("scroll", apply);
-        this._vvCleanup = () => {
-          vv.removeEventListener("resize", apply);
-          vv.removeEventListener("scroll", apply);
-        };
-        contentEl.addEventListener("focusin", (e) => {
-          const t = e.target;
-          if (t) window.setTimeout(() => t.scrollIntoView({ block: "center" }), 60);
-        });
+      const onVv = vv ? () => {
+        this.modalEl.style.height = vv.height + "px";
+        this.modalEl.style.top = vv.offsetTop + "px";
+      } : null;
+      if (vv && onVv) {
+        vv.addEventListener("resize", onVv);
+        vv.addEventListener("scroll", onVv);
       }
+      const onFocusIn = (e) => {
+        const t = e.target;
+        if (t) window.setTimeout(() => t.scrollIntoView({ block: "center" }), 80);
+      };
+      contentEl.addEventListener("focusin", onFocusIn);
+      this._vvCleanup = () => {
+        window.removeEventListener("keyboardWillShow", onKbShow);
+        window.removeEventListener("keyboardDidShow", onKbShow);
+        window.removeEventListener("keyboardWillHide", onKbHide);
+        window.removeEventListener("keyboardDidHide", onKbHide);
+        if (vv && onVv) {
+          vv.removeEventListener("resize", onVv);
+          vv.removeEventListener("scroll", onVv);
+        }
+      };
     }
     const isEdit = !!this.existingEvent;
     const directedTimeEnabled = (_b2 = (_a2 = this.plugin.settings.directedTime) == null ? void 0 : _a2.enabled) != null ? _b2 : false;
@@ -18418,8 +18525,33 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
     const dateRow = form.createDiv("tp-modal-row");
     const dateCol = dateRow.createDiv("tp-modal-field");
     dateCol.createEl("label", { text: "Date", cls: "tp-modal-label" });
-    const dateInput = dateCol.createEl("input", { type: "date", cls: "tp-modal-input" });
-    dateInput.value = date;
+    const dateBtn = dateCol.createEl("button", { cls: "tp-modal-input tp-modal-datebtn" });
+    dateBtn.setAttribute("type", "button");
+    const fmtDateLabel = (iso) => {
+      const d = /* @__PURE__ */ new Date(iso + "T12:00:00");
+      return isNaN(d.getTime()) ? "Pick a date" : d.toLocaleDateString(void 0, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+    };
+    const paintDate = () => {
+      dateBtn.setText(fmtDateLabel(date));
+    };
+    paintDate();
+    dateBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const ay = this.plugin.settings.academicYear;
+      new DatePickerModal(this.plugin.app, {
+        value: date,
+        min: ay == null ? void 0 : ay.startDate,
+        max: ay == null ? void 0 : ay.endDate,
+        onPick: (iso) => {
+          date = iso;
+          paintDate();
+          refreshPeriods();
+          recalcDuration();
+          paintDuration();
+          paintStart();
+        }
+      }).open();
+    });
     const startCol = dateRow.createDiv("tp-modal-field");
     startCol.createEl("label", { text: "Start time", cls: "tp-modal-label" });
     const startInput = startCol.createEl("input", { type: "time", cls: "tp-modal-input" });
@@ -18453,13 +18585,6 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
       durationTouched = false;
       recalcDuration();
       paintDuration();
-    });
-    dateInput.addEventListener("change", () => {
-      date = dateInput.value;
-      refreshPeriods();
-      recalcDuration();
-      paintDuration();
-      paintStart();
     });
     const periodRow = form.createDiv("tp-modal-row tp-modal-row--col");
     periodRow.createEl("label", { text: "Period block(s)", cls: "tp-modal-label" });
@@ -18602,7 +18727,7 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
       const ordered = orderedSelected();
       const ay = this.plugin.settings.academicYear;
       if ((ay == null ? void 0 : ay.startDate) && (ay == null ? void 0 : ay.endDate) && (date < ay.startDate || date > ay.endDate)) {
-        new import_obsidian15.Notice(`Note: ${date} is outside the academic year (${ay.startDate} \u2013 ${ay.endDate}). The event was saved but won't count towards directed time.`, 6e3);
+        new import_obsidian16.Notice(`Note: ${date} is outside the academic year (${ay.startDate} \u2013 ${ay.endDate}). The event was saved but won't count towards directed time.`, 6e3);
       }
       if (!this.plugin.settings.dateEvents) this.plugin.settings.dateEvents = [];
       if (start) {
@@ -18610,7 +18735,7 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
         if (b.length) {
           const fs = timeToMin(b[0].start), fe = timeToMin(b[0].end), sv = timeToMin(start);
           if (sv < fs || sv >= fe) {
-            new import_obsidian15.Notice("Start time must be within the first period block \u2014 reset to the block start.");
+            new import_obsidian16.Notice("Start time must be within the first period block \u2014 reset to the block start.");
             start = "";
           }
         }
@@ -18663,7 +18788,7 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
       const card = overlay.createDiv("tp-clash-card");
       const head = card.createDiv("tp-clash-head");
       const hIcon = head.createSpan("tp-clash-head-icon");
-      (0, import_obsidian15.setIcon)(hIcon, "alert-triangle");
+      (0, import_obsidian16.setIcon)(hIcon, "alert-triangle");
       head.createSpan({ text: "Block already in use" });
       const list = card.createDiv("tp-clash-list");
       for (const c of clashes) {
@@ -18683,7 +18808,7 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
       const makeAction = (iconName, title2, desc, danger) => {
         const b = acts.createEl("button", { cls: "tp-clash-action" + (danger ? " tp-clash-action--danger" : "") });
         const ic = b.createSpan("tp-clash-action-icon");
-        (0, import_obsidian15.setIcon)(ic, iconName);
+        (0, import_obsidian16.setIcon)(ic, iconName);
         const txt = b.createDiv("tp-clash-action-text");
         txt.createEl("span", { text: title2, cls: "tp-clash-action-title" });
         txt.createEl("span", { text: desc, cls: "tp-clash-action-desc" });
@@ -18710,7 +18835,7 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
       });
       const back = card.createEl("button", { cls: "tp-clash-back" });
       const bIcon = back.createSpan("tp-clash-back-icon");
-      (0, import_obsidian15.setIcon)(bIcon, "arrow-left");
+      (0, import_obsidian16.setIcon)(bIcon, "arrow-left");
       back.createSpan({ text: "Back" });
       back.addEventListener("click", () => overlay.remove());
     };
@@ -18718,15 +18843,15 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
     saveBtn.addEventListener("click", () => {
       void (async () => {
         if (!title.trim()) {
-          new import_obsidian15.Notice("Please give the event a name.");
+          new import_obsidian16.Notice("Please give the event a name.");
           return;
         }
         if (!date) {
-          new import_obsidian15.Notice("Please choose a date.");
+          new import_obsidian16.Notice("Please choose a date.");
           return;
         }
         if (selected.size === 0) {
-          new import_obsidian15.Notice("Please select at least one period block.");
+          new import_obsidian16.Notice("Please select at least one period block.");
           return;
         }
         const periodsList = periodsForDate(date);
@@ -18760,87 +18885,6 @@ function hexToRgba3(hex, alpha) {
   const r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
-
-// src/modals/DatePickerModal.ts
-var import_obsidian16 = require("obsidian");
-var DOW2 = ["M", "T", "W", "T", "F", "S", "S"];
-function isoOf(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-var DatePickerModal = class extends import_obsidian16.Modal {
-  constructor(app, opts) {
-    var _a2;
-    super(app);
-    this.opts = opts;
-    const base = opts.value ? /* @__PURE__ */ new Date(opts.value + "T12:00:00") : /* @__PURE__ */ new Date();
-    this.month = new Date(base.getFullYear(), base.getMonth(), 1);
-    this.selected = (_a2 = opts.value) != null ? _a2 : "";
-  }
-  onOpen() {
-    this.modalEl.addClass("tp-datepicker-modal");
-    this.render();
-  }
-  shift(n) {
-    this.month = new Date(this.month.getFullYear(), this.month.getMonth() + n, 1);
-    this.render();
-  }
-  render() {
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.addClass("tp-datepicker");
-    const todayIso = isoOf(/* @__PURE__ */ new Date());
-    const viewMonth = this.month.getMonth();
-    const head = contentEl.createDiv("tp-datepicker-head");
-    const prev = head.createEl("button", { cls: "tp-datepicker-nav" });
-    prev.setAttribute("aria-label", "Previous month");
-    (0, import_obsidian16.setIcon)(prev, "arrow-left");
-    prev.addEventListener("click", () => this.shift(-1));
-    head.createEl("span", {
-      cls: "tp-datepicker-title",
-      text: this.month.toLocaleDateString(void 0, { month: "long", year: "numeric" })
-    });
-    const next = head.createEl("button", { cls: "tp-datepicker-nav" });
-    next.setAttribute("aria-label", "Next month");
-    (0, import_obsidian16.setIcon)(next, "arrow-right");
-    next.addEventListener("click", () => this.shift(1));
-    const dow = contentEl.createDiv("tp-datepicker-dow");
-    for (const d of DOW2) dow.createEl("span", { text: d });
-    const grid = contentEl.createDiv("tp-datepicker-grid");
-    const lead = (this.month.getDay() + 6) % 7;
-    const start = new Date(this.month.getFullYear(), this.month.getMonth(), 1 - lead);
-    for (let i = 0; i < 42; i++) {
-      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-      const iso = isoOf(d);
-      const inRange = (!this.opts.min || iso >= this.opts.min) && (!this.opts.max || iso <= this.opts.max);
-      const cell = grid.createEl("button", { cls: "tp-datepicker-day", text: String(d.getDate()) });
-      if (d.getMonth() !== viewMonth) cell.addClass("tp-datepicker-day--adjacent");
-      if (iso === this.selected) cell.addClass("tp-datepicker-day--sel");
-      if (iso === todayIso) cell.addClass("tp-datepicker-day--today");
-      if (!inRange) {
-        cell.disabled = true;
-      } else cell.addEventListener("click", () => {
-        this.opts.onPick(iso);
-        this.close();
-      });
-    }
-    const foot = contentEl.createDiv("tp-datepicker-foot");
-    const label = foot.createEl("span", { cls: "tp-datepicker-selected" });
-    if (this.selected) {
-      const sd = /* @__PURE__ */ new Date(this.selected + "T12:00:00");
-      label.setText("Selected: " + sd.toLocaleDateString(void 0, { day: "numeric", month: "short" }));
-    }
-    const today = foot.createEl("button", { cls: "tp-btn tp-datepicker-today", text: "Today" });
-    today.addEventListener("click", () => {
-      const t = isoOf(/* @__PURE__ */ new Date());
-      const clamped = this.opts.min && t < this.opts.min ? this.opts.min : this.opts.max && t > this.opts.max ? this.opts.max : t;
-      this.opts.onPick(clamped);
-      this.close();
-    });
-  }
-  onClose() {
-    this.contentEl.empty();
-  }
-};
 
 // src/utils/lessonNoteFiles.ts
 var import_obsidian17 = require("obsidian");

@@ -168,3 +168,16 @@ Four fixes after device testing.
 - Files: src/modals/AddDateEventModal.ts, src/modals/TimetableEditorComponent.svelte, styles.css
 - svelte-check 0/0, tsc clean, production build OK; file-integrity-guard passed.
 
+---
+
+## fix(add-event): keyboard-aware sheet via Capacitor events, shared calendar date field, picker close-X
+
+- Keyboard (real fix): the earlier visualViewport approach did nothing on Android because Obsidian's WebView is not resized when the keyboard opens (so visualViewport never changes) — a known Capacitor/Android behaviour. Now we listen for Capacitor's keyboardWillShow/keyboardDidShow events (which carry keyboardHeight even when the WebView doesn't resize) and shrink the sheet to innerHeight − keyboardHeight, so the form overflows and scrolls and the sticky footer stays above the keys; restored on keyboardWillHide/DidHide. visualViewport listeners kept for iOS, which does resize. Focused fields scroll into view. Listeners cleaned up on close.
+
+- Date field: the Add event Date control is now a button that opens the shared DatePickerModal (desktop + mobile), bounded to the academic year, wired to the same date state so the block list, duration, and start all refresh on pick. Replaces the native <input type="date"> (also removes its OS date popup). Start time stays a native time input.
+
+- Date picker close button: on mobile the modal close X was overlapping the month navigator; added a tp-datepicker-modal--mobile class and raised the X into the corner with extra top padding so the nav row sits clear.
+
+- Files: src/modals/AddDateEventModal.ts, src/modals/DatePickerModal.ts, styles.css
+- svelte-check 0/0, tsc clean, production build OK; file-integrity-guard passed. The keyboard behaviour cannot be reproduced in-sandbox — needs on-device confirmation.
+

@@ -6,6 +6,7 @@ import { eventPeriodIds, sumPeriodMinutes } from "../utils/eventUtils";
 import { CLASS_COLOUR_PALETTE } from "../settings";
 import { ColourPickerModal, ConfirmModal, confirmDelete } from "../settings/SettingsTab";
 import { blockOccupants } from "../utils/clashUtils";
+import { DatePickerModal } from "./DatePickerModal";
 
 const DAY_OF_WEEK: Record<number, SchoolDay> = {
   0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday",
@@ -57,28 +58,46 @@ export class AddDateEventModal extends Modal {
     if (Platform.isMobile) {
       this.modalEl.addClass("tp-date-event-modal--mobile");
       contentEl.addClass("tp-date-event-modal--mobile");
-      // Size the sheet to the *visible* viewport so the on-screen keyboard never
-      // covers the form: the visible area shrinks above the keyboard, the sheet
-      // shrinks with it, and the content then overflows and scrolls.
+
+      // The keyboard overlaps the sheet because Obsidian's Android WebView is NOT
+      // resized when the keyboard opens (so visualViewport never changes). Capacitor's
+      // keyboard plugin still fires keyboard* events carrying the keyboard height, so we
+      // shrink the sheet ourselves — the form then overflows and scrolls, and the sticky
+      // footer stays above the keys. visualViewport covers iOS, which does resize.
+      const setAvail = (bottomInset: number) => {
+        this.modalEl.style.top = "0px";
+        this.modalEl.style.height = Math.max(220, window.innerHeight - bottomInset) + "px";
+      };
+      const reset = () => { this.modalEl.style.top = "0px"; this.modalEl.style.height = window.innerHeight + "px"; };
+      reset();
+
+      const onKbShow = (e: Event) => {
+        const kb = (e as unknown as { keyboardHeight?: number }).keyboardHeight ?? 0;
+        if (kb > 0) setAvail(kb);
+      };
+      const onKbHide = () => reset();
+      window.addEventListener("keyboardWillShow", onKbShow);
+      window.addEventListener("keyboardDidShow", onKbShow);
+      window.addEventListener("keyboardWillHide", onKbHide);
+      window.addEventListener("keyboardDidHide", onKbHide);
+
       const vv = window.visualViewport;
-      if (vv) {
-        const apply = () => {
-          this.modalEl.style.height = vv.height + "px";
-          this.modalEl.style.top = vv.offsetTop + "px";
-        };
-        apply();
-        vv.addEventListener("resize", apply);
-        vv.addEventListener("scroll", apply);
-        this._vvCleanup = () => {
-          vv.removeEventListener("resize", apply);
-          vv.removeEventListener("scroll", apply);
-        };
-        // Keep a focused field in view above the keyboard.
-        contentEl.addEventListener("focusin", (e) => {
-          const t = e.target as HTMLElement | null;
-          if (t) window.setTimeout(() => t.scrollIntoView({ block: "center" }), 60);
-        });
-      }
+      const onVv = vv ? () => { this.modalEl.style.height = vv.height + "px"; this.modalEl.style.top = vv.offsetTop + "px"; } : null;
+      if (vv && onVv) { vv.addEventListener("resize", onVv); vv.addEventListener("scroll", onVv); }
+
+      const onFocusIn = (e: Event) => {
+        const t = e.target as HTMLElement | null;
+        if (t) window.setTimeout(() => t.scrollIntoView({ block: "center" }), 80);
+      };
+      contentEl.addEventListener("focusin", onFocusIn);
+
+      this._vvCleanup = () => {
+        window.removeEventListener("keyboardWillShow", onKbShow);
+        window.removeEventListener("keyboardDidShow", onKbShow);
+        window.removeEventListener("keyboardWillHide", onKbHide);
+        window.removeEventListener("keyboardDidHide", onKbHide);
+        if (vv && onVv) { vv.removeEventListener("resize", onVv); vv.removeEventListener("scroll", onVv); }
+      };
     }
 
     const isEdit = !!this.existingEvent;
@@ -246,8 +265,24 @@ export class AddDateEventModal extends Modal {
     const dateRow = form.createDiv("tp-modal-row");
     const dateCol = dateRow.createDiv("tp-modal-field");
     dateCol.createEl("label", { text: "Date", cls: "tp-modal-label" });
-    const dateInput = dateCol.createEl("input", { type: "date", cls: "tp-modal-input" });
-    dateInput.value = date;
+    const dateBtn = dateCol.createEl("button", { cls: "tp-modal-input tp-modal-datebtn" });
+    dateBtn.setAttribute("type", "button");
+    const fmtDateLabel = (iso: string): string => {
+      const d = new Date(iso + "T12:00:00");
+      return isNaN(d.getTime()) ? "Pick a date" : d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+    };
+    const paintDate = () => { dateBtn.setText(fmtDateLabel(date)); };
+    paintDate();
+    dateBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const ay = this.plugin.settings.academicYear;
+      new DatePickerModal(this.plugin.app, {
+        value: date,
+        min: ay?.startDate,
+        max: ay?.endDate,
+        onPick: (iso) => { date = iso; paintDate(); refreshPeriods(); recalcDuration(); paintDuration(); paintStart(); },
+      }).open();
+    });
 
     const startCol = dateRow.createDiv("tp-modal-field");
     startCol.createEl("label", { text: "Start time", cls: "tp-modal-label" });
@@ -267,7 +302,6 @@ export class AddDateEventModal extends Modal {
     durInput.addEventListener("input", () => { const n = parseInt(durInput.value); durationMinutes = isNaN(n) ? 0 : n; durationTouched = true; });
     durAuto.addEventListener("click", () => { durationTouched = false; recalcDuration(); paintDuration(); });
 
-    dateInput.addEventListener("change", () => { date = dateInput.value; refreshPeriods(); recalcDuration(); paintDuration(); paintStart(); });
 
     // ── Period blocks (multi-select dropdown) ────────────────────────────
     const periodRow = form.createDiv("tp-modal-row tp-modal-row--col");

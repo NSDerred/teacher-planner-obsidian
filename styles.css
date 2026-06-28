@@ -1509,3 +1509,11 @@
 }
 .tp-timetable-modal--mobile .modal-close-button { top: max(10px, env(safe-area-inset-top, 0px)); }
 
+/* Date field rendered as a button that opens the shared calendar */
+.tp-modal-datebtn { text-align: left; cursor: pointer; font-family: var(--font-interface); }
+.tp-modal-datebtn:hover { border-color: var(--interactive-accent); }
+
+/* Date picker: raise the close X clear of the month navigator on mobile */
+.tp-datepicker-modal--mobile .modal-close-button { top: 6px; right: 6px; }
+.tp-datepicker-modal--mobile .modal-content { padding-top: 34px; }
+

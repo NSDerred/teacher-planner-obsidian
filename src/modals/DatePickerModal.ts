@@ -1,4 +1,4 @@
-import { App, Modal, setIcon } from "obsidian";
+import { App, Modal, Platform, setIcon } from "obsidian";
 
 export interface DatePickerOptions {
   /** Initially-shown / selected date as an ISO yyyy-mm-dd string. */
@@ -39,6 +39,7 @@ export class DatePickerModal extends Modal {
 
   onOpen() {
     this.modalEl.addClass("tp-datepicker-modal");
+    if (Platform.isMobile) this.modalEl.addClass("tp-datepicker-modal--mobile");
     this.render();
   }
 
