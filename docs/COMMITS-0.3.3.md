@@ -42,3 +42,12 @@ Replace the mobile Day mode (previously the single-day time-axis) with an equal-
 - File: `src/views/WeekView.svelte`
 - Status: built (svelte-check 0/0/0, production build OK); needs in-app testing on a phone (Day mode is mobile-only).
 
+---
+
+## feat(week-view): mobile action row (layout 3) (mobile chunk 2)
+
+Mobile chrome reorganised to the agreed layout 3, avoiding a bottom bar/FAB. The header now shows only the title + date nav on mobile (the desktop action button group is wrapped in `{#if !_isMobileApp}`). A single `.tp-mobile-bar` below holds the mode tabs (Day / Agenda / Week) on the left and `+` (Add event) + `⋯` overflow on the right. The overflow menu now carries the secondary actions — Lessons, Today, Timetable, Settings (the dedicated `+` replaces the old "+ Event" menu item). The "Grid" tab is relabelled "Week". Desktop layout and its <600px overflow behaviour are unchanged.
+
+- File: `src/views/WeekView.svelte`
+- Status: built (svelte-check 0/0/0, production build OK); needs phone testing.
+

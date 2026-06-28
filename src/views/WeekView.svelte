@@ -932,7 +932,8 @@
   function showOverflowMenu(e: MouseEvent) {
     e.stopPropagation();
     const menu = new Menu();
-    menu.addItem(i => i.setTitle("+ Event").setIcon("calendar-plus").onClick(() => onAddEvent()));
+    menu.addItem(i => i.setTitle("Lessons").setIcon("list-checks").onClick(onOpenOverview));
+    menu.addItem(i => i.setTitle("Today").setIcon("calendar").onClick(onToday));
     menu.addItem(i => i.setTitle("Timetable").setIcon("layout-grid").onClick(onOpenTimetable));
     menu.addItem(i => i.setTitle("Settings").setIcon("settings").onClick(onOpenSettings));
     showMenuAt(menu, e);
@@ -1222,6 +1223,7 @@
       </div>
       <button class="tp-btn tp-nav-arrow" on:click={onNext} aria-label="Next week" title="Next week" disabled={!canGoNext}>›</button>
     </nav>
+    {#if !_isMobileApp}
     <div class="tp-header-actions">
       <button class="tp-btn tp-action-btn" on:click={() => onAddEvent()} aria-label="Add event"><span use:obsIcon={"calendar-plus"} class="tp-btn-icon"></span>Event</button>
       <button class="tp-btn tp-action-btn" on:click={onOpenOverview} aria-label="Lesson overview" title="Lesson overview"><span use:obsIcon={"list-checks"} class="tp-btn-icon"></span>Lessons</button>
@@ -1229,13 +1231,20 @@
       <button class="tp-btn tp-action-btn tp-action-btn--icon-only" on:click={onOpenSettings} aria-label="Settings" use:obsIcon={"settings"}></button>
       <button class="tp-btn tp-overflow-btn" on:click={showOverflowMenu} aria-label="More options" use:obsIcon={"more-horizontal"}></button>
     </div>
+    {/if}
   </header>
 
   {#if _isMobileApp}
-    <div class="tp-mobile-modes" role="tablist" aria-label="View mode">
-      <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "day"}    role="tab" aria-selected={viewMode === "day"}    on:click={() => setMobileMode("day")}>Day</button>
-      <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "agenda"} role="tab" aria-selected={viewMode === "agenda"} on:click={() => setMobileMode("agenda")}>Agenda</button>
-      <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "grid"}   role="tab" aria-selected={viewMode === "grid"}   on:click={() => setMobileMode("grid")}>Grid</button>
+    <div class="tp-mobile-bar">
+      <div class="tp-mobile-modes" role="tablist" aria-label="View mode">
+        <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "day"}    role="tab" aria-selected={viewMode === "day"}    on:click={() => setMobileMode("day")}>Day</button>
+        <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "agenda"} role="tab" aria-selected={viewMode === "agenda"} on:click={() => setMobileMode("agenda")}>Agenda</button>
+        <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "grid"}   role="tab" aria-selected={viewMode === "grid"}   on:click={() => setMobileMode("grid")}>Week</button>
+      </div>
+      <div class="tp-mobile-acts">
+        <button class="tp-btn tp-mobile-act tp-mobile-act--add" on:click={() => onAddEvent()} aria-label="Add event" title="Add event" use:obsIcon={"calendar-plus"}></button>
+        <button class="tp-btn tp-mobile-act" on:click={showOverflowMenu} aria-label="More options" title="More" use:obsIcon={"more-horizontal"}></button>
+      </div>
     </div>
   {/if}
 
@@ -1893,7 +1902,12 @@
   }
 
   /* ── Mobile view modes ──────────────────────────────────────────────────── */
-  .tp-mobile-modes { display:flex; gap:5px; padding:6px 12px; border-bottom:1px solid var(--background-modifier-border); background:var(--background-secondary); flex-shrink:0; }
+  .tp-mobile-bar { display:flex; align-items:center; gap:8px; padding:6px 12px; border-bottom:1px solid var(--background-modifier-border); background:var(--background-secondary); flex-shrink:0; }
+  .tp-mobile-modes { display:flex; gap:5px; flex:1; min-width:0; }
+  .tp-mobile-acts { display:flex; gap:6px; flex-shrink:0; }
+  .tp-mobile-act { padding:6px 10px; }
+  .tp-mobile-act :global(svg) { width:17px; height:17px; }
+  .tp-mobile-act--add { color:var(--interactive-accent); border-color:var(--interactive-accent); }
   .tp-mode-btn { flex:1; padding:6px 0; font-size:13px; border:1px solid var(--background-modifier-border); border-radius:6px; background:var(--background-primary); color:var(--text-muted); cursor:pointer; font-family:var(--font-interface); }
   .tp-mode-btn--on { background:var(--interactive-accent); color:var(--text-on-accent); border-color:var(--interactive-accent); font-weight:600; }
 
