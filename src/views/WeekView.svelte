@@ -1266,7 +1266,7 @@
               {@const aEvents = _dateEventMap[day.key + ":" + period.id] ?? []}
               {#if aSlot}
                 {@const sl = getSlotLabel(aSlot)}
-                <button class="tp-agenda-row" style="border-left:3px solid {sl.colour}; background:{hexToRgba(sl.colour,0.16)};"
+                <button class="tp-agenda-row" style="--chip-fg:{chipFg(sl.colour, _themeBg)}; border-left:3px solid {sl.colour}; background:{hexToRgba(sl.colour,0.16)};"
                   on:click={(e) => openChipMenu(e, "slot", aDate, period.id, aSlot)}>
                   <span class="tp-agenda-period">{period.name}</span>
                   <span class="tp-agenda-main">{subjectEmoji(aSlot.classId)} {sl.code}{#if sl.subjectName} · {sl.subjectName}{/if}</span>
@@ -1275,7 +1275,7 @@
               {/if}
               {#each aEvents as aEv (aEv.id)}
                 {@const el = getDateEventLabel(aEv)}
-                <button class="tp-agenda-row tp-agenda-row--event" style="border-left:3px solid {el.colour}; background:{hexToRgba(el.colour,0.16)};"
+                <button class="tp-agenda-row tp-agenda-row--event" style="--chip-fg:{chipFg(el.colour, _themeBg)}; border-left:3px solid {el.colour}; background:{hexToRgba(el.colour,0.16)};"
                   on:click={(e) => openChipMenu(e, "event", aDate, period.id, undefined, aEv)}>
                   <span class="tp-agenda-period">{period.name}</span>
                   <span class="tp-agenda-main">{el.code}{#if el.meta} · {el.meta}{/if}</span>
@@ -1833,7 +1833,7 @@
   .tp-agenda-head { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-muted); padding:2px 2px 6px; position:sticky; top:0; background:var(--background-primary); z-index:2; }
   .tp-agenda-head--today { color:var(--interactive-accent); }
   .tp-agenda-dayname { text-transform:uppercase; letter-spacing:0.03em; }
-  .tp-agenda-row { display:flex; align-items:center; gap:8px; width:100%; text-align:left; border:none; border-radius:0 7px 7px 0; padding:8px 10px; margin-bottom:5px; color:var(--text-normal); cursor:pointer; font-size:13px; font-family:var(--font-interface); }
+  .tp-agenda-row { display:flex; align-items:center; gap:8px; width:100%; text-align:left; border:none; border-radius:0 7px 7px 0; padding:8px 10px; margin-bottom:5px; color:var(--chip-fg, var(--text-normal)); cursor:pointer; font-size:13px; font-family:var(--font-interface); }
   .tp-agenda-period { font-size:11px; color:var(--text-muted); min-width:64px; flex-shrink:0; }
   .tp-agenda-main { flex:1; min-width:0; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-agenda-room { font-size:11px; font-style:italic; color:var(--text-muted); flex-shrink:0; }

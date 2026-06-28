@@ -24,3 +24,12 @@ Today's column now gets a subtle accent wash (option C: 9% column tint + 14% hea
 
 Readability follow-up: colouring the header text with a custom highlight colour could be low-contrast on some themes/pale colours. Keep today's header day-name in the theme's normal bold text and move the colour cue to a 2px top accent border (in `--today-colour`) plus the existing wash, so it stays legible for any colour or theme. The column tint and header wash are unchanged.
 
+---
+
+## feat(week-view): auto-contrast the mobile agenda rows
+
+Extend the chip auto-contrast to the mobile Agenda view. The agenda rows paint the class colour at 16% over the theme background; give each row a per-row `--chip-fg` (via `chipFg(colour, _themeBg)`) and use it for the main text so the class/subject stays readable on bright colours and any theme. Day mode already reuses the auto-contrast grid chips; agenda rows carry no status markers, so this is text-only.
+
+- File: `src/views/WeekView.svelte`
+- Status: built (svelte-check 0/0, production build OK); awaiting in-app confirmation on mobile.
+
