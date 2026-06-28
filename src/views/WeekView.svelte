@@ -890,7 +890,7 @@
   let _mobilePad = 68;
   function _measureMobilePad() {
     if (!_isMobileApp) return;
-    const nb = document.body.querySelector(".mobile-navbar") as HTMLElement | null;
+    const nb = activeDocument.body.querySelector(".mobile-navbar") as HTMLElement | null;
     if (nb) {
       const r = nb.getBoundingClientRect();
       _mobilePad = Math.max(8, Math.round(window.innerHeight - r.top) + 8);

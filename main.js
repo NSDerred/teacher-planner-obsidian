@@ -18296,12 +18296,10 @@ var AddDateEventModal = class extends import_obsidian16.Modal {
       this.modalEl.addClass("tp-date-event-modal--mobile");
       contentEl.addClass("tp-date-event-modal--mobile");
       const setAvail = (bottomInset) => {
-        this.modalEl.style.top = "0px";
-        this.modalEl.style.height = Math.max(220, window.innerHeight - bottomInset) + "px";
+        this.modalEl.setCssStyles({ top: "0px", height: Math.max(220, window.innerHeight - bottomInset) + "px" });
       };
       const reset = () => {
-        this.modalEl.style.top = "0px";
-        this.modalEl.style.height = window.innerHeight + "px";
+        this.modalEl.setCssStyles({ top: "0px", height: window.innerHeight + "px" });
       };
       reset();
       const onKbShow = (e) => {
@@ -18316,8 +18314,7 @@ var AddDateEventModal = class extends import_obsidian16.Modal {
       window.addEventListener("keyboardDidHide", onKbHide);
       const vv = window.visualViewport;
       const onVv = vv ? () => {
-        this.modalEl.style.height = vv.height + "px";
-        this.modalEl.style.top = vv.offsetTop + "px";
+        this.modalEl.setCssStyles({ height: vv.height + "px", top: vv.offsetTop + "px" });
       } : null;
       if (vv && onVv) {
         vv.addEventListener("resize", onVv);
@@ -28234,7 +28231,7 @@ function instance3($$self, $$props, $$invalidate) {
   let _mobilePad = 68;
   function _measureMobilePad() {
     if (!_isMobileApp) return;
-    const nb = document.body.querySelector(".mobile-navbar");
+    const nb = activeDocument.body.querySelector(".mobile-navbar");
     if (nb) {
       const r = nb.getBoundingClientRect();
       $$invalidate(16, _mobilePad = Math.max(8, Math.round(window.innerHeight - r.top) + 8));

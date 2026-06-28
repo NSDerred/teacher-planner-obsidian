@@ -65,10 +65,9 @@ export class AddDateEventModal extends Modal {
       // shrink the sheet ourselves — the form then overflows and scrolls, and the sticky
       // footer stays above the keys. visualViewport covers iOS, which does resize.
       const setAvail = (bottomInset: number) => {
-        this.modalEl.style.top = "0px";
-        this.modalEl.style.height = Math.max(220, window.innerHeight - bottomInset) + "px";
+        this.modalEl.setCssStyles({ top: "0px", height: Math.max(220, window.innerHeight - bottomInset) + "px" });
       };
-      const reset = () => { this.modalEl.style.top = "0px"; this.modalEl.style.height = window.innerHeight + "px"; };
+      const reset = () => { this.modalEl.setCssStyles({ top: "0px", height: window.innerHeight + "px" }); };
       reset();
 
       const onKbShow = (e: Event) => {
@@ -82,7 +81,7 @@ export class AddDateEventModal extends Modal {
       window.addEventListener("keyboardDidHide", onKbHide);
 
       const vv = window.visualViewport;
-      const onVv = vv ? () => { this.modalEl.style.height = vv.height + "px"; this.modalEl.style.top = vv.offsetTop + "px"; } : null;
+      const onVv = vv ? () => { this.modalEl.setCssStyles({ height: vv.height + "px", top: vv.offsetTop + "px" }); } : null;
       if (vv && onVv) { vv.addEventListener("resize", onVv); vv.addEventListener("scroll", onVv); }
 
       const onFocusIn = (e: Event) => {

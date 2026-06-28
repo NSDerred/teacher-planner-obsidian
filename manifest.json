@@ -1,7 +1,7 @@
 {
 	"id": "teacher-planner",
 	"name": "Teacher Planner",
-	"version": "0.3.2",
+	"version": "0.3.3",
 	"minAppVersion": "1.7.2",
 	"description": "An academic planner built for teachers. Build your timetable, plan lessons, track directed time, and keep notes, all inside your vault.",
 	"author": "Nick Smith",
