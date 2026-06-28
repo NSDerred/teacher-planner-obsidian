@@ -2,7 +2,7 @@
 
 *Released 28 June 2026*
 
-![Teacher Planner 0.3.3, your planner now on your phone](teacher-planner-0.3.3-feature.png)
+![Teacher Planner 0.3.3, your planner now on your phone](https://raw.githubusercontent.com/NSDerred/teacher-planner-obsidian/main/docs/teacher-planner-0.3.3-feature.png)
 
 This release is all about mobile. Teacher Planner was built for the desktop, and on a phone it showed. 0.3.3 rebuilds the planner, the timetable editor, the add event screen, and the date picker for a small touchscreen, so you can check your day, tick a lesson as prepared, or drop in a cover from your pocket. Everything you do on mobile still syncs with the same planner you use on your computer, because it is the same planner.
 
