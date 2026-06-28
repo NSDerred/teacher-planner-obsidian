@@ -1420,11 +1420,19 @@
   width: 100vw;
   max-width: 100vw;
   height: 100vh;
+  height: 100dvh;
   max-height: 100vh;
+  max-height: 100dvh;
   border-radius: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 .modal-content.tp-date-event-modal--mobile {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 16px 16px 0;
   display: flex;
   flex-direction: column;

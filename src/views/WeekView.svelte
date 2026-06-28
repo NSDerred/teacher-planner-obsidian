@@ -1314,7 +1314,7 @@
     <div class="tp-mobile-bar">
       <div class="tp-mobile-modes" role="tablist" aria-label="View mode">
         <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "day"}    role="tab" aria-selected={viewMode === "day"}    on:click={() => setMobileMode("day")}>Day</button>
-        <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "agenda"} role="tab" aria-selected={viewMode === "agenda"} on:click={() => setMobileMode("agenda")}>Agenda</button>
+        <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "agenda"} role="tab" aria-selected={viewMode === "agenda"} on:click={() => setMobileMode("agenda")}>Week</button>
       </div>
       <div class="tp-mobile-acts">
         <button class="tp-btn tp-mobile-act tp-mobile-act--add" on:click={() => onAddEvent()} aria-label="Add event" title="Add event" use:obsIcon={"calendar-plus"}></button>
@@ -1412,6 +1412,7 @@
           {/if}
         {/each}
       {/if}
+      {#if _isMobileApp}<div class="tp-mobile-tail" aria-hidden="true"></div>{/if}
     </div>
   {:else if isAgendaMode}
     <div class="tp-agenda">
@@ -1480,6 +1481,7 @@
           {/if}
         </div>
       {/each}
+      {#if _isMobileApp}<div class="tp-mobile-tail" aria-hidden="true"></div>{/if}
     </div>
   {:else}
   <!-- ── Time-axis week grid (each day column has its own schedule) ──────── -->
@@ -2030,9 +2032,8 @@
   .tp-header--mobile .tp-nav-arrow { flex:0 0 auto; }
   .tp-nav-arrow :global(svg) { width:18px; height:18px; }
 
-  /* Bottom clearance for Obsidian's floating mobile navbar (measured at runtime) */
-  .tp-daylist { padding-bottom:var(--tp-mobile-pad, 68px); }
-  .tp-agenda  { padding-bottom:var(--tp-mobile-pad, 68px); }
+  /* Spacer element lifts the last row clear of Obsidian's floating mobile navbar */
+  .tp-mobile-tail { flex:0 0 auto; height:max(var(--tp-mobile-pad, 0px), calc(96px + env(safe-area-inset-bottom, 0px))); }
 
   /* ── Full calendar date picker (mobile) ──────────────────────────────────── */
   .tp-cal-backdrop { position:fixed; inset:0; z-index:60; background:rgba(0,0,0,0.5); }

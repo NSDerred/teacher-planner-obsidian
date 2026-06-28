@@ -94,3 +94,18 @@ The Add event modal was a desktop layout cramming Date / Start time / Duration o
 
 All five built changes: svelte-check 0/0, tsc clean, production build OK. Pending phone testing.
 
+---
+
+## fix(mobile): real spacer for navbar clearance + scrollable add-event sheet + rename tab
+
+Follow-up fixes after on-device testing.
+
+- Navbar clearance (real fix): the previous padding-bottom override was placed before the base .tp-daylist/.tp-agenda rules, so the base `padding` shorthand overrode it and the clearance had zero effect. Replaced it with an actual spacer element (`.tp-mobile-tail`) appended to the end of the Day and Week lists on mobile, sized `max(measured navbar, calc(96px + env(safe-area-inset-bottom)))`. A real in-flow element can't be defeated by shorthand ordering, so the last row now always scrolls clear of Obsidian's floating bar.
+
+- Add event sheet (keyboard): the mobile sheet was fixed at 100vh with a non-scrolling body, so the soft keyboard covered fields. It's now a flex column at 100dvh (falls back to 100vh) with the body set to flex:1 / min-height:0 / overflow-y:auto, so it scrolls and the viewport shrinks to the keyboard — every field stays reachable.
+
+- Renamed the mobile "Agenda" tab to "Week" (label only; internal mode stays `agenda`). With the grid Week view gone on mobile, "Day / Week" reads more clearly.
+
+- Files: `src/views/WeekView.svelte`, `styles.css`
+- svelte-check 0/0, tsc clean, production build OK. Pending phone re-test.
+
