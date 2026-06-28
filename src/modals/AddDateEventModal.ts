@@ -22,6 +22,7 @@ export class AddDateEventModal extends Modal {
   private prefillDate: string | null;
   private prefillPeriodId: string | null;
   private onSaved: () => void;
+  private _vvCleanup: (() => void) | null = null;
 
   constructor(
     app: App,
@@ -56,6 +57,28 @@ export class AddDateEventModal extends Modal {
     if (Platform.isMobile) {
       this.modalEl.addClass("tp-date-event-modal--mobile");
       contentEl.addClass("tp-date-event-modal--mobile");
+      // Size the sheet to the *visible* viewport so the on-screen keyboard never
+      // covers the form: the visible area shrinks above the keyboard, the sheet
+      // shrinks with it, and the content then overflows and scrolls.
+      const vv = window.visualViewport;
+      if (vv) {
+        const apply = () => {
+          this.modalEl.style.height = vv.height + "px";
+          this.modalEl.style.top = vv.offsetTop + "px";
+        };
+        apply();
+        vv.addEventListener("resize", apply);
+        vv.addEventListener("scroll", apply);
+        this._vvCleanup = () => {
+          vv.removeEventListener("resize", apply);
+          vv.removeEventListener("scroll", apply);
+        };
+        // Keep a focused field in view above the keyboard.
+        contentEl.addEventListener("focusin", (e) => {
+          const t = e.target as HTMLElement | null;
+          if (t) window.setTimeout(() => t.scrollIntoView({ block: "center" }), 60);
+        });
+      }
     }
 
     const isEdit = !!this.existingEvent;
@@ -504,7 +527,7 @@ export class AddDateEventModal extends Modal {
     if (!isEdit) window.setTimeout(() => titleInput.focus(), 50);
   }
 
-  onClose() { this.contentEl.empty(); }
+  onClose() { this._vvCleanup?.(); this._vvCleanup = null; this.contentEl.empty(); }
 }
 
 /** Local hex→rgba (modal-scoped). */

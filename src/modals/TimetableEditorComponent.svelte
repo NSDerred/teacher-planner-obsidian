@@ -1161,13 +1161,15 @@
   .tp-te-mlist { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; }
   .tp-te-mrow { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: none; border-radius: 8px; padding: 10px 12px; min-height: 56px; box-sizing: border-box; background: var(--background-secondary); color: var(--text-normal); cursor: pointer; font-family: var(--font-interface); }
   .tp-te-mrow--empty { background: transparent; border: 1px dashed var(--background-modifier-border); color: var(--text-muted); min-height: 46px; }
-  .tp-te-mrow-time { width: 64px; flex-shrink: 0; font-size: 11px; color: var(--text-muted); line-height: 1.3; }
+  .tp-te-mrow-time { width: 64px; flex-shrink: 0; font-size: 11px; color: var(--text-muted); line-height: 1.3; overflow-wrap: anywhere; }
   .tp-te-mrow-time span { font-size: 10px; opacity: 0.8; }
   .tp-te-mrow-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
   .tp-te-mrow-code { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tp-te-mrow-meta { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tp-te-mrow-cust { font-size: 11px; color: var(--text-faint); }
-  .tp-te-mrow-add { flex: 1; font-size: 14px; color: var(--interactive-accent); }
+  .tp-te-mrow-add { flex: 0 0 auto; margin-left: auto; font-size: 14px; color: var(--interactive-accent); white-space: nowrap; }
+  .tp-te-mrow--empty { gap: 8px; }
+  .tp-te-mrow--empty .tp-te-mrow-time { width: auto; flex: 1 1 auto; min-width: 0; }
   .tp-te-mrow-chev { flex-shrink: 0; color: var(--text-faint); display: inline-flex; }
   .tp-te-mrow-chev :global(svg) { width: 18px; height: 18px; }
 

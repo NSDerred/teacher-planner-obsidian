@@ -11584,7 +11584,7 @@ This tracker is a **guide only**. Accuracy depends entirely on the information y
 
 // src/modals/TimetableEditorComponent.svelte
 function add_css2(target) {
-  append_styles(target, "svelte-2cr7a7", ".tp-te-wrap.svelte-2cr7a7.svelte-2cr7a7{display:flex;flex-direction:column;width:100%;box-sizing:border-box;flex:1 1 auto;min-height:0;overflow:visible;font-size:14px;position:relative}.tp-te-tmpl-bar.svelte-2cr7a7.svelte-2cr7a7{display:flex;align-items:flex-start;gap:8px;padding:8px 48px 12px 0;flex-shrink:0;flex-wrap:wrap}.tp-te-tmpl-tabs.svelte-2cr7a7.svelte-2cr7a7{display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:0}.tp-te-tmpl-tab-wrap.svelte-2cr7a7.svelte-2cr7a7{display:flex;align-items:center;gap:2px}.tp-te-tmpl-tab.svelte-2cr7a7.svelte-2cr7a7{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 16px 11px;min-height:54px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;cursor:pointer;transition:all 0.15s;text-align:left}.tp-te-tmpl-tab--active.svelte-2cr7a7.svelte-2cr7a7{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-tmpl-tab--past.svelte-2cr7a7.svelte-2cr7a7:not(.tp-te-tmpl-tab--active){opacity:0.65}.tp-te-tmpl-name.svelte-2cr7a7.svelte-2cr7a7{font-weight:600;line-height:1.2}.tp-te-tmpl-dates.svelte-2cr7a7.svelte-2cr7a7{font-size:11px;opacity:0.75;line-height:1.2;margin-top:1px}.tp-te-tmpl-rename-btn.svelte-2cr7a7.svelte-2cr7a7{background:transparent;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:0.6;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-rename-btn.svelte-2cr7a7.svelte-2cr7a7:hover{opacity:1}.tp-te-tmpl-rename-btn.svelte-2cr7a7 svg{width:13px;height:13px}.tp-te-rename-input.svelte-2cr7a7.svelte-2cr7a7{font-size:13px;font-weight:600;padding:4px 8px;border:1px solid var(--interactive-accent);border-radius:6px;background:var(--background-primary);color:var(--text-normal);width:140px}.tp-te-tmpl-actions.svelte-2cr7a7.svelte-2cr7a7{display:flex;align-items:center;gap:6px;flex-shrink:0}.tp-te-tmpl-add-btn.svelte-2cr7a7.svelte-2cr7a7{padding:10px 16px;border-radius:6px;border:1.5px dashed var(--interactive-accent);background:transparent;color:var(--interactive-accent);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap}.tp-te-tmpl-add-btn.svelte-2cr7a7.svelte-2cr7a7:hover{background:color-mix(in srgb, var(--interactive-accent) 10%, transparent)}.tp-te-tmpl-del-btn.svelte-2cr7a7.svelte-2cr7a7{background:transparent;border:none;cursor:pointer;font-size:16px;padding:4px;opacity:0.5;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-del-btn.svelte-2cr7a7.svelte-2cr7a7:hover{opacity:1}.tp-te-tmpl-del-btn.svelte-2cr7a7 svg{width:15px;height:15px}.tp-te-edit-warn.svelte-2cr7a7.svelte-2cr7a7{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;margin-bottom:12px;background:color-mix(in srgb, var(--color-yellow, #f59e0b) 12%, transparent);border:1px solid var(--color-yellow, #f59e0b);border-radius:6px;font-size:13px;color:var(--text-normal);flex-shrink:0}.tp-te-edit-warn--collapsed.svelte-2cr7a7.svelte-2cr7a7{align-items:center;padding:6px 12px}.tp-te-edit-warn--confirm.svelte-2cr7a7.svelte-2cr7a7{align-items:center}.tp-te-edit-warn-body.svelte-2cr7a7.svelte-2cr7a7{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0}.tp-te-edit-warn-icon.svelte-2cr7a7.svelte-2cr7a7{flex-shrink:0}.tp-te-edit-warn-text.svelte-2cr7a7.svelte-2cr7a7{line-height:1.5}.tp-te-edit-warn-actions.svelte-2cr7a7.svelte-2cr7a7{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:2px}.tp-te-edit-warn-pill.svelte-2cr7a7.svelte-2cr7a7{color:var(--text-muted);font-size:12px}.tp-te-edit-warn-show-btn.svelte-2cr7a7.svelte-2cr7a7{padding:3px 10px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-past-confirm-btn.svelte-2cr7a7.svelte-2cr7a7{padding:4px 12px;border-radius:4px;border:none;background:var(--color-red, #f38ba8);color:#fff;font-size:12px;cursor:pointer}.tp-te-past-cancel-btn.svelte-2cr7a7.svelte-2cr7a7{padding:4px 12px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-week-tabs.svelte-2cr7a7.svelte-2cr7a7{display:flex;gap:6px;margin-bottom:14px;flex-shrink:0}.tp-te-week-tab.svelte-2cr7a7.svelte-2cr7a7{padding:6px 20px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}.tp-te-week-tab--active.svelte-2cr7a7.svelte-2cr7a7{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-grid-wrap.svelte-2cr7a7.svelte-2cr7a7{overflow:auto;min-height:0;flex:1 1 auto;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-te-axis.svelte-2cr7a7.svelte-2cr7a7{min-width:640px}.tp-te-axis-head.svelte-2cr7a7.svelte-2cr7a7{display:grid;grid-template-columns:52px repeat(var(--te-days, 5), minmax(0, 1fr));position:sticky;top:0;z-index:3;background:var(--background-secondary);border-bottom:1px solid var(--background-modifier-border)}.tp-te-axis-day-head.svelte-2cr7a7.svelte-2cr7a7{padding:8px 4px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);text-align:center;border-left:1px solid var(--background-modifier-border)}.tp-te-axis-body.svelte-2cr7a7.svelte-2cr7a7{display:grid;grid-template-columns:52px repeat(var(--te-days, 5), minmax(0, 1fr));position:relative}.tp-te-axis-gutter.svelte-2cr7a7.svelte-2cr7a7{position:relative}.tp-te-axis-hour.svelte-2cr7a7.svelte-2cr7a7{position:absolute;left:4px;font-size:10px;color:var(--text-faint);transform:translateY(-50%);white-space:nowrap}.tp-te-axis-col.svelte-2cr7a7.svelte-2cr7a7{position:relative;border-left:1px solid var(--background-modifier-border)}.tp-te-blk.svelte-2cr7a7.svelte-2cr7a7{position:absolute;left:3px;right:3px;border:1px solid var(--background-modifier-border);border-radius:5px;box-sizing:border-box;overflow:hidden;z-index:1;cursor:pointer}.tp-te-blk--dragover.svelte-2cr7a7.svelte-2cr7a7{outline:2px solid var(--interactive-accent);outline-offset:-2px;background:color-mix(in srgb, var(--interactive-accent) 18%, transparent) !important}.tp-te-blk--reject.svelte-2cr7a7.svelte-2cr7a7{outline:2px solid var(--color-red, #f38ba8);outline-offset:-2px}.tp-te-blk-label.svelte-2cr7a7.svelte-2cr7a7{display:flex;flex-direction:column;gap:1px;padding:3px 6px;pointer-events:none;min-width:0;color:var(--text-muted)}.tp-te-blk-name.svelte-2cr7a7.svelte-2cr7a7{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-blk-time.svelte-2cr7a7.svelte-2cr7a7{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-blk.svelte-2cr7a7:hover .tp-te-blk-time.svelte-2cr7a7{display:block}.tp-te-blk-add.svelte-2cr7a7.svelte-2cr7a7{font-size:10px;color:var(--text-faint);opacity:0;transition:opacity 0.1s;line-height:1.2}.tp-te-blk.svelte-2cr7a7:hover .tp-te-blk-add.svelte-2cr7a7{opacity:1;color:var(--interactive-accent)}.tp-te-blk.svelte-2cr7a7.svelte-2cr7a7:hover{min-height:54px;z-index:20;background:var(--background-secondary) !important;box-shadow:0 2px 10px rgba(0,0,0,0.28)}.tp-te-chip-time.svelte-2cr7a7.svelte-2cr7a7{display:none;font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-blk.svelte-2cr7a7:hover .tp-te-chip-time.svelte-2cr7a7{display:block}.tp-te-chip.svelte-2cr7a7.svelte-2cr7a7{width:100%;height:100%;border-radius:6px;border:none;cursor:pointer;padding:4px 6px 4px 3px;text-align:left;display:flex;flex-direction:column;gap:2px;overflow:hidden;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:techip}.tp-te-chip.svelte-2cr7a7.svelte-2cr7a7:hover{filter:brightness(1.1)}.tp-te-chip-body.svelte-2cr7a7.svelte-2cr7a7{flex:0 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:1px}.tp-te-chip-code.svelte-2cr7a7.svelte-2cr7a7{font-size:14px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-te-chip-meta.svelte-2cr7a7.svelte-2cr7a7{font-size:12px;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-te-chip-room.svelte-2cr7a7.svelte-2cr7a7{flex-shrink:0;font-size:11px;color:var(--text-muted);font-style:italic;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@container techip (max-height: 52px){.tp-te-chip-meta.svelte-2cr7a7.svelte-2cr7a7{display:none}.tp-te-chip-code.svelte-2cr7a7.svelte-2cr7a7{font-size:13px}.tp-te-chip-room.svelte-2cr7a7.svelte-2cr7a7{font-size:10px}}@container techip (max-height: 38px){.tp-te-chip-room.svelte-2cr7a7.svelte-2cr7a7{display:none}.tp-te-chip-code.svelte-2cr7a7.svelte-2cr7a7{font-size:12px}}@container techip (max-height: 26px){.tp-te-chip-code.svelte-2cr7a7.svelte-2cr7a7{font-size:11px}}.tp-te-cust.svelte-2cr7a7.svelte-2cr7a7{position:absolute;top:3px;right:4px;font-size:10px;font-weight:600;background:var(--interactive-accent);color:var(--text-on-accent, #fff);border-radius:3px;padding:1px 5px;line-height:1.4;pointer-events:none;z-index:1}.tp-te-detail.svelte-2cr7a7.svelte-2cr7a7{padding:2px 2px 4px}.tp-te-detail-grid.svelte-2cr7a7.svelte-2cr7a7{display:flex;gap:6px;margin-bottom:6px}.tp-te-detail-field.svelte-2cr7a7.svelte-2cr7a7{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.tp-te-detail-label.svelte-2cr7a7.svelte-2cr7a7{font-size:10px;color:var(--text-muted)}.tp-te-detail.svelte-2cr7a7 input.svelte-2cr7a7{width:100%;box-sizing:border-box;font-size:12px;padding:3px 6px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-secondary);color:var(--text-normal)}.tp-te-detail.svelte-2cr7a7 input.svelte-2cr7a7:focus{border-color:var(--interactive-accent);outline:none}.tp-te-picker.svelte-2cr7a7.svelte-2cr7a7{position:fixed;z-index:1000;width:240px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.3);overflow:hidden}.tp-te-picker-inner.svelte-2cr7a7.svelte-2cr7a7{max-height:360px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:2px}.tp-te-picker-search.svelte-2cr7a7.svelte-2cr7a7{width:100%;box-sizing:border-box;padding:6px 10px;margin-bottom:2px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-secondary);color:var(--text-normal);font-size:13px;outline:none;flex-shrink:0}.tp-te-picker-search.svelte-2cr7a7.svelte-2cr7a7:focus{border-color:var(--interactive-accent)}.tp-te-picker-group-label.svelte-2cr7a7.svelte-2cr7a7{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);padding:4px 8px 2px}.tp-te-picker-divider.svelte-2cr7a7.svelte-2cr7a7{height:1px;background:var(--background-modifier-border);margin:4px 0}.tp-te-picker-row.svelte-2cr7a7.svelte-2cr7a7{display:flex;align-items:center;gap:2px}.tp-te-picker-item.svelte-2cr7a7.svelte-2cr7a7{flex:1;display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;text-align:left;width:100%;transition:background 0.1s;min-width:0}.tp-te-picker-item.svelte-2cr7a7.svelte-2cr7a7:hover{background:var(--background-modifier-hover)}.tp-te-picker-item--active.svelte-2cr7a7.svelte-2cr7a7{background:color-mix(in srgb, var(--interactive-accent) 16%, transparent)}.tp-te-picker-item--active.svelte-2cr7a7.svelte-2cr7a7:hover{background:color-mix(in srgb, var(--interactive-accent) 24%, transparent)}.tp-te-picker-emoji.svelte-2cr7a7.svelte-2cr7a7{font-size:14px;line-height:1;flex-shrink:0}.tp-te-picker-item--archived.svelte-2cr7a7.svelte-2cr7a7{cursor:default;pointer-events:none}.tp-te-picker-item-text.svelte-2cr7a7.svelte-2cr7a7{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1;min-width:0}.tp-te-picker-code.svelte-2cr7a7.svelte-2cr7a7{font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-room.svelte-2cr7a7.svelte-2cr7a7{font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-clear.svelte-2cr7a7.svelte-2cr7a7{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-red, #f38ba8);font-size:13px;width:100%;transition:background 0.1s}.tp-te-picker-clear.svelte-2cr7a7 svg{width:13px;height:13px;flex-shrink:0}.tp-te-picker-clear.svelte-2cr7a7.svelte-2cr7a7:hover{background:var(--background-modifier-hover)}.tp-te-archive-btn.svelte-2cr7a7.svelte-2cr7a7{background:transparent;border:none;cursor:pointer;font-size:14px;padding:4px 5px;opacity:0;flex-shrink:0;border-radius:4px;transition:opacity 0.1s, background 0.1s;display:inline-flex;align-items:center}.tp-te-archive-btn.svelte-2cr7a7 svg{width:13px;height:13px}.tp-te-picker-row.svelte-2cr7a7:hover .tp-te-archive-btn.svelte-2cr7a7{opacity:0.6}.tp-te-picker-row--archived.svelte-2cr7a7 .tp-te-archive-btn.svelte-2cr7a7{opacity:0.7}.tp-te-archive-btn.svelte-2cr7a7.svelte-2cr7a7:hover{opacity:1 !important;background:var(--background-modifier-hover)}.tp-te-show-archived-btn.svelte-2cr7a7.svelte-2cr7a7{background:transparent;border:none;cursor:pointer;color:var(--text-faint);font-size:12px;padding:4px 8px;text-align:left;width:100%;border-radius:4px}.tp-te-show-archived-btn.svelte-2cr7a7.svelte-2cr7a7:hover{background:var(--background-modifier-hover);color:var(--text-muted)}.tp-te-unsaved-overlay.svelte-2cr7a7.svelte-2cr7a7{position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;border-radius:8px}.tp-te-unsaved-dialog.svelte-2cr7a7.svelte-2cr7a7{background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;padding:20px 24px;max-width:340px;width:100%;box-shadow:0 8px 28px rgba(0,0,0,0.35);display:flex;flex-direction:column;gap:14px}.tp-te-unsaved-msg.svelte-2cr7a7.svelte-2cr7a7{font-size:14px;color:var(--text-normal);margin:0;line-height:1.4}.tp-te-unsaved-actions.svelte-2cr7a7.svelte-2cr7a7{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.tp-te-btn-danger.svelte-2cr7a7.svelte-2cr7a7{background:var(--color-red,#f38ba8);color:var(--text-on-accent);border-color:var(--color-red,#f38ba8)}.tp-te-btn-danger.svelte-2cr7a7.svelte-2cr7a7:hover{filter:brightness(1.1)}.tp-te-footer.svelte-2cr7a7.svelte-2cr7a7{display:flex;justify-content:flex-end;gap:8px;padding-top:14px;flex-shrink:0}.tp-te-btn.svelte-2cr7a7.svelte-2cr7a7{padding:8px 18px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:14px;cursor:pointer;transition:background 0.1s}.tp-te-btn.svelte-2cr7a7.svelte-2cr7a7:hover{background:var(--background-modifier-hover)}.tp-te-btn-primary.svelte-2cr7a7.svelte-2cr7a7{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-btn-primary.svelte-2cr7a7.svelte-2cr7a7:hover{filter:brightness(1.08)}.tp-te-chip.svelte-2cr7a7.svelte-2cr7a7{cursor:grab}.tp-te-chip.svelte-2cr7a7.svelte-2cr7a7:active{cursor:grabbing}.tp-te-zoom.svelte-2cr7a7.svelte-2cr7a7{display:flex;align-items:center;gap:8px;padding:2px 2px 8px}.tp-te-zoom-label.svelte-2cr7a7.svelte-2cr7a7{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em}.tp-te-zoom-slider.svelte-2cr7a7.svelte-2cr7a7{flex:0 1 200px;max-width:240px}.tp-te-zoom-btn.svelte-2cr7a7.svelte-2cr7a7{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);cursor:pointer}.tp-te-zoom-btn.svelte-2cr7a7.svelte-2cr7a7:hover{background:var(--background-modifier-hover)}.tp-te-zoom-btn.svelte-2cr7a7 svg{width:14px;height:14px}.tp-te-mtmpl.svelte-2cr7a7.svelte-2cr7a7{display:flex;gap:8px;align-items:center;padding:6px 0 12px;flex-shrink:0}.tp-te-mtmpl-select.svelte-2cr7a7.svelte-2cr7a7{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--background-modifier-border);border-radius:8px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:15px;font-family:var(--font-interface)}.tp-te-mtmpl-menu.svelte-2cr7a7.svelte-2cr7a7{flex:0 0 auto;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--background-modifier-border);border-radius:8px;background:var(--background-primary);color:var(--text-normal);cursor:pointer}.tp-te-mtmpl-menu.svelte-2cr7a7 svg{width:18px;height:18px}.tp-te-mday-strip.svelte-2cr7a7.svelte-2cr7a7{display:flex;gap:5px;margin-bottom:10px;flex-shrink:0}.tp-te-mday-pill.svelte-2cr7a7.svelte-2cr7a7{flex:1;min-width:0;padding:8px 0;border:1px solid var(--background-modifier-border);border-radius:8px;background:var(--background-secondary);color:var(--text-muted);font-size:13px;font-weight:600;cursor:pointer}.tp-te-mday-pill--sel.svelte-2cr7a7.svelte-2cr7a7{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-mlist.svelte-2cr7a7.svelte-2cr7a7{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-bottom:8px}.tp-te-mrow.svelte-2cr7a7.svelte-2cr7a7{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;border-radius:8px;padding:10px 12px;min-height:56px;box-sizing:border-box;background:var(--background-secondary);color:var(--text-normal);cursor:pointer;font-family:var(--font-interface)}.tp-te-mrow--empty.svelte-2cr7a7.svelte-2cr7a7{background:transparent;border:1px dashed var(--background-modifier-border);color:var(--text-muted);min-height:46px}.tp-te-mrow-time.svelte-2cr7a7.svelte-2cr7a7{width:64px;flex-shrink:0;font-size:11px;color:var(--text-muted);line-height:1.3}.tp-te-mrow-time.svelte-2cr7a7 span.svelte-2cr7a7{font-size:10px;opacity:0.8}.tp-te-mrow-body.svelte-2cr7a7.svelte-2cr7a7{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.tp-te-mrow-code.svelte-2cr7a7.svelte-2cr7a7{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-mrow-meta.svelte-2cr7a7.svelte-2cr7a7{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-mrow-cust.svelte-2cr7a7.svelte-2cr7a7{font-size:11px;color:var(--text-faint)}.tp-te-mrow-add.svelte-2cr7a7.svelte-2cr7a7{flex:1;font-size:14px;color:var(--interactive-accent)}.tp-te-mrow-chev.svelte-2cr7a7.svelte-2cr7a7{flex-shrink:0;color:var(--text-faint);display:inline-flex}.tp-te-mrow-chev.svelte-2cr7a7 svg{width:18px;height:18px}.tp-te-sheet-backdrop.svelte-2cr7a7.svelte-2cr7a7{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.45)}.tp-te-picker--sheet.svelte-2cr7a7.svelte-2cr7a7{position:fixed;left:0;right:0;bottom:0;top:auto;width:100%;max-width:100%;border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,0.4)}.tp-te-picker--sheet.svelte-2cr7a7 .tp-te-picker-inner.svelte-2cr7a7{max-height:78vh;padding:12px 14px calc(12px + env(safe-area-inset-bottom, 0px))}.tp-te-picker--sheet.svelte-2cr7a7 .tp-te-picker-search.svelte-2cr7a7{font-size:16px;padding:9px 12px}.tp-te-picker--sheet.svelte-2cr7a7 .tp-te-detail input.svelte-2cr7a7{font-size:16px;padding:8px 10px}.tp-te-picker--sheet.svelte-2cr7a7 .tp-te-picker-item.svelte-2cr7a7{padding:10px 10px}");
+  append_styles(target, "svelte-1aidivg", ".tp-te-wrap.svelte-1aidivg.svelte-1aidivg{display:flex;flex-direction:column;width:100%;box-sizing:border-box;flex:1 1 auto;min-height:0;overflow:visible;font-size:14px;position:relative}.tp-te-tmpl-bar.svelte-1aidivg.svelte-1aidivg{display:flex;align-items:flex-start;gap:8px;padding:8px 48px 12px 0;flex-shrink:0;flex-wrap:wrap}.tp-te-tmpl-tabs.svelte-1aidivg.svelte-1aidivg{display:flex;gap:4px;flex-wrap:wrap;flex:1;min-width:0}.tp-te-tmpl-tab-wrap.svelte-1aidivg.svelte-1aidivg{display:flex;align-items:center;gap:2px}.tp-te-tmpl-tab.svelte-1aidivg.svelte-1aidivg{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 16px 11px;min-height:54px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;cursor:pointer;transition:all 0.15s;text-align:left}.tp-te-tmpl-tab--active.svelte-1aidivg.svelte-1aidivg{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-tmpl-tab--past.svelte-1aidivg.svelte-1aidivg:not(.tp-te-tmpl-tab--active){opacity:0.65}.tp-te-tmpl-name.svelte-1aidivg.svelte-1aidivg{font-weight:600;line-height:1.2}.tp-te-tmpl-dates.svelte-1aidivg.svelte-1aidivg{font-size:11px;opacity:0.75;line-height:1.2;margin-top:1px}.tp-te-tmpl-rename-btn.svelte-1aidivg.svelte-1aidivg{background:transparent;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:0.6;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-rename-btn.svelte-1aidivg.svelte-1aidivg:hover{opacity:1}.tp-te-tmpl-rename-btn.svelte-1aidivg svg{width:13px;height:13px}.tp-te-rename-input.svelte-1aidivg.svelte-1aidivg{font-size:13px;font-weight:600;padding:4px 8px;border:1px solid var(--interactive-accent);border-radius:6px;background:var(--background-primary);color:var(--text-normal);width:140px}.tp-te-tmpl-actions.svelte-1aidivg.svelte-1aidivg{display:flex;align-items:center;gap:6px;flex-shrink:0}.tp-te-tmpl-add-btn.svelte-1aidivg.svelte-1aidivg{padding:10px 16px;border-radius:6px;border:1.5px dashed var(--interactive-accent);background:transparent;color:var(--interactive-accent);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;white-space:nowrap}.tp-te-tmpl-add-btn.svelte-1aidivg.svelte-1aidivg:hover{background:color-mix(in srgb, var(--interactive-accent) 10%, transparent)}.tp-te-tmpl-del-btn.svelte-1aidivg.svelte-1aidivg{background:transparent;border:none;cursor:pointer;font-size:16px;padding:4px;opacity:0.5;transition:opacity 0.1s;display:inline-flex;align-items:center}.tp-te-tmpl-del-btn.svelte-1aidivg.svelte-1aidivg:hover{opacity:1}.tp-te-tmpl-del-btn.svelte-1aidivg svg{width:15px;height:15px}.tp-te-edit-warn.svelte-1aidivg.svelte-1aidivg{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;margin-bottom:12px;background:color-mix(in srgb, var(--color-yellow, #f59e0b) 12%, transparent);border:1px solid var(--color-yellow, #f59e0b);border-radius:6px;font-size:13px;color:var(--text-normal);flex-shrink:0}.tp-te-edit-warn--collapsed.svelte-1aidivg.svelte-1aidivg{align-items:center;padding:6px 12px}.tp-te-edit-warn--confirm.svelte-1aidivg.svelte-1aidivg{align-items:center}.tp-te-edit-warn-body.svelte-1aidivg.svelte-1aidivg{display:flex;align-items:flex-start;gap:8px;flex:1;min-width:0}.tp-te-edit-warn-icon.svelte-1aidivg.svelte-1aidivg{flex-shrink:0}.tp-te-edit-warn-text.svelte-1aidivg.svelte-1aidivg{line-height:1.5}.tp-te-edit-warn-actions.svelte-1aidivg.svelte-1aidivg{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:2px}.tp-te-edit-warn-pill.svelte-1aidivg.svelte-1aidivg{color:var(--text-muted);font-size:12px}.tp-te-edit-warn-show-btn.svelte-1aidivg.svelte-1aidivg{padding:3px 10px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-past-confirm-btn.svelte-1aidivg.svelte-1aidivg{padding:4px 12px;border-radius:4px;border:none;background:var(--color-red, #f38ba8);color:#fff;font-size:12px;cursor:pointer}.tp-te-past-cancel-btn.svelte-1aidivg.svelte-1aidivg{padding:4px 12px;border-radius:4px;border:1px solid var(--background-modifier-border);background:transparent;color:var(--text-normal);font-size:12px;cursor:pointer}.tp-te-week-tabs.svelte-1aidivg.svelte-1aidivg{display:flex;gap:6px;margin-bottom:14px;flex-shrink:0}.tp-te-week-tab.svelte-1aidivg.svelte-1aidivg{padding:6px 20px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}.tp-te-week-tab--active.svelte-1aidivg.svelte-1aidivg{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-grid-wrap.svelte-1aidivg.svelte-1aidivg{overflow:auto;min-height:0;flex:1 1 auto;border:1px solid var(--background-modifier-border);border-radius:8px}.tp-te-axis.svelte-1aidivg.svelte-1aidivg{min-width:640px}.tp-te-axis-head.svelte-1aidivg.svelte-1aidivg{display:grid;grid-template-columns:52px repeat(var(--te-days, 5), minmax(0, 1fr));position:sticky;top:0;z-index:3;background:var(--background-secondary);border-bottom:1px solid var(--background-modifier-border)}.tp-te-axis-day-head.svelte-1aidivg.svelte-1aidivg{padding:8px 4px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);text-align:center;border-left:1px solid var(--background-modifier-border)}.tp-te-axis-body.svelte-1aidivg.svelte-1aidivg{display:grid;grid-template-columns:52px repeat(var(--te-days, 5), minmax(0, 1fr));position:relative}.tp-te-axis-gutter.svelte-1aidivg.svelte-1aidivg{position:relative}.tp-te-axis-hour.svelte-1aidivg.svelte-1aidivg{position:absolute;left:4px;font-size:10px;color:var(--text-faint);transform:translateY(-50%);white-space:nowrap}.tp-te-axis-col.svelte-1aidivg.svelte-1aidivg{position:relative;border-left:1px solid var(--background-modifier-border)}.tp-te-blk.svelte-1aidivg.svelte-1aidivg{position:absolute;left:3px;right:3px;border:1px solid var(--background-modifier-border);border-radius:5px;box-sizing:border-box;overflow:hidden;z-index:1;cursor:pointer}.tp-te-blk--dragover.svelte-1aidivg.svelte-1aidivg{outline:2px solid var(--interactive-accent);outline-offset:-2px;background:color-mix(in srgb, var(--interactive-accent) 18%, transparent) !important}.tp-te-blk--reject.svelte-1aidivg.svelte-1aidivg{outline:2px solid var(--color-red, #f38ba8);outline-offset:-2px}.tp-te-blk-label.svelte-1aidivg.svelte-1aidivg{display:flex;flex-direction:column;gap:1px;padding:3px 6px;pointer-events:none;min-width:0;color:var(--text-muted)}.tp-te-blk-name.svelte-1aidivg.svelte-1aidivg{max-width:100%;font-size:11px;font-weight:700;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-blk-time.svelte-1aidivg.svelte-1aidivg{display:none;font-size:10px;color:var(--text-muted);opacity:0.85;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-blk.svelte-1aidivg:hover .tp-te-blk-time.svelte-1aidivg{display:block}.tp-te-blk-add.svelte-1aidivg.svelte-1aidivg{font-size:10px;color:var(--text-faint);opacity:0;transition:opacity 0.1s;line-height:1.2}.tp-te-blk.svelte-1aidivg:hover .tp-te-blk-add.svelte-1aidivg{opacity:1;color:var(--interactive-accent)}.tp-te-blk.svelte-1aidivg.svelte-1aidivg:hover{min-height:54px;z-index:20;background:var(--background-secondary) !important;box-shadow:0 2px 10px rgba(0,0,0,0.28)}.tp-te-chip-time.svelte-1aidivg.svelte-1aidivg{display:none;font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-blk.svelte-1aidivg:hover .tp-te-chip-time.svelte-1aidivg{display:block}.tp-te-chip.svelte-1aidivg.svelte-1aidivg{width:100%;height:100%;border-radius:6px;border:none;cursor:pointer;padding:4px 6px 4px 3px;text-align:left;display:flex;flex-direction:column;gap:2px;overflow:hidden;transition:filter 0.1s;box-sizing:border-box;color:var(--text-normal);container-type:size;container-name:techip}.tp-te-chip.svelte-1aidivg.svelte-1aidivg:hover{filter:brightness(1.1)}.tp-te-chip-body.svelte-1aidivg.svelte-1aidivg{flex:0 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:1px}.tp-te-chip-code.svelte-1aidivg.svelte-1aidivg{font-size:14px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-te-chip-meta.svelte-1aidivg.svelte-1aidivg{font-size:12px;color:var(--text-muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}.tp-te-chip-room.svelte-1aidivg.svelte-1aidivg{flex-shrink:0;font-size:11px;color:var(--text-muted);font-style:italic;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@container techip (max-height: 52px){.tp-te-chip-meta.svelte-1aidivg.svelte-1aidivg{display:none}.tp-te-chip-code.svelte-1aidivg.svelte-1aidivg{font-size:13px}.tp-te-chip-room.svelte-1aidivg.svelte-1aidivg{font-size:10px}}@container techip (max-height: 38px){.tp-te-chip-room.svelte-1aidivg.svelte-1aidivg{display:none}.tp-te-chip-code.svelte-1aidivg.svelte-1aidivg{font-size:12px}}@container techip (max-height: 26px){.tp-te-chip-code.svelte-1aidivg.svelte-1aidivg{font-size:11px}}.tp-te-cust.svelte-1aidivg.svelte-1aidivg{position:absolute;top:3px;right:4px;font-size:10px;font-weight:600;background:var(--interactive-accent);color:var(--text-on-accent, #fff);border-radius:3px;padding:1px 5px;line-height:1.4;pointer-events:none;z-index:1}.tp-te-detail.svelte-1aidivg.svelte-1aidivg{padding:2px 2px 4px}.tp-te-detail-grid.svelte-1aidivg.svelte-1aidivg{display:flex;gap:6px;margin-bottom:6px}.tp-te-detail-field.svelte-1aidivg.svelte-1aidivg{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.tp-te-detail-label.svelte-1aidivg.svelte-1aidivg{font-size:10px;color:var(--text-muted)}.tp-te-detail.svelte-1aidivg input.svelte-1aidivg{width:100%;box-sizing:border-box;font-size:12px;padding:3px 6px;border:1px solid var(--background-modifier-border);border-radius:5px;background:var(--background-secondary);color:var(--text-normal)}.tp-te-detail.svelte-1aidivg input.svelte-1aidivg:focus{border-color:var(--interactive-accent);outline:none}.tp-te-picker.svelte-1aidivg.svelte-1aidivg{position:fixed;z-index:1000;width:240px;background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.3);overflow:hidden}.tp-te-picker-inner.svelte-1aidivg.svelte-1aidivg{max-height:360px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:2px}.tp-te-picker-search.svelte-1aidivg.svelte-1aidivg{width:100%;box-sizing:border-box;padding:6px 10px;margin-bottom:2px;border:1px solid var(--background-modifier-border);border-radius:6px;background:var(--background-secondary);color:var(--text-normal);font-size:13px;outline:none;flex-shrink:0}.tp-te-picker-search.svelte-1aidivg.svelte-1aidivg:focus{border-color:var(--interactive-accent)}.tp-te-picker-group-label.svelte-1aidivg.svelte-1aidivg{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);padding:4px 8px 2px}.tp-te-picker-divider.svelte-1aidivg.svelte-1aidivg{height:1px;background:var(--background-modifier-border);margin:4px 0}.tp-te-picker-row.svelte-1aidivg.svelte-1aidivg{display:flex;align-items:center;gap:2px}.tp-te-picker-item.svelte-1aidivg.svelte-1aidivg{flex:1;display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;text-align:left;width:100%;transition:background 0.1s;min-width:0}.tp-te-picker-item.svelte-1aidivg.svelte-1aidivg:hover{background:var(--background-modifier-hover)}.tp-te-picker-item--active.svelte-1aidivg.svelte-1aidivg{background:color-mix(in srgb, var(--interactive-accent) 16%, transparent)}.tp-te-picker-item--active.svelte-1aidivg.svelte-1aidivg:hover{background:color-mix(in srgb, var(--interactive-accent) 24%, transparent)}.tp-te-picker-emoji.svelte-1aidivg.svelte-1aidivg{font-size:14px;line-height:1;flex-shrink:0}.tp-te-picker-item--archived.svelte-1aidivg.svelte-1aidivg{cursor:default;pointer-events:none}.tp-te-picker-item-text.svelte-1aidivg.svelte-1aidivg{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1;min-width:0}.tp-te-picker-code.svelte-1aidivg.svelte-1aidivg{font-size:13px;font-weight:600;color:var(--text-normal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-room.svelte-1aidivg.svelte-1aidivg{font-size:11px;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-picker-clear.svelte-1aidivg.svelte-1aidivg{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-red, #f38ba8);font-size:13px;width:100%;transition:background 0.1s}.tp-te-picker-clear.svelte-1aidivg svg{width:13px;height:13px;flex-shrink:0}.tp-te-picker-clear.svelte-1aidivg.svelte-1aidivg:hover{background:var(--background-modifier-hover)}.tp-te-archive-btn.svelte-1aidivg.svelte-1aidivg{background:transparent;border:none;cursor:pointer;font-size:14px;padding:4px 5px;opacity:0;flex-shrink:0;border-radius:4px;transition:opacity 0.1s, background 0.1s;display:inline-flex;align-items:center}.tp-te-archive-btn.svelte-1aidivg svg{width:13px;height:13px}.tp-te-picker-row.svelte-1aidivg:hover .tp-te-archive-btn.svelte-1aidivg{opacity:0.6}.tp-te-picker-row--archived.svelte-1aidivg .tp-te-archive-btn.svelte-1aidivg{opacity:0.7}.tp-te-archive-btn.svelte-1aidivg.svelte-1aidivg:hover{opacity:1 !important;background:var(--background-modifier-hover)}.tp-te-show-archived-btn.svelte-1aidivg.svelte-1aidivg{background:transparent;border:none;cursor:pointer;color:var(--text-faint);font-size:12px;padding:4px 8px;text-align:left;width:100%;border-radius:4px}.tp-te-show-archived-btn.svelte-1aidivg.svelte-1aidivg:hover{background:var(--background-modifier-hover);color:var(--text-muted)}.tp-te-unsaved-overlay.svelte-1aidivg.svelte-1aidivg{position:absolute;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;border-radius:8px}.tp-te-unsaved-dialog.svelte-1aidivg.svelte-1aidivg{background:var(--background-primary);border:1px solid var(--background-modifier-border);border-radius:10px;padding:20px 24px;max-width:340px;width:100%;box-shadow:0 8px 28px rgba(0,0,0,0.35);display:flex;flex-direction:column;gap:14px}.tp-te-unsaved-msg.svelte-1aidivg.svelte-1aidivg{font-size:14px;color:var(--text-normal);margin:0;line-height:1.4}.tp-te-unsaved-actions.svelte-1aidivg.svelte-1aidivg{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.tp-te-btn-danger.svelte-1aidivg.svelte-1aidivg{background:var(--color-red,#f38ba8);color:var(--text-on-accent);border-color:var(--color-red,#f38ba8)}.tp-te-btn-danger.svelte-1aidivg.svelte-1aidivg:hover{filter:brightness(1.1)}.tp-te-footer.svelte-1aidivg.svelte-1aidivg{display:flex;justify-content:flex-end;gap:8px;padding-top:14px;flex-shrink:0}.tp-te-btn.svelte-1aidivg.svelte-1aidivg{padding:8px 18px;border-radius:6px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);font-size:14px;cursor:pointer;transition:background 0.1s}.tp-te-btn.svelte-1aidivg.svelte-1aidivg:hover{background:var(--background-modifier-hover)}.tp-te-btn-primary.svelte-1aidivg.svelte-1aidivg{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-btn-primary.svelte-1aidivg.svelte-1aidivg:hover{filter:brightness(1.08)}.tp-te-chip.svelte-1aidivg.svelte-1aidivg{cursor:grab}.tp-te-chip.svelte-1aidivg.svelte-1aidivg:active{cursor:grabbing}.tp-te-zoom.svelte-1aidivg.svelte-1aidivg{display:flex;align-items:center;gap:8px;padding:2px 2px 8px}.tp-te-zoom-label.svelte-1aidivg.svelte-1aidivg{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em}.tp-te-zoom-slider.svelte-1aidivg.svelte-1aidivg{flex:0 1 200px;max-width:240px}.tp-te-zoom-btn.svelte-1aidivg.svelte-1aidivg{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;border-radius:5px;border:1px solid var(--background-modifier-border);background:var(--background-secondary);color:var(--text-normal);cursor:pointer}.tp-te-zoom-btn.svelte-1aidivg.svelte-1aidivg:hover{background:var(--background-modifier-hover)}.tp-te-zoom-btn.svelte-1aidivg svg{width:14px;height:14px}.tp-te-mtmpl.svelte-1aidivg.svelte-1aidivg{display:flex;gap:8px;align-items:center;padding:6px 0 12px;flex-shrink:0}.tp-te-mtmpl-select.svelte-1aidivg.svelte-1aidivg{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--background-modifier-border);border-radius:8px;background:var(--background-modifier-form-field);color:var(--text-normal);font-size:15px;font-family:var(--font-interface)}.tp-te-mtmpl-menu.svelte-1aidivg.svelte-1aidivg{flex:0 0 auto;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--background-modifier-border);border-radius:8px;background:var(--background-primary);color:var(--text-normal);cursor:pointer}.tp-te-mtmpl-menu.svelte-1aidivg svg{width:18px;height:18px}.tp-te-mday-strip.svelte-1aidivg.svelte-1aidivg{display:flex;gap:5px;margin-bottom:10px;flex-shrink:0}.tp-te-mday-pill.svelte-1aidivg.svelte-1aidivg{flex:1;min-width:0;padding:8px 0;border:1px solid var(--background-modifier-border);border-radius:8px;background:var(--background-secondary);color:var(--text-muted);font-size:13px;font-weight:600;cursor:pointer}.tp-te-mday-pill--sel.svelte-1aidivg.svelte-1aidivg{background:var(--interactive-accent);color:var(--text-on-accent);border-color:var(--interactive-accent)}.tp-te-mlist.svelte-1aidivg.svelte-1aidivg{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-bottom:8px}.tp-te-mrow.svelte-1aidivg.svelte-1aidivg{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;border-radius:8px;padding:10px 12px;min-height:56px;box-sizing:border-box;background:var(--background-secondary);color:var(--text-normal);cursor:pointer;font-family:var(--font-interface)}.tp-te-mrow--empty.svelte-1aidivg.svelte-1aidivg{background:transparent;border:1px dashed var(--background-modifier-border);color:var(--text-muted);min-height:46px}.tp-te-mrow-time.svelte-1aidivg.svelte-1aidivg{width:64px;flex-shrink:0;font-size:11px;color:var(--text-muted);line-height:1.3;overflow-wrap:anywhere}.tp-te-mrow-time.svelte-1aidivg span.svelte-1aidivg{font-size:10px;opacity:0.8}.tp-te-mrow-body.svelte-1aidivg.svelte-1aidivg{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.tp-te-mrow-code.svelte-1aidivg.svelte-1aidivg{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-mrow-meta.svelte-1aidivg.svelte-1aidivg{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tp-te-mrow-cust.svelte-1aidivg.svelte-1aidivg{font-size:11px;color:var(--text-faint)}.tp-te-mrow-add.svelte-1aidivg.svelte-1aidivg{flex:0 0 auto;margin-left:auto;font-size:14px;color:var(--interactive-accent);white-space:nowrap}.tp-te-mrow--empty.svelte-1aidivg.svelte-1aidivg{gap:8px}.tp-te-mrow--empty.svelte-1aidivg .tp-te-mrow-time.svelte-1aidivg{width:auto;flex:1 1 auto;min-width:0}.tp-te-mrow-chev.svelte-1aidivg.svelte-1aidivg{flex-shrink:0;color:var(--text-faint);display:inline-flex}.tp-te-mrow-chev.svelte-1aidivg svg{width:18px;height:18px}.tp-te-sheet-backdrop.svelte-1aidivg.svelte-1aidivg{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.45)}.tp-te-picker--sheet.svelte-1aidivg.svelte-1aidivg{position:fixed;left:0;right:0;bottom:0;top:auto;width:100%;max-width:100%;border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,0.4)}.tp-te-picker--sheet.svelte-1aidivg .tp-te-picker-inner.svelte-1aidivg{max-height:78vh;padding:12px 14px calc(12px + env(safe-area-inset-bottom, 0px))}.tp-te-picker--sheet.svelte-1aidivg .tp-te-picker-search.svelte-1aidivg{font-size:16px;padding:9px 12px}.tp-te-picker--sheet.svelte-1aidivg .tp-te-detail input.svelte-1aidivg{font-size:16px;padding:8px 10px}.tp-te-picker--sheet.svelte-1aidivg .tp-te-picker-item.svelte-1aidivg{padding:10px 10px}");
 }
 function get_each_context2(ctx, list, i) {
   const child_ctx = ctx.slice();
@@ -11807,10 +11807,10 @@ function create_if_block_32(ctx) {
       }
       t = space();
       button = element("button");
-      attr(select, "class", "tp-te-mtmpl-select svelte-2cr7a7");
-      attr(button, "class", "tp-te-mtmpl-menu svelte-2cr7a7");
+      attr(select, "class", "tp-te-mtmpl-select svelte-1aidivg");
+      attr(button, "class", "tp-te-mtmpl-menu svelte-1aidivg");
       attr(button, "aria-label", "Template options");
-      attr(div, "class", "tp-te-mtmpl svelte-2cr7a7");
+      attr(div, "class", "tp-te-mtmpl svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -11957,10 +11957,10 @@ function create_if_block_28(ctx) {
       button.textContent = "+ New Template";
       t2 = space();
       if (if_block) if_block.c();
-      attr(div0, "class", "tp-te-tmpl-tabs svelte-2cr7a7");
-      attr(button, "class", "tp-te-tmpl-add-btn svelte-2cr7a7");
-      attr(div1, "class", "tp-te-tmpl-actions svelte-2cr7a7");
-      attr(div2, "class", "tp-te-tmpl-bar svelte-2cr7a7");
+      attr(div0, "class", "tp-te-tmpl-tabs svelte-1aidivg");
+      attr(button, "class", "tp-te-tmpl-add-btn svelte-1aidivg");
+      attr(div1, "class", "tp-te-tmpl-actions svelte-1aidivg");
+      attr(div2, "class", "tp-te-tmpl-bar svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div2, anchor);
@@ -12076,9 +12076,9 @@ function create_else_block_5(ctx) {
       t5 = space();
       if (if_block) if_block.c();
       if_block_anchor = empty();
-      attr(span0, "class", "tp-te-tmpl-name svelte-2cr7a7");
-      attr(span1, "class", "tp-te-tmpl-dates svelte-2cr7a7");
-      attr(button, "class", "tp-te-tmpl-tab svelte-2cr7a7");
+      attr(span0, "class", "tp-te-tmpl-name svelte-1aidivg");
+      attr(span1, "class", "tp-te-tmpl-dates svelte-1aidivg");
+      attr(button, "class", "tp-te-tmpl-tab svelte-1aidivg");
       toggle_class(
         button,
         "tp-te-tmpl-tab--active",
@@ -12183,7 +12183,7 @@ function create_if_block_30(ctx) {
   return {
     c() {
       input = element("input");
-      attr(input, "class", "tp-te-rename-input svelte-2cr7a7");
+      attr(input, "class", "tp-te-rename-input svelte-1aidivg");
       input.autofocus = true;
     },
     m(target, anchor) {
@@ -12249,7 +12249,7 @@ function create_if_block_31(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-te-tmpl-rename-btn svelte-2cr7a7");
+      attr(button, "class", "tp-te-tmpl-rename-btn svelte-1aidivg");
       attr(button, "title", "Rename");
     },
     m(target, anchor) {
@@ -12295,7 +12295,7 @@ function create_each_block_12(key_1, ctx) {
       div = element("div");
       if_block.c();
       t = space();
-      attr(div, "class", "tp-te-tmpl-tab-wrap svelte-2cr7a7");
+      attr(div, "class", "tp-te-tmpl-tab-wrap svelte-1aidivg");
       this.first = div;
     },
     m(target, anchor) {
@@ -12332,7 +12332,7 @@ function create_if_block_29(ctx) {
   return {
     c() {
       button = element("button");
-      attr(button, "class", "tp-te-tmpl-del-btn svelte-2cr7a7");
+      attr(button, "class", "tp-te-tmpl-del-btn svelte-1aidivg");
       attr(button, "title", "Delete this template");
     },
     m(target, anchor) {
@@ -12435,13 +12435,13 @@ function create_else_block_4(ctx) {
       div2 = element("div");
       button = element("button");
       button.textContent = "Dismiss";
-      attr(span, "class", "tp-te-edit-warn-icon svelte-2cr7a7");
-      attr(div0, "class", "tp-te-edit-warn-text svelte-2cr7a7");
-      attr(div1, "class", "tp-te-edit-warn-body svelte-2cr7a7");
-      attr(button, "class", "tp-te-past-cancel-btn svelte-2cr7a7");
+      attr(span, "class", "tp-te-edit-warn-icon svelte-1aidivg");
+      attr(div0, "class", "tp-te-edit-warn-text svelte-1aidivg");
+      attr(div1, "class", "tp-te-edit-warn-body svelte-1aidivg");
+      attr(button, "class", "tp-te-past-cancel-btn svelte-1aidivg");
       attr(button, "title", "Dismiss warning");
-      attr(div2, "class", "tp-te-edit-warn-actions svelte-2cr7a7");
-      attr(div3, "class", "tp-te-edit-warn svelte-2cr7a7");
+      attr(div2, "class", "tp-te-edit-warn-actions svelte-1aidivg");
+      attr(div3, "class", "tp-te-edit-warn svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div3, anchor);
@@ -12522,10 +12522,10 @@ function create_if_block_26(ctx) {
       t5 = space();
       button1 = element("button");
       button1.textContent = "Cancel";
-      attr(button0, "class", "tp-te-past-confirm-btn svelte-2cr7a7");
-      attr(button1, "class", "tp-te-past-cancel-btn svelte-2cr7a7");
-      attr(div0, "class", "tp-te-edit-warn-actions svelte-2cr7a7");
-      attr(div1, "class", "tp-te-edit-warn tp-te-edit-warn--confirm svelte-2cr7a7");
+      attr(button0, "class", "tp-te-past-confirm-btn svelte-1aidivg");
+      attr(button1, "class", "tp-te-past-cancel-btn svelte-1aidivg");
+      attr(div0, "class", "tp-te-edit-warn-actions svelte-1aidivg");
+      attr(div1, "class", "tp-te-edit-warn tp-te-edit-warn--confirm svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -12587,9 +12587,9 @@ function create_if_block_25(ctx) {
       t1 = space();
       button = element("button");
       button.textContent = "Show";
-      attr(span, "class", "tp-te-edit-warn-pill svelte-2cr7a7");
-      attr(button, "class", "tp-te-edit-warn-show-btn svelte-2cr7a7");
-      attr(div, "class", "tp-te-edit-warn tp-te-edit-warn--collapsed svelte-2cr7a7");
+      attr(span, "class", "tp-te-edit-warn-pill svelte-1aidivg");
+      attr(button, "class", "tp-te-edit-warn-show-btn svelte-1aidivg");
+      attr(div, "class", "tp-te-edit-warn tp-te-edit-warn--collapsed svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -12672,21 +12672,21 @@ function create_if_block_23(ctx) {
       t1 = space();
       button1 = element("button");
       button1.textContent = "Week B";
-      attr(button0, "class", "tp-te-week-tab svelte-2cr7a7");
+      attr(button0, "class", "tp-te-week-tab svelte-1aidivg");
       toggle_class(
         button0,
         "tp-te-week-tab--active",
         /*activeWeek*/
         ctx[2] === "A"
       );
-      attr(button1, "class", "tp-te-week-tab tp-te-week-tab--b svelte-2cr7a7");
+      attr(button1, "class", "tp-te-week-tab tp-te-week-tab--b svelte-1aidivg");
       toggle_class(
         button1,
         "tp-te-week-tab--active",
         /*activeWeek*/
         ctx[2] === "B"
       );
-      attr(div, "class", "tp-te-week-tabs svelte-2cr7a7");
+      attr(div, "class", "tp-te-week-tabs svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -12764,11 +12764,11 @@ function create_if_block_22(ctx) {
       input = element("input");
       t3 = space();
       button1 = element("button");
-      attr(span, "class", "tp-te-zoom-label svelte-2cr7a7");
-      attr(button0, "class", "tp-te-zoom-btn svelte-2cr7a7");
+      attr(span, "class", "tp-te-zoom-label svelte-1aidivg");
+      attr(button0, "class", "tp-te-zoom-btn svelte-1aidivg");
       attr(button0, "title", "Zoom out");
       attr(button0, "aria-label", "Zoom out");
-      attr(input, "class", "tp-te-zoom-slider svelte-2cr7a7");
+      attr(input, "class", "tp-te-zoom-slider svelte-1aidivg");
       attr(input, "type", "range");
       attr(input, "min", "60");
       attr(input, "max", "240");
@@ -12776,10 +12776,10 @@ function create_if_block_22(ctx) {
       input.value = /*_teScale*/
       ctx[6];
       attr(input, "aria-label", "Timetable editor zoom");
-      attr(button1, "class", "tp-te-zoom-btn svelte-2cr7a7");
+      attr(button1, "class", "tp-te-zoom-btn svelte-1aidivg");
       attr(button1, "title", "Zoom in");
       attr(button1, "aria-label", "Zoom in");
-      attr(div, "class", "tp-te-zoom svelte-2cr7a7");
+      attr(div, "class", "tp-te-zoom svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -12889,17 +12889,17 @@ function create_else_block_2(ctx) {
         each_blocks[i].c();
       }
       attr(div0, "class", "tp-te-axis-gutter-head");
-      attr(div1, "class", "tp-te-axis-head svelte-2cr7a7");
-      attr(div2, "class", "tp-te-axis-gutter svelte-2cr7a7");
+      attr(div1, "class", "tp-te-axis-head svelte-1aidivg");
+      attr(div2, "class", "tp-te-axis-gutter svelte-1aidivg");
       set_style(
         div2,
         "height",
         /*axisHeight*/
         ctx[30] + "px"
       );
-      attr(div3, "class", "tp-te-axis-body svelte-2cr7a7");
-      attr(div4, "class", "tp-te-axis svelte-2cr7a7");
-      attr(div5, "class", "tp-te-grid-wrap svelte-2cr7a7");
+      attr(div3, "class", "tp-te-axis-body svelte-1aidivg");
+      attr(div4, "class", "tp-te-axis svelte-1aidivg");
+      attr(div5, "class", "tp-te-grid-wrap svelte-1aidivg");
       set_style(
         div5,
         "--te-days",
@@ -13072,8 +13072,8 @@ function create_if_block_15(ctx) {
       for (let i = 0; i < each_blocks.length; i += 1) {
         each_blocks[i].c();
       }
-      attr(div0, "class", "tp-te-mday-strip svelte-2cr7a7");
-      attr(div1, "class", "tp-te-mlist svelte-2cr7a7");
+      attr(div0, "class", "tp-te-mday-strip svelte-1aidivg");
+      attr(div1, "class", "tp-te-mlist svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -13152,7 +13152,7 @@ function create_each_block_11(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-te-axis-day-head svelte-2cr7a7");
+      attr(div, "class", "tp-te-axis-day-head svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -13181,7 +13181,7 @@ function create_each_block_10(ctx) {
     c() {
       div = element("div");
       t = text(t_value);
-      attr(div, "class", "tp-te-axis-hour svelte-2cr7a7");
+      attr(div, "class", "tp-te-axis-hour svelte-1aidivg");
       set_style(
         div,
         "top",
@@ -13256,10 +13256,10 @@ function create_else_block_3(ctx) {
       t5 = space();
       span2 = element("span");
       span2.textContent = "+ assign";
-      attr(span0, "class", "tp-te-blk-name svelte-2cr7a7");
-      attr(span1, "class", "tp-te-blk-time svelte-2cr7a7");
-      attr(span2, "class", "tp-te-blk-add svelte-2cr7a7");
-      attr(div, "class", "tp-te-blk-label svelte-2cr7a7");
+      attr(span0, "class", "tp-te-blk-name svelte-1aidivg");
+      attr(span1, "class", "tp-te-blk-time svelte-1aidivg");
+      attr(span2, "class", "tp-te-blk-add svelte-1aidivg");
+      attr(div, "class", "tp-te-blk-label svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -13389,16 +13389,16 @@ function create_if_block_18(ctx) {
       t9 = space();
       if (if_block2) if_block2.c();
       if_block2_anchor = empty();
-      attr(span0, "class", "tp-te-chip-time svelte-2cr7a7");
-      attr(span1, "class", "tp-te-chip-code svelte-2cr7a7");
+      attr(span0, "class", "tp-te-chip-time svelte-1aidivg");
+      attr(span1, "class", "tp-te-chip-code svelte-1aidivg");
       set_style(
         span1,
         "color",
         /*lbl*/
         ctx[197].colour
       );
-      attr(div0, "class", "tp-te-chip-body svelte-2cr7a7");
-      attr(div1, "class", "tp-te-chip svelte-2cr7a7");
+      attr(div0, "class", "tp-te-chip-body svelte-1aidivg");
+      attr(div1, "class", "tp-te-chip svelte-1aidivg");
       attr(div1, "role", "button");
       attr(div1, "tabindex", "0");
       set_style(div1, "border-left", "3px solid " + /*lbl*/
@@ -13578,7 +13578,7 @@ function create_if_block_21(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-chip-meta svelte-2cr7a7");
+      attr(span, "class", "tp-te-chip-meta svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -13613,7 +13613,7 @@ function create_if_block_20(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-chip-room svelte-2cr7a7");
+      attr(span, "class", "tp-te-chip-room svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -13658,7 +13658,7 @@ function create_if_block_19(ctx) {
       t1 = text(" \xB7 ");
       t2 = text(t2_value);
       t3 = text("m");
-      attr(span, "class", "tp-te-cust svelte-2cr7a7");
+      attr(span, "class", "tp-te-cust svelte-1aidivg");
       attr(span, "title", "Custom start / length \u2014 click to edit");
     },
     m(target, anchor) {
@@ -13753,7 +13753,7 @@ function create_each_block_9(key_1, ctx) {
     c() {
       div = element("div");
       if_block.c();
-      attr(div, "class", "tp-te-blk svelte-2cr7a7");
+      attr(div, "class", "tp-te-blk svelte-1aidivg");
       set_style(
         div,
         "top",
@@ -13917,7 +13917,7 @@ function create_each_block_8(ctx) {
         each_blocks[i].c();
       }
       t = space();
-      attr(div, "class", "tp-te-axis-col svelte-2cr7a7");
+      attr(div, "class", "tp-te-axis-col svelte-1aidivg");
       set_style(
         div,
         "height",
@@ -13990,7 +13990,7 @@ function create_each_block_7(ctx) {
     c() {
       button = element("button");
       t = text(t_value);
-      attr(button, "class", "tp-te-mday-pill svelte-2cr7a7");
+      attr(button, "class", "tp-te-mday-pill svelte-1aidivg");
       toggle_class(
         button,
         "tp-te-mday-pill--sel",
@@ -14074,10 +14074,10 @@ function create_else_block_1(ctx) {
       span2 = element("span");
       span2.textContent = "+ assign";
       t4 = space();
-      attr(span0, "class", "svelte-2cr7a7");
-      attr(span1, "class", "tp-te-mrow-time svelte-2cr7a7");
-      attr(span2, "class", "tp-te-mrow-add svelte-2cr7a7");
-      attr(button, "class", "tp-te-mrow tp-te-mrow--empty svelte-2cr7a7");
+      attr(span0, "class", "svelte-1aidivg");
+      attr(span1, "class", "tp-te-mrow-time svelte-1aidivg");
+      attr(span2, "class", "tp-te-mrow-add svelte-1aidivg");
+      attr(button, "class", "tp-te-mrow tp-te-mrow--empty svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -14196,19 +14196,19 @@ function create_if_block_16(ctx) {
       t7 = space();
       span5 = element("span");
       t8 = space();
-      attr(span0, "class", "svelte-2cr7a7");
-      attr(span1, "class", "tp-te-mrow-time svelte-2cr7a7");
-      attr(span2, "class", "tp-te-mrow-code svelte-2cr7a7");
+      attr(span0, "class", "svelte-1aidivg");
+      attr(span1, "class", "tp-te-mrow-time svelte-1aidivg");
+      attr(span2, "class", "tp-te-mrow-code svelte-1aidivg");
       set_style(
         span2,
         "color",
         /*lbl*/
         ctx[197].colour
       );
-      attr(span3, "class", "tp-te-mrow-meta svelte-2cr7a7");
-      attr(span4, "class", "tp-te-mrow-body svelte-2cr7a7");
-      attr(span5, "class", "tp-te-mrow-chev svelte-2cr7a7");
-      attr(button, "class", "tp-te-mrow svelte-2cr7a7");
+      attr(span3, "class", "tp-te-mrow-meta svelte-1aidivg");
+      attr(span4, "class", "tp-te-mrow-body svelte-1aidivg");
+      attr(span5, "class", "tp-te-mrow-chev svelte-1aidivg");
+      attr(button, "class", "tp-te-mrow svelte-1aidivg");
       set_style(button, "border-left", "3px solid " + /*lbl*/
       ctx[197].colour);
       set_style(
@@ -14358,7 +14358,7 @@ function create_if_block_17(ctx) {
       t1 = text(" \xB7 ");
       t2 = text(t2_value);
       t3 = text("m");
-      attr(span, "class", "tp-te-mrow-cust svelte-2cr7a7");
+      attr(span, "class", "tp-te-mrow-cust svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -14517,11 +14517,11 @@ function create_if_block_1(ctx) {
       if (if_block5) if_block5.c();
       t6 = space();
       if (if_block6) if_block6.c();
-      attr(input, "class", "tp-te-picker-search svelte-2cr7a7");
+      attr(input, "class", "tp-te-picker-search svelte-1aidivg");
       attr(input, "type", "text");
       attr(input, "placeholder", "Search\u2026");
-      attr(div0, "class", "tp-te-picker-inner svelte-2cr7a7");
-      attr(div1, "class", "tp-te-picker svelte-2cr7a7");
+      attr(div0, "class", "tp-te-picker-inner svelte-1aidivg");
+      attr(div1, "class", "tp-te-picker svelte-1aidivg");
       attr(div1, "style", div1_style_value = /*isMobile*/
       ctx[42] ? "" : getPickerStyle(
         /*pickerEl*/
@@ -14722,7 +14722,7 @@ function create_if_block_14(ctx) {
   return {
     c() {
       div = element("div");
-      attr(div, "class", "tp-te-sheet-backdrop svelte-2cr7a7");
+      attr(div, "class", "tp-te-sheet-backdrop svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -14767,7 +14767,7 @@ function create_if_block_12(ctx) {
       if_block.c();
       t = space();
       div = element("div");
-      attr(div, "class", "tp-te-picker-divider svelte-2cr7a7");
+      attr(div, "class", "tp-te-picker-divider svelte-1aidivg");
     },
     m(target, anchor) {
       if_block.m(target, anchor);
@@ -14837,14 +14837,14 @@ function create_else_block(ctx) {
       span2.textContent = "Room";
       t7 = space();
       input2 = element("input");
-      attr(span0, "class", "tp-te-detail-label svelte-2cr7a7");
+      attr(span0, "class", "tp-te-detail-label svelte-1aidivg");
       attr(input0, "type", "time");
       input0.value = input0_value_value = /*draftStart*/
       ctx[24] || /*_pp*/
       ctx[191].start;
-      attr(input0, "class", "svelte-2cr7a7");
-      attr(label0, "class", "tp-te-detail-field svelte-2cr7a7");
-      attr(span1, "class", "tp-te-detail-label svelte-2cr7a7");
+      attr(input0, "class", "svelte-1aidivg");
+      attr(label0, "class", "tp-te-detail-field svelte-1aidivg");
+      attr(span1, "class", "tp-te-detail-label svelte-1aidivg");
       attr(input1, "type", "number");
       attr(input1, "min", "1");
       attr(input1, "max", "480");
@@ -14858,17 +14858,17 @@ function create_else_block(ctx) {
         /*_pp*/
         ctx[191].start
       );
-      attr(input1, "class", "svelte-2cr7a7");
-      attr(label1, "class", "tp-te-detail-field svelte-2cr7a7");
-      attr(div0, "class", "tp-te-detail-grid svelte-2cr7a7");
-      attr(span2, "class", "tp-te-detail-label svelte-2cr7a7");
+      attr(input1, "class", "svelte-1aidivg");
+      attr(label1, "class", "tp-te-detail-field svelte-1aidivg");
+      attr(div0, "class", "tp-te-detail-grid svelte-1aidivg");
+      attr(span2, "class", "tp-te-detail-label svelte-1aidivg");
       attr(input2, "type", "text");
       attr(input2, "placeholder", "Room");
       input2.value = /*draftRoom*/
       ctx[26];
-      attr(input2, "class", "svelte-2cr7a7");
-      attr(label2, "class", "tp-te-detail-field svelte-2cr7a7");
-      attr(div1, "class", "tp-te-detail svelte-2cr7a7");
+      attr(input2, "class", "svelte-1aidivg");
+      attr(label2, "class", "tp-te-detail-field svelte-1aidivg");
+      attr(div1, "class", "tp-te-detail svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -15040,7 +15040,7 @@ function create_if_block_13(ctx) {
       span2.textContent = "Room";
       t7 = space();
       input2 = element("input");
-      attr(span0, "class", "tp-te-detail-label svelte-2cr7a7");
+      attr(span0, "class", "tp-te-detail-label svelte-1aidivg");
       attr(input0, "type", "time");
       input0.value = input0_value_value = slotStartOf(
         /*_ps*/
@@ -15048,9 +15048,9 @@ function create_if_block_13(ctx) {
         /*_pp*/
         ctx[191]
       );
-      attr(input0, "class", "svelte-2cr7a7");
-      attr(label0, "class", "tp-te-detail-field svelte-2cr7a7");
-      attr(span1, "class", "tp-te-detail-label svelte-2cr7a7");
+      attr(input0, "class", "svelte-1aidivg");
+      attr(label0, "class", "tp-te-detail-field svelte-1aidivg");
+      attr(span1, "class", "tp-te-detail-label svelte-1aidivg");
       attr(input1, "type", "number");
       attr(input1, "min", "1");
       attr(input1, "max", "480");
@@ -15059,10 +15059,10 @@ function create_if_block_13(ctx) {
         /*_ps*/
         ctx[192]
       );
-      attr(input1, "class", "svelte-2cr7a7");
-      attr(label1, "class", "tp-te-detail-field svelte-2cr7a7");
-      attr(div0, "class", "tp-te-detail-grid svelte-2cr7a7");
-      attr(span2, "class", "tp-te-detail-label svelte-2cr7a7");
+      attr(input1, "class", "svelte-1aidivg");
+      attr(label1, "class", "tp-te-detail-field svelte-1aidivg");
+      attr(div0, "class", "tp-te-detail-grid svelte-1aidivg");
+      attr(span2, "class", "tp-te-detail-label svelte-1aidivg");
       attr(input2, "type", "text");
       attr(input2, "placeholder", input2_placeholder_value = /*defaultRoomOf*/
       ctx[49](
@@ -15071,9 +15071,9 @@ function create_if_block_13(ctx) {
       ));
       input2.value = input2_value_value = /*_ps*/
       (_a2 = ctx[192].classroom) != null ? _a2 : "";
-      attr(input2, "class", "svelte-2cr7a7");
-      attr(label2, "class", "tp-te-detail-field svelte-2cr7a7");
-      attr(div1, "class", "tp-te-detail svelte-2cr7a7");
+      attr(input2, "class", "svelte-1aidivg");
+      attr(label2, "class", "tp-te-detail-field svelte-1aidivg");
+      attr(div1, "class", "tp-te-detail svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -15172,8 +15172,8 @@ function create_if_block_11(ctx) {
       t0 = text(" Remove");
       t1 = space();
       div = element("div");
-      attr(button, "class", "tp-te-picker-clear svelte-2cr7a7");
-      attr(div, "class", "tp-te-picker-divider svelte-2cr7a7");
+      attr(button, "class", "tp-te-picker-clear svelte-1aidivg");
+      attr(div, "class", "tp-te-picker-divider svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, button, anchor);
@@ -15228,7 +15228,7 @@ function create_if_block_8(ctx) {
         each_blocks[i].c();
       }
       each_1_anchor = empty();
-      attr(div, "class", "tp-te-picker-group-label svelte-2cr7a7");
+      attr(div, "class", "tp-te-picker-group-label svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -15287,7 +15287,7 @@ function create_if_block_10(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-picker-emoji svelte-2cr7a7");
+      attr(span, "class", "tp-te-picker-emoji svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -15316,7 +15316,7 @@ function create_if_block_9(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-2cr7a7");
+      attr(span, "class", "tp-te-picker-room svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -15392,9 +15392,9 @@ function create_each_block_5(ctx) {
       t3 = space();
       button1 = element("button");
       t4 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-2cr7a7");
-      attr(span1, "class", "tp-te-picker-item-text svelte-2cr7a7");
-      attr(button0, "class", "tp-te-picker-item svelte-2cr7a7");
+      attr(span0, "class", "tp-te-picker-code svelte-1aidivg");
+      attr(span1, "class", "tp-te-picker-item-text svelte-1aidivg");
+      attr(button0, "class", "tp-te-picker-item svelte-1aidivg");
       set_style(button0, "border-left", "3px solid " + /*cls*/
       ctx[177].colour);
       toggle_class(
@@ -15404,9 +15404,9 @@ function create_each_block_5(ctx) {
         ctx[177].id === /*pickerCurId*/
         ctx[38]
       );
-      attr(button1, "class", "tp-te-archive-btn svelte-2cr7a7");
+      attr(button1, "class", "tp-te-archive-btn svelte-1aidivg");
       attr(button1, "title", "Archive class");
-      attr(div, "class", "tp-te-picker-row svelte-2cr7a7");
+      attr(div, "class", "tp-te-picker-row svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -15577,8 +15577,8 @@ function create_if_block_6(ctx) {
         each_blocks[i].c();
       }
       each_1_anchor = empty();
-      attr(div0, "class", "tp-te-picker-divider svelte-2cr7a7");
-      attr(div1, "class", "tp-te-picker-group-label svelte-2cr7a7");
+      attr(div0, "class", "tp-te-picker-divider svelte-1aidivg");
+      attr(div1, "class", "tp-te-picker-group-label svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -15641,7 +15641,7 @@ function create_if_block_7(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-2cr7a7");
+      attr(span, "class", "tp-te-picker-room svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -15710,9 +15710,9 @@ function create_each_block_3(ctx) {
       t2 = space();
       button1 = element("button");
       t3 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-2cr7a7");
-      attr(span1, "class", "tp-te-picker-item-text svelte-2cr7a7");
-      attr(button0, "class", "tp-te-picker-item svelte-2cr7a7");
+      attr(span0, "class", "tp-te-picker-code svelte-1aidivg");
+      attr(span1, "class", "tp-te-picker-item-text svelte-1aidivg");
+      attr(button0, "class", "tp-te-picker-item svelte-1aidivg");
       set_style(button0, "border-left", "3px solid " + /*act*/
       ctx[174].colour);
       toggle_class(
@@ -15722,9 +15722,9 @@ function create_each_block_3(ctx) {
         ctx[174].id === /*pickerCurId*/
         ctx[38]
       );
-      attr(button1, "class", "tp-te-archive-btn svelte-2cr7a7");
+      attr(button1, "class", "tp-te-archive-btn svelte-1aidivg");
       attr(button1, "title", "Archive activity");
-      attr(div, "class", "tp-te-picker-row svelte-2cr7a7");
+      attr(div, "class", "tp-te-picker-row svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -15818,8 +15818,8 @@ function create_if_block_4(ctx) {
         each_blocks[i].c();
       }
       each_1_anchor = empty();
-      attr(div0, "class", "tp-te-picker-divider svelte-2cr7a7");
-      attr(div1, "class", "tp-te-picker-group-label svelte-2cr7a7");
+      attr(div0, "class", "tp-te-picker-divider svelte-1aidivg");
+      attr(div1, "class", "tp-te-picker-group-label svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div0, anchor);
@@ -15882,7 +15882,7 @@ function create_if_block_5(ctx) {
     c() {
       span = element("span");
       t = text(t_value);
-      attr(span, "class", "tp-te-picker-room svelte-2cr7a7");
+      attr(span, "class", "tp-te-picker-room svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, span, anchor);
@@ -15951,9 +15951,9 @@ function create_each_block_2(ctx) {
       t2 = space();
       button1 = element("button");
       t3 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-2cr7a7");
-      attr(span1, "class", "tp-te-picker-item-text svelte-2cr7a7");
-      attr(button0, "class", "tp-te-picker-item svelte-2cr7a7");
+      attr(span0, "class", "tp-te-picker-code svelte-1aidivg");
+      attr(span1, "class", "tp-te-picker-item-text svelte-1aidivg");
+      attr(button0, "class", "tp-te-picker-item svelte-1aidivg");
       set_style(button0, "border-left", "3px solid " + /*act*/
       ctx[174].colour);
       toggle_class(
@@ -15963,9 +15963,9 @@ function create_each_block_2(ctx) {
         ctx[174].id === /*pickerCurId*/
         ctx[38]
       );
-      attr(button1, "class", "tp-te-archive-btn svelte-2cr7a7");
+      attr(button1, "class", "tp-te-archive-btn svelte-1aidivg");
       attr(button1, "title", "Archive activity");
-      attr(div, "class", "tp-te-picker-row svelte-2cr7a7");
+      attr(div, "class", "tp-te-picker-row svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -16061,8 +16061,8 @@ function create_if_block_2(ctx) {
       t2 = space();
       if (if_block) if_block.c();
       if_block_anchor = empty();
-      attr(div, "class", "tp-te-picker-divider svelte-2cr7a7");
-      attr(button, "class", "tp-te-show-archived-btn svelte-2cr7a7");
+      attr(div, "class", "tp-te-picker-divider svelte-1aidivg");
+      attr(button, "class", "tp-te-show-archived-btn svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -16253,15 +16253,15 @@ function create_each_block_14(ctx) {
       t0 = text(t0_value);
       t1 = space();
       button = element("button");
-      attr(span0, "class", "tp-te-picker-code svelte-2cr7a7");
-      attr(span1, "class", "tp-te-picker-item-text svelte-2cr7a7");
-      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-2cr7a7");
+      attr(span0, "class", "tp-te-picker-code svelte-1aidivg");
+      attr(span1, "class", "tp-te-picker-item-text svelte-1aidivg");
+      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-1aidivg");
       set_style(span2, "border-left", "3px solid " + /*cls*/
       ctx[177].colour);
       set_style(span2, "opacity", "0.5");
-      attr(button, "class", "tp-te-archive-btn svelte-2cr7a7");
+      attr(button, "class", "tp-te-archive-btn svelte-1aidivg");
       attr(button, "title", "Restore");
-      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-2cr7a7");
+      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -16335,15 +16335,15 @@ function create_each_block2(ctx) {
       t1 = space();
       button = element("button");
       t2 = space();
-      attr(span0, "class", "tp-te-picker-code svelte-2cr7a7");
-      attr(span1, "class", "tp-te-picker-item-text svelte-2cr7a7");
-      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-2cr7a7");
+      attr(span0, "class", "tp-te-picker-code svelte-1aidivg");
+      attr(span1, "class", "tp-te-picker-item-text svelte-1aidivg");
+      attr(span2, "class", "tp-te-picker-item tp-te-picker-item--archived svelte-1aidivg");
       set_style(span2, "border-left", "3px solid " + /*act*/
       ctx[174].colour);
       set_style(span2, "opacity", "0.5");
-      attr(button, "class", "tp-te-archive-btn svelte-2cr7a7");
+      attr(button, "class", "tp-te-archive-btn svelte-1aidivg");
       attr(button, "title", "Restore");
-      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-2cr7a7");
+      attr(div, "class", "tp-te-picker-row tp-te-picker-row--archived svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div, anchor);
@@ -16412,13 +16412,13 @@ function create_if_block2(ctx) {
       t5 = space();
       button2 = element("button");
       button2.textContent = "Keep editing";
-      attr(p, "class", "tp-te-unsaved-msg svelte-2cr7a7");
-      attr(button0, "class", "tp-te-btn tp-te-btn-primary svelte-2cr7a7");
-      attr(button1, "class", "tp-te-btn tp-te-btn-danger svelte-2cr7a7");
-      attr(button2, "class", "tp-te-btn svelte-2cr7a7");
-      attr(div0, "class", "tp-te-unsaved-actions svelte-2cr7a7");
-      attr(div1, "class", "tp-te-unsaved-dialog svelte-2cr7a7");
-      attr(div2, "class", "tp-te-unsaved-overlay svelte-2cr7a7");
+      attr(p, "class", "tp-te-unsaved-msg svelte-1aidivg");
+      attr(button0, "class", "tp-te-btn tp-te-btn-primary svelte-1aidivg");
+      attr(button1, "class", "tp-te-btn tp-te-btn-danger svelte-1aidivg");
+      attr(button2, "class", "tp-te-btn svelte-1aidivg");
+      attr(div0, "class", "tp-te-unsaved-actions svelte-1aidivg");
+      attr(div1, "class", "tp-te-unsaved-dialog svelte-1aidivg");
+      attr(div2, "class", "tp-te-unsaved-overlay svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div2, anchor);
@@ -16542,10 +16542,10 @@ function create_fragment2(ctx) {
       t9 = space();
       button1 = element("button");
       button1.textContent = "Save Timetable";
-      attr(button0, "class", "tp-te-btn svelte-2cr7a7");
-      attr(button1, "class", "tp-te-btn tp-te-btn-primary svelte-2cr7a7");
-      attr(div0, "class", "tp-te-footer svelte-2cr7a7");
-      attr(div1, "class", "tp-te-wrap svelte-2cr7a7");
+      attr(button0, "class", "tp-te-btn svelte-1aidivg");
+      attr(button1, "class", "tp-te-btn tp-te-btn-primary svelte-1aidivg");
+      attr(div0, "class", "tp-te-footer svelte-1aidivg");
+      attr(div1, "class", "tp-te-wrap svelte-1aidivg");
     },
     m(target, anchor) {
       insert(target, div1, anchor);
@@ -18187,6 +18187,7 @@ function randomPaletteColour() {
 var AddDateEventModal = class extends import_obsidian15.Modal {
   constructor(app, plugin, existingEvent, onSaved, prefillDate, prefillPeriodId) {
     super(app);
+    this._vvCleanup = null;
     this.plugin = plugin;
     this.existingEvent = existingEvent;
     this.onSaved = onSaved;
@@ -18211,6 +18212,24 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
     if (import_obsidian15.Platform.isMobile) {
       this.modalEl.addClass("tp-date-event-modal--mobile");
       contentEl.addClass("tp-date-event-modal--mobile");
+      const vv = window.visualViewport;
+      if (vv) {
+        const apply = () => {
+          this.modalEl.style.height = vv.height + "px";
+          this.modalEl.style.top = vv.offsetTop + "px";
+        };
+        apply();
+        vv.addEventListener("resize", apply);
+        vv.addEventListener("scroll", apply);
+        this._vvCleanup = () => {
+          vv.removeEventListener("resize", apply);
+          vv.removeEventListener("scroll", apply);
+        };
+        contentEl.addEventListener("focusin", (e) => {
+          const t = e.target;
+          if (t) window.setTimeout(() => t.scrollIntoView({ block: "center" }), 60);
+        });
+      }
     }
     const isEdit = !!this.existingEvent;
     const directedTimeEnabled = (_b2 = (_a2 = this.plugin.settings.directedTime) == null ? void 0 : _a2.enabled) != null ? _b2 : false;
@@ -18728,6 +18747,9 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
     if (!isEdit) window.setTimeout(() => titleInput.focus(), 50);
   }
   onClose() {
+    var _a2;
+    (_a2 = this._vvCleanup) == null ? void 0 : _a2.call(this);
+    this._vvCleanup = null;
     this.contentEl.empty();
   }
 };

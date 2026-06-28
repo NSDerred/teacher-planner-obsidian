@@ -151,3 +151,20 @@ The timetable editor was a wide time-axis grid (600px min-width modal), unusable
 - Files: src/modals/TimetableEditorComponent.svelte, src/modals/TimetableEditorModal.ts, styles.css
 - svelte-check 0/0, tsc clean, production build OK; file-integrity-guard passed. Pending phone test.
 
+---
+
+## fix(mobile): keyboard-aware add-event sheet, calendar sizing, timetable alignment + padding
+
+Four fixes after device testing.
+
+- Add event keyboard: 100dvh did not shrink for the soft keyboard in Obsidian's mobile webview, so lower fields stayed hidden with nothing to scroll. The sheet is now sized to window.visualViewport (height + top, updated on its resize/scroll), so the visible area shrinks above the keyboard, the content overflows and scrolls, and the sticky footer stays above the keyboard. Focused fields scroll into view. Sheet set position:fixed so the JS values drive its box. Listeners cleaned up on close.
+
+- Calendar sizing/centring: the modal box stayed at Obsidian's default (huge) width because only the content was sized, leaving the calendar floating top-left on desktop and capped at 330px on mobile. Now the modal element itself is min(340px, 94vw) with min-width:0 and content at 100% — a compact centred box on desktop, and on mobile it scales up to fill the screen instead of squashing.
+
+- Timetable "+ assign" alignment: in empty rows the "+ assign" now right-aligns (margin-left:auto, fixed width) and the period-name column takes flexible width with wrapping, so long names like "Period 8/Pick Up" no longer overlap it.
+
+- Timetable padding: increased the editor's top padding (clears the status bar) and bottom padding (clears the Android nav bar) using safe-area insets with solid floors, and nudged the close button below the status bar — Cancel/Save no longer sit under the system buttons.
+
+- Files: src/modals/AddDateEventModal.ts, src/modals/TimetableEditorComponent.svelte, styles.css
+- svelte-check 0/0, tsc clean, production build OK; file-integrity-guard passed.
+
