@@ -1358,21 +1358,47 @@
               {@const aEvents = _dateEventMap[day.key + ":" + period.id] ?? []}
               {#if aSlot}
                 {@const sl = getSlotLabel(aSlot)}
-                <button class="tp-agenda-row" style="--chip-fg:{chipFg(sl.colour, _themeBg)}; border-left:3px solid {sl.colour}; background:{hexToRgba(sl.colour,0.16)};"
-                  on:click={(e) => openChipMenu(e, "slot", aDate, period.id, aSlot)}>
+                {@const aPrep = _preparedSlotMap[aSlot.id + "|" + aDate]}
+                {@const aPlan = _slotPlanMap[aSlot.id + "|" + aDate]}
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <div class="tp-agenda-row" role="button" tabindex="0" style="--chip-fg:{chipFg(sl.colour, _themeBg)}; border-left:3px solid {sl.colour}; background:{hexToRgba(sl.colour,0.16)};"
+                  on:click={(e) => openChipMenu(e, "slot", aDate, period.id, aSlot)} on:keydown={onCardKeydown}>
                   <span class="tp-agenda-period">{period.name}</span>
                   <span class="tp-agenda-main">{subjectEmoji(aSlot.classId)} {sl.code}{#if sl.subjectName} · {sl.subjectName}{/if}</span>
                   {#if effRoom(aSlot.id, aDate, sl.classroom)}<span class="tp-agenda-room">{effRoom(aSlot.id, aDate, sl.classroom)}</span>{/if}
-                </button>
+                  <span class="tp-agenda-marks">
+                    {#if _showPrepared && isClassId(aSlot.classId)}
+                      <button class="tp-prep-tick" class:tp-prep-tick--on={aPrep} aria-label="Toggle lesson prepared" aria-pressed={aPrep}
+                        on:click|stopPropagation={() => toggleSlotPrep(aSlot, aDate)} use:obsIcon={"check"}></button>
+                    {/if}
+                    {#if aPlan}
+                      <button class="tp-plan-mark tp-plan-mark--linked" aria-label="Open lesson plan"
+                        on:click|stopPropagation={() => openPlan(aPlan)} use:obsIcon={"file-text"}></button>
+                    {/if}
+                  </span>
+                </div>
               {/if}
               {#each aEvents as aEv (aEv.id)}
                 {@const el = getDateEventLabel(aEv)}
-                <button class="tp-agenda-row tp-agenda-row--event" style="--chip-fg:{chipFg(el.colour, _themeBg)}; border-left:3px solid {el.colour}; background:{hexToRgba(el.colour,0.16)};"
-                  on:click={(e) => openChipMenu(e, "event", aDate, period.id, undefined, aEv)}>
+                {@const aeP = _preparedEventMap[aEv.id]}
+                {@const aePlan = _eventPlanMap[aEv.id]}
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <div class="tp-agenda-row tp-agenda-row--event" role="button" tabindex="0" style="--chip-fg:{chipFg(el.colour, _themeBg)}; border-left:3px solid {el.colour}; background:{hexToRgba(el.colour,0.16)};"
+                  on:click={(e) => openChipMenu(e, "event", aDate, period.id, undefined, aEv)} on:keydown={onCardKeydown}>
                   <span class="tp-agenda-period">{period.name}</span>
                   <span class="tp-agenda-main">{el.code}{#if el.meta} · {el.meta}{/if}</span>
                   {#if el.classroom}<span class="tp-agenda-room">{el.classroom}</span>{/if}
-                </button>
+                  <span class="tp-agenda-marks">
+                    {#if _showPrepared && (isClassId(aEv.classId) || !!(aEv.title && aEv.title.trim()))}
+                      <button class="tp-prep-tick" class:tp-prep-tick--on={aeP} aria-label="Toggle prepared" aria-pressed={aeP}
+                        on:click|stopPropagation={() => toggleEventPrep(aEv)} use:obsIcon={"check"}></button>
+                    {/if}
+                    {#if aePlan}
+                      <button class="tp-plan-mark tp-plan-mark--linked" aria-label="Open lesson plan"
+                        on:click|stopPropagation={() => openPlan(aePlan)} use:obsIcon={"file-text"}></button>
+                    {/if}
+                  </span>
+                </div>
               {/each}
             {/each}
             {#if !dayHasItems(day)}<div class="tp-agenda-empty">No lessons</div>{/if}
@@ -1934,6 +1960,8 @@
   .tp-agenda-period { font-size:11px; color:var(--text-muted); min-width:64px; flex-shrink:0; }
   .tp-agenda-main { flex:1; min-width:0; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-agenda-room { font-size:11px; font-style:italic; color:var(--text-muted); flex-shrink:0; }
+  .tp-agenda-marks { --mark-size:18px; display:flex; gap:6px; align-items:center; flex-shrink:0; margin-left:4px; }
+  .tp-agenda-row .tp-prep-tick { opacity:0.6; }
   .tp-agenda-empty { font-size:12px; color:var(--text-faint); padding:2px 4px 6px; font-style:italic; }
   /* ── Mobile day card list ─────────────────────────────────────────────── */
   .tp-daylist { flex:1; min-height:0; overflow:auto; padding:8px 10px; display:flex; flex-direction:column; gap:6px; }

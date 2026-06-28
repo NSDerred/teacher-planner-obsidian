@@ -51,3 +51,12 @@ Mobile chrome reorganised to the agreed layout 3, avoiding a bottom bar/FAB. The
 - File: `src/views/WeekView.svelte`
 - Status: built (svelte-check 0/0/0, production build OK); needs phone testing.
 
+---
+
+## feat(week-view): agenda rows as tappable cards with indicators (mobile chunk 3)
+
+Polish the mobile Agenda view: each row is now a `div role="button"` (so it can hold nested action buttons) and carries the desktop indicator icons — prepared tick (tap to toggle) and lesson-plan link — on the right, reusing the prepared/plan maps and toggles. Enter/Space activation via `onCardKeydown`; the prepared tick is always visible on mobile (no hover). New `.tp-agenda-marks` style. Tinting/auto-contrast was already applied to agenda rows in 0.3.3 chunk 0.
+
+- File: `src/views/WeekView.svelte`
+- Status: built (svelte-check 0/0/0, production build OK); needs phone testing.
+
