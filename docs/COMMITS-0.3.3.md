@@ -196,3 +196,13 @@ Four fixes after device testing.
 - Files: styles.css, src/settings/SettingsTab.ts
 - tsc clean, production build OK; file-integrity-guard passed.
 
+---
+
+## style(css): clear Obsidian bot CSS-lint warnings
+
+Three warnings from the community plugin reviewer, all cosmetic:
+- Dropped the duplicate `height`/`max-height` (the 100vh fallbacks before 100dvh) on the Add event sheet; the sheet is sized by JS on open anyway, so a single 100dvh value is enough.
+- Removed `!important` from the mobile settings collapsible-header rule, winning instead by specificity (`.is-mobile .tp-collapsible-header.setting-item-heading`).
+
+No behaviour change. File: styles.css. svelte-check 0/0, tsc clean, production build OK.
+

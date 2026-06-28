@@ -1422,9 +1422,7 @@
   left: 0;
   width: 100vw;
   max-width: 100vw;
-  height: 100vh;
   height: 100dvh;
-  max-height: 100vh;
   max-height: 100dvh;
   border-radius: 0;
   padding: 0;
@@ -1524,8 +1522,8 @@
 /* ── Settings: mobile tidy-ups (full redesign deferred to 0.3.5) ───────────── */
 /* Keep the collapsible section chevron on the same line as its title (Obsidian
    forces .setting-item to column layout on mobile, which drops it onto its own row). */
-.is-mobile .tp-collapsible-header {
-  flex-direction: row !important;
+.is-mobile .tp-collapsible-header.setting-item-heading {
+  flex-direction: row;
   align-items: center;
   flex-wrap: nowrap;
 }
