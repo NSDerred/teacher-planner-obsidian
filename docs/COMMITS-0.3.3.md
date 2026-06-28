@@ -33,3 +33,12 @@ Extend the chip auto-contrast to the mobile Agenda view. The agenda rows paint t
 - File: `src/views/WeekView.svelte`
 - Status: built (svelte-check 0/0, production build OK); awaiting in-app confirmation on mobile.
 
+---
+
+## feat(week-view): mobile Day view as an equal-card list (mobile chunk 1)
+
+Replace the mobile Day mode (previously the single-day time-axis) with an equal-height card list. Each filled period renders a card: lesson cards show 3 lines (class with subject emoji / year · subject · room / notes, one line with ellipsis) plus the desktop indicator icons (tick toggles prepared, plan icon opens the plan; external file/folder marker hidden on mobile). Empty periods and breaks render as slim tap-to-add rows; a duty/event inserted into a non-teaching slot becomes a full card. Tapping a card opens the same chip menu (`openChipMenu`); a small `onCardKeydown` gives Enter/Space activation. New `.tp-daylist` / `.tp-dcard` / `.tp-dslim` styles; reuses `chipFg`, prepared/plan maps and toggles. Only active on `Platform.isMobile`, Day mode.
+
+- File: `src/views/WeekView.svelte`
+- Status: built (svelte-check 0/0/0, production build OK); needs in-app testing on a phone (Day mode is mobile-only).
+

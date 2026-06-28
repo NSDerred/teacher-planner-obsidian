@@ -951,6 +951,14 @@
 
 
   // ── Event picker modal ────────────────────────────────────────────────────
+  // Day-card keyboard activation: Enter/Space dispatches a click so the chip menu opens.
+  function onCardKeydown(e: KeyboardEvent): void {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    }
+  }
+
   function openEventPicker(e: MouseEvent, dayDate: string, periodId: string) {
     e.stopPropagation();
     onAddEvent(dayDate, periodId);
@@ -1246,7 +1254,82 @@
     </div>
   {/if}
 
-  {#if isAgendaMode}
+  {#if isDayMode}
+    {@const dDate = dayISODate(selectedDay.offset, currentMonday)}
+    {@const dOverride = dayOverrideMap[selectedDay.key]}
+    <div class="tp-daylist">
+      {#if dOverride}
+        <div class="tp-daylist-empty">{dOverride === "holiday" ? "Holiday" : "INSET day"}</div>
+      {:else}
+        {#each getPeriodsForDay(plugin.settings.academicYear, selectedDay.key) as period (period.id)}
+          {@const dRaw = _slotMap[selectedDay.key + ":" + period.id]}
+          {@const dSlot = dRaw && !isSlotExcluded(dRaw.id, dDate) ? dRaw : undefined}
+          {@const dEvents = _dateEventMap[selectedDay.key + ":" + period.id] ?? []}
+          {#if dSlot}
+            {@const lbl = getSlotLabel(dSlot)}
+            {@const planPath = _slotPlanMap[dSlot.id + "|" + dDate]}
+            {@const prep = _preparedSlotMap[dSlot.id + "|" + dDate]}
+            {@const dNote = effNote(dSlot.id, dDate, lbl.notes)}
+            {@const dRoom = effRoom(dSlot.id, dDate, lbl.classroom)}
+            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <div class="tp-dcard" role="button" tabindex="0"
+              style="--chip-fg:{chipFg(lbl.colour, _themeBg)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour, 0.16)};"
+              on:click={(e) => openChipMenu(e, "slot", dDate, period.id, dSlot)} on:keydown={onCardKeydown}>
+              <div class="tp-dcard-time">{period.name}<br><span>{period.start}</span></div>
+              <div class="tp-dcard-body">
+                <div class="tp-dcard-code">{subjectEmoji(dSlot.classId)} {lbl.code}</div>
+                <div class="tp-dcard-sub">{[lbl.year, lbl.subjectName].filter(Boolean).join(" · ")}{#if dRoom} · {dRoom}{/if}</div>
+                <div class="tp-dcard-note">{dNote || "No notes"}</div>
+              </div>
+              <div class="tp-dcard-marks">
+                {#if _showPrepared && isClassId(dSlot.classId)}
+                  <button class="tp-prep-tick" class:tp-prep-tick--on={prep} aria-label="Toggle lesson prepared" aria-pressed={prep}
+                    on:click|stopPropagation={() => toggleSlotPrep(dSlot, dDate)} use:obsIcon={"check"}></button>
+                {/if}
+                {#if planPath}
+                  <button class="tp-plan-mark tp-plan-mark--linked" aria-label="Open lesson plan"
+                    on:click|stopPropagation={() => openPlan(planPath)} use:obsIcon={"file-text"}></button>
+                {/if}
+              </div>
+            </div>
+          {/if}
+          {#each dEvents as dEv (dEv.id)}
+            {@const elbl = getDateEventLabel(dEv)}
+            {@const eplan = _eventPlanMap[dEv.id]}
+            {@const eprep = _preparedEventMap[dEv.id]}
+            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <div class="tp-dcard" role="button" tabindex="0"
+              style="--chip-fg:{chipFg(elbl.colour, _themeBg)}; border-left:3px solid {elbl.colour}; background:{hexToRgba(elbl.colour, 0.16)};"
+              on:click={(e) => openChipMenu(e, "event", dDate, period.id, undefined, dEv)} on:keydown={onCardKeydown}>
+              <div class="tp-dcard-time">{period.name}<br><span>{period.start}</span></div>
+              <div class="tp-dcard-body">
+                <div class="tp-dcard-code">{elbl.code}</div>
+                <div class="tp-dcard-sub">{elbl.meta}{#if elbl.classroom} · {elbl.classroom}{/if}</div>
+                {#if elbl.notes}<div class="tp-dcard-note">{elbl.notes}</div>{/if}
+              </div>
+              <div class="tp-dcard-marks">
+                {#if _showPrepared && (isClassId(dEv.classId) || !!(dEv.title && dEv.title.trim()))}
+                  <button class="tp-prep-tick" class:tp-prep-tick--on={eprep} aria-label="Toggle prepared" aria-pressed={eprep}
+                    on:click|stopPropagation={() => toggleEventPrep(dEv)} use:obsIcon={"check"}></button>
+                {/if}
+                {#if eplan}
+                  <button class="tp-plan-mark tp-plan-mark--linked" aria-label="Open lesson plan"
+                    on:click|stopPropagation={() => openPlan(eplan)} use:obsIcon={"file-text"}></button>
+                {/if}
+              </div>
+            </div>
+          {/each}
+          {#if !dSlot && dEvents.length === 0}
+            <button class="tp-dslim" on:click={(e) => openEventPicker(e, dDate, period.id)} aria-label={"Add event to " + period.name}>
+              <span class="tp-dslim-time">{period.start}</span>
+              <span class="tp-dslim-name">{period.name}</span>
+              <span class="tp-dslim-add">＋</span>
+            </button>
+          {/if}
+        {/each}
+      {/if}
+    </div>
+  {:else if isAgendaMode}
     <div class="tp-agenda">
       {#each DAYS as day}
         {@const aDate = dayISODate(day.offset, currentMonday)}
@@ -1838,5 +1921,22 @@
   .tp-agenda-main { flex:1; min-width:0; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-agenda-room { font-size:11px; font-style:italic; color:var(--text-muted); flex-shrink:0; }
   .tp-agenda-empty { font-size:12px; color:var(--text-faint); padding:2px 4px 6px; font-style:italic; }
+  /* ── Mobile day card list ─────────────────────────────────────────────── */
+  .tp-daylist { flex:1; min-height:0; overflow:auto; padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
+  .tp-daylist-empty { font-size:13px; color:var(--text-faint); font-style:italic; padding:14px; text-align:center; }
+  .tp-dcard { display:flex; gap:10px; align-items:flex-start; width:100%; text-align:left; border:none; border-radius:0 9px 9px 0; padding:9px 11px; min-height:62px; box-sizing:border-box; cursor:pointer; color:var(--chip-fg, var(--text-normal)); font-family:var(--font-interface); }
+  .tp-dcard:active { filter:brightness(1.06); }
+  .tp-dcard-time { font-size:11px; color:var(--text-muted); width:40px; flex-shrink:0; line-height:1.3; }
+  .tp-dcard-time span { font-size:10px; opacity:0.8; }
+  .tp-dcard-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+  .tp-dcard-code { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-dcard-sub { font-size:11px; color:var(--chip-fg, var(--text-normal)); opacity:0.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-dcard-note { font-size:11px; color:var(--chip-fg, var(--text-normal)); opacity:0.62; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-dcard-marks { --mark-size:20px; display:flex; gap:8px; align-items:center; flex-shrink:0; padding-top:1px; }
+  .tp-dcard .tp-prep-tick { opacity:0.6; }
+  .tp-dslim { display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; background:var(--background-secondary); border-radius:8px; padding:6px 11px; min-height:34px; box-sizing:border-box; cursor:pointer; color:var(--text-muted); font-family:var(--font-interface); }
+  .tp-dslim-time { font-size:11px; color:var(--text-faint); width:40px; flex-shrink:0; }
+  .tp-dslim-name { flex:1; font-size:11px; }
+  .tp-dslim-add { font-size:15px; color:var(--text-faint); }
 
 </style>
