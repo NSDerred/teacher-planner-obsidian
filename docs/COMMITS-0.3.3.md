@@ -109,3 +109,20 @@ Follow-up fixes after on-device testing.
 - Files: `src/views/WeekView.svelte`, `styles.css`
 - svelte-check 0/0, tsc clean, production build OK. Pending phone re-test.
 
+---
+
+## feat(mobile): shared calendar, lessons spacer, agenda top gap, uniform add-event fields
+
+Round of mobile polish after testing.
+
+- Universal date picker: new shared `DatePickerModal` (clean month-grid look from the mobile main planner) now backs every date jump. The week view (mobile and desktop) opens it from the date button instead of the old native-date popover, and the Lessons overview opens it from a "Jump to date" button instead of its `type="date"` input. One consistent calendar across the plugin. Removed the now-dead inline calendar markup, the desktop jump popover, and their CSS/state. (The separate calendar sidebar component is unchanged.)
+
+- Lessons overview spacer: added the same `tp-mobile-tail`-style spacer (`tp-lo-tail`) to the bottom of the lesson list on mobile so the last lesson clears Obsidian's floating navbar.
+
+- Week (agenda) top gap: removed the empty band under the tabs by dropping the agenda's top padding so the first day header sits snug below the tab bar (the band where the day-strip sits in Day view).
+
+- Add event field shapes: forced every control in the mobile sheet (text/date/time/number inputs, select, period field, Auto and colour buttons) to a uniform 8px rounded rectangle, overriding Obsidian's pill-shaped mobile defaults via a higher-specificity selector.
+
+- Files: `src/modals/DatePickerModal.ts` (new), `src/views/WeekView.svelte`, `src/modals/LessonOverviewComponent.svelte`, `styles.css`
+- svelte-check 0/0, tsc clean, production build OK. Pending phone re-test.
+

@@ -8,6 +8,7 @@
   import { shiftForward, shiftBackward, snapshotState, restoreState, type ShiftSnapshot } from "../utils/lessonShiftApply";
   import { applyNoteMoves, reverseNoteMoves, type NoteUndoOp, lessonNoteDefaultTitle, findLessonNoteByTitle, createLessonNoteFile } from "../utils/lessonNoteFiles";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
+  import { DatePickerModal } from "../modals/DatePickerModal";
   import { getMondayOfWeek } from "../utils/weekUtils";
   import { openSystemPath, openOSFilePicker, openOSFolderPicker } from "../utils/exportDestination";
   import { ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
@@ -190,6 +191,15 @@
     const el = listEl?.querySelector<HTMLElement>(`[data-week="${m}"]`);
     if (el) el.scrollIntoView({ block: "start" });
   }
+  function openJump() {
+    const ay = plugin.settings.academicYear;
+    new DatePickerModal(plugin.app, {
+      value: jump || todayIso,
+      min: ay?.startDate,
+      max: ay?.endDate,
+      onPick: (iso) => { jump = iso; jumpTo(); },
+    }).open();
+  }
 
   // Prepared-tick contrast: pick black/white from --color-green's luminance so the
   // tick stays visible on light or dark theme greens.
@@ -245,10 +255,10 @@
   {#if selectedClassId}
     <div class="tp-lo-subhead">
       <h3 class="tp-lo-title">{emojiFor(selectedClass)} {selectedClass?.code ?? ""} · lessons</h3>
-      <label class="tp-lo-jump" title="Jump to a date">
+      <button class="tp-lo-jump" title="Jump to a date" on:click={openJump} aria-label="Jump to a date">
         <span use:obsIcon={"calendar-search"}></span>
-        <input type="date" bind:value={jump} on:change={jumpTo} />
-      </label>
+        <span class="tp-lo-jump-label">Jump to date</span>
+      </button>
     </div>
     <div class="tp-lo-list" bind:this={listEl}>
       {#each weeks as w (w.weekKey)}
@@ -337,6 +347,7 @@
       {/if}
 
       {#if occurrences.length === 0}<div class="tp-lo-empty">No lessons for this class this year.</div>{/if}
+      {#if isMobile}<div class="tp-lo-tail" aria-hidden="true"></div>{/if}
     </div>
 
     {#if toast}
@@ -375,9 +386,10 @@
   .tp-lo-card-sub { display:block; font-size:12px; color:var(--text-muted); margin-top:2px; }
   .tp-lo-card-next { display:block; font-size:12px; color:var(--text-faint); margin-top:4px; }
 
-  .tp-lo-jump { display:inline-flex; align-items:center; gap:5px; color:var(--text-muted); }
+  .tp-lo-jump { display:inline-flex; align-items:center; gap:5px; font-size:12px; padding:5px 9px; border:1px solid var(--background-modifier-border); border-radius:8px; background:var(--background-primary); color:var(--text-muted); cursor:pointer; font-family:var(--font-interface); }
+  .tp-lo-jump:hover { background:var(--background-modifier-hover); }
   .tp-lo-jump :global(svg) { width:15px; height:15px; }
-  .tp-lo-jump input { font-size:12px; padding:3px 5px; border:1px solid var(--background-modifier-border); border-radius:5px; background:var(--background-modifier-form-field); color:var(--text-normal); }
+  .tp-lo-tail { flex:0 0 auto; height:calc(96px + env(safe-area-inset-bottom, 0px)); }
 
   .tp-lo-list { overflow-y:auto; min-height:0; flex:1 1 auto; border:1px solid var(--background-modifier-border); border-radius:8px; }
   .tp-lo-weekhead { position:sticky; top:0; z-index:1; display:flex; align-items:center; gap:8px; padding:9px 13px; background:var(--background-secondary); font-size:16px; font-weight:600; color:var(--interactive-accent); border-bottom:1px solid var(--background-modifier-border); }

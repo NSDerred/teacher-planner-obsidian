@@ -16,6 +16,7 @@
   import { SlotNotesModal } from "../modals/SlotNotesModal";
   import { ColourPickerModal, ConfirmModal, TextPromptModal, confirmDelete } from "../settings/SettingsTab";
   import { AddDateEventModal } from "../modals/AddDateEventModal";
+  import { DatePickerModal } from "../modals/DatePickerModal";
   import { lessonNoteFrontmatter } from "../utils/lessonNoteFiles";
   import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
   import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
@@ -863,7 +864,6 @@
   }
 
   // ── Jump-to-date (week-nav centre) ────────────────────────────────────────
-  let jumpOpen = false;
   function isoOf(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   }
@@ -874,41 +874,17 @@
     const d = new Date(iso + "T12:00:00");
     const s = _ayStart(); const e = _ayEnd();
     currentDate = d < s ? s : d > e ? e : d;
-    jumpOpen = false;
-  }
-  function onJumpChange(e: Event) {
-    jumpToDate((e.currentTarget as HTMLInputElement).value);
   }
 
-  // ── Full calendar picker (mobile) ─────────────────────────────────────────
-  let calOpen = false;
-  let calMonth = new Date();
-  const CAL_DOW = ["M", "T", "W", "T", "F", "S", "S"];
-  function openCalendar() {
-    const base = isDayMode ? currentDate : currentMonday;
-    calMonth = new Date(base.getFullYear(), base.getMonth(), 1);
-    calOpen = true;
+  // ── Date picker (shared modal, mobile + desktop) ──────────────────────────
+  function openDatePicker() {
+    new DatePickerModal(plugin.app, {
+      value: isoOf(isDayMode ? currentDate : currentMonday),
+      min: plugin.settings.academicYear.startDate,
+      max: plugin.settings.academicYear.endDate,
+      onPick: (iso) => jumpToDate(iso),
+    }).open();
   }
-  function calShift(n: number) {
-    calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + n, 1);
-  }
-  $: calMonthLabel = calMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" });
-  $: calGrid = (() => {
-    const y = calMonth.getFullYear(), m = calMonth.getMonth();
-    const lead = (new Date(y, m, 1).getDay() + 6) % 7;
-    const days = new Date(y, m + 1, 0).getDate();
-    const s2 = _ayStart(), e2 = _ayEnd();
-    const cells: Array<{ blank: boolean; day: number; iso: string; inRange: boolean }> = [];
-    for (let i = 0; i < lead; i++) cells.push({ blank: true, day: 0, iso: "", inRange: false });
-    for (let d = 1; d <= days; d++) {
-      const dt = new Date(y, m, d, 12);
-      cells.push({ blank: false, day: d, iso: isoOf(dt), inRange: dt >= s2 && dt <= e2 });
-    }
-    return cells;
-  })();
-  function calPick(iso: string) { jumpToDate(iso); calOpen = false; }
-  function calIsSelected(iso: string): boolean { return iso === isoOf(isDayMode ? currentDate : currentMonday); }
-  function calIsToday(iso: string): boolean { return iso === isoOf(new Date()); }
 
   // ── Mobile: clear Obsidian's floating navbar at the bottom of the list ─────
   let _mobilePad = 68;
@@ -1253,22 +1229,12 @@
     <nav class="tp-nav" aria-label="Week navigation">
       <button class="tp-btn tp-nav-arrow" on:click={onPrev} aria-label="Previous" title="Previous" disabled={!canGoPrev} use:obsIcon={"arrow-left"}></button>
       <div class="tp-nav-jump">
-        <button class="tp-btn tp-nav-centre" on:click={() => _isMobileApp ? openCalendar() : (jumpOpen = !jumpOpen)}
-          aria-haspopup="true" aria-expanded={jumpOpen} title="Jump to a date">
+        <button class="tp-btn tp-nav-centre" on:click={openDatePicker}
+          aria-haspopup="dialog" title="Jump to a date">
           <span class="tp-nav-centre-icon" use:obsIcon={"calendar"}></span>
           <span class="tp-nav-centre-label">{navCentreLabel}</span>
           <span class="tp-nav-caret">▾</span>
         </button>
-        {#if jumpOpen}
-          <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-          <div class="tp-nav-backdrop" on:click={() => jumpOpen = false}></div>
-          <div class="tp-nav-pop">
-            <input class="tp-nav-date" type="date" value={isoOf(currentDate)}
-              min={plugin.settings.academicYear.startDate} max={plugin.settings.academicYear.endDate}
-              on:change={onJumpChange} />
-            <button class="tp-btn" on:click={() => { onToday(); jumpOpen = false; }}>Today</button>
-          </div>
-        {/if}
       </div>
       <button class="tp-btn tp-nav-arrow" on:click={onNext} aria-label="Next" title="Next" disabled={!canGoNext} use:obsIcon={"arrow-right"}></button>
     </nav>
@@ -1282,33 +1248,6 @@
     </div>
     {/if}
   </header>
-
-  {#if calOpen}
-    <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-    <div class="tp-cal-backdrop" on:click={() => calOpen = false}></div>
-    <div class="tp-cal" role="dialog" aria-label="Choose a date">
-      <div class="tp-cal-head">
-        <button class="tp-btn tp-cal-nav" on:click={() => calShift(-1)} aria-label="Previous month" use:obsIcon={"arrow-left"}></button>
-        <span class="tp-cal-title">{calMonthLabel}</span>
-        <button class="tp-btn tp-cal-nav" on:click={() => calShift(1)} aria-label="Next month" use:obsIcon={"arrow-right"}></button>
-      </div>
-      <div class="tp-cal-dow">
-        {#each CAL_DOW as d, i (i)}<span>{d}</span>{/each}
-      </div>
-      <div class="tp-cal-grid">
-        {#each calGrid as cell, i (i)}
-          {#if cell.blank}
-            <span class="tp-cal-day tp-cal-day--blank"></span>
-          {:else}
-            <button class="tp-cal-day" class:tp-cal-day--sel={calIsSelected(cell.iso)} class:tp-cal-day--today={calIsToday(cell.iso)} disabled={!cell.inRange} on:click={() => calPick(cell.iso)}>{cell.day}</button>
-          {/if}
-        {/each}
-      </div>
-      <div class="tp-cal-foot">
-        <button class="tp-btn" on:click={() => { onToday(); calOpen = false; }}>Today</button>
-      </div>
-    </div>
-  {/if}
 
   {#if _isMobileApp}
     <div class="tp-mobile-bar">
@@ -1810,9 +1749,6 @@
   .tp-nav-centre-icon :global(svg) { width:14px; height:14px; }
   .tp-nav-centre-label { white-space:nowrap; }
   .tp-nav-caret { font-size:10px; color:var(--text-muted); }
-  .tp-nav-backdrop { position:fixed; inset:0; z-index:40; }
-  .tp-nav-pop { position:absolute; top:calc(100% + 6px); left:50%; transform:translateX(-50%); z-index:50; display:flex; align-items:center; gap:6px; background:var(--background-primary); border:1px solid var(--background-modifier-border); border-radius:8px; padding:8px; box-shadow:0 4px 18px rgba(0,0,0,0.32); }
-  .tp-nav-date { font-size:13px; padding:4px 6px; border:1px solid var(--background-modifier-border); border-radius:5px; background:var(--background-modifier-form-field); color:var(--text-normal); font-family:var(--font-interface); }
   .tp-header-actions { display:flex; gap:6px; justify-content:flex-end; }
 
   .tp-week-ab-badge { display:inline-block; margin-left:6px; padding:1px 7px; border-radius:10px; font-size:12px; font-weight:700; vertical-align:middle; background:var(--interactive-accent); color:var(--text-on-accent); }
@@ -2035,31 +1971,15 @@
   /* Spacer element lifts the last row clear of Obsidian's floating mobile navbar */
   .tp-mobile-tail { flex:0 0 auto; height:max(var(--tp-mobile-pad, 0px), calc(96px + env(safe-area-inset-bottom, 0px))); }
 
-  /* ── Full calendar date picker (mobile) ──────────────────────────────────── */
-  .tp-cal-backdrop { position:fixed; inset:0; z-index:60; background:rgba(0,0,0,0.5); }
-  .tp-cal { position:fixed; z-index:61; left:50%; top:50%; transform:translate(-50%,-50%); width:min(340px,92vw); background:var(--background-primary); border:1px solid var(--background-modifier-border); border-radius:14px; padding:14px; box-shadow:0 12px 40px rgba(0,0,0,0.4); }
-  .tp-cal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-  .tp-cal-title { font-size:15px; font-weight:700; color:var(--text-normal); }
-  .tp-cal-nav { padding:6px 10px; }
-  .tp-cal-nav :global(svg) { width:16px; height:16px; }
-  .tp-cal-dow { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px; }
-  .tp-cal-dow span { text-align:center; font-size:11px; color:var(--text-muted); }
-  .tp-cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
-  .tp-cal-day { display:flex; align-items:center; justify-content:center; aspect-ratio:1; border:none; border-radius:8px; background:var(--background-secondary); color:var(--text-normal); font-size:14px; cursor:pointer; padding:0; font-family:var(--font-interface); }
-  .tp-cal-day:disabled { opacity:0.3; cursor:default; }
-  .tp-cal-day--blank { background:transparent; }
-  .tp-cal-day--today { outline:1.5px solid var(--interactive-accent); }
-  .tp-cal-day--sel { background:var(--interactive-accent); color:var(--text-on-accent); font-weight:700; }
-  .tp-cal-foot { display:flex; justify-content:flex-end; margin-top:12px; }
 
   /* Day mode: single full-width day, no sideways scroll, hide the redundant column header */
   .tp-week-view[data-tp-view="day"] .tp-axis { min-width:0; }
   .tp-week-view[data-tp-view="day"] .tp-axis-head { display:none; }
 
   /* ── Agenda (mobile week overview) ──────────────────────────────────────── */
-  .tp-agenda { flex:1 1 0; overflow:auto; min-height:0; padding:8px 10px 16px; }
+  .tp-agenda { flex:1 1 0; overflow:auto; min-height:0; padding:0 10px 16px; }
   .tp-agenda-day { margin-bottom:12px; }
-  .tp-agenda-head { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-muted); padding:2px 2px 6px; position:sticky; top:0; background:var(--background-primary); z-index:2; }
+  .tp-agenda-head { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-muted); padding:8px 2px 6px; position:sticky; top:0; background:var(--background-primary); z-index:2; }
   .tp-agenda-head--today { color:var(--interactive-accent); }
   .tp-agenda-dayname { text-transform:uppercase; letter-spacing:0.03em; }
   .tp-agenda-row { display:flex; align-items:center; gap:8px; width:100%; text-align:left; border:none; border-radius:0 7px 7px 0; padding:8px 10px; margin-bottom:5px; color:var(--chip-fg, var(--text-normal)); cursor:pointer; font-size:13px; font-family:var(--font-interface); }
