@@ -178,6 +178,7 @@
   }
 
   function selectClass(id: string) { selectedClassId = id; void svelteTick().then(scrollToCurrent); }
+  function onPickClass(e: Event) { selectClass((e.currentTarget as HTMLSelectElement).value); }
   function onCardKey(e: KeyboardEvent, id: string) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectClass(id); } }
   function scrollToCurrent() {
     const el = listEl?.querySelector<HTMLElement>(`[data-week="${currentWeekKey}"]`);
@@ -215,20 +216,31 @@
 
 <div class="tp-lo" bind:this={_prepRootEl} style="--tp-prep-fg:{_prepFg}">
   <div class="tp-lo-head"><h3 class="tp-lo-title">Lesson overview</h3></div>
-  <div class="tp-lo-search">
-    <span class="tp-lo-search-icon" use:obsIcon={"search"}></span>
-    <input type="text" bind:value={classSearch} placeholder="Search classes…" />
-  </div>
-  <div class="tp-lo-cards">
-    {#each filteredClasses as c (c.id)}
-      <div class="tp-lo-card" class:tp-lo-card--selected={c.id === selectedClassId} role="button" tabindex="0" style="border-left:3px solid {c.colour};" on:click={() => selectClass(c.id)} on:keydown={(e) => onCardKey(e, c.id)}>
-        <span class="tp-lo-card-code">{#if emojiFor(c)}<span class="tp-lo-card-emoji">{emojiFor(c)}</span>{/if}<span class="tp-lo-card-codetext">{c.code}</span></span>
-        <span class="tp-lo-card-sub">{[subjectFor(c)?.name, c.year ? "Yr" + c.year : ""].filter(Boolean).join(" · ")}</span>
-        <span class="tp-lo-card-next">Next: {nextLabels.get(c.id) ?? "—"}</span>
-      </div>
-    {/each}
-    {#if filteredClasses.length === 0}<div class="tp-lo-empty">No classes</div>{/if}
-  </div>
+  {#if isMobile}
+    <div class="tp-lo-classpick">
+      <select class="tp-lo-select" on:change={onPickClass}>
+        <option value="" disabled selected={!selectedClassId}>Select a class…</option>
+        {#each classes as c (c.id)}
+          <option value={c.id} selected={c.id === selectedClassId}>{[emojiFor(c), c.code].filter(Boolean).join(" ")}{#if subjectFor(c)?.name} · {subjectFor(c)?.name}{/if}</option>
+        {/each}
+      </select>
+    </div>
+  {:else}
+    <div class="tp-lo-search">
+      <span class="tp-lo-search-icon" use:obsIcon={"search"}></span>
+      <input type="text" bind:value={classSearch} placeholder="Search classes…" />
+    </div>
+    <div class="tp-lo-cards">
+      {#each filteredClasses as c (c.id)}
+        <div class="tp-lo-card" class:tp-lo-card--selected={c.id === selectedClassId} role="button" tabindex="0" style="border-left:3px solid {c.colour};" on:click={() => selectClass(c.id)} on:keydown={(e) => onCardKey(e, c.id)}>
+          <span class="tp-lo-card-code">{#if emojiFor(c)}<span class="tp-lo-card-emoji">{emojiFor(c)}</span>{/if}<span class="tp-lo-card-codetext">{c.code}</span></span>
+          <span class="tp-lo-card-sub">{[subjectFor(c)?.name, c.year ? "Yr" + c.year : ""].filter(Boolean).join(" · ")}</span>
+          <span class="tp-lo-card-next">Next: {nextLabels.get(c.id) ?? "—"}</span>
+        </div>
+      {/each}
+      {#if filteredClasses.length === 0}<div class="tp-lo-empty">No classes</div>{/if}
+    </div>
+  {/if}
 
   {#if selectedClassId}
     <div class="tp-lo-subhead">
@@ -347,6 +359,8 @@
   .tp-lo-hint { flex:1 1 auto; display:flex; align-items:center; justify-content:center; text-align:center; color:var(--text-faint); font-size:13px; padding:24px 12px; }
 
   .tp-lo-search { position:relative; margin-bottom:12px; }
+  .tp-lo-classpick { margin-bottom:12px; }
+  .tp-lo-select { width:100%; box-sizing:border-box; padding:11px 12px; border:1px solid var(--background-modifier-border); border-radius:8px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:15px; font-family:var(--font-interface); }
   .tp-lo-search-icon { position:absolute; left:10px; top:8px; color:var(--text-muted); display:inline-flex; }
   .tp-lo-search-icon :global(svg) { width:16px; height:16px; }
   .tp-lo-search input { width:100%; box-sizing:border-box; padding:7px 10px 7px 32px; border:1px solid var(--background-modifier-border); border-radius:6px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:13px; }

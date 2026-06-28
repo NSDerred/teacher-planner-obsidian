@@ -1,4 +1,4 @@
-import { App, Modal, Notice, setIcon } from "obsidian";
+import { App, Modal, Notice, Platform, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { DateEvent, SchoolDay, SchoolPeriod } from "../types";
 import { getPeriodsForDay } from "../utils/scheduleUtils";
@@ -53,6 +53,10 @@ export class AddDateEventModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("tp-date-event-modal");
+    if (Platform.isMobile) {
+      this.modalEl.addClass("tp-date-event-modal--mobile");
+      contentEl.addClass("tp-date-event-modal--mobile");
+    }
 
     const isEdit = !!this.existingEvent;
     const directedTimeEnabled = this.plugin.settings.directedTime?.enabled ?? false;

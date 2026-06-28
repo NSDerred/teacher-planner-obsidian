@@ -60,3 +60,37 @@ Polish the mobile Agenda view: each row is now a `div role="button"` (so it can 
 - File: `src/views/WeekView.svelte`
 - Status: built (svelte-check 0/0/0, production build OK); needs phone testing.
 
+---
+
+## fix(mobile): clear Obsidian's floating navbar at list bottom (issue 1)
+
+Day and Agenda lists were running under Obsidian's floating mobile navbar, hiding the last lesson/event and its controls. On mobile we now measure the actual `.mobile-navbar` element at runtime (its distance from the viewport bottom, which already accounts for the home-indicator safe area and the floating gap) and apply that as the list's bottom padding via `--tp-mobile-pad`, re-measured on mount and on resize. Falls back to 68px if the element isn't found, so it adapts across phones, tablets, and the fixed/floating bar variants.
+
+- File: `src/views/WeekView.svelte`
+
+## feat(mobile): rebuild the header with a balanced date nav (issues 2 + 4)
+
+The mobile header was cluttered and the date nav drifted off-centre because a variable-width day-name title sat beside it. The title is now dropped on mobile (the weekday strip already shows the selected day), the nav is a balanced row with the date button stretching the middle, and the prev/next controls use real arrow icons instead of chevrons. The Week tab is removed on mobile (Day / Agenda only); any previously stored "grid" mobile mode is coerced to Day.
+
+- File: `src/views/WeekView.svelte`
+
+## feat(mobile): tap the date to open a full calendar (issue 3a)
+
+Tapping the date on mobile now opens a full month-grid calendar straight away (no intermediate dropdown), with month arrows, today highlighted, out-of-year days disabled, and a Today button. Tapping a day jumps to it and closes. Desktop keeps its existing inline date popover.
+
+- File: `src/views/WeekView.svelte`
+
+## feat(lessons): dropdown class selector on mobile (issue 3b)
+
+On mobile the Lessons overview replaced its class-tile grid (which ate most of the screen) with a single dropdown class selector, giving the lesson list the full height below. Desktop keeps the searchable tile grid.
+
+- File: `src/modals/LessonOverviewComponent.svelte`
+
+## feat(events): mobile-only full-screen Add event sheet (issue 6)
+
+The Add event modal was a desktop layout cramming Date / Start time / Duration onto one overlapping row on phones. On mobile it now presents as a full-screen sheet: single column, Date full-width with Start time and Duration two-up, 44px touch targets (16px inputs also stop iOS focus-zoom), and a sticky Cancel / Add event footer that clears the safe-area inset. Desktop is unchanged.
+
+- Files: `src/modals/AddDateEventModal.ts`, `styles.css`
+
+All five built changes: svelte-check 0/0, tsc clean, production build OK. Pending phone testing.
+
