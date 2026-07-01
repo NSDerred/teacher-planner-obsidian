@@ -21,3 +21,6 @@ npm-debug.log*
 /docs/advertising-posts.md
 /docs/REVIEW-BACKLOG.md
 /docs/RELEASE-*.md
+
+# stray local verification artifacts (safe to delete)
+_tw_test.*

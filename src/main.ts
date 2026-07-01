@@ -9,6 +9,7 @@ import { isValidIsoDate, normalizeLegacyWeekKey } from "./utils/weekUtils";
 import { backupPlanner } from "./utils/plannerBackup";
 import { ensureDaySchedules, syncPeriodsUnion } from "./utils/scheduleUtils";
 import { renamePlanPaths } from "./utils/planLinkUtils";
+import { rebuildPlannerDirectory, schedulePlannerDirectoryRebuild, cancelPlannerDirectoryRebuild, isWeekNotePath, openPlannerHome } from "./utils/plannerDirectory";
 
 type SharedPlannerKey = keyof PlannerRecord & keyof TeacherPlannerSettings;
 type SharedGlobalKey  = keyof GlobalPluginData & keyof TeacherPlannerSettings;
@@ -57,11 +58,14 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.registerView(LESSON_OVERVIEW_VIEW_TYPE, (leaf) => new LessonOverviewView(leaf, this));
 
     this.addRibbonIcon("calendar-days", "Open Teacher Planner", () => { void this.activateView(); });
+    this.addRibbonIcon("home", "Open Planner Home", () => { void openPlannerHome(this); });
 
     this.addCommand({ id: "open",                    name: "Open planner",             callback: () => { void this.activateView(); } });
     this.addCommand({ id: "go-to-current-week",      name: "Go to current week",      callback: () => this.sendWeekViewCommand("current") });
     this.addCommand({ id: "go-to-previous-week",     name: "Go to previous week",     callback: () => this.sendWeekViewCommand("prev") });
     this.addCommand({ id: "go-to-next-week",         name: "Go to next week",         callback: () => this.sendWeekViewCommand("next") });
+    this.addCommand({ id: "rebuild-planner-directory", name: "Rebuild planner directory", callback: () => { void rebuildPlannerDirectory(this, true); } });
+    this.addCommand({ id: "open-planner-home", name: "Open Planner Home", callback: () => { void openPlannerHome(this); } });
 
     this.addSettingTab(new TeacherPlannerSettingTab(this.app, this));
 
@@ -81,6 +85,18 @@ export default class TeacherPlannerPlugin extends Plugin {
       }
     }));
 
+    // Keep the Planner Home week directory in sync when week notes are added,
+    // removed or renamed (update-only; the note is created via the command).
+    this.registerEvent(this.app.vault.on("create", (file) => {
+      if (isWeekNotePath(this, file.path)) schedulePlannerDirectoryRebuild(this);
+    }));
+    this.registerEvent(this.app.vault.on("delete", (file) => {
+      if (isWeekNotePath(this, file.path)) schedulePlannerDirectoryRebuild(this);
+    }));
+    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
+      if (isWeekNotePath(this, file.path) || isWeekNotePath(this, oldPath)) schedulePlannerDirectoryRebuild(this);
+    }));
+
     // Lazy import to avoid a circular dep at module-load time
     if (this.needsWizard) {
       const { SetupWizardModal } = await import("./modals/SetupWizardModal");
@@ -98,6 +114,7 @@ export default class TeacherPlannerPlugin extends Plugin {
   }
 
   onunload() {
+    cancelPlannerDirectoryRebuild();
     // Make sure any pending debounced save lands before the plugin is gone.
     // Fire-and-forget — Obsidian doesn't await onunload, but the write itself
     // will still complete.
