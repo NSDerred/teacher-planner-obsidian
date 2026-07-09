@@ -9437,12 +9437,12 @@ var init_SetupWizardModal = __esm({
       // ── Commit the planner to plugin data ───────────────────────────────────────
       async commitPlanner() {
         const rootFolder = this.plugin.plannerData.rootPlannerFolder;
-        const plannerFolder3 = rootFolder + "/" + this.state.name;
+        const plannerFolder2 = rootFolder + "/" + this.state.name;
         const record = {
           ...DEFAULT_PLANNER,
           id: "planner-" + Date.now(),
           name: this.state.name,
-          plannerFolder: plannerFolder3,
+          plannerFolder: plannerFolder2,
           academicYear: {
             id: "ay-" + Date.now(),
             name: this.state.name,
@@ -9477,12 +9477,12 @@ var init_SetupWizardModal = __esm({
         syncPeriodsUnion(record.academicYear);
         await this.plugin.createPlanner(record);
         if (this.state.directedTimeEnabled) {
-          await this.createDirectedTimeGuideNote(plannerFolder3);
+          await this.createDirectedTimeGuideNote(plannerFolder2);
         }
       }
       /** Create the directed time guide note in the planner folder. */
-      async createDirectedTimeGuideNote(plannerFolder3) {
-        const path = plannerFolder3 + "/Directed Time \u2014 Guide.md";
+      async createDirectedTimeGuideNote(plannerFolder2) {
+        const path = plannerFolder2 + "/Directed Time \u2014 Guide.md";
         if (this.app.vault.getAbstractFileByPath(path)) return;
         const contractedHours = this.state.contractedHours;
         const timetablePct = this.state.timetablePercentage;
@@ -17783,7 +17783,7 @@ __export(main_exports, {
   default: () => TeacherPlannerPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian27 = require("obsidian");
+var import_obsidian26 = require("obsidian");
 init_settings();
 
 // src/views/WeekView.ts
@@ -35017,264 +35017,6 @@ init_SettingsTab();
 init_weekUtils();
 init_plannerBackup();
 init_scheduleUtils();
-
-// src/utils/plannerDirectory.ts
-var import_obsidian26 = require("obsidian");
-
-// src/utils/academicWeeks.ts
-init_weekUtils();
-var DAY_INDEX_MAP3 = {
-  0: "sunday",
-  1: "monday",
-  2: "tuesday",
-  3: "wednesday",
-  4: "thursday",
-  5: "friday",
-  6: "saturday"
-};
-var DEFAULT_SCHOOL_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday"];
-function localIso(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-function mondayNoon(d) {
-  const m = getMondayOfWeek(d);
-  m.setHours(12, 0, 0, 0);
-  return m;
-}
-function workingDaysInRange2(startIso, endIso, schoolDays) {
-  const end = /* @__PURE__ */ new Date(endIso + "T12:00:00");
-  const out = [];
-  for (const d = /* @__PURE__ */ new Date(startIso + "T12:00:00"); d <= end; d.setDate(d.getDate() + 1)) {
-    if (schoolDays.includes(DAY_INDEX_MAP3[d.getDay()])) out.push(localIso(d));
-  }
-  return out;
-}
-function enumerateWeeks(s) {
-  var _a2, _b2, _c;
-  const ay = s.academicYear;
-  if (!(ay == null ? void 0 : ay.startDate) || !(ay == null ? void 0 : ay.endDate)) return [];
-  const schoolDays = (_a2 = s.schoolDays) != null ? _a2 : DEFAULT_SCHOOL_DAYS;
-  const holiday = /* @__PURE__ */ new Set();
-  const inset = /* @__PURE__ */ new Set();
-  for (const o of (_b2 = s.weekOverrides) != null ? _b2 : []) {
-    const days = workingDaysInRange2(o.startDate, (_c = o.endDate) != null ? _c : o.startDate, schoolDays);
-    if (o.type === "holiday") for (const iso of days) holiday.add(iso);
-    else if (o.type === "inset") for (const iso of days) inset.add(iso);
-  }
-  const todayMon = mondayNoon(/* @__PURE__ */ new Date());
-  const end = /* @__PURE__ */ new Date(ay.endDate + "T23:59:59");
-  const out = [];
-  const mon = mondayNoon(/* @__PURE__ */ new Date(ay.startDate + "T12:00:00"));
-  for (let guard = 0; mon <= end && guard < 400; guard++) {
-    const weekDays = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(mon);
-      d.setDate(d.getDate() + i);
-      if (schoolDays.includes(DAY_INDEX_MAP3[d.getDay()])) weekDays.push(localIso(d));
-    }
-    const total = weekDays.length;
-    const hol = weekDays.filter((iso) => holiday.has(iso)).length;
-    const ins = weekDays.filter((iso) => inset.has(iso)).length;
-    let status = "teaching";
-    if (total > 0 && hol === total) status = "holiday";
-    else if (total > 0 && ins === total) status = "inset";
-    out.push({ mondayIso: localIso(mon), status, isPast: mon.getTime() <= todayMon.getTime() });
-    mon.setDate(mon.getDate() + 7);
-  }
-  return out;
-}
-function teachingWeeks(s) {
-  return enumerateWeeks(s).filter((w) => w.status === "teaching");
-}
-
-// src/utils/plannerDirectory.ts
-init_weekNoteFiles();
-init_weekUtils();
-var MARK_START = "<!-- tp:week-directory:start -->";
-var MARK_END = "<!-- tp:week-directory:end -->";
-var HOME_FILE = "\u{1F3E0} Planner Home.md";
-var MAP_FILE = "\u{1F5FA} Planner Map.canvas";
-var LEGACY_HOME_FILES = ["Planner Home.md"];
-function plannerFolder2(plugin) {
-  return (plugin.settings.plannerFolder || "Teacher Planner").trim();
-}
-function plannerHomePath(plugin) {
-  return (0, import_obsidian26.normalizePath)(`${plannerFolder2(plugin)}/${HOME_FILE}`);
-}
-function plannerMapPath(plugin) {
-  return (0, import_obsidian26.normalizePath)(`${plannerFolder2(plugin)}/${MAP_FILE}`);
-}
-async function ensurePlannerFolder(plugin) {
-  const app = plugin.app;
-  const folder = plannerFolder2(plugin);
-  if (folder && !app.vault.getAbstractFileByPath(folder)) {
-    try {
-      await app.vault.createFolder(folder);
-    } catch (e) {
-    }
-  }
-}
-async function migrateLegacyHome(plugin) {
-  const app = plugin.app;
-  const target = plannerHomePath(plugin);
-  if (app.vault.getAbstractFileByPath(target)) return;
-  for (const legacy of LEGACY_HOME_FILES) {
-    const f = app.vault.getAbstractFileByPath((0, import_obsidian26.normalizePath)(`${plannerFolder2(plugin)}/${legacy}`));
-    if (f instanceof import_obsidian26.TFile) {
-      try {
-        await app.fileManager.renameFile(f, target);
-      } catch (e) {
-        console.error("Teacher Planner: could not rename legacy planner home.", e);
-      }
-      return;
-    }
-  }
-}
-function isWeekNotePath(plugin, path) {
-  var _a2;
-  if (!path.endsWith(".md")) return false;
-  const folder = weekNotesFolder(plugin);
-  if (path.startsWith(folder + "/")) return true;
-  return ((_a2 = path.split("/").pop()) != null ? _a2 : "").startsWith("Wn - ");
-}
-function weekHasNote(plugin, mondayIso) {
-  return plugin.app.vault.getAbstractFileByPath(weekNoteFilePath(plugin, mondayIso)) instanceof import_obsidian26.TFile;
-}
-function fmtWc(iso) {
-  return (/* @__PURE__ */ new Date(iso + "T12:00:00")).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
-}
-function monthLabel(iso) {
-  return (/* @__PURE__ */ new Date(iso + "T12:00:00")).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-}
-function buildDirectoryMarkdown(plugin) {
-  const weeks = teachingWeeks(plugin.settings);
-  const curKey = weekKey(getMondayOfWeek(/* @__PURE__ */ new Date()));
-  const out = [
-    "*Week directory \u2014 auto-updated by Teacher Planner. Edits between the markers are overwritten.*",
-    "",
-    `Visual map \u2192 [[${MAP_FILE}|\u{1F5FA} Planner Map]]`,
-    ""
-  ];
-  if (weeks.length === 0) {
-    out.push("_No teaching weeks found. Check the academic-year dates in Teacher Planner settings._");
-    return out.join("\n");
-  }
-  let curMonth = "";
-  for (const w of weeks) {
-    const ml = monthLabel(w.mondayIso);
-    if (ml !== curMonth) {
-      if (curMonth) out.push("");
-      out.push(`## ${ml}`, "", "| Week commencing | Week note |", "| --- | --- |");
-      curMonth = ml;
-    }
-    const link = weekHasNote(plugin, w.mondayIso) ? `[[${weekNoteFileName(w.mondayIso)}]]` : "*no note yet*";
-    const wc = w.mondayIso === curKey ? `**${fmtWc(w.mondayIso)} \xB7 this week**` : fmtWc(w.mondayIso);
-    out.push(`| ${wc} | ${link} |`);
-  }
-  return out.join("\n");
-}
-async function writeHomeNote(plugin, createIfMissing) {
-  const app = plugin.app;
-  const path = plannerHomePath(plugin);
-  const managed = `${MARK_START}
-${buildDirectoryMarkdown(plugin)}
-${MARK_END}`;
-  const existing = app.vault.getAbstractFileByPath(path);
-  if (existing instanceof import_obsidian26.TFile) {
-    const cur = await app.vault.read(existing);
-    const s = cur.indexOf(MARK_START);
-    const e = cur.indexOf(MARK_END);
-    const next = s !== -1 && e !== -1 && e > s ? cur.slice(0, s) + managed + cur.slice(e + MARK_END.length) : cur.trimEnd() + "\n\n" + managed + "\n";
-    if (next !== cur) await app.vault.modify(existing, next);
-    return;
-  }
-  if (!createIfMissing) return;
-  await ensurePlannerFolder(plugin);
-  await app.vault.create(path, `# Planner Home
-
-${managed}
-`);
-}
-var CARD_W = 260;
-var CARD_H = 96;
-var GAP = 24;
-var PAD = 24;
-var HEADER = 44;
-function buildCanvasJson(plugin) {
-  const curKey = weekKey(getMondayOfWeek(/* @__PURE__ */ new Date()));
-  const nodes = [];
-  nodes.push({ id: "home", type: "file", file: plannerHomePath(plugin), x: 0, y: 0, width: CARD_W, height: CARD_H, color: "6" });
-  const weeks = teachingWeeks(plugin.settings).filter((w) => weekHasNote(plugin, w.mondayIso));
-  let gy = CARD_H + 60;
-  let i = 0;
-  while (i < weeks.length) {
-    const monthKey = weeks[i].mondayIso.slice(0, 7);
-    const group = weeks.filter((w) => w.mondayIso.slice(0, 7) === monthKey);
-    const groupW = PAD * 2 + group.length * CARD_W + (group.length - 1) * GAP;
-    const groupH = HEADER + CARD_H + PAD;
-    nodes.push({ id: `grp-${monthKey}`, type: "group", x: 0, y: gy, width: groupW, height: groupH, label: monthLabel(group[0].mondayIso) });
-    group.forEach((w, j) => {
-      nodes.push({
-        id: `wk-${w.mondayIso}`,
-        type: "file",
-        file: weekNoteFilePath(plugin, w.mondayIso),
-        x: PAD + j * (CARD_W + GAP),
-        y: gy + HEADER,
-        width: CARD_W,
-        height: CARD_H,
-        ...w.mondayIso === curKey ? { color: "4" } : {}
-      });
-    });
-    gy += groupH + GAP;
-    i += group.length;
-  }
-  return JSON.stringify({ nodes, edges: [] }, null, "	");
-}
-async function writeCanvas(plugin, createIfMissing) {
-  const app = plugin.app;
-  const path = plannerMapPath(plugin);
-  const json = buildCanvasJson(plugin);
-  const existing = app.vault.getAbstractFileByPath(path);
-  if (existing instanceof import_obsidian26.TFile) {
-    const cur = await app.vault.read(existing);
-    if (cur !== json) await app.vault.modify(existing, json);
-    return;
-  }
-  if (!createIfMissing) return;
-  await ensurePlannerFolder(plugin);
-  await app.vault.create(path, json);
-}
-async function rebuildPlannerDirectory(plugin, createIfMissing = false) {
-  await migrateLegacyHome(plugin);
-  await writeHomeNote(plugin, createIfMissing);
-  await writeCanvas(plugin, createIfMissing);
-}
-async function openPlannerHome(plugin) {
-  await rebuildPlannerDirectory(plugin, true);
-  const f = plugin.app.vault.getAbstractFileByPath(plannerHomePath(plugin));
-  if (f instanceof import_obsidian26.TFile) await plugin.app.workspace.getLeaf(false).openFile(f);
-}
-async function openPlannerMap(plugin) {
-  await rebuildPlannerDirectory(plugin, true);
-  const f = plugin.app.vault.getAbstractFileByPath(plannerMapPath(plugin));
-  if (f instanceof import_obsidian26.TFile) await plugin.app.workspace.getLeaf(false).openFile(f);
-}
-var _timer = null;
-function schedulePlannerDirectoryRebuild(plugin) {
-  if (_timer !== null) window.clearTimeout(_timer);
-  _timer = window.setTimeout(() => {
-    _timer = null;
-    void rebuildPlannerDirectory(plugin, false).catch((err2) => console.error("Teacher Planner: planner directory rebuild failed.", err2));
-  }, 800);
-}
-function cancelPlannerDirectoryRebuild() {
-  if (_timer !== null) {
-    window.clearTimeout(_timer);
-    _timer = null;
-  }
-}
-
-// src/main.ts
 function copyPlannerToSettings(dst, src, k) {
   dst[k] = src[k];
 }
@@ -35289,7 +35031,7 @@ function copySettingsToGlobal(dst, src, k) {
   const value = src[k];
   if (value !== void 0) dst[k] = value;
 }
-var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian27.Plugin {
+var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian26.Plugin {
   constructor() {
     super(...arguments);
     /** True when there are no planners on load — the wizard is triggered from onload. */
@@ -35316,24 +35058,12 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
     this.addRibbonIcon("calendar-days", "Open Teacher Planner", () => {
       void this.activateView();
     });
-    this.addRibbonIcon("home", "Open Planner Home", () => {
-      void openPlannerHome(this);
-    });
     this.addCommand({ id: "open", name: "Open planner", callback: () => {
       void this.activateView();
     } });
     this.addCommand({ id: "go-to-current-week", name: "Go to current week", callback: () => this.sendWeekViewCommand("current") });
     this.addCommand({ id: "go-to-previous-week", name: "Go to previous week", callback: () => this.sendWeekViewCommand("prev") });
     this.addCommand({ id: "go-to-next-week", name: "Go to next week", callback: () => this.sendWeekViewCommand("next") });
-    this.addCommand({ id: "rebuild-planner-directory", name: "Rebuild planner directory", callback: () => {
-      void rebuildPlannerDirectory(this, true);
-    } });
-    this.addCommand({ id: "open-planner-home", name: "Open Planner Home", callback: () => {
-      void openPlannerHome(this);
-    } });
-    this.addCommand({ id: "open-planner-map", name: "Open Planner Map (canvas)", callback: () => {
-      void openPlannerMap(this);
-    } });
     this.addSettingTab(new TeacherPlannerSettingTab(this.app, this));
     this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
       var _a2, _b2, _c;
@@ -35352,15 +35082,6 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
         console.error("Teacher Planner: plan-link rename sweep failed.", err2);
       }
     }));
-    this.registerEvent(this.app.vault.on("create", (file) => {
-      if (isWeekNotePath(this, file.path)) schedulePlannerDirectoryRebuild(this);
-    }));
-    this.registerEvent(this.app.vault.on("delete", (file) => {
-      if (isWeekNotePath(this, file.path)) schedulePlannerDirectoryRebuild(this);
-    }));
-    this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
-      if (isWeekNotePath(this, file.path) || isWeekNotePath(this, oldPath)) schedulePlannerDirectoryRebuild(this);
-    }));
     if (this.needsWizard) {
       const { SetupWizardModal: SetupWizardModal2 } = await Promise.resolve().then(() => (init_SetupWizardModal(), SetupWizardModal_exports));
       new SetupWizardModal2(this.app, this).open();
@@ -35374,7 +35095,6 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
     });
   }
   onunload() {
-    cancelPlannerDirectoryRebuild();
     this.flushPendingSave().catch((err2) => {
       console.error("Teacher Planner: flushPendingSave on unload failed.", err2);
     });
@@ -35453,7 +35173,7 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
     const raw = window.localStorage.getItem(_TeacherPlannerPlugin.GRID_SCALE_KEY);
     const n = raw != null ? parseInt(raw, 10) : NaN;
     if (!isNaN(n) && n >= 60 && n <= 240) return n;
-    return import_obsidian27.Platform.isMobile ? 150 : 120;
+    return import_obsidian26.Platform.isMobile ? 150 : 120;
   }
   setGridScale(pxPerHour) {
     const clamped = Math.max(60, Math.min(240, Math.round(pxPerHour)));

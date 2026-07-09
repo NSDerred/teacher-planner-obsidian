@@ -34,3 +34,9 @@ Adds the visual half of the directory: "🗺 Planner Map.canvas" in the planner 
 - New "Open Planner Map (canvas)" command; same create-if-missing / update-only policy and the same week-note create/delete/rename auto-hooks keep both files in sync.
 - Verified the real canvas builder against a mock vault: valid JSON, correct node set (gateway + month groups + week cards), group boxes sized correctly and non-overlapping, empty weeks omitted. svelte-check 0/0, tsc clean, production build OK. Canvas rendering itself needs on-device confirmation.
 
+---
+
+## revert: remove planner directory (items 1 + 2) — tried and pulled
+
+Nick decided the Planner Home note + Planner Map canvas didn't earn their place, so the whole feature is removed. Reverted all wiring in main.ts (the 3 commands, home ribbon icon, the week-note create/delete/rename listeners, the import, and the onunload cancel). src/utils/plannerDirectory.ts and src/utils/academicWeeks.ts are emptied to inert stubs (the sandbox can't delete files in the synced folder — Nick to delete the two files, plus the generated "🏠 Planner Home.md" and "🗺 Planner Map.canvas" in his vault). Plugin returns to its pre-item-1 state. svelte-check 0/0, tsc clean, build OK. See RELEASE-0.3.4.md → "Ideas tried and removed".
+
