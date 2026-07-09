@@ -9,7 +9,7 @@ import { isValidIsoDate, normalizeLegacyWeekKey } from "./utils/weekUtils";
 import { backupPlanner } from "./utils/plannerBackup";
 import { ensureDaySchedules, syncPeriodsUnion } from "./utils/scheduleUtils";
 import { renamePlanPaths } from "./utils/planLinkUtils";
-import { rebuildPlannerDirectory, schedulePlannerDirectoryRebuild, cancelPlannerDirectoryRebuild, isWeekNotePath, openPlannerHome } from "./utils/plannerDirectory";
+import { rebuildPlannerDirectory, schedulePlannerDirectoryRebuild, cancelPlannerDirectoryRebuild, isWeekNotePath, openPlannerHome, openPlannerMap } from "./utils/plannerDirectory";
 
 type SharedPlannerKey = keyof PlannerRecord & keyof TeacherPlannerSettings;
 type SharedGlobalKey  = keyof GlobalPluginData & keyof TeacherPlannerSettings;
@@ -66,6 +66,7 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.addCommand({ id: "go-to-next-week",         name: "Go to next week",         callback: () => this.sendWeekViewCommand("next") });
     this.addCommand({ id: "rebuild-planner-directory", name: "Rebuild planner directory", callback: () => { void rebuildPlannerDirectory(this, true); } });
     this.addCommand({ id: "open-planner-home", name: "Open Planner Home", callback: () => { void openPlannerHome(this); } });
+    this.addCommand({ id: "open-planner-map", name: "Open Planner Map (canvas)", callback: () => { void openPlannerMap(this); } });
 
     this.addSettingTab(new TeacherPlannerSettingTab(this.app, this));
 

@@ -23,3 +23,14 @@ Next: item 2 = generate the `Planner Map.canvas` from the same week set.
 - New "Open Planner Home" command + a home ribbon icon; both create the note if missing then open it, giving one-click access independent of the file-tree sort.
 - Files: src/utils/plannerDirectory.ts, src/main.ts. svelte-check 0/0, tsc clean, production build OK.
 
+---
+
+## feat(directory): Planner Map canvas (0.3.4 item 2)
+
+Adds the visual half of the directory: "🗺 Planner Map.canvas" in the planner folder, generated from the same teaching-week set as the note.
+
+- plannerDirectory.ts refactored into writeHomeNote + writeCanvas, both driven by rebuildPlannerDirectory; the canvas is fully generated (regenerated wholesale each rebuild — a generated map, so no manual layout to preserve) via the JSON Canvas format (nodes + edges; no new dependency).
+- Canvas layout: a "🏠 Planner Home" gateway file-card top-left (purple), then one labelled group box per calendar month (of the week-commencing Monday) stacked down the canvas, each holding a row of that month's week cards. Only weeks that HAVE a note get a card (empty weeks omitted, per decision); the current week's card is tinted green. The note gains a "Visual map → [[🗺 Planner Map]]" cross-link.
+- New "Open Planner Map (canvas)" command; same create-if-missing / update-only policy and the same week-note create/delete/rename auto-hooks keep both files in sync.
+- Verified the real canvas builder against a mock vault: valid JSON, correct node set (gateway + month groups + week cards), group boxes sized correctly and non-overlapping, empty weeks omitted. svelte-check 0/0, tsc clean, production build OK. Canvas rendering itself needs on-device confirmation.
+

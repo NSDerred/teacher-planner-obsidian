@@ -35093,12 +35093,26 @@ init_weekUtils();
 var MARK_START = "<!-- tp:week-directory:start -->";
 var MARK_END = "<!-- tp:week-directory:end -->";
 var HOME_FILE = "\u{1F3E0} Planner Home.md";
+var MAP_FILE = "\u{1F5FA} Planner Map.canvas";
 var LEGACY_HOME_FILES = ["Planner Home.md"];
 function plannerFolder2(plugin) {
   return (plugin.settings.plannerFolder || "Teacher Planner").trim();
 }
 function plannerHomePath(plugin) {
   return (0, import_obsidian26.normalizePath)(`${plannerFolder2(plugin)}/${HOME_FILE}`);
+}
+function plannerMapPath(plugin) {
+  return (0, import_obsidian26.normalizePath)(`${plannerFolder2(plugin)}/${MAP_FILE}`);
+}
+async function ensurePlannerFolder(plugin) {
+  const app = plugin.app;
+  const folder = plannerFolder2(plugin);
+  if (folder && !app.vault.getAbstractFileByPath(folder)) {
+    try {
+      await app.vault.createFolder(folder);
+    } catch (e) {
+    }
+  }
 }
 async function migrateLegacyHome(plugin) {
   const app = plugin.app;
@@ -35123,6 +35137,9 @@ function isWeekNotePath(plugin, path) {
   if (path.startsWith(folder + "/")) return true;
   return ((_a2 = path.split("/").pop()) != null ? _a2 : "").startsWith("Wn - ");
 }
+function weekHasNote(plugin, mondayIso) {
+  return plugin.app.vault.getAbstractFileByPath(weekNoteFilePath(plugin, mondayIso)) instanceof import_obsidian26.TFile;
+}
 function fmtWc(iso) {
   return (/* @__PURE__ */ new Date(iso + "T12:00:00")).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
 }
@@ -35134,6 +35151,8 @@ function buildDirectoryMarkdown(plugin) {
   const curKey = weekKey(getMondayOfWeek(/* @__PURE__ */ new Date()));
   const out = [
     "*Week directory \u2014 auto-updated by Teacher Planner. Edits between the markers are overwritten.*",
+    "",
+    `Visual map \u2192 [[${MAP_FILE}|\u{1F5FA} Planner Map]]`,
     ""
   ];
   if (weeks.length === 0) {
@@ -35148,16 +35167,14 @@ function buildDirectoryMarkdown(plugin) {
       out.push(`## ${ml}`, "", "| Week commencing | Week note |", "| --- | --- |");
       curMonth = ml;
     }
-    const hasNote = plugin.app.vault.getAbstractFileByPath(weekNoteFilePath(plugin, w.mondayIso)) instanceof import_obsidian26.TFile;
-    const link = hasNote ? `[[${weekNoteFileName(w.mondayIso)}]]` : "*no note yet*";
+    const link = weekHasNote(plugin, w.mondayIso) ? `[[${weekNoteFileName(w.mondayIso)}]]` : "*no note yet*";
     const wc = w.mondayIso === curKey ? `**${fmtWc(w.mondayIso)} \xB7 this week**` : fmtWc(w.mondayIso);
     out.push(`| ${wc} | ${link} |`);
   }
   return out.join("\n");
 }
-async function rebuildPlannerDirectory(plugin, createIfMissing = false) {
+async function writeHomeNote(plugin, createIfMissing) {
   const app = plugin.app;
-  await migrateLegacyHome(plugin);
   const path = plannerHomePath(plugin);
   const managed = `${MARK_START}
 ${buildDirectoryMarkdown(plugin)}
@@ -35172,21 +35189,74 @@ ${MARK_END}`;
     return;
   }
   if (!createIfMissing) return;
-  const folder = plannerFolder2(plugin);
-  if (folder && !app.vault.getAbstractFileByPath(folder)) {
-    try {
-      await app.vault.createFolder(folder);
-    } catch (e) {
-    }
-  }
+  await ensurePlannerFolder(plugin);
   await app.vault.create(path, `# Planner Home
 
 ${managed}
 `);
 }
+var CARD_W = 260;
+var CARD_H = 96;
+var GAP = 24;
+var PAD = 24;
+var HEADER = 44;
+function buildCanvasJson(plugin) {
+  const curKey = weekKey(getMondayOfWeek(/* @__PURE__ */ new Date()));
+  const nodes = [];
+  nodes.push({ id: "home", type: "file", file: plannerHomePath(plugin), x: 0, y: 0, width: CARD_W, height: CARD_H, color: "6" });
+  const weeks = teachingWeeks(plugin.settings).filter((w) => weekHasNote(plugin, w.mondayIso));
+  let gy = CARD_H + 60;
+  let i = 0;
+  while (i < weeks.length) {
+    const monthKey = weeks[i].mondayIso.slice(0, 7);
+    const group = weeks.filter((w) => w.mondayIso.slice(0, 7) === monthKey);
+    const groupW = PAD * 2 + group.length * CARD_W + (group.length - 1) * GAP;
+    const groupH = HEADER + CARD_H + PAD;
+    nodes.push({ id: `grp-${monthKey}`, type: "group", x: 0, y: gy, width: groupW, height: groupH, label: monthLabel(group[0].mondayIso) });
+    group.forEach((w, j) => {
+      nodes.push({
+        id: `wk-${w.mondayIso}`,
+        type: "file",
+        file: weekNoteFilePath(plugin, w.mondayIso),
+        x: PAD + j * (CARD_W + GAP),
+        y: gy + HEADER,
+        width: CARD_W,
+        height: CARD_H,
+        ...w.mondayIso === curKey ? { color: "4" } : {}
+      });
+    });
+    gy += groupH + GAP;
+    i += group.length;
+  }
+  return JSON.stringify({ nodes, edges: [] }, null, "	");
+}
+async function writeCanvas(plugin, createIfMissing) {
+  const app = plugin.app;
+  const path = plannerMapPath(plugin);
+  const json = buildCanvasJson(plugin);
+  const existing = app.vault.getAbstractFileByPath(path);
+  if (existing instanceof import_obsidian26.TFile) {
+    const cur = await app.vault.read(existing);
+    if (cur !== json) await app.vault.modify(existing, json);
+    return;
+  }
+  if (!createIfMissing) return;
+  await ensurePlannerFolder(plugin);
+  await app.vault.create(path, json);
+}
+async function rebuildPlannerDirectory(plugin, createIfMissing = false) {
+  await migrateLegacyHome(plugin);
+  await writeHomeNote(plugin, createIfMissing);
+  await writeCanvas(plugin, createIfMissing);
+}
 async function openPlannerHome(plugin) {
   await rebuildPlannerDirectory(plugin, true);
   const f = plugin.app.vault.getAbstractFileByPath(plannerHomePath(plugin));
+  if (f instanceof import_obsidian26.TFile) await plugin.app.workspace.getLeaf(false).openFile(f);
+}
+async function openPlannerMap(plugin) {
+  await rebuildPlannerDirectory(plugin, true);
+  const f = plugin.app.vault.getAbstractFileByPath(plannerMapPath(plugin));
   if (f instanceof import_obsidian26.TFile) await plugin.app.workspace.getLeaf(false).openFile(f);
 }
 var _timer = null;
@@ -35260,6 +35330,9 @@ var _TeacherPlannerPlugin = class _TeacherPlannerPlugin extends import_obsidian2
     } });
     this.addCommand({ id: "open-planner-home", name: "Open Planner Home", callback: () => {
       void openPlannerHome(this);
+    } });
+    this.addCommand({ id: "open-planner-map", name: "Open Planner Map (canvas)", callback: () => {
+      void openPlannerMap(this);
     } });
     this.addSettingTab(new TeacherPlannerSettingTab(this.app, this));
     this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
