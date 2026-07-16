@@ -9,7 +9,7 @@
   import { applyNoteMoves, reverseNoteMoves, type NoteUndoOp, lessonNoteDefaultTitle, findLessonNoteByTitle, createLessonNoteFile } from "../utils/lessonNoteFiles";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
   import { DatePickerModal } from "../modals/DatePickerModal";
-  import { getMondayOfWeek } from "../utils/weekUtils";
+  import { getMondayOfWeek, localIso } from "../utils/weekUtils";
   import { computeClassStats } from "../utils/classStats";
   import { openSystemPath, openOSFilePicker, openOSFolderPicker } from "../utils/exportDestination";
   import { ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
@@ -22,9 +22,8 @@
   let _tick = 0;
   const refresh = () => { _tick++; };
 
-  const isoLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  const todayIso = isoLocal(new Date());
-  const currentWeekKey = isoLocal(getMondayOfWeek(new Date()));
+  const todayIso = localIso(new Date());
+  const currentWeekKey = localIso(getMondayOfWeek(new Date()));
 
   $: subjects = dep(_tick, plugin.settings.subjects ?? []);
   $: classes = dep(_tick, (plugin.settings.classes ?? []).filter(c => !c.archived));
@@ -96,7 +95,9 @@
   })();
 
   $: occurrences = dep(_tick, selectedClassId ? classOccurrences(plugin.settings, selectedClassId) : []);
-  $: stats = dep(_tick, selectedClassId ? computeClassStats(plugin.settings, selectedClassId, _now) : null);
+  // Reuse the occurrences derived above rather than re-deriving the whole year
+  // inside computeClassStats — this reactive block re-runs on every minute tick.
+  $: stats = dep(_tick, selectedClassId ? computeClassStats(plugin.settings, selectedClassId, _now, 3, occurrences) : null);
   $: weeks = groupByWeek(occurrences);
   $: selectedClass = classes.find(c => c.id === selectedClassId);
   $: unplacedForClass = dep(_tick, (plugin.settings.unplacedLessons ?? []).filter(u => u.classId === selectedClassId));
@@ -219,7 +220,7 @@
   }
   function jumpTo() {
     if (!jump) return;
-    const m = isoLocal(getMondayOfWeek(new Date(jump + "T12:00:00")));
+    const m = localIso(getMondayOfWeek(new Date(jump + "T12:00:00")));
     const el = listEl?.querySelector<HTMLElement>(`[data-week="${m}"]`);
     if (el) el.scrollIntoView({ block: "start" });
   }

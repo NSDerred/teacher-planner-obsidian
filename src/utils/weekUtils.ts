@@ -37,13 +37,21 @@ export function formatDateRange(date: Date): string {
   return `${fmt(monday)} – ${fmt(friday)}`;
 }
 
+/**
+ * Format a Date as a local `yyyy-mm-dd` string — the single date-key formatter
+ * for the plugin. Deliberately NOT toISOString(), which is UTC and yields the
+ * previous day for a local-midnight date in timezones ahead of UTC (e.g. BST).
+ */
+export function localIso(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+/** The date key for a week, keyed on its Monday. */
 export function weekKey(monday: Date): string {
-  // Local date components — NOT toISOString(), which is UTC and yields the
-  // Sunday date for a local-midnight Monday in timezones ahead of UTC (e.g. BST).
-  const y = monday.getFullYear();
-  const m = String(monday.getMonth() + 1).padStart(2, "0");
-  const d = String(monday.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return localIso(monday);
 }
 
 /**

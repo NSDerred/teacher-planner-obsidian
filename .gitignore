@@ -24,3 +24,5 @@ npm-debug.log*
 
 # stray local verification artifacts (safe to delete)
 _tw_test.*
+_cs_*
+/_TO DELETE/

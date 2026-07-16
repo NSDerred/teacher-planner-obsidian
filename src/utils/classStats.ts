@@ -1,7 +1,7 @@
 import type { TeacherPlannerSettings } from "../types";
 import { classOccurrences, type LessonOccurrence } from "./lessonOccurrences";
 import { isSlotPrepared } from "./planLinkUtils";
-import { getMondayOfWeek } from "./weekUtils";
+import { getMondayOfWeek, localIso } from "./weekUtils";
 
 export interface WeekPrepared {
   total: number;
@@ -29,9 +29,6 @@ export interface ClassStats {
   needsAttention: LessonOccurrence[];
 }
 
-function localIso(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 function tMin(t: string): number {
   const [h, m] = (t || "0:0").split(":").map(Number);
   return (h || 0) * 60 + (m || 0);
