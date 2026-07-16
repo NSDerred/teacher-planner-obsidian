@@ -37,7 +37,22 @@
   let panelNote = "";
   let panelRoom = "";
   const isMobile = Platform.isMobileApp;
-  let statsOpen = !isMobile;
+  let classesOpen = plugin.settings.loClassesOpen ?? true;
+  let statsOpen = plugin.settings.loStatsOpen ?? !isMobile;
+  async function toggleClasses() {
+    classesOpen = !classesOpen;
+    plugin.settings.loClassesOpen = classesOpen;
+    await plugin.saveSettings();
+  }
+  async function toggleStats() {
+    statsOpen = !statsOpen;
+    plugin.settings.loStatsOpen = statsOpen;
+    await plugin.saveSettings();
+  }
+  $: selectedSummary = selectedClass
+    ? [emojiFor(selectedClass), selectedClass.code].filter(Boolean).join(" ")
+      + (subjectFor(selectedClass)?.name ? " · " + subjectFor(selectedClass)?.name : "")
+    : "None selected";
 
   // Minute tick so the taught count / progress roll over as each period ends.
   let _now = new Date();
@@ -251,6 +266,12 @@
       </select>
     </div>
   {:else}
+    <button class="tp-sec-toggle" on:click={toggleClasses} aria-expanded={classesOpen}>
+      <span class="tp-sec-chev" use:obsIcon={classesOpen ? "chevron-down" : "chevron-right"}></span>
+      <span class="tp-sec-label">Classes</span>
+      <span class="tp-sec-sum">{selectedSummary}</span>
+    </button>
+    {#if classesOpen}
     <div class="tp-lo-search">
       <span class="tp-lo-search-icon" use:obsIcon={"search"}></span>
       <input type="text" bind:value={classSearch} placeholder="Search classes…" />
@@ -265,6 +286,7 @@
       {/each}
       {#if filteredClasses.length === 0}<div class="tp-lo-empty">No classes</div>{/if}
     </div>
+    {/if}
   {/if}
 
   {#if selectedClassId}
@@ -277,52 +299,44 @@
     </div>
     {#if stats}
       <div class="tp-cs">
-        {#if isMobile}
-          <button class="tp-cs-toggle" on:click={() => statsOpen = !statsOpen} aria-expanded={statsOpen}>
-            <span class="tp-cs-toggle-label">Overview</span>
-            <span class="tp-cs-toggle-sum">{stats.taught}/{stats.total} taught{#if stats.thisWeek} · this week {stats.thisWeek.pct}%{/if}</span>
-            <span class="tp-cs-toggle-chev" use:obsIcon={statsOpen ? "chevron-down" : "chevron-right"}></span>
-          </button>
-        {/if}
-        {#if !isMobile || statsOpen}
+        <button class="tp-sec-toggle" on:click={toggleStats} aria-expanded={statsOpen}>
+          <span class="tp-sec-chev" use:obsIcon={statsOpen ? "chevron-down" : "chevron-right"}></span>
+          <span class="tp-sec-label">Overview</span>
+          <span class="tp-sec-sum">Taught <b>{stats.taught}</b> of {stats.total} · {stats.remaining} to go</span>
+        </button>
+        {#if statsOpen}
           <div class="tp-cs-body">
-            <div class="tp-cs-plabel">Taught <b>{stats.taught}</b> of {stats.total} · <b>{stats.remaining}</b> to go</div>
             <div class="tp-cs-bar"><div class="tp-cs-bar-fill" style="width:{stats.taughtPct}%"></div></div>
 
-            <div class="tp-cs-weeks">
-              <div class="tp-cs-week" class:tp-cs-week--done={stats.thisWeek !== null && stats.thisWeek.pct === 100}>
-                <div class="tp-cs-week-label">Prepared · this week</div>
+            <div class="tp-cs-grid">
+              <div class="tp-cs-box" class:tp-cs-box--done={stats.thisWeek !== null && stats.thisWeek.pct === 100}>
+                <div class="tp-cs-box-label">Prepared · this week</div>
                 {#if stats.thisWeek}
-                  <div class="tp-cs-week-pct">{stats.thisWeek.pct}%{#if stats.thisWeek.pct === 100} 🎉{/if}</div>
-                  <div class="tp-cs-week-sub">{stats.thisWeek.prepared} of {stats.thisWeek.total} lesson{stats.thisWeek.total === 1 ? "" : "s"}</div>
+                  <div class="tp-cs-box-val">{stats.thisWeek.pct}%{#if stats.thisWeek.pct === 100} 🎉{/if} <span class="tp-cs-box-sub">{stats.thisWeek.prepared}/{stats.thisWeek.total}</span></div>
                   <div class="tp-cs-week-bar"><div class="tp-cs-week-fill" style="width:{stats.thisWeek.pct}%"></div></div>
                 {:else}
-                  <div class="tp-cs-week-none">No lessons</div>
+                  <div class="tp-cs-box-none">No lessons</div>
                 {/if}
               </div>
-              <div class="tp-cs-week" class:tp-cs-week--done={stats.nextWeek !== null && stats.nextWeek.pct === 100}>
-                <div class="tp-cs-week-label">Prepared · next week</div>
+              <div class="tp-cs-box" class:tp-cs-box--done={stats.nextWeek !== null && stats.nextWeek.pct === 100}>
+                <div class="tp-cs-box-label">Prepared · next week</div>
                 {#if stats.nextWeek}
-                  <div class="tp-cs-week-pct">{stats.nextWeek.pct}%{#if stats.nextWeek.pct === 100} 🎉{/if}</div>
-                  <div class="tp-cs-week-sub">{stats.nextWeek.prepared} of {stats.nextWeek.total} lesson{stats.nextWeek.total === 1 ? "" : "s"}</div>
+                  <div class="tp-cs-box-val">{stats.nextWeek.pct}%{#if stats.nextWeek.pct === 100} 🎉{/if} <span class="tp-cs-box-sub">{stats.nextWeek.prepared}/{stats.nextWeek.total}</span></div>
                   <div class="tp-cs-week-bar"><div class="tp-cs-week-fill" style="width:{stats.nextWeek.pct}%"></div></div>
                 {:else}
-                  <div class="tp-cs-week-none">No lessons</div>
+                  <div class="tp-cs-box-none">No lessons</div>
                 {/if}
               </div>
-            </div>
-
-            <div class="tp-cs-chips">
-              <div class="tp-cs-chip">
-                <div class="tp-cs-chip-label">Next lesson</div>
-                <div class="tp-cs-chip-val">{stats.next ? fmtDayMon(stats.next.date) + " · " + shortPeriod(stats.next.periodName) : "—"}</div>
+              <div class="tp-cs-box">
+                <div class="tp-cs-box-label">Next lesson</div>
+                <div class="tp-cs-box-val tp-cs-box-val--sm">{stats.next ? fmtDayMon(stats.next.date) + " · " + shortPeriod(stats.next.periodName) : "—"}</div>
               </div>
-              <div class="tp-cs-chip">
-                <div class="tp-cs-chip-label">Before break</div>
+              <div class="tp-cs-box">
+                <div class="tp-cs-box-label">Before break</div>
                 {#if stats.beforeBreak}
-                  <div class="tp-cs-chip-val">{stats.beforeBreak.count} lesson{stats.beforeBreak.count === 1 ? "" : "s"} <span class="tp-cs-chip-sub">· to {fmtDayMon(stats.beforeBreak.lastDate)}</span></div>
+                  <div class="tp-cs-box-val tp-cs-box-val--sm">{stats.beforeBreak.count} lesson{stats.beforeBreak.count === 1 ? "" : "s"} <span class="tp-cs-box-sub">· to {fmtDayMon(stats.beforeBreak.lastDate)}</span></div>
                 {:else}
-                  <div class="tp-cs-chip-val">—</div>
+                  <div class="tp-cs-box-val tp-cs-box-val--sm">—</div>
                 {/if}
               </div>
             </div>
@@ -455,25 +469,25 @@
   .tp-lo { display:flex; flex-direction:column; min-height:0; height:100%; font-family:var(--font-interface); position:relative; }
   .tp-lo-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   .tp-lo-title { margin:0; font-size:17px; font-weight:600; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .tp-lo-subhead { display:flex; align-items:center; gap:10px; margin:12px 0 10px; padding-top:11px; border-top:1px solid var(--background-modifier-border); }
+  .tp-lo-subhead { display:flex; align-items:center; gap:10px; margin:9px 0 8px; padding-top:8px; border-top:1px solid var(--background-modifier-border); }
   .tp-lo-hint { flex:1 1 auto; display:flex; align-items:center; justify-content:center; text-align:center; color:var(--text-faint); font-size:13px; padding:24px 12px; }
 
-  .tp-lo-search { position:relative; margin-bottom:12px; }
+  .tp-lo-search { position:relative; margin-bottom:7px; }
   .tp-lo-classpick { margin-bottom:12px; }
   .tp-lo-select { width:100%; box-sizing:border-box; padding:11px 12px; border:1px solid var(--background-modifier-border); border-radius:8px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:15px; font-family:var(--font-interface); }
   .tp-lo-search-icon { position:absolute; left:10px; top:8px; color:var(--text-muted); display:inline-flex; }
   .tp-lo-search-icon :global(svg) { width:16px; height:16px; }
   .tp-lo-search input { width:100%; box-sizing:border-box; padding:7px 10px 7px 32px; border:1px solid var(--background-modifier-border); border-radius:6px; background:var(--background-modifier-form-field); color:var(--text-normal); font-size:13px; }
 
-  .tp-lo-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); align-content:start; align-items:start; gap:9px; overflow-y:auto; padding:2px; min-height:0; flex:0 0 auto; max-height:260px; }
-  .tp-lo-card { display:flex; flex-direction:column; gap:3px; min-width:0; text-align:left; padding:10px 12px; border:1px solid var(--background-modifier-border); border-radius:7px; background:var(--background-primary); cursor:pointer; transition:background 0.1s; }
+  .tp-lo-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(142px,1fr)); align-content:start; align-items:start; gap:6px; overflow-y:auto; padding:2px; min-height:0; flex:0 0 auto; max-height:190px; }
+  .tp-lo-card { display:flex; flex-direction:column; gap:1px; min-width:0; text-align:left; padding:6px 9px; border:1px solid var(--background-modifier-border); border-radius:7px; background:var(--background-primary); cursor:pointer; transition:background 0.1s; line-height:1.3; }
   .tp-lo-card:hover { background:var(--background-modifier-hover); }
   .tp-lo-card--selected { border-color:var(--interactive-accent); box-shadow:inset 0 0 0 1px var(--interactive-accent); background:color-mix(in srgb, var(--interactive-accent) 8%, var(--background-primary)); }
-  .tp-lo-card-code { display:flex; align-items:center; gap:6px; min-width:0; font-size:15px; font-weight:600; line-height:1.5; color:var(--text-normal); }
+  .tp-lo-card-code { display:flex; align-items:center; gap:5px; min-width:0; font-size:13px; font-weight:600; line-height:1.35; color:var(--text-normal); }
   .tp-lo-card-emoji { flex-shrink:0; font-size:14px; line-height:1; }
   .tp-lo-card-codetext { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .tp-lo-card-sub { display:block; font-size:12px; color:var(--text-muted); margin-top:2px; }
-  .tp-lo-card-next { display:block; font-size:12px; color:var(--text-faint); margin-top:4px; }
+  .tp-lo-card-sub { display:block; font-size:11px; color:var(--text-muted); margin-top:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-lo-card-next { display:block; font-size:10px; color:var(--text-faint); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   .tp-lo-jump { display:inline-flex; align-items:center; gap:5px; font-size:12px; padding:5px 9px; border:1px solid var(--background-modifier-border); border-radius:8px; background:var(--background-primary); color:var(--text-muted); cursor:pointer; font-family:var(--font-interface); }
   .tp-lo-jump:hover { background:var(--background-modifier-hover); }
@@ -546,47 +560,46 @@
   .tp-lo-toast :global(svg) { width:14px; height:14px; }
   .tp-lo-toast-x { padding:4px !important; }
 
-  /* ── Class overview panel ────────────────────────────────────────────────── */
-  .tp-cs { flex:0 0 auto; margin-bottom:10px; border:1px solid var(--background-modifier-border); border-radius:9px; background:var(--background-primary); }
-  .tp-cs-toggle { display:flex; align-items:center; gap:8px; width:100%; padding:9px 11px; background:transparent; border:none; color:var(--text-normal); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-interface); }
-  .tp-cs-toggle-sum { margin-left:auto; font-size:11px; font-weight:400; color:var(--text-muted); }
-  .tp-cs-toggle-chev { display:inline-flex; color:var(--text-muted); }
-  .tp-cs-toggle-chev :global(svg) { width:15px; height:15px; }
-  .tp-cs-body { padding:11px 12px 12px; }
+  /* ── Collapsible section headers (classes + overview) ───────────────────── */
+  .tp-sec-toggle { display:flex; align-items:center; gap:7px; width:100%; padding:6px 9px; margin-bottom:7px; border:1px solid var(--background-modifier-border); border-radius:7px; background:var(--background-secondary); color:var(--text-normal); font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font-interface); }
+  .tp-sec-toggle:hover { background:var(--background-modifier-hover); }
+  .tp-sec-chev { display:inline-flex; color:var(--text-muted); flex-shrink:0; }
+  .tp-sec-chev :global(svg) { width:14px; height:14px; }
+  .tp-sec-label { flex-shrink:0; }
+  .tp-sec-sum { margin-left:auto; font-size:11px; font-weight:400; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-sec-sum b { color:var(--text-normal); font-weight:600; }
 
-  .tp-cs-plabel { font-size:12px; color:var(--text-muted); margin-bottom:5px; }
-  .tp-cs-plabel b { color:var(--text-normal); font-weight:600; }
-  .tp-cs-bar { height:8px; border-radius:5px; background:var(--background-modifier-border); overflow:hidden; margin-bottom:12px; }
+  /* ── Class overview panel (compact) ──────────────────────────────────────── */
+  .tp-cs { flex:0 0 auto; margin-bottom:8px; }
+  .tp-cs .tp-sec-toggle { margin-bottom:0; border-radius:7px 7px 0 0; border-bottom:none; }
+  .tp-cs-body { padding:9px 10px 10px; border:1px solid var(--background-modifier-border); border-top:none; border-radius:0 0 7px 7px; background:var(--background-primary); }
+
+  .tp-cs-bar { height:5px; border-radius:3px; background:var(--background-modifier-border); overflow:hidden; margin-bottom:9px; }
   .tp-cs-bar-fill { height:100%; background:var(--color-green, #3f9f5f); transition:width 0.3s; }
 
-  .tp-cs-weeks { display:flex; gap:9px; margin-bottom:10px; }
-  .tp-cs-week { flex:1; min-width:0; padding:9px 11px; border:1px solid var(--background-modifier-border); border-radius:8px; background:var(--background-secondary); }
-  .tp-cs-week--done { border-color:var(--color-green, #3f9f5f); background:color-mix(in srgb, var(--color-green, #3f9f5f) 12%, var(--background-secondary)); }
-  .tp-cs-week-label { font-size:10px; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-muted); margin-bottom:2px; }
-  .tp-cs-week-pct { font-size:18px; font-weight:600; color:var(--text-normal); line-height:1.2; }
-  .tp-cs-week-sub { font-size:11px; color:var(--text-muted); margin-bottom:5px; }
-  .tp-cs-week-none { font-size:12px; color:var(--text-faint); font-style:italic; padding:4px 0 2px; }
-  .tp-cs-week-bar { height:5px; border-radius:3px; background:var(--background-modifier-border); overflow:hidden; }
+  .tp-cs-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(132px, 1fr)); gap:6px; margin-bottom:9px; }
+  .tp-cs-box { min-width:0; padding:6px 8px; border:1px solid var(--background-modifier-border); border-radius:7px; background:var(--background-secondary); }
+  .tp-cs-box--done { border-color:var(--color-green, #3f9f5f); background:color-mix(in srgb, var(--color-green, #3f9f5f) 12%, var(--background-secondary)); }
+  .tp-cs-box-label { font-size:9px; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-cs-box-val { font-size:15px; font-weight:600; color:var(--text-normal); line-height:1.35; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-cs-box-val--sm { font-size:12px; }
+  .tp-cs-box-sub { font-size:10px; font-weight:400; color:var(--text-muted); }
+  .tp-cs-box-none { font-size:11px; color:var(--text-faint); font-style:italic; line-height:1.35; }
+  .tp-cs-week-bar { height:4px; border-radius:2px; background:var(--background-modifier-border); overflow:hidden; margin-top:3px; }
   .tp-cs-week-fill { height:100%; background:var(--interactive-accent); transition:width 0.3s; }
-  .tp-cs-week--done .tp-cs-week-fill { background:var(--color-green, #3f9f5f); }
+  .tp-cs-box--done .tp-cs-week-fill { background:var(--color-green, #3f9f5f); }
 
-  .tp-cs-chips { display:flex; gap:9px; margin-bottom:12px; }
-  .tp-cs-chip { flex:1; min-width:0; padding:7px 10px; border-radius:8px; background:var(--background-secondary); }
-  .tp-cs-chip-label { font-size:10px; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-muted); }
-  .tp-cs-chip-val { font-size:13px; font-weight:600; color:var(--text-normal); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .tp-cs-chip-sub { font-weight:400; color:var(--text-muted); }
-
-  .tp-cs-attn-head { display:flex; align-items:center; gap:6px; margin-bottom:7px; }
+  .tp-cs-attn-head { display:flex; align-items:center; gap:5px; margin-bottom:5px; }
   .tp-cs-attn-icon { display:inline-flex; color:var(--color-yellow, #e0a83a); }
-  .tp-cs-attn-icon :global(svg) { width:15px; height:15px; }
-  .tp-cs-attn-title { font-size:13px; font-weight:600; color:var(--text-normal); }
-  .tp-cs-attn-sub { font-size:11px; color:var(--text-muted); }
-  .tp-cs-attn-row { display:flex; align-items:center; gap:8px; width:100%; text-align:left; padding:8px 10px; margin-bottom:5px; border:none; border-radius:7px; background:var(--background-secondary); color:var(--text-normal); cursor:pointer; font-family:var(--font-interface); }
+  .tp-cs-attn-icon :global(svg) { width:13px; height:13px; }
+  .tp-cs-attn-title { font-size:12px; font-weight:600; color:var(--text-normal); }
+  .tp-cs-attn-sub { font-size:10px; color:var(--text-muted); }
+  .tp-cs-attn-row { display:flex; align-items:center; gap:7px; width:100%; text-align:left; padding:5px 8px; margin-bottom:3px; border:none; border-radius:5px; background:var(--background-secondary); color:var(--text-normal); cursor:pointer; font-family:var(--font-interface); }
   .tp-cs-attn-row:hover { background:var(--background-modifier-hover); }
   .tp-cs-attn-dot { display:inline-flex; color:var(--text-faint); flex-shrink:0; }
-  .tp-cs-attn-dot :global(svg) { width:14px; height:14px; }
-  .tp-cs-attn-when { font-size:12px; color:var(--text-normal); flex-shrink:0; }
-  .tp-cs-attn-note { font-size:11px; color:var(--text-muted); margin-left:auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-cs-attn-dot :global(svg) { width:12px; height:12px; }
+  .tp-cs-attn-when { font-size:11px; color:var(--text-normal); flex-shrink:0; }
+  .tp-cs-attn-note { font-size:10px; color:var(--text-muted); margin-left:auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-cs-attn-note--faint { color:var(--text-faint); font-style:italic; }
-  .tp-cs-attn-clear { font-size:12px; color:var(--text-muted); padding:4px 2px; }
+  .tp-cs-attn-clear { font-size:11px; color:var(--text-muted); padding:3px 2px; }
 </style>

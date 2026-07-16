@@ -245,6 +245,7 @@ export default class TeacherPlannerPlugin extends Plugin {
   private static readonly GLOBAL_FIELDS: ReadonlyArray<keyof GlobalPluginData & keyof TeacherPlannerSettings> = [
     "gridLineColour", "gridLineWeight", "blockBorderColour", "blockBorderWeight",
     "confirmBeforeDelete", "weekNoteOpenIn", "todayHighlightColour",
+    "loClassesOpen", "loStatsOpen",
   ];
 
   /** Populate plugin.settings from the active planner + global visual settings. */
@@ -285,6 +286,8 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.plannerData.blockBorderWeight = this.plannerData.blockBorderWeight ?? DEFAULT_GLOBAL_DATA.blockBorderWeight;
     this.plannerData.confirmBeforeDelete = this.plannerData.confirmBeforeDelete ?? DEFAULT_GLOBAL_DATA.confirmBeforeDelete;
     this.plannerData.weekNoteOpenIn = this.plannerData.weekNoteOpenIn ?? DEFAULT_GLOBAL_DATA.weekNoteOpenIn;
+    this.plannerData.loClassesOpen = this.plannerData.loClassesOpen ?? DEFAULT_GLOBAL_DATA.loClassesOpen;
+    this.plannerData.loStatsOpen = this.plannerData.loStatsOpen ?? DEFAULT_GLOBAL_DATA.loStatsOpen;
     this.plannerData.todayHighlightColour = this.plannerData.todayHighlightColour ?? DEFAULT_GLOBAL_DATA.todayHighlightColour;
   }
 
@@ -458,6 +461,8 @@ export default class TeacherPlannerPlugin extends Plugin {
       blockBorderWeight:  raw.blockBorderWeight ?? DEFAULT_GLOBAL_DATA.blockBorderWeight,
       confirmBeforeDelete: raw.confirmBeforeDelete ?? DEFAULT_GLOBAL_DATA.confirmBeforeDelete,
       weekNoteOpenIn: raw.weekNoteOpenIn ?? DEFAULT_GLOBAL_DATA.weekNoteOpenIn,
+      loClassesOpen: raw.loClassesOpen ?? DEFAULT_GLOBAL_DATA.loClassesOpen,
+      loStatsOpen: raw.loStatsOpen ?? DEFAULT_GLOBAL_DATA.loStatsOpen,
       todayHighlightColour: raw.todayHighlightColour ?? DEFAULT_GLOBAL_DATA.todayHighlightColour,
       planners:           [planner],
     };

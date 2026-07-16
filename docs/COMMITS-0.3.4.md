@@ -54,3 +54,15 @@ A curated, glanceable panel above the lesson list once a class is selected. Deli
 - `LessonOverviewComponent.svelte`: the panel — headline taught/remaining bar, the two week boxes (green + 🎉 at 100%), Next lesson + Before break chips, and the needs-attention list (rows click through to that lesson in the list via a new `data-lesson` attribute). Minute tick drives the time-aware figures. On mobile the whole panel collapses to a one-line summary (per the 0.3.3 mobile note).
 - Verified with a unit test over synthetic occurrences: time-aware taught (period ended vs not), week grouping, 3-of-4 / 1-of-2 prepared, before-break stopping at the holiday, needs-attention selection. svelte-check 0/0, tsc clean, production build OK.
 
+---
+
+## refactor(lessons): collapsible sections + compact spacing in the overview
+
+Space was at a premium once the dashboard landed — tiles (~250px) + panel (~450px) left the lesson list a sliver.
+
+- **Collapsible Classes and Overview sections** (desktop and mobile), each with a summary in its header so collapsing loses nothing: Classes shows the selected class; Overview shows "Taught 32 of 110 · 78 to go". No auto-collapse on select (deliberate — the UI shouldn't move under you). State persists via two new global settings (loClassesOpen / loStatsOpen) wired through the usual GLOBAL_FIELDS pattern (types.ts, settings.ts DEFAULT_GLOBAL_DATA, main.ts fields + defensive defaults + planner-build literal).
+- **Compacted layout:** class tiles trimmed (minmax 160→142px, padding 10/12→6/9, smaller text, max-height 260→190) so more fit per row; the panel's two week boxes and two chips merged into ONE responsive grid row (auto-fit minmax(132px)) — four across on desktop, two on mobile; taught/remaining moved into the header; slimmer progress bar and needs-attention rows. Roughly 350px handed back.
+- The lesson list needs no change: `.tp-lo` is already a full-height flex column and `.tp-lo-list` is the only `flex:1` child, so it absorbs whatever the fixed sections give back.
+
+svelte-check 0/0 (removed the now-unused CSS from the restructure), tsc clean, production build OK.
+
