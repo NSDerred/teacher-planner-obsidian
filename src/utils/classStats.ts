@@ -17,6 +17,10 @@ export interface ClassStats {
   /** null when the class has no lessons that week (holiday week, or class doesn't run). */
   thisWeek: WeekPrepared | null;
   nextWeek: WeekPrepared | null;
+  /** ISO Mondays for the two week boxes — always present, so the date shows even
+   *  when that week has no lessons (which is when you most need to know which week). */
+  thisWeekStart: string;
+  nextWeekStart: string;
   /** Next lesson that hasn't finished yet. */
   next?: LessonOccurrence;
   /** Upcoming lessons before the next holiday, with the date of the last of them. */
@@ -97,6 +101,8 @@ export function computeClassStats(
     taughtPct,
     thisWeek: weekStats(thisMonday),
     nextWeek: weekStats(nextMonday),
+    thisWeekStart: thisMonday,
+    nextWeekStart: nextMonday,
     next: upcoming[0],
     beforeBreak,
     needsAttention: upcoming.filter(o => !isSlotPrepared(s, o.slotId, o.date)).slice(0, attentionCount),

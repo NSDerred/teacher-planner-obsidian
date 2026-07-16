@@ -61,6 +61,8 @@
 
   const fmtDayMon = (iso: string) =>
     new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  const fmtWc = (iso: string) =>
+    "w/c " + new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   function scrollToLesson(o: LessonOccurrence) {
     const el = listEl?.querySelector<HTMLElement>(`[data-lesson="${keyOf(o)}"]`);
     if (el) el.scrollIntoView({ block: "center" });
@@ -311,6 +313,7 @@
             <div class="tp-cs-grid">
               <div class="tp-cs-box" class:tp-cs-box--done={stats.thisWeek !== null && stats.thisWeek.pct === 100}>
                 <div class="tp-cs-box-label">Prepared · this week</div>
+                <div class="tp-cs-box-date">{fmtWc(stats.thisWeekStart)}</div>
                 {#if stats.thisWeek}
                   <div class="tp-cs-box-val">{stats.thisWeek.pct}%{#if stats.thisWeek.pct === 100} 🎉{/if} <span class="tp-cs-box-sub">{stats.thisWeek.prepared}/{stats.thisWeek.total}</span></div>
                   <div class="tp-cs-week-bar"><div class="tp-cs-week-fill" style="width:{stats.thisWeek.pct}%"></div></div>
@@ -320,6 +323,7 @@
               </div>
               <div class="tp-cs-box" class:tp-cs-box--done={stats.nextWeek !== null && stats.nextWeek.pct === 100}>
                 <div class="tp-cs-box-label">Prepared · next week</div>
+                <div class="tp-cs-box-date">{fmtWc(stats.nextWeekStart)}</div>
                 {#if stats.nextWeek}
                   <div class="tp-cs-box-val">{stats.nextWeek.pct}%{#if stats.nextWeek.pct === 100} 🎉{/if} <span class="tp-cs-box-sub">{stats.nextWeek.prepared}/{stats.nextWeek.total}</span></div>
                   <div class="tp-cs-week-bar"><div class="tp-cs-week-fill" style="width:{stats.nextWeek.pct}%"></div></div>
@@ -581,6 +585,7 @@
   .tp-cs-box { min-width:0; padding:6px 8px; border:1px solid var(--background-modifier-border); border-radius:7px; background:var(--background-secondary); }
   .tp-cs-box--done { border-color:var(--color-green, #3f9f5f); background:color-mix(in srgb, var(--color-green, #3f9f5f) 12%, var(--background-secondary)); }
   .tp-cs-box-label { font-size:9px; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-cs-box-date { font-size:10px; color:var(--text-faint); line-height:1.3; margin-bottom:1px; }
   .tp-cs-box-val { font-size:15px; font-weight:600; color:var(--text-normal); line-height:1.35; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-cs-box-val--sm { font-size:12px; }
   .tp-cs-box-sub { font-size:10px; font-weight:400; color:var(--text-muted); }

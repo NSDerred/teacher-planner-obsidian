@@ -66,3 +66,11 @@ Space was at a premium once the dashboard landed — tiles (~250px) + panel (~45
 
 svelte-check 0/0 (removed the now-unused CSS from the restructure), tsc clean, production build OK.
 
+---
+
+## feat(lessons): week-commencing dates on the prepared boxes
+
+Adds "w/c 14 Sept" under the label on the this-week / next-week boxes so it's unambiguous which weeks they mean. computeClassStats now returns thisWeekStart / nextWeekStart (ISO Mondays) at the top level rather than inside the nullable week stats, so the date still shows when a box reads "No lessons" — precisely when you most need it. Given its own muted line rather than inline, so it never truncates when the boxes drop to ~160px on mobile (costs ~10px of row height).
+
+Verified the Monday resolution from mid-week, from a Monday, and from a Sunday. svelte-check 0/0, tsc clean, build OK.
+
