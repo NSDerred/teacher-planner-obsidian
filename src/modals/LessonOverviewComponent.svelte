@@ -2,7 +2,7 @@
   import type TeacherPlannerPlugin from "../main";
   import type { ClassGroup } from "../types";
   import { setIcon, Platform } from "obsidian";
-  import { tick as svelteTick } from "svelte";
+  import { tick as svelteTick, onDestroy } from "svelte";
   import { classOccurrences, groupByWeek, nextOccurrence, type LessonOccurrence } from "../utils/lessonOccurrences";
   import { getSlotPlan, setSlotPlan, clearSlotPlan, isSlotPrepared, toggleSlotPrepared, getSlotExternal, setSlotExternal, clearSlotExternal, externalKindOf, getLessonNote, setLessonNote, clearLessonNote, getLessonRoom, setLessonRoom, clearLessonRoom } from "../utils/planLinkUtils";
   import { shiftForward, shiftBackward, snapshotState, restoreState, type ShiftSnapshot } from "../utils/lessonShiftApply";
@@ -10,6 +10,7 @@
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
   import { DatePickerModal } from "../modals/DatePickerModal";
   import { getMondayOfWeek } from "../utils/weekUtils";
+  import { computeClassStats } from "../utils/classStats";
   import { openSystemPath, openOSFilePicker, openOSFolderPicker } from "../utils/exportDestination";
   import { ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
 
@@ -36,6 +37,19 @@
   let panelNote = "";
   let panelRoom = "";
   const isMobile = Platform.isMobileApp;
+  let statsOpen = !isMobile;
+
+  // Minute tick so the taught count / progress roll over as each period ends.
+  let _now = new Date();
+  const _nowTimer = setInterval(() => { _now = new Date(); }, 60000);
+  onDestroy(() => clearInterval(_nowTimer));
+
+  const fmtDayMon = (iso: string) =>
+    new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  function scrollToLesson(o: LessonOccurrence) {
+    const el = listEl?.querySelector<HTMLElement>(`[data-lesson="${keyOf(o)}"]`);
+    if (el) el.scrollIntoView({ block: "center" });
+  }
   let lastSnap: ShiftSnapshot | null = null;
   let lastNoteUndo: NoteUndoOp[] = [];
   let toast = "";
@@ -65,6 +79,7 @@
   })();
 
   $: occurrences = dep(_tick, selectedClassId ? classOccurrences(plugin.settings, selectedClassId) : []);
+  $: stats = dep(_tick, selectedClassId ? computeClassStats(plugin.settings, selectedClassId, _now) : null);
   $: weeks = groupByWeek(occurrences);
   $: selectedClass = classes.find(c => c.id === selectedClassId);
   $: unplacedForClass = dep(_tick, (plugin.settings.unplacedLessons ?? []).filter(u => u.classId === selectedClassId));
@@ -260,6 +275,80 @@
         <span class="tp-lo-jump-label">Jump to date</span>
       </button>
     </div>
+    {#if stats}
+      <div class="tp-cs">
+        {#if isMobile}
+          <button class="tp-cs-toggle" on:click={() => statsOpen = !statsOpen} aria-expanded={statsOpen}>
+            <span class="tp-cs-toggle-label">Overview</span>
+            <span class="tp-cs-toggle-sum">{stats.taught}/{stats.total} taught{#if stats.thisWeek} · this week {stats.thisWeek.pct}%{/if}</span>
+            <span class="tp-cs-toggle-chev" use:obsIcon={statsOpen ? "chevron-down" : "chevron-right"}></span>
+          </button>
+        {/if}
+        {#if !isMobile || statsOpen}
+          <div class="tp-cs-body">
+            <div class="tp-cs-plabel">Taught <b>{stats.taught}</b> of {stats.total} · <b>{stats.remaining}</b> to go</div>
+            <div class="tp-cs-bar"><div class="tp-cs-bar-fill" style="width:{stats.taughtPct}%"></div></div>
+
+            <div class="tp-cs-weeks">
+              <div class="tp-cs-week" class:tp-cs-week--done={stats.thisWeek !== null && stats.thisWeek.pct === 100}>
+                <div class="tp-cs-week-label">Prepared · this week</div>
+                {#if stats.thisWeek}
+                  <div class="tp-cs-week-pct">{stats.thisWeek.pct}%{#if stats.thisWeek.pct === 100} 🎉{/if}</div>
+                  <div class="tp-cs-week-sub">{stats.thisWeek.prepared} of {stats.thisWeek.total} lesson{stats.thisWeek.total === 1 ? "" : "s"}</div>
+                  <div class="tp-cs-week-bar"><div class="tp-cs-week-fill" style="width:{stats.thisWeek.pct}%"></div></div>
+                {:else}
+                  <div class="tp-cs-week-none">No lessons</div>
+                {/if}
+              </div>
+              <div class="tp-cs-week" class:tp-cs-week--done={stats.nextWeek !== null && stats.nextWeek.pct === 100}>
+                <div class="tp-cs-week-label">Prepared · next week</div>
+                {#if stats.nextWeek}
+                  <div class="tp-cs-week-pct">{stats.nextWeek.pct}%{#if stats.nextWeek.pct === 100} 🎉{/if}</div>
+                  <div class="tp-cs-week-sub">{stats.nextWeek.prepared} of {stats.nextWeek.total} lesson{stats.nextWeek.total === 1 ? "" : "s"}</div>
+                  <div class="tp-cs-week-bar"><div class="tp-cs-week-fill" style="width:{stats.nextWeek.pct}%"></div></div>
+                {:else}
+                  <div class="tp-cs-week-none">No lessons</div>
+                {/if}
+              </div>
+            </div>
+
+            <div class="tp-cs-chips">
+              <div class="tp-cs-chip">
+                <div class="tp-cs-chip-label">Next lesson</div>
+                <div class="tp-cs-chip-val">{stats.next ? fmtDayMon(stats.next.date) + " · " + shortPeriod(stats.next.periodName) : "—"}</div>
+              </div>
+              <div class="tp-cs-chip">
+                <div class="tp-cs-chip-label">Before break</div>
+                {#if stats.beforeBreak}
+                  <div class="tp-cs-chip-val">{stats.beforeBreak.count} lesson{stats.beforeBreak.count === 1 ? "" : "s"} <span class="tp-cs-chip-sub">· to {fmtDayMon(stats.beforeBreak.lastDate)}</span></div>
+                {:else}
+                  <div class="tp-cs-chip-val">—</div>
+                {/if}
+              </div>
+            </div>
+
+            {#if stats.needsAttention.length > 0}
+              <div class="tp-cs-attn-head">
+                <span class="tp-cs-attn-icon" use:obsIcon={"alert-triangle"}></span>
+                <span class="tp-cs-attn-title">Needs attention</span>
+                <span class="tp-cs-attn-sub">· next {stats.needsAttention.length} not prepared</span>
+              </div>
+              {#each stats.needsAttention as o (keyOf(o))}
+                {@const aml = mainLine(o)}
+                <button class="tp-cs-attn-row" on:click={() => scrollToLesson(o)}>
+                  <span class="tp-cs-attn-dot" use:obsIcon={"circle"}></span>
+                  <span class="tp-cs-attn-when">{fmtDayMon(o.date)} · {shortPeriod(o.periodName)}</span>
+                  <span class="tp-cs-attn-note" class:tp-cs-attn-note--faint={aml.faint}>{aml.text}</span>
+                </button>
+              {/each}
+            {:else}
+              <div class="tp-cs-attn-clear">All upcoming lessons prepared 🎉</div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    {/if}
+
     <div class="tp-lo-list" bind:this={listEl}>
       {#each weeks as w (w.weekKey)}
         {@const isCurrent = w.weekKey === currentWeekKey}
@@ -270,7 +359,7 @@
         {#each w.lessons as o (keyOf(o))}
           {@const past = o.date < todayIso}
           {@const ml = mainLine(o)}
-          <div class="tp-lo-row" class:tp-lo-row--past={past} class:tp-lo-row--current={isCurrent && !past} class:tp-lo-row--open={menuKey === keyOf(o)} class:tp-lo-row--dim={menuKey !== null && menuKey !== keyOf(o)}>
+          <div class="tp-lo-row" data-lesson={keyOf(o)} class:tp-lo-row--past={past} class:tp-lo-row--current={isCurrent && !past} class:tp-lo-row--open={menuKey === keyOf(o)} class:tp-lo-row--dim={menuKey !== null && menuKey !== keyOf(o)}>
             <div class="tp-lo-row-main">
               <button class="tp-lo-rowbtn" on:click={() => toggleMenu(o)} aria-expanded={menuKey === keyOf(o)}>
                 <span class="tp-lo-rowtext">
@@ -456,4 +545,48 @@
   .tp-lo-toast button:hover { background:var(--background-modifier-hover); }
   .tp-lo-toast :global(svg) { width:14px; height:14px; }
   .tp-lo-toast-x { padding:4px !important; }
+
+  /* ── Class overview panel ────────────────────────────────────────────────── */
+  .tp-cs { flex:0 0 auto; margin-bottom:10px; border:1px solid var(--background-modifier-border); border-radius:9px; background:var(--background-primary); }
+  .tp-cs-toggle { display:flex; align-items:center; gap:8px; width:100%; padding:9px 11px; background:transparent; border:none; color:var(--text-normal); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-interface); }
+  .tp-cs-toggle-sum { margin-left:auto; font-size:11px; font-weight:400; color:var(--text-muted); }
+  .tp-cs-toggle-chev { display:inline-flex; color:var(--text-muted); }
+  .tp-cs-toggle-chev :global(svg) { width:15px; height:15px; }
+  .tp-cs-body { padding:11px 12px 12px; }
+
+  .tp-cs-plabel { font-size:12px; color:var(--text-muted); margin-bottom:5px; }
+  .tp-cs-plabel b { color:var(--text-normal); font-weight:600; }
+  .tp-cs-bar { height:8px; border-radius:5px; background:var(--background-modifier-border); overflow:hidden; margin-bottom:12px; }
+  .tp-cs-bar-fill { height:100%; background:var(--color-green, #3f9f5f); transition:width 0.3s; }
+
+  .tp-cs-weeks { display:flex; gap:9px; margin-bottom:10px; }
+  .tp-cs-week { flex:1; min-width:0; padding:9px 11px; border:1px solid var(--background-modifier-border); border-radius:8px; background:var(--background-secondary); }
+  .tp-cs-week--done { border-color:var(--color-green, #3f9f5f); background:color-mix(in srgb, var(--color-green, #3f9f5f) 12%, var(--background-secondary)); }
+  .tp-cs-week-label { font-size:10px; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-muted); margin-bottom:2px; }
+  .tp-cs-week-pct { font-size:18px; font-weight:600; color:var(--text-normal); line-height:1.2; }
+  .tp-cs-week-sub { font-size:11px; color:var(--text-muted); margin-bottom:5px; }
+  .tp-cs-week-none { font-size:12px; color:var(--text-faint); font-style:italic; padding:4px 0 2px; }
+  .tp-cs-week-bar { height:5px; border-radius:3px; background:var(--background-modifier-border); overflow:hidden; }
+  .tp-cs-week-fill { height:100%; background:var(--interactive-accent); transition:width 0.3s; }
+  .tp-cs-week--done .tp-cs-week-fill { background:var(--color-green, #3f9f5f); }
+
+  .tp-cs-chips { display:flex; gap:9px; margin-bottom:12px; }
+  .tp-cs-chip { flex:1; min-width:0; padding:7px 10px; border-radius:8px; background:var(--background-secondary); }
+  .tp-cs-chip-label { font-size:10px; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-muted); }
+  .tp-cs-chip-val { font-size:13px; font-weight:600; color:var(--text-normal); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-cs-chip-sub { font-weight:400; color:var(--text-muted); }
+
+  .tp-cs-attn-head { display:flex; align-items:center; gap:6px; margin-bottom:7px; }
+  .tp-cs-attn-icon { display:inline-flex; color:var(--color-yellow, #e0a83a); }
+  .tp-cs-attn-icon :global(svg) { width:15px; height:15px; }
+  .tp-cs-attn-title { font-size:13px; font-weight:600; color:var(--text-normal); }
+  .tp-cs-attn-sub { font-size:11px; color:var(--text-muted); }
+  .tp-cs-attn-row { display:flex; align-items:center; gap:8px; width:100%; text-align:left; padding:8px 10px; margin-bottom:5px; border:none; border-radius:7px; background:var(--background-secondary); color:var(--text-normal); cursor:pointer; font-family:var(--font-interface); }
+  .tp-cs-attn-row:hover { background:var(--background-modifier-hover); }
+  .tp-cs-attn-dot { display:inline-flex; color:var(--text-faint); flex-shrink:0; }
+  .tp-cs-attn-dot :global(svg) { width:14px; height:14px; }
+  .tp-cs-attn-when { font-size:12px; color:var(--text-normal); flex-shrink:0; }
+  .tp-cs-attn-note { font-size:11px; color:var(--text-muted); margin-left:auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tp-cs-attn-note--faint { color:var(--text-faint); font-style:italic; }
+  .tp-cs-attn-clear { font-size:12px; color:var(--text-muted); padding:4px 2px; }
 </style>

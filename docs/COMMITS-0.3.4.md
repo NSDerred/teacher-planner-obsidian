@@ -40,3 +40,17 @@ Adds the visual half of the directory: "🗺 Planner Map.canvas" in the planner 
 
 Nick decided the Planner Home note + Planner Map canvas didn't earn their place, so the whole feature is removed. Reverted all wiring in main.ts (the 3 commands, home ribbon icon, the week-note create/delete/rename listeners, the import, and the onunload cancel). src/utils/plannerDirectory.ts and src/utils/academicWeeks.ts are emptied to inert stubs (the sandbox can't delete files in the synced folder — Nick to delete the two files, plus the generated "🏠 Planner Home.md" and "🗺 Planner Map.canvas" in his vault). Plugin returns to its pre-item-1 state. svelte-check 0/0, tsc clean, build OK. See RELEASE-0.3.4.md → "Ideas tried and removed".
 
+---
+
+## feat(lessons): class overview dashboard (0.3.4 item 3)
+
+A curated, glanceable panel above the lesson list once a class is selected. Deliberately trimmed — the earlier all-in-one mock was cluttered, so only the actionable metrics are in the headline.
+
+- New `utils/classStats.ts` — `computeClassStats(settings, classId, now, attentionCount, occurrences?)`. Pure derivation from existing data (classOccurrences, preparedMarks, holiday overrides); no new data capture. The occurrence list is injectable so the aggregation is unit-testable.
+  - **Taught is time-aware**: a lesson counts once its period's END time has passed (date + time), so counts roll over through the day.
+  - **This week / next week prepared**: counts EVERY lesson in the week (past included — a complete review; the tick means planned/ready), null when the class has no lessons that week.
+  - **Before break**: upcoming lessons before the next holiday override, with the date of the last one (falls back to end of year).
+  - **Needs attention**: next 3 upcoming lessons NOT prepared — keyed on prepared only, not plan links (many teachers never use plan links).
+- `LessonOverviewComponent.svelte`: the panel — headline taught/remaining bar, the two week boxes (green + 🎉 at 100%), Next lesson + Before break chips, and the needs-attention list (rows click through to that lesson in the list via a new `data-lesson` attribute). Minute tick drives the time-aware figures. On mobile the whole panel collapses to a one-line summary (per the 0.3.3 mobile note).
+- Verified with a unit test over synthetic occurrences: time-aware taught (period ended vs not), week grouping, 3-of-4 / 1-of-2 prepared, before-break stopping at the holiday, needs-attention selection. svelte-check 0/0, tsc clean, production build OK.
+
