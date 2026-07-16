@@ -2082,7 +2082,7 @@ function shiftOverrideDates(overrides, days) {
   const shift = (iso) => {
     const d = /* @__PURE__ */ new Date(iso + "T12:00:00");
     d.setDate(d.getDate() + days);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return localIso(d);
   };
   return overrides.map((o) => ({
     ...o,
@@ -2095,6 +2095,7 @@ var init_schoolTemplates = __esm({
   "src/utils/schoolTemplates.ts"() {
     init_pluginLibrary();
     init_scheduleUtils();
+    init_weekUtils();
     TEMPLATE_TYPE = "teacher-planner-template";
     clone = (v) => JSON.parse(JSON.stringify(v != null ? v : null));
     STRUCTURE_SUB = "templates/School structure";
@@ -18179,10 +18180,8 @@ function blockOccupants(s, dateIso, periodId, opts) {
 
 // src/modals/DatePickerModal.ts
 var import_obsidian15 = require("obsidian");
+init_weekUtils();
 var DOW2 = ["M", "T", "W", "T", "F", "S", "S"];
-function isoOf(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 var DatePickerModal = class extends import_obsidian15.Modal {
   constructor(app, opts) {
     var _a2;
@@ -18205,7 +18204,7 @@ var DatePickerModal = class extends import_obsidian15.Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("tp-datepicker");
-    const todayIso = isoOf(/* @__PURE__ */ new Date());
+    const todayIso = localIso(/* @__PURE__ */ new Date());
     const viewMonth = this.month.getMonth();
     const head = contentEl.createDiv("tp-datepicker-head");
     const prev = head.createEl("button", { cls: "tp-datepicker-nav" });
@@ -18227,7 +18226,7 @@ var DatePickerModal = class extends import_obsidian15.Modal {
     const start = new Date(this.month.getFullYear(), this.month.getMonth(), 1 - lead);
     for (let i = 0; i < 42; i++) {
       const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-      const iso = isoOf(d);
+      const iso = localIso(d);
       const inRange = (!this.opts.min || iso >= this.opts.min) && (!this.opts.max || iso <= this.opts.max);
       const cell = grid.createEl("button", { cls: "tp-datepicker-day", text: String(d.getDate()) });
       if (d.getMonth() !== viewMonth) cell.addClass("tp-datepicker-day--adjacent");
@@ -18248,7 +18247,7 @@ var DatePickerModal = class extends import_obsidian15.Modal {
     }
     const today = foot.createEl("button", { cls: "tp-btn tp-datepicker-today", text: "Today" });
     today.addEventListener("click", () => {
-      const t = isoOf(/* @__PURE__ */ new Date());
+      const t = localIso(/* @__PURE__ */ new Date());
       const clamped = this.opts.min && t < this.opts.min ? this.opts.min : this.opts.max && t > this.opts.max ? this.opts.max : t;
       this.opts.onPick(clamped);
       this.close();
@@ -18909,7 +18908,7 @@ function noteFolder(s, dateIso) {
   const base = plannerFolder(s);
   if (!((_a2 = s.weeklyNoteFolders) != null ? _a2 : true)) return base;
   const monday = getMondayOfWeek(/* @__PURE__ */ new Date(dateIso + "T12:00:00"));
-  const iso = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`;
+  const iso = localIso(monday);
   return `${base}/WC - ${iso}`;
 }
 function unplacedFolder(s) {
@@ -27520,9 +27519,6 @@ function showMenuAt(menu, e) {
     menu.showAtMouseEvent(e);
   }
 }
-function isoOf2(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 function onCardKeydown(e) {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
@@ -28226,7 +28222,7 @@ function instance3($$self, $$props, $$invalidate) {
     new DatePickerModal(
       plugin.app,
       {
-        value: isoOf2(isDayMode ? currentDate : currentMonday),
+        value: localIso(isDayMode ? currentDate : currentMonday),
         min: plugin.settings.academicYear.startDate,
         max: plugin.settings.academicYear.endDate,
         onPick: (iso) => jumpToDate(iso)
@@ -28390,7 +28386,7 @@ function instance3($$self, $$props, $$invalidate) {
     const base = plugin.settings.plannerFolder || "Teacher Planner";
     if (!((_a3 = plugin.settings.weeklyNoteFolders) !== null && _a3 !== void 0 ? _a3 : true)) return base;
     const monday = getMondayOfWeek(/* @__PURE__ */ new Date(dateIso + "T12:00:00"));
-    const iso = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`;
+    const iso = localIso(monday);
     return `${base}/WC - ${iso}`;
   }
   function findExistingNote(dateIso, fileName) {
@@ -31526,9 +31522,6 @@ var DOW3 = {
   5: "friday",
   6: "saturday"
 };
-function isoLocal(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 function addDays(d, n) {
   const x = new Date(d);
   x.setDate(x.getDate() + n);
@@ -31554,11 +31547,11 @@ function classOccurrences(s, classId) {
   const endDate = /* @__PURE__ */ new Date(endIso + "T12:00:00");
   let guard = 0;
   while (monday <= endDate && guard++ < 600) {
-    const weekKey2 = isoLocal(monday);
+    const weekKey2 = localIso(monday);
     const weekType = abEnabled ? getAbWeekType(monday, ay, (_e = s.weekOverrides) != null ? _e : [], s.schoolDays) : null;
     for (let i = 0; i < 7; i++) {
       const d = addDays(monday, i);
-      const dateIso = isoLocal(d);
+      const dateIso = localIso(d);
       if (dateIso < startIso || dateIso > endIso) continue;
       const dayName = DOW3[d.getDay()];
       if (!dayName || !schoolDays.has(dayName)) continue;

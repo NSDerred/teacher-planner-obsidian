@@ -74,3 +74,23 @@ Adds "w/c 14 Sept" under the label on the this-week / next-week boxes so it's un
 
 Verified the Monday resolution from mid-week, from a Monday, and from a Sunday. svelte-check 0/0, tsc clean, build OK.
 
+
+---
+
+## perf(lessons): reuse derived occurrences in class stats; dedupe local date helper
+
+Found by the 0.3.4 code-quality review, not by a bug report — nothing was visibly wrong.
+
+**The waste.** The overview derived the class's whole academic year twice per update: `$: occurrences = classOccurrences(...)` on one line, and `computeClassStats(...)` calling `classOccurrences` again internally on the next. Because the stats block also depends on the minute tick (`_now`), that full-year derivation re-ran **every 60 seconds** just to refresh a handful of counts. `classStats.ts` already had an injectable `occurrences` parameter — added for testability and then not used in production. Now passed through; Svelte orders reactive statements by dependency, so `occurrences` computes first and the tick only re-runs the cheap aggregation.
+
+**The dedupe.** Six copies of the same local `yyyy-mm-dd` formatter existed across the codebase (`classStats`, `lessonOccurrences`, `lessonNoteFiles`, `schoolTemplates`, `WeekView` x2, `DatePickerModal`, `LessonOverviewComponent`) — some as named helpers (`isoLocal` / `isoOf`), some inline. Collapsed to a single exported `weekUtils.localIso`, with `weekKey(monday)` delegating to it. The BST/`toISOString` warning now lives in exactly one place instead of being paraphrased in three. `weekUtils` imports only types, so no cycle. Note: `lessonOccurrences` has a *local variable* named `weekKey` — importing `localIso` only avoids the shadow clash.
+
+**Verification.** Because this is a refactor of live derivation logic, it was proven equivalent rather than eyeballed:
+- `localIso` byte-identical to the formatter it replaced across 730 consecutive days, including the 25 Oct 2026 BST->GMT fall-back that caused a real bug previously; `weekKey` confirmed to delegate.
+- Occurrence derivation unchanged post-dedupe: 85 occurrences, first 2026-09-02, last 2027-07-14, holiday weeks still excluded.
+- `computeClassStats` output identical internal-vs-injected at five cutoffs (start of year, mid-term, inside a holiday week, after Christmas, past year-end).
+- svelte-check 0/0, tsc clean, eslint clean, production build OK.
+
+**Left alone, deliberately.** `WeekView.wcFolderFor` and `lessonNoteFiles.noteFolder` are the same function copied — same planner-folder lookup, same `weeklyNoteFolders` check, same `WC - {monday}` path. If the convention changes and only one is updated, lesson notes write where the week grid won't look. Real duplication, but a behavioural change needing its own tests — logged for the backlog, not folded into a like-for-like refactor.
+
+**Blind spot noted:** `npm run lint` is `eslint src --ext .ts`, so `.svelte` files — where most UI logic lives — are not linted at all. svelte-check covers types, not lint rules. Worth fixing separately.

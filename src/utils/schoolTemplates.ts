@@ -4,6 +4,7 @@ import type {
   SchoolPeriod, DaySchedule, PeriodTypeConfig, WeekOverride, SchoolDay,
 } from "../types";
 import { ensureDaySchedules, syncPeriodsUnion } from "./scheduleUtils";
+import { localIso } from "./weekUtils";
 
 /**
  * Reusable "school template" save/load. Two kinds, both plain-JSON files in a
@@ -166,7 +167,7 @@ export function shiftOverrideDates(overrides: WeekOverride[], days: number): Wee
   const shift = (iso: string): string => {
     const d = new Date(iso + "T12:00:00");
     d.setDate(d.getDate() + days);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return localIso(d);
   };
   return overrides.map(o => ({
     ...o,

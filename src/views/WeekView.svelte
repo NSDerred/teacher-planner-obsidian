@@ -10,7 +10,7 @@
   }
   import {
     getWeekLabel, formatDateRange, addWeeks,
-    getMondayOfWeek, weekKey, getAbWeekType,
+    getMondayOfWeek, weekKey, getAbWeekType, localIso,
   } from "../utils/weekUtils";
   import { TimetableEditorModal } from "../modals/TimetableEditorModal";
   import { SlotNotesModal } from "../modals/SlotNotesModal";
@@ -864,9 +864,6 @@
   }
 
   // ── Jump-to-date (week-nav centre) ────────────────────────────────────────
-  function isoOf(d: Date): string {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  }
   $: navCentreLabel = (isDayMode ? currentDate : currentMonday)
     .toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
   function jumpToDate(iso: string) {
@@ -879,7 +876,7 @@
   // ── Date picker (shared modal, mobile + desktop) ──────────────────────────
   function openDatePicker() {
     new DatePickerModal(plugin.app, {
-      value: isoOf(isDayMode ? currentDate : currentMonday),
+      value: localIso(isDayMode ? currentDate : currentMonday),
       min: plugin.settings.academicYear.startDate,
       max: plugin.settings.academicYear.endDate,
       onPick: (iso) => jumpToDate(iso),
@@ -1062,7 +1059,7 @@
     const base = plugin.settings.plannerFolder || "Teacher Planner";
     if (!(plugin.settings.weeklyNoteFolders ?? true)) return base;
     const monday = getMondayOfWeek(new Date(dateIso + "T12:00:00"));
-    const iso = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`;
+    const iso = localIso(monday);
     return `${base}/WC - ${iso}`;
   }
 

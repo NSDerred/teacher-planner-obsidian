@@ -2,7 +2,7 @@ import { App, TFile, normalizePath } from "obsidian";
 import type { TeacherPlannerSettings } from "../types";
 import type { NoteMove } from "./lessonShiftApply";
 import { buildNoteTitle } from "./noteTitleUtils";
-import { getMondayOfWeek } from "./weekUtils";
+import { getMondayOfWeek, localIso } from "./weekUtils";
 import { DEFAULT_LESSON_NOTE_TITLE_TEMPLATE } from "../settings";
 
 interface ClassMeta { code: string; subjectName?: string; emoji?: string; }
@@ -22,7 +22,7 @@ function noteFolder(s: TeacherPlannerSettings, dateIso: string): string {
   const base = plannerFolder(s);
   if (!(s.weeklyNoteFolders ?? true)) return base;
   const monday = getMondayOfWeek(new Date(dateIso + "T12:00:00"));
-  const iso = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`;
+  const iso = localIso(monday);
   return `${base}/WC - ${iso}`;
 }
 function unplacedFolder(s: TeacherPlannerSettings): string {

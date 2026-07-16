@@ -1,5 +1,5 @@
 import type { TeacherPlannerSettings, SchoolDay } from "../types";
-import { getMondayOfWeek, getAbWeekType } from "./weekUtils";
+import { getMondayOfWeek, getAbWeekType, localIso } from "./weekUtils";
 import { getPeriodsForDay } from "./scheduleUtils";
 import { resolvedSlotForDate } from "./clashUtils";
 
@@ -22,9 +22,6 @@ export interface LessonOccurrence {
   weekKey: string;     // ISO Monday date for the week (grouping key)
 }
 
-function isoLocal(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 function addDays(d: Date, n: number): Date {
   const x = new Date(d);
   x.setDate(x.getDate() + n);
@@ -54,11 +51,11 @@ export function classOccurrences(s: TeacherPlannerSettings, classId: string): Le
 
   let guard = 0;
   while (monday <= endDate && guard++ < 600) {
-    const weekKey = isoLocal(monday);
+    const weekKey = localIso(monday);
     const weekType = abEnabled ? getAbWeekType(monday, ay, s.weekOverrides ?? [], s.schoolDays) : null;
     for (let i = 0; i < 7; i++) {
       const d = addDays(monday, i);
-      const dateIso = isoLocal(d);
+      const dateIso = localIso(d);
       if (dateIso < startIso || dateIso > endIso) continue;
       const dayName = DOW[d.getDay()];
       if (!dayName || !schoolDays.has(dayName)) continue;

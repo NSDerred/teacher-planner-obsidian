@@ -1,4 +1,5 @@
 import { App, Modal, Platform, setIcon } from "obsidian";
+import { localIso } from "../utils/weekUtils";
 
 export interface DatePickerOptions {
   /** Initially-shown / selected date as an ISO yyyy-mm-dd string. */
@@ -11,10 +12,6 @@ export interface DatePickerOptions {
 }
 
 const DOW = ["M", "T", "W", "T", "F", "S", "S"];
-
-function isoOf(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 /**
  * A single, shared month-grid date picker used across the plugin (week view on
@@ -53,7 +50,7 @@ export class DatePickerModal extends Modal {
     contentEl.empty();
     contentEl.addClass("tp-datepicker");
 
-    const todayIso = isoOf(new Date());
+    const todayIso = localIso(new Date());
     const viewMonth = this.month.getMonth();
 
     // Header: month nav
@@ -83,7 +80,7 @@ export class DatePickerModal extends Modal {
     const start = new Date(this.month.getFullYear(), this.month.getMonth(), 1 - lead);
     for (let i = 0; i < 42; i++) {
       const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-      const iso = isoOf(d);
+      const iso = localIso(d);
       const inRange = (!this.opts.min || iso >= this.opts.min) && (!this.opts.max || iso <= this.opts.max);
       const cell = grid.createEl("button", { cls: "tp-datepicker-day", text: String(d.getDate()) });
       if (d.getMonth() !== viewMonth) cell.addClass("tp-datepicker-day--adjacent");
@@ -102,7 +99,7 @@ export class DatePickerModal extends Modal {
     }
     const today = foot.createEl("button", { cls: "tp-btn tp-datepicker-today", text: "Today" });
     today.addEventListener("click", () => {
-      const t = isoOf(new Date());
+      const t = localIso(new Date());
       const clamped = this.opts.min && t < this.opts.min ? this.opts.min
         : this.opts.max && t > this.opts.max ? this.opts.max : t;
       this.opts.onPick(clamped);
