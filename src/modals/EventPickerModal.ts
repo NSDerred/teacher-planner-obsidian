@@ -30,7 +30,7 @@ export class EventPickerModal extends Modal {
 
     // Lessons
     if (classes.length > 0) {
-      list.createEl("div", { text: "LESSONS", cls: "tp-epm-group-label" });
+      list.createDiv({ text: "LESSONS", cls: "tp-epm-group-label" });
       const sortedSubjects = [...subjects].sort((a, b) => a.name.localeCompare(b.name));
       for (const subj of sortedSubjects) {
         const subjClasses = classes
@@ -39,9 +39,9 @@ export class EventPickerModal extends Modal {
         for (const cls of subjClasses) {
           const btn = list.createEl("button", { cls: "tp-epm-item" });
           btn.setCssStyles({ borderLeft: `3px solid ${cls.colour}` });
-          btn.createEl("span", { text: cls.code, cls: "tp-epm-code" });
+          btn.createSpan({ text: cls.code, cls: "tp-epm-code" });
           if (cls.classroom) {
-            btn.createEl("span", { text: cls.classroom, cls: "tp-epm-room" });
+            btn.createSpan({ text: cls.classroom, cls: "tp-epm-room" });
           }
           btn.addEventListener("click", () => { this.onPick(cls.id); this.close(); });
         }
@@ -50,15 +50,15 @@ export class EventPickerModal extends Modal {
 
     // Activities
     if (activities.length > 0) {
-      if (classes.length > 0) list.createEl("div", { cls: "tp-epm-divider" });
-      list.createEl("div", { text: "DIRECTED TIME", cls: "tp-epm-group-label" });
+      if (classes.length > 0) list.createDiv({ cls: "tp-epm-divider" });
+      list.createDiv({ text: "DIRECTED TIME", cls: "tp-epm-group-label" });
       const sortedActs = [...activities].sort((a, b) => a.label.localeCompare(b.label));
       for (const act of sortedActs) {
         const btn = list.createEl("button", { cls: "tp-epm-item" });
         btn.setCssStyles({ borderLeft: `3px solid ${act.colour}` });
-        btn.createEl("span", { text: act.label, cls: "tp-epm-code" });
+        btn.createSpan({ text: act.label, cls: "tp-epm-code" });
         if (act.classroom) {
-          btn.createEl("span", { text: act.classroom, cls: "tp-epm-room" });
+          btn.createSpan({ text: act.classroom, cls: "tp-epm-room" });
         }
         btn.addEventListener("click", () => { this.onPick(act.id); this.close(); });
       }

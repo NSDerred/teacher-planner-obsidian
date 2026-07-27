@@ -1751,7 +1751,7 @@ function renderDestinationPicker(container, state, isMobile) {
   container.createEl("p", { text: "Destination", cls: "tp-modal-label" });
   const wrap = container.createDiv("tp-export-destination");
   const vaultRow = wrap.createDiv("tp-export-dest-row");
-  vaultRow.createEl("span", { text: "Vault folder", cls: "tp-export-dest-sublabel" });
+  vaultRow.createSpan({ text: "Vault folder", cls: "tp-export-dest-sublabel" });
   const vaultInput = vaultRow.createEl("input", { type: "text", cls: "tp-export-dest-input" });
   vaultInput.value = state.vaultPath;
   vaultInput.placeholder = "Teacher Planner/exports";
@@ -8659,7 +8659,7 @@ var init_SetupWizardModal = __esm({
       }
       stepHeading(body, step, title, desc) {
         const hdr = body.createDiv("tp-wizard-step-hdr");
-        hdr.createEl("span", { text: `Step ${step} of ${TOTAL_STEPS}`, cls: "tp-wizard-step-label" });
+        hdr.createSpan({ text: `Step ${step} of ${TOTAL_STEPS}`, cls: "tp-wizard-step-label" });
         hdr.createDiv({ text: title, cls: "tp-wizard-title" });
         hdr.createEl("p", { text: desc, cls: "tp-wizard-desc" });
       }
@@ -8803,7 +8803,7 @@ var init_SetupWizardModal = __esm({
         const activityHeaders = dtPanel.createDiv("tp-activity-row tp-activity-headers");
         activityHeaders.createDiv().setCssStyles({ width: "28px", flexShrink: "0" });
         const makeH = (text2, extra) => {
-          const h = activityHeaders.createEl("span", { text: text2, cls: "tp-activity-header-label" });
+          const h = activityHeaders.createSpan({ text: text2, cls: "tp-activity-header-label" });
           if (extra) h.setCssStyles(extra);
         };
         makeH("Name");
@@ -9374,8 +9374,8 @@ var init_SetupWizardModal = __esm({
         const summary = body.createDiv("tp-wizard-summary");
         const row = (label, value) => {
           const r = summary.createDiv("tp-wizard-summary-row");
-          r.createEl("span", { text: label + ":", cls: "tp-wizard-summary-label" });
-          r.createEl("span", { text: value, cls: "tp-wizard-summary-value" });
+          r.createSpan({ text: label + ":", cls: "tp-wizard-summary-label" });
+          r.createSpan({ text: value, cls: "tp-wizard-summary-value" });
         };
         const s = this.plugin.settings;
         const dt = s.directedTime;
@@ -10203,7 +10203,7 @@ var init_SettingsTab = __esm({
         activityHeaders.createDiv("tp-activity-header-spacer");
         const makeHeader = (text2, extraCls = "") => {
           const cls = "tp-activity-header-label" + (extraCls ? " " + extraCls : "");
-          return activityHeaders.createEl("span", { text: text2, cls });
+          return activityHeaders.createSpan({ text: text2, cls });
         };
         makeHeader("Name");
         makeHeader("Info");
@@ -10579,9 +10579,9 @@ var init_SettingsTab = __esm({
           card.createDiv("tp-planner-card-accent");
           const info = card.createDiv("tp-planner-card-info");
           const nameRow = info.createDiv("tp-planner-card-name-row");
-          nameRow.createEl("span", { text: p.name, cls: "tp-planner-card-name" });
-          if (isActive) nameRow.createEl("span", { text: "Active", cls: "tp-planner-badge" });
-          info.createEl("span", {
+          nameRow.createSpan({ text: p.name, cls: "tp-planner-card-name" });
+          if (isActive) nameRow.createSpan({ text: "Active", cls: "tp-planner-badge" });
+          info.createSpan({
             text: p.academicYear.startDate + " \u2192 " + p.academicYear.endDate,
             cls: "tp-planner-card-dates"
           });
@@ -18018,9 +18018,9 @@ var SlotNotesModal = class extends import_obsidian13.Modal {
     contentEl.addClass("tp-slot-notes-modal");
     this.setTitle(this.slotName);
     const meta = contentEl.createDiv("tp-slot-notes-meta");
-    if (this.formattedDate) meta.createEl("span", { text: this.formattedDate });
-    if (this.periodName) meta.createEl("span", { text: this.periodName });
-    if (this.timeRange) meta.createEl("span", { text: this.timeRange });
+    if (this.formattedDate) meta.createSpan({ text: this.formattedDate });
+    if (this.periodName) meta.createSpan({ text: this.periodName });
+    if (this.timeRange) meta.createSpan({ text: this.timeRange });
     const form = contentEl.createDiv("tp-modal-form");
     const classroomLabel = form.createEl("label");
     classroomLabel.setCssStyles({ fontSize: "13px", fontWeight: "600", color: "var(--text-normal)", display: "block", marginBottom: "4px" });
@@ -18211,7 +18211,7 @@ var DatePickerModal = class extends import_obsidian14.Modal {
     prev.setAttribute("aria-label", "Previous month");
     (0, import_obsidian14.setIcon)(prev, "arrow-left");
     prev.addEventListener("click", () => this.shift(-1));
-    head.createEl("span", {
+    head.createSpan({
       cls: "tp-datepicker-title",
       text: this.month.toLocaleDateString(void 0, { month: "long", year: "numeric" })
     });
@@ -18220,7 +18220,7 @@ var DatePickerModal = class extends import_obsidian14.Modal {
     (0, import_obsidian14.setIcon)(next, "arrow-right");
     next.addEventListener("click", () => this.shift(1));
     const dow = contentEl.createDiv("tp-datepicker-dow");
-    for (const d of DOW2) dow.createEl("span", { text: d });
+    for (const d of DOW2) dow.createSpan({ text: d });
     const grid = contentEl.createDiv("tp-datepicker-grid");
     const lead = (this.month.getDay() + 6) % 7;
     const start = new Date(this.month.getFullYear(), this.month.getMonth(), 1 - lead);
@@ -18240,7 +18240,7 @@ var DatePickerModal = class extends import_obsidian14.Modal {
       });
     }
     const foot = contentEl.createDiv("tp-datepicker-foot");
-    const label = foot.createEl("span", { cls: "tp-datepicker-selected" });
+    const label = foot.createSpan({ cls: "tp-datepicker-selected" });
     if (this.selected) {
       const sd = /* @__PURE__ */ new Date(this.selected + "T12:00:00");
       label.setText("Selected: " + sd.toLocaleDateString(void 0, { day: "numeric", month: "short" }));
@@ -18418,7 +18418,7 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
     const nameHead = nameRow.createDiv("tp-modal-label-row");
     nameHead.createEl("label", { text: "Event name", cls: "tp-modal-label" });
     const colourField = nameHead.createDiv("tp-colour-field");
-    colourField.createEl("span", { text: "colour", cls: "tp-colour-cap" });
+    colourField.createSpan({ text: "colour", cls: "tp-colour-cap" });
     const colourSwatch = colourField.createEl("button", { cls: "tp-colour-swatch" });
     colourSwatch.setAttribute("aria-label", "Choose colour");
     const colourPop = colourField.createDiv("tp-colour-pop");
@@ -18446,8 +18446,8 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
       }
       const ql = raw.toLowerCase();
       const useRow = comboPanel.createDiv("tp-combo-item tp-combo-new");
-      useRow.createEl("span", { cls: "tp-combo-plus", text: "+" });
-      useRow.createEl("span", { text: `Create new event \u201C${raw}\u201D` });
+      useRow.createSpan({ cls: "tp-combo-plus", text: "+" });
+      useRow.createSpan({ text: `Create new event \u201C${raw}\u201D` });
       useRow.addEventListener("mousedown", (e) => {
         e.preventDefault();
         title = raw;
@@ -18458,14 +18458,14 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
       let lastGroup = "";
       for (const it of matches) {
         if (it.group !== lastGroup) {
-          comboPanel.createEl("div", { text: it.group, cls: "tp-combo-group" });
+          comboPanel.createDiv({ text: it.group, cls: "tp-combo-group" });
           lastGroup = it.group;
         }
         const row = comboPanel.createDiv("tp-combo-item");
-        const sw = row.createEl("span", { cls: "tp-combo-swatch" });
+        const sw = row.createSpan({ cls: "tp-combo-swatch" });
         sw.setCssStyles({ background: it.colour });
-        row.createEl("span", { text: it.primary, cls: "tp-combo-item-primary" });
-        if (it.secondary) row.createEl("span", { text: it.secondary, cls: "tp-combo-item-secondary" });
+        row.createSpan({ text: it.primary, cls: "tp-combo-item-primary" });
+        if (it.secondary) row.createSpan({ text: it.secondary, cls: "tp-combo-item-secondary" });
         row.addEventListener("mousedown", (e) => {
           e.preventDefault();
           title = it.primary;
@@ -18572,7 +18572,7 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
     durInput.min = "0";
     durInput.max = "600";
     durInput.placeholder = "mins";
-    durLine.createEl("span", { text: "min", cls: "tp-modal-input-unit" });
+    durLine.createSpan({ text: "min", cls: "tp-modal-input-unit" });
     const durAuto = durLine.createEl("button", { text: "Auto", cls: "tp-dur-reset" });
     durAuto.title = "Reset to the total length of the selected blocks";
     const paintDuration = () => {
@@ -18612,13 +18612,13 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
       periodField.empty();
       const ordered = periodsForDate(date).filter((p) => selected.has(p.id));
       if (ordered.length === 0) {
-        periodField.createEl("span", { text: "Choose one or more blocks", cls: "tp-period-placeholder" });
+        periodField.createSpan({ text: "Choose one or more blocks", cls: "tp-period-placeholder" });
       } else {
         for (const p of ordered) {
-          const tag = periodField.createEl("span", { cls: "tp-period-tag" });
+          const tag = periodField.createSpan({ cls: "tp-period-tag" });
           tag.setCssStyles({ background: hexToRgba3(colour, 0.18), border: `1px solid ${colour}` });
-          tag.createEl("span", { text: p.name });
-          const x = tag.createEl("span", { cls: "tp-period-tag-x" });
+          tag.createSpan({ text: p.name });
+          const x = tag.createSpan({ cls: "tp-period-tag-x" });
           x.setText("\u2715");
           x.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -18631,16 +18631,16 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
           });
         }
       }
-      const add = periodField.createEl("span", { cls: "tp-period-add" });
-      add.createEl("span", { text: ordered.length ? "Add block" : "Select" });
-      add.createEl("span", { cls: "tp-period-caret", text: "\u25BE" });
+      const add = periodField.createSpan({ cls: "tp-period-add" });
+      add.createSpan({ text: ordered.length ? "Add block" : "Select" });
+      add.createSpan({ cls: "tp-period-caret", text: "\u25BE" });
     }
     function renderOptions(q) {
       optionList.empty();
       const ql = q.trim().toLowerCase();
       const periods = periodsForDate(date).filter((p) => !ql || p.name.toLowerCase().includes(ql));
       if (periods.length === 0) {
-        optionList.createEl("div", { text: "No blocks", cls: "tp-picker-empty" });
+        optionList.createDiv({ text: "No blocks", cls: "tp-picker-empty" });
         return;
       }
       for (const p of periods) {
@@ -18648,13 +18648,13 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
         if (p.type !== "lesson") opt.addClass("tp-period-option--nonlesson");
         const on = selected.has(p.id);
         if (on) opt.addClass("tp-period-option--on");
-        const box = opt.createEl("span", { cls: "tp-period-check" });
+        const box = opt.createSpan({ cls: "tp-period-check" });
         if (on) {
           box.addClass("tp-period-check--on");
           box.setText("\u2713");
         }
-        opt.createEl("span", { text: p.name, cls: "tp-period-opt-name" });
-        opt.createEl("span", { text: `${p.start}\u2013${p.end}`, cls: "tp-period-opt-time" });
+        opt.createSpan({ text: p.name, cls: "tp-period-opt-name" });
+        opt.createSpan({ text: `${p.start}\u2013${p.end}`, cls: "tp-period-opt-time" });
         opt.addEventListener("click", () => {
           if (selected.has(p.id)) selected.delete(p.id);
           else selected.add(p.id);
@@ -18795,8 +18795,8 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
       const list = card.createDiv("tp-clash-list");
       for (const c of clashes) {
         const row = list.createDiv("tp-clash-row");
-        row.createEl("span", { text: c.name, cls: "tp-clash-period" });
-        row.createEl("span", { text: c.occ.map((o) => `${o.label} (${o.kind})`).join(", "), cls: "tp-clash-items" });
+        row.createSpan({ text: c.name, cls: "tp-clash-period" });
+        row.createSpan({ text: c.occ.map((o) => `${o.label} (${o.kind})`).join(", "), cls: "tp-clash-items" });
       }
       if (directedTimeEnabled && directed && clashes.some((c) => c.occ.some((o) => o.directed))) {
         card.createEl("p", {
@@ -18812,8 +18812,8 @@ var AddDateEventModal = class extends import_obsidian15.Modal {
         const ic = b.createSpan("tp-clash-action-icon");
         (0, import_obsidian15.setIcon)(ic, iconName);
         const txt = b.createDiv("tp-clash-action-text");
-        txt.createEl("span", { text: title2, cls: "tp-clash-action-title" });
-        txt.createEl("span", { text: desc, cls: "tp-clash-action-desc" });
+        txt.createSpan({ text: title2, cls: "tp-clash-action-title" });
+        txt.createSpan({ text: desc, cls: "tp-clash-action-desc" });
         return b;
       };
       makeAction("copy", "Add anyway", "Keep both in this period", false).addEventListener("click", () => {

@@ -172,7 +172,7 @@ export class AddDateEventModal extends Modal {
     nameHead.createEl("label", { text: "Event name", cls: "tp-modal-label" });
 
     const colourField = nameHead.createDiv("tp-colour-field");
-    colourField.createEl("span", { text: "colour", cls: "tp-colour-cap" });
+    colourField.createSpan({ text: "colour", cls: "tp-colour-cap" });
     const colourSwatch = colourField.createEl("button", { cls: "tp-colour-swatch" });
     colourSwatch.setAttribute("aria-label", "Choose colour");
     const colourPop = colourField.createDiv("tp-colour-pop");
@@ -204,8 +204,8 @@ export class AddDateEventModal extends Modal {
 
       // "Create new event" pinned to the top, visible from the first character.
       const useRow = comboPanel.createDiv("tp-combo-item tp-combo-new");
-      useRow.createEl("span", { cls: "tp-combo-plus", text: "+" });
-      useRow.createEl("span", { text: `Create new event “${raw}”` });
+      useRow.createSpan({ cls: "tp-combo-plus", text: "+" });
+      useRow.createSpan({ text: `Create new event “${raw}”` });
       useRow.addEventListener("mousedown", (e) => {
         e.preventDefault();
         title = raw; titleInput.value = raw;
@@ -215,11 +215,11 @@ export class AddDateEventModal extends Modal {
       const matches = cItems.filter(it => it.primary.toLowerCase().includes(ql) || it.secondary.toLowerCase().includes(ql));
       let lastGroup = "";
       for (const it of matches) {
-        if (it.group !== lastGroup) { comboPanel.createEl("div", { text: it.group, cls: "tp-combo-group" }); lastGroup = it.group; }
+        if (it.group !== lastGroup) { comboPanel.createDiv({ text: it.group, cls: "tp-combo-group" }); lastGroup = it.group; }
         const row = comboPanel.createDiv("tp-combo-item");
-        const sw = row.createEl("span", { cls: "tp-combo-swatch" }); sw.setCssStyles({ background: it.colour });
-        row.createEl("span", { text: it.primary, cls: "tp-combo-item-primary" });
-        if (it.secondary) row.createEl("span", { text: it.secondary, cls: "tp-combo-item-secondary" });
+        const sw = row.createSpan({ cls: "tp-combo-swatch" }); sw.setCssStyles({ background: it.colour });
+        row.createSpan({ text: it.primary, cls: "tp-combo-item-primary" });
+        if (it.secondary) row.createSpan({ text: it.secondary, cls: "tp-combo-item-secondary" });
         row.addEventListener("mousedown", (e) => {
           e.preventDefault();
           title = it.primary; titleInput.value = title;
@@ -294,7 +294,7 @@ export class AddDateEventModal extends Modal {
     const durLine = durCol.createDiv("tp-modal-input-inline");
     const durInput = durLine.createEl("input", { type: "number", cls: "tp-modal-input tp-modal-input--short" });
     durInput.min = "0"; durInput.max = "600"; durInput.placeholder = "mins";
-    durLine.createEl("span", { text: "min", cls: "tp-modal-input-unit" });
+    durLine.createSpan({ text: "min", cls: "tp-modal-input-unit" });
     const durAuto = durLine.createEl("button", { text: "Auto", cls: "tp-dur-reset" });
     durAuto.title = "Reset to the total length of the selected blocks";
     const paintDuration = () => { durInput.value = String(durationMinutes); };
@@ -326,35 +326,35 @@ export class AddDateEventModal extends Modal {
       periodField.empty();
       const ordered = periodsForDate(date).filter(p => selected.has(p.id));
       if (ordered.length === 0) {
-        periodField.createEl("span", { text: "Choose one or more blocks", cls: "tp-period-placeholder" });
+        periodField.createSpan({ text: "Choose one or more blocks", cls: "tp-period-placeholder" });
       } else {
         for (const p of ordered) {
-          const tag = periodField.createEl("span", { cls: "tp-period-tag" });
+          const tag = periodField.createSpan({ cls: "tp-period-tag" });
           tag.setCssStyles({ background: hexToRgba(colour, 0.18), border: `1px solid ${colour}` });
-          tag.createEl("span", { text: p.name });
-          const x = tag.createEl("span", { cls: "tp-period-tag-x" }); x.setText("✕");
+          tag.createSpan({ text: p.name });
+          const x = tag.createSpan({ cls: "tp-period-tag-x" }); x.setText("✕");
           x.addEventListener("click", (e) => { e.stopPropagation(); selected.delete(p.id); renderTags(); renderOptions(filterInput.value); recalcDuration(); paintDuration(); paintStart(); });
         }
       }
-      const add = periodField.createEl("span", { cls: "tp-period-add" });
-      add.createEl("span", { text: ordered.length ? "Add block" : "Select" });
-      add.createEl("span", { cls: "tp-period-caret", text: "▾" });
+      const add = periodField.createSpan({ cls: "tp-period-add" });
+      add.createSpan({ text: ordered.length ? "Add block" : "Select" });
+      add.createSpan({ cls: "tp-period-caret", text: "▾" });
     }
 
     function renderOptions(q: string) {
       optionList.empty();
       const ql = q.trim().toLowerCase();
       const periods = periodsForDate(date).filter(p => !ql || p.name.toLowerCase().includes(ql));
-      if (periods.length === 0) { optionList.createEl("div", { text: "No blocks", cls: "tp-picker-empty" }); return; }
+      if (periods.length === 0) { optionList.createDiv({ text: "No blocks", cls: "tp-picker-empty" }); return; }
       for (const p of periods) {
         const opt = optionList.createDiv("tp-period-option");
         if (p.type !== "lesson") opt.addClass("tp-period-option--nonlesson");
         const on = selected.has(p.id);
         if (on) opt.addClass("tp-period-option--on");
-        const box = opt.createEl("span", { cls: "tp-period-check" });
+        const box = opt.createSpan({ cls: "tp-period-check" });
         if (on) { box.addClass("tp-period-check--on"); box.setText("✓"); }
-        opt.createEl("span", { text: p.name, cls: "tp-period-opt-name" });
-        opt.createEl("span", { text: `${p.start}–${p.end}`, cls: "tp-period-opt-time" });
+        opt.createSpan({ text: p.name, cls: "tp-period-opt-name" });
+        opt.createSpan({ text: `${p.start}–${p.end}`, cls: "tp-period-opt-time" });
         opt.addEventListener("click", () => {
           if (selected.has(p.id)) selected.delete(p.id); else selected.add(p.id);
           renderTags(); renderOptions(filterInput.value); recalcDuration(); paintDuration(); paintStart();
@@ -491,8 +491,8 @@ export class AddDateEventModal extends Modal {
       const list = card.createDiv("tp-clash-list");
       for (const c of clashes) {
         const row = list.createDiv("tp-clash-row");
-        row.createEl("span", { text: c.name, cls: "tp-clash-period" });
-        row.createEl("span", { text: c.occ.map(o => `${o.label} (${o.kind})`).join(", "), cls: "tp-clash-items" });
+        row.createSpan({ text: c.name, cls: "tp-clash-period" });
+        row.createSpan({ text: c.occ.map(o => `${o.label} (${o.kind})`).join(", "), cls: "tp-clash-items" });
       }
 
       if (directedTimeEnabled && directed && clashes.some(c => c.occ.some(o => o.directed))) {
@@ -508,8 +508,8 @@ export class AddDateEventModal extends Modal {
         const b = acts.createEl("button", { cls: "tp-clash-action" + (danger ? " tp-clash-action--danger" : "") });
         const ic = b.createSpan("tp-clash-action-icon"); setIcon(ic, iconName);
         const txt = b.createDiv("tp-clash-action-text");
-        txt.createEl("span", { text: title2, cls: "tp-clash-action-title" });
-        txt.createEl("span", { text: desc, cls: "tp-clash-action-desc" });
+        txt.createSpan({ text: title2, cls: "tp-clash-action-title" });
+        txt.createSpan({ text: desc, cls: "tp-clash-action-desc" });
         return b;
       };
 

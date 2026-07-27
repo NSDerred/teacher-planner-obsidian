@@ -59,7 +59,7 @@ export function renderDestinationPicker(
 
   // Vault path row
   const vaultRow = wrap.createDiv("tp-export-dest-row");
-  vaultRow.createEl("span", { text: "Vault folder", cls: "tp-export-dest-sublabel" });
+  vaultRow.createSpan({ text: "Vault folder", cls: "tp-export-dest-sublabel" });
   const vaultInput = vaultRow.createEl("input", { type: "text", cls: "tp-export-dest-input" });
   vaultInput.value = state.vaultPath;
   vaultInput.placeholder = "Teacher Planner/exports";

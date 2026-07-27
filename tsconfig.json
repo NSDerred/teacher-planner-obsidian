@@ -5,6 +5,10 @@
     "inlineSources": true,
     "module": "ESNext",
     "target": "ES2018",
+    // Explicit lib: the default for target ES2018 omits ES2019+, so Array.flatMap
+    // typed as `any` and leaked unsafe-any warnings. Only the type library moves —
+    // target stays ES2018, so emitted syntax is unchanged.
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
     "allowJs": true,
     "importHelpers": true,
     "isolatedModules": true,

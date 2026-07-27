@@ -48,9 +48,9 @@ export class SlotNotesModal extends Modal {
     // Header: slot name (bold) + date / period / time each on their own muted line
     this.setTitle(this.slotName);
     const meta = contentEl.createDiv("tp-slot-notes-meta");
-    if (this.formattedDate) meta.createEl("span", { text: this.formattedDate });
-    if (this.periodName)    meta.createEl("span", { text: this.periodName });
-    if (this.timeRange)     meta.createEl("span", { text: this.timeRange });
+    if (this.formattedDate) meta.createSpan({ text: this.formattedDate });
+    if (this.periodName)    meta.createSpan({ text: this.periodName });
+    if (this.timeRange)     meta.createSpan({ text: this.timeRange });
 
     const form = contentEl.createDiv("tp-modal-form");
 

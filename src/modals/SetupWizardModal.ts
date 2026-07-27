@@ -150,7 +150,7 @@ export class SetupWizardModal extends Modal {
 
   private stepHeading(body: HTMLElement, step: number, title: string, desc: string) {
     const hdr = body.createDiv("tp-wizard-step-hdr");
-    hdr.createEl("span", { text: `Step ${step} of ${TOTAL_STEPS}`, cls: "tp-wizard-step-label" });
+    hdr.createSpan({ text: `Step ${step} of ${TOTAL_STEPS}`, cls: "tp-wizard-step-label" });
     hdr.createDiv({ text: title, cls: "tp-wizard-title" });
     hdr.createEl("p",    { text: desc,  cls: "tp-wizard-desc" });
   }
@@ -288,7 +288,7 @@ export class SetupWizardModal extends Modal {
     const activityHeaders = dtPanel.createDiv("tp-activity-row tp-activity-headers");
     activityHeaders.createDiv().setCssStyles({ width: "28px", flexShrink: "0" });
     const makeH = (text: string, extra?: Partial<CSSStyleDeclaration>) => {
-      const h = activityHeaders.createEl("span", { text, cls: "tp-activity-header-label" });
+      const h = activityHeaders.createSpan({ text, cls: "tp-activity-header-label" });
       if (extra) h.setCssStyles(extra);
     };
     makeH("Name");
@@ -856,8 +856,8 @@ export class SetupWizardModal extends Modal {
     const summary = body.createDiv("tp-wizard-summary");
     const row = (label: string, value: string) => {
       const r = summary.createDiv("tp-wizard-summary-row");
-      r.createEl("span", { text: label + ":", cls: "tp-wizard-summary-label" });
-      r.createEl("span", { text: value,       cls: "tp-wizard-summary-value" });
+      r.createSpan({ text: label + ":", cls: "tp-wizard-summary-label" });
+      r.createSpan({ text: value,       cls: "tp-wizard-summary-value" });
     };
 
     const s = this.plugin.settings;

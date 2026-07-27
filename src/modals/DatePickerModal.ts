@@ -60,7 +60,7 @@ export class DatePickerModal extends Modal {
     setIcon(prev, "arrow-left");
     prev.addEventListener("click", () => this.shift(-1));
 
-    head.createEl("span", {
+    head.createSpan({
       cls: "tp-datepicker-title",
       text: this.month.toLocaleDateString(undefined, { month: "long", year: "numeric" }),
     });
@@ -72,7 +72,7 @@ export class DatePickerModal extends Modal {
 
     // Weekday row
     const dow = contentEl.createDiv("tp-datepicker-dow");
-    for (const d of DOW) dow.createEl("span", { text: d });
+    for (const d of DOW) dow.createSpan({ text: d });
 
     // Day grid — always 6 weeks (42 cells), Monday-start, filled with adjacent days.
     const grid = contentEl.createDiv("tp-datepicker-grid");
@@ -92,7 +92,7 @@ export class DatePickerModal extends Modal {
 
     // Footer: selected-date context + Today shortcut
     const foot = contentEl.createDiv("tp-datepicker-foot");
-    const label = foot.createEl("span", { cls: "tp-datepicker-selected" });
+    const label = foot.createSpan({ cls: "tp-datepicker-selected" });
     if (this.selected) {
       const sd = new Date(this.selected + "T12:00:00");
       label.setText("Selected: " + sd.toLocaleDateString(undefined, { day: "numeric", month: "short" }));

@@ -20,7 +20,7 @@ interface LegacyArtifacts {
 }
 
 function copyPlannerToSettings<K extends SharedPlannerKey>(dst: TeacherPlannerSettings, src: PlannerRecord, k: K): void {
-  dst[k] = src[k] as TeacherPlannerSettings[K];
+  dst[k] = src[k];
 }
 function copySettingsToPlanner<K extends SharedPlannerKey>(dst: PlannerRecord, src: TeacherPlannerSettings, k: K): void {
   const value = src[k];

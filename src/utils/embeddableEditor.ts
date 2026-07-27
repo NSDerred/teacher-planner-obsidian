@@ -97,7 +97,7 @@ function resolveEditorPrototype(app: App): Constructor<ScrollableMarkdownEditor>
   );
   widget.editable = true;
   widget.showEditor();
-  const proto = Object.getPrototypeOf(Object.getPrototypeOf(widget.editMode as object)) as {
+  const proto = Object.getPrototypeOf(Object.getPrototypeOf(widget.editMode)) as {
     constructor: Constructor<ScrollableMarkdownEditor>;
   };
   widget.unload();
@@ -184,7 +184,7 @@ function buildClass(Base: Constructor<ScrollableMarkdownEditor>): Constructor<Em
 
     onunload(): void { this.destroy(); }
   }
-  return EmbeddableMarkdownEditor as unknown as Constructor<EmbeddableEditorHandle>;
+  return EmbeddableMarkdownEditor;
 }
 
 /**

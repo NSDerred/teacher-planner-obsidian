@@ -540,7 +540,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     activityHeaders.createDiv("tp-activity-header-spacer"); // colour swatch placeholder
     const makeHeader = (text: string, extraCls = "") => {
       const cls = "tp-activity-header-label" + (extraCls ? " " + extraCls : "");
-      return activityHeaders.createEl("span", { text, cls });
+      return activityHeaders.createSpan({ text, cls });
     };
     makeHeader("Name");
     makeHeader("Info");
@@ -978,9 +978,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       // Centre: name row (name + active badge inline) + dates below
       const info = card.createDiv("tp-planner-card-info");
       const nameRow = info.createDiv("tp-planner-card-name-row");
-      nameRow.createEl("span", { text: p.name, cls: "tp-planner-card-name" });
-      if (isActive) nameRow.createEl("span", { text: "Active", cls: "tp-planner-badge" });
-      info.createEl("span", {
+      nameRow.createSpan({ text: p.name, cls: "tp-planner-card-name" });
+      if (isActive) nameRow.createSpan({ text: "Active", cls: "tp-planner-badge" });
+      info.createSpan({
         text: p.academicYear.startDate + " → " + p.academicYear.endDate,
         cls: "tp-planner-card-dates",
       });

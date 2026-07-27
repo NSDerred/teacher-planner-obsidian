@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **A more compact Lessons tab.** Class tiles are smaller so more fit per row, and the overview's four boxes sit on a single responsive row — four across on a wide pane, two on a phone — handing roughly 350px back to the lesson list.
-- **Obsidian API and style-guide pass.** Modal titles use the modal's own title bar instead of heading elements; file and folder lookups use `getFileByPath` / `getFolderByPath`; file rewrites use `Vault.process`; the minute timer and the visibility listener in the week view are registered with the plugin; the bulk-apply undo notice is built with the Obsidian DOM helpers and a CSS class rather than raw DOM and an inline style. Four settings headings move to sentence case: "Holidays and INSET days", "My classes", "Recurring events: directed time", "Recurring events: non-directed time".
+- **Obsidian API and style-guide pass.** Modal titles use the modal's own title bar instead of heading elements; file and folder lookups use `getFileByPath` / `getFolderByPath`; file rewrites use `Vault.process`; the minute timer and the visibility listener in the week view are registered with the plugin; the bulk-apply undo notice is built with the Obsidian DOM helpers and a CSS class rather than raw DOM and an inline style. `createEl("div"/"span")` uses the `createDiv` / `createSpan` helpers at all 45 call sites; `tsconfig` gains an explicit `lib` so ES2019+ array methods are typed rather than falling back to `any`. Four settings headings move to sentence case: "Holidays and INSET days", "My classes", "Recurring events: directed time", "Recurring events: non-directed time".
 
 ### Fixed
 
