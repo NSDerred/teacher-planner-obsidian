@@ -91,7 +91,7 @@ export interface EmbeddableEditorHandle {
 function resolveEditorPrototype(app: App): Constructor<ScrollableMarkdownEditor> {
   const reg = app as unknown as EmbedRegistryApp;
   const widget = reg.embedRegistry.embedByExtension.md(
-    { app, containerEl: activeDocument.createElement("div") },
+    { app, containerEl: createDiv() },
     null,
     "",
   );

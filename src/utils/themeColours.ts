@@ -83,10 +83,9 @@ function toHex(n: number): string {
  * "#rrggbb" by letting the browser compute it on a probe element.
  */
 function computeToHex(cssColour: string): string | null {
-  const probe = activeDocument.createElement("span");
+  const probe = activeDocument.body.createSpan();
   probe.setCssStyles({ display: "none" });
   probe.setCssStyles({ color: cssColour });
-  activeDocument.body.appendChild(probe);
   const rgb = getComputedStyle(probe).color;
   probe.remove();
   const m = rgb.match(/rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/);

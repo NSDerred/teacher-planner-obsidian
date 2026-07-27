@@ -1075,8 +1075,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       for (const s of siblings) content.appendChild(s);
 
       // Add an SVG chevron at the start of the heading (crisp, scales, no clipping)
-      const chevron = activeDocument.createElement("span");
-      chevron.className = "tp-collapsible-chevron";
+      const chevron = createSpan({ cls: "tp-collapsible-chevron" });
       setIcon(chevron, "chevron-right");
       heading.insertBefore(chevron, heading.firstChild);
       heading.addClass("tp-collapsible-header");

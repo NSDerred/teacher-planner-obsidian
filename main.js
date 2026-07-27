@@ -2125,10 +2125,9 @@ function toHex(n) {
   return Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
 }
 function computeToHex(cssColour) {
-  const probe = activeDocument.createElement("span");
+  const probe = activeDocument.body.createSpan();
   probe.setCssStyles({ display: "none" });
   probe.setCssStyles({ color: cssColour });
-  activeDocument.body.appendChild(probe);
   const rgb = getComputedStyle(probe).color;
   probe.remove();
   const m = rgb.match(/rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/);
@@ -10655,8 +10654,7 @@ var init_SettingsTab = __esm({
           content.addClass("tp-section-collapsed");
           heading.after(content);
           for (const s of siblings) content.appendChild(s);
-          const chevron = activeDocument.createElement("span");
-          chevron.className = "tp-collapsible-chevron";
+          const chevron = createSpan({ cls: "tp-collapsible-chevron" });
           (0, import_obsidian10.setIcon)(chevron, "chevron-right");
           heading.insertBefore(chevron, heading.firstChild);
           heading.addClass("tp-collapsible-header");
@@ -29367,7 +29365,7 @@ function around(obj, factories) {
 function resolveEditorPrototype(app) {
   const reg = app;
   const widget = reg.embedRegistry.embedByExtension.md(
-    { app, containerEl: activeDocument.createElement("div") },
+    { app, containerEl: createDiv() },
     null,
     ""
   );
