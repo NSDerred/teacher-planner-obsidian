@@ -55,7 +55,7 @@
 
   // Minute tick so the taught count / progress roll over as each period ends.
   let _now = new Date();
-  const _nowTimer = setInterval(() => { _now = new Date(); }, 60000);
+  const _nowTimer = plugin.registerInterval(window.setInterval(() => { _now = new Date(); }, 60000));
   onDestroy(() => clearInterval(_nowTimer));
 
   const fmtDayMon = (iso: string) =>
@@ -63,7 +63,7 @@
   const fmtWc = (iso: string) =>
     "w/c " + new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   function scrollToLesson(o: LessonOccurrence) {
-    const el = listEl?.querySelector<HTMLElement>(`[data-lesson="${keyOf(o)}"]`);
+    const el = listEl?.querySelector<HTMLElement>(`[data-lesson="${CSS.escape(keyOf(o))}"]`);
     if (el) el.scrollIntoView({ block: "center" });
   }
   let lastSnap: ShiftSnapshot | null = null;

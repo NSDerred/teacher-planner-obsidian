@@ -39,7 +39,7 @@ export function lessonNoteFrontmatter(meta: ClassMeta, periodName: string, dateI
 }
 
 async function ensureFolder(app: App, path: string): Promise<void> {
-  if (!app.vault.getAbstractFileByPath(path)) {
+  if (!app.vault.getFolderByPath(path)) {
     try { await app.vault.createFolder(path); } catch { /* exists / race */ }
   }
 }
@@ -57,8 +57,7 @@ function findNote(app: App, s: TeacherPlannerSettings, meta: ClassMeta, date: st
     if (fmDate === date && fmPeriod === periodName && (!fmClass || fmClass === meta.code)) return f;
   }
   const computed = `${noteFolder(s, date)}/${noteFileName(s, meta, date, periodName)}.md`;
-  const ex = app.vault.getAbstractFileByPath(computed);
-  return ex instanceof TFile ? ex : undefined;
+  return app.vault.getFileByPath(computed) ?? undefined;
 }
 
 export interface NoteUndoOp { fromPath: string; toPath: string; date: string; periodName: string; }
@@ -104,8 +103,8 @@ export async function applyNoteMoves(
     } else {
       // fromUnplaced
       const entry = (s.unplacedLessons ?? []).find(u => u.id === mv.unplacedId);
-      const src = entry?.notePath ? app.vault.getAbstractFileByPath(entry.notePath) : null;
-      if (!(src instanceof TFile)) continue;
+      const src = entry?.notePath ? app.vault.getFileByPath(entry.notePath) : null;
+      if (!src) continue;
       const targetPath = `${noteFolder(s, mv.to.date)}/${noteFileName(s, meta, mv.to.date, mv.to.periodName)}.md`;
       planned.push({ file: src, targetPath, date: mv.to.date, periodName: mv.to.periodName,
         undo: { fromPath: targetPath, toPath: src.path, date: mv.to.date, periodName: mv.to.periodName } });
@@ -142,15 +141,15 @@ export async function reverseNoteMoves(app: App, ops: NoteUndoOp[]): Promise<voi
   const base = ops[0]?.toPath.split("/")[0] ?? "";
   const temps: { file: TFile; op: NoteUndoOp }[] = [];
   for (let i = 0; i < ops.length; i++) {
-    const f = app.vault.getAbstractFileByPath(ops[i].fromPath);
-    if (!(f instanceof TFile)) continue;
+    const f = app.vault.getFileByPath(ops[i].fromPath);
+    if (!f) continue;
     const tmp = normalizePath(`${base}/.tp-unshift-tmp-${Date.now().toString(36)}-${i}.md`);
     try { await app.fileManager.renameFile(f, tmp); temps.push({ file: f, op: ops[i] }); }
     catch (err) { console.error("Teacher Planner: undo temp rename failed.", err); }
   }
   for (const t of temps) {
     const folder = t.op.toPath.slice(0, t.op.toPath.lastIndexOf("/"));
-    if (folder && !app.vault.getAbstractFileByPath(folder)) { try { await app.vault.createFolder(folder); } catch { /* */ } }
+    if (folder && !app.vault.getFolderByPath(folder)) { try { await app.vault.createFolder(folder); } catch { /* */ } }
     try {
       await app.fileManager.renameFile(t.file, normalizePath(t.op.toPath));
       await app.fileManager.processFrontMatter(t.file, (fm: Record<string, unknown>) => { fm.period = t.op.periodName; fm.date = t.op.date; });
@@ -170,7 +169,7 @@ export function lessonNoteDefaultTitle(s: TeacherPlannerSettings, classId: strin
 export function findLessonNoteByTitle(app: App, s: TeacherPlannerSettings, dateIso: string, fileName: string): string | null {
   const base = plannerFolder(s);
   for (const p of [`${noteFolder(s, dateIso)}/${fileName}.md`, `${base}/${fileName}.md`]) {
-    if (app.vault.getAbstractFileByPath(p) instanceof TFile) return p;
+    if (app.vault.getFileByPath(p)) return p;
   }
   return null;
 }

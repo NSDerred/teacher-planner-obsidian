@@ -185,16 +185,34 @@ export default class TeacherPlannerPlugin extends Plugin {
   // Stored in Obsidian's per-device local storage rather than data.json, so each
   // device keeps its own time-axis zoom even when the vault is synced.
   private static readonly GRID_SCALE_KEY = "teacher-planner:gridScale";
+
+  /**
+   * Read a per-device scale value, or NaN when unset/out of range.
+   *
+   * Deliberately raw window.localStorage rather than App.loadLocalStorage: the
+   * namespaced API landed in Obsidian 1.8.7 and minAppVersion here is 1.7.2.
+   * Switch both helpers over (migrating the existing raw keys) if the floor
+   * is ever raised. The keys are already plugin-prefixed, so they do not clash.
+   */
+  private readScale(key: string): number {
+    const raw = window.localStorage.getItem(key);
+    const n = raw != null ? parseInt(raw, 10) : NaN;
+    return !isNaN(n) && n >= 60 && n <= 240 ? n : NaN;
+  }
+  private writeScale(key: string, pxPerHour: number): number {
+    const clamped = Math.max(60, Math.min(240, Math.round(pxPerHour)));
+    window.localStorage.setItem(key, String(clamped));
+    return clamped;
+  }
+
   /** Time-axis scale in pixels per hour. Per-device; defaults 150 (mobile) / 120 (desktop). */
   getGridScale(): number {
-    const raw = window.localStorage.getItem(TeacherPlannerPlugin.GRID_SCALE_KEY);
-    const n = raw != null ? parseInt(raw, 10) : NaN;
-    if (!isNaN(n) && n >= 60 && n <= 240) return n;
+    const n = this.readScale(TeacherPlannerPlugin.GRID_SCALE_KEY);
+    if (!isNaN(n)) return n;
     return Platform.isMobile ? 150 : 120;
   }
   setGridScale(pxPerHour: number): void {
-    const clamped = Math.max(60, Math.min(240, Math.round(pxPerHour)));
-    window.localStorage.setItem(TeacherPlannerPlugin.GRID_SCALE_KEY, String(clamped));
+    this.writeScale(TeacherPlannerPlugin.GRID_SCALE_KEY, pxPerHour);
     this.refreshViews();
   }
 
@@ -203,16 +221,12 @@ export default class TeacherPlannerPlugin extends Plugin {
   private static readonly EDITOR_SCALE_KEY = "teacher-planner:teScale";
   /** Timetable-editor scale in pixels per hour. Per-device; default 102 (≈1.7 px/min). */
   getEditorScale(): number {
-    const raw = window.localStorage.getItem(TeacherPlannerPlugin.EDITOR_SCALE_KEY);
-    const n = raw != null ? parseInt(raw, 10) : NaN;
-    if (!isNaN(n) && n >= 60 && n <= 240) return n;
-    return 102;
+    const n = this.readScale(TeacherPlannerPlugin.EDITOR_SCALE_KEY);
+    return !isNaN(n) ? n : 102;
   }
   /** Persist the editor scale (clamped 60–240 px/hr) and return the value actually stored. */
   setEditorScale(pxPerHour: number): number {
-    const clamped = Math.max(60, Math.min(240, Math.round(pxPerHour)));
-    window.localStorage.setItem(TeacherPlannerPlugin.EDITOR_SCALE_KEY, String(clamped));
-    return clamped;
+    return this.writeScale(TeacherPlannerPlugin.EDITOR_SCALE_KEY, pxPerHour);
   }
 
   // ── Planner management ──────────────────────────────────────────────────────────────────────────
@@ -287,7 +301,7 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.plannerData.confirmBeforeDelete = this.plannerData.confirmBeforeDelete ?? DEFAULT_GLOBAL_DATA.confirmBeforeDelete;
     this.plannerData.weekNoteOpenIn = this.plannerData.weekNoteOpenIn ?? DEFAULT_GLOBAL_DATA.weekNoteOpenIn;
     this.plannerData.loClassesOpen = this.plannerData.loClassesOpen ?? DEFAULT_GLOBAL_DATA.loClassesOpen;
-    this.plannerData.loStatsOpen = this.plannerData.loStatsOpen ?? DEFAULT_GLOBAL_DATA.loStatsOpen;
+    // loStatsOpen intentionally has no default — see DEFAULT_GLOBAL_DATA.
     this.plannerData.todayHighlightColour = this.plannerData.todayHighlightColour ?? DEFAULT_GLOBAL_DATA.todayHighlightColour;
   }
 
@@ -339,7 +353,7 @@ export default class TeacherPlannerPlugin extends Plugin {
   }
 
   async ensurePlannerFolder(folderPath: string) {
-    if (!this.app.vault.getAbstractFileByPath(folderPath)) {
+    if (!this.app.vault.getFolderByPath(folderPath)) {
       try { await this.app.vault.createFolder(folderPath); } catch { /* non-fatal */ }
     }
   }
@@ -462,7 +476,7 @@ export default class TeacherPlannerPlugin extends Plugin {
       confirmBeforeDelete: raw.confirmBeforeDelete ?? DEFAULT_GLOBAL_DATA.confirmBeforeDelete,
       weekNoteOpenIn: raw.weekNoteOpenIn ?? DEFAULT_GLOBAL_DATA.weekNoteOpenIn,
       loClassesOpen: raw.loClassesOpen ?? DEFAULT_GLOBAL_DATA.loClassesOpen,
-      loStatsOpen: raw.loStatsOpen ?? DEFAULT_GLOBAL_DATA.loStatsOpen,
+      loStatsOpen: raw.loStatsOpen,
       todayHighlightColour: raw.todayHighlightColour ?? DEFAULT_GLOBAL_DATA.todayHighlightColour,
       planners:           [planner],
     };

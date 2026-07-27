@@ -102,7 +102,7 @@ export class AddDateEventModal extends Modal {
     const isEdit = !!this.existingEvent;
     const directedTimeEnabled = this.plugin.settings.directedTime?.enabled ?? false;
 
-    contentEl.createEl("h3", { text: isEdit ? "Edit event" : "Add event" });
+    contentEl.createDiv({ cls: "tp-modal-title", text: isEdit ? "Edit event" : "Add event" });
     contentEl.createEl("p", {
       text: "A one-off on your timetable — a meeting, cover, trip, duty or anything else. Name it, pick the block(s) it covers, add details.",
       cls: "tp-modal-desc",

@@ -94,3 +94,82 @@ Found by the 0.3.4 code-quality review, not by a bug report — nothing was visi
 **Left alone, deliberately.** `WeekView.wcFolderFor` and `lessonNoteFiles.noteFolder` are the same function copied — same planner-folder lookup, same `weeklyNoteFolders` check, same `WC - {monday}` path. If the convention changes and only one is updated, lesson notes write where the week grid won't look. Real duplication, but a behavioural change needing its own tests — logged for the backlog, not folded into a like-for-like refactor.
 
 **Blind spot noted:** `npm run lint` is `eslint src --ext .ts`, so `.svelte` files — where most UI logic lives — are not linted at all. svelte-check covers types, not lint rules. Worth fixing separately.
+
+
+---
+
+## fix(lessons): release-prep fixes found in the 0.3.4 file check
+
+Four issues found reading the 0.3.4 diff back before release, none reported as bugs.
+
+- **Mobile default-collapse was dead code.** `statsOpen = plugin.settings.loStatsOpen ?? !isMobile`
+  could never reach the `!isMobile` branch: `DEFAULT_GLOBAL_DATA.loStatsOpen` was `true`, and
+  `syncSettingsToPlanner` re-applied that default on every save, so the value was never undefined.
+  Phones opened with the panel expanded, the opposite of the stated design. `loStatsOpen` now has
+  no default at all (documented in `DEFAULT_GLOBAL_DATA`), the defensive default is gone, and the
+  planner-build literal passes `raw.loStatsOpen` straight through. `copySettingsToGlobal` already
+  skips `undefined`, so nothing is written until the user actually toggles it.
+- **"Before break" ignored INSET and skipped a break starting today.** The filter was
+  `type === "holiday" && startDate > nowIso`. INSET stops teaching exactly as a holiday does, and
+  `>` meant a break starting today was passed over so the count ran on to the *next* one. Now
+  `(holiday || inset) && startDate >= nowIso`.
+- **A lesson with no end time counted as taught from 00:00.** `tMin` fell back to `"0:0"`, so a
+  blank or malformed end read as midnight and `isTaught` fired immediately. It now parses strictly
+  and falls back to 24:00, i.e. not taught until the day has passed.
+- **`CSS.escape` on the needs-attention click-through.** `scrollToLesson` interpolated
+  `slotId + "|" + date` straight into an attribute selector. Safe for today's generated IDs, but a
+  quote would throw rather than miss.
+
+Verified with an 8-case probe over `computeClassStats` (time-aware taught either side of a period
+end; blank end time on the day and after it; INSET break; break starting today; no-override
+run-to-year-end; this/next week split and Monday resolution; needs-attention selection) — all pass.
+svelte-check 0/0, tsc clean, eslint clean, production build OK.
+
+---
+
+## chore: Obsidian API and style-guide pass ahead of the 0.3.4 release
+
+Pre-empting the community review bot. Behaviour-neutral except where noted.
+
+- **Modal titles.** Seven modals moved from `contentEl.createEl("h3", …)` to `Modal.setTitle()`
+  (available since 1.4.6; `minAppVersion` is 1.7.2). Two could NOT move: the add-event modal is a
+  full-screen sheet on mobile with `padding: 0` on `.modal`, and the wizard's `h2` is a per-step
+  heading inside the body, not a modal title — both became divs (`.tp-modal-title`, and the
+  already-styled `.tp-wizard-title`), so the heading elements are gone without moving anything.
+  The dead `tp-epm-title` class went with them; it had no CSS.
+- **File lookups.** All 28 `getAbstractFileByPath` call sites replaced with `getFileByPath` /
+  `getFolderByPath` (1.5.7+), chosen per site by what the code actually wanted. This removed a
+  dozen `instanceof TFile` / `instanceof TFolder` guards and made seven `TFile` / `TFolder`
+  imports dead; those were removed too. The folder-existence checks are now strictly more correct
+  — a *file* sitting at a folder path no longer suppresses the `createFolder`.
+- **`Vault.modify` → `Vault.process`** in `ExportModal.writeText` and `writeWeekNote`.
+- **Registration.** The week view's minute timer and `visibilitychange` listener, and the lesson
+  overview's minute timer, now go through `plugin.registerInterval` / `registerDomEvent` as well as
+  being cleared in `onDestroy`. `onDestroy` still handles the normal case (view closed); the
+  registration is the backstop for an unload with the view still open.
+- **Bulk-apply undo Notice** rebuilt with `createFragment` / `appendText` / `createEl` and a
+  `.tp-notice-undo` class, replacing `document.createElement` plus `btn.style.marginLeft`.
+- **Sentence case** on four settings headings: "Holidays and INSET days", "My classes",
+  "Recurring events: directed time", "Recurring events: non-directed time". Note this partly
+  reverses the 0.3.2 renames, which used title case.
+
+**Not done: `App.loadLocalStorage` / `saveLocalStorage`.** Written, then reverted — the namespaced
+API is 1.8.7+ and `minAppVersion` is 1.7.2, so adopting it means raising the floor, which is a
+release decision rather than a cleanup. The two per-device zoom values stay on raw
+`window.localStorage` behind new `readScale` / `writeScale` helpers (which also dedupe the clamp),
+with a comment recording what to change if the floor moves. The keys are already plugin-prefixed.
+
+svelte-check 0/0, tsc clean, eslint clean, production build OK.
+
+---
+
+## chore: 0.3.4 release prep
+
+- Version bumped to 0.3.4 in `manifest.json`, `package.json`, and `versions.json` (against 1.7.2).
+- `CHANGELOG.md` back-filled: it stopped at 0.3.0, so 0.3.1, 0.3.2 and 0.3.3 were never recorded.
+  All three added from their release notes, plus 0.3.4.
+- `README.md`: the class overview panel described in "Plan a class across the whole year".
+- `.gitignore`: `/docs/COMMITS-*.md` added. These internal commit logs were tracked and public;
+  `RELEASE-*.md` and `REVIEW-BACKLOG.md` were already ignored. Needs `git rm --cached` on the two
+  existing files to actually leave the repo.
+- Public release description written to `docs/Teacher-Planner-0.3.4-release-description.md`.

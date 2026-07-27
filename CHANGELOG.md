@@ -5,6 +5,91 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] — 2026-07-27
+
+### Added
+
+- **Class overview panel in the Lessons tab.** Selecting a class now shows a compact dashboard above the lesson list. It gives a taught / remaining count for the year with a progress bar, the percentage of this week's and next week's lessons marked prepared (with the week-commencing date on each, and a green 100% state), the next lesson, how many lessons remain before the next break and the date of the last one, and a "needs attention" list of the next three upcoming lessons that are not prepared — click one to jump straight to it in the list. "Taught" is time-aware: a lesson counts once its period's end time has passed, so the figures roll over through the day. Everything is derived from data the planner already holds, and holidays and INSET days are excluded as everywhere else.
+- **Collapsible Classes and Overview sections.** Both sections in the Lessons tab collapse, on desktop and mobile, each keeping a summary in its header (the selected class; the taught / remaining headline) so nothing is lost when closed. The choice is remembered. On mobile the overview starts collapsed.
+
+### Changed
+
+- **A more compact Lessons tab.** Class tiles are smaller so more fit per row, and the overview's four boxes sit on a single responsive row — four across on a wide pane, two on a phone — handing roughly 350px back to the lesson list.
+- **Obsidian API and style-guide pass.** Modal titles use the modal's own title bar instead of heading elements; file and folder lookups use `getFileByPath` / `getFolderByPath`; file rewrites use `Vault.process`; the minute timer and the visibility listener in the week view are registered with the plugin; the bulk-apply undo notice is built with the Obsidian DOM helpers and a CSS class rather than raw DOM and an inline style. Four settings headings move to sentence case: "Holidays and INSET days", "My classes", "Recurring events: directed time", "Recurring events: non-directed time".
+
+### Fixed
+
+- **The class overview now starts collapsed on mobile.** The per-platform default was overridden by a stored default, so phones always opened with the panel expanded.
+- **"Before break" counts INSET days as a break** and treats a break starting today as already reached, instead of running on to the next holiday.
+- **A lesson with no end time is no longer counted as taught** from the start of its own day.
+- **Full-screen sheets on mobile** size from the dynamic viewport height only, and the collapsible settings headers keep their chevron on the title line without overriding theme styles to do it.
+
+## [0.3.3] — 2026-06-28
+
+### Added
+
+- **A planner built for your phone.** On mobile the week grid is replaced by Day and Week views you switch between with tabs. Day shows one day as a list of period cards carrying class, room, notes, the prepared tick, and the lesson-plan link; Week lays the whole week out under day headers. A day strip jumps between days, and the date and view controls sit on one row. Tapping a lesson opens the same menu as the desktop.
+- **A mobile timetable editor.** The editor opens full screen as a day at a time: pick a day, pick week A or B, and tap any period to assign, change, or clear a class. The picker slides up from the bottom with search and the same start time, length, and room options as the desktop. Templates are switched from a dropdown and managed from a menu. Desktop drag-and-drop is unchanged.
+- **One shared date picker.** A single month-grid calendar is now used everywhere — the week view, the Lessons overview jump control, and the add event date field — on both desktop and mobile. It always draws six weeks so the layout never shifts, marks today and the current selection, and greys dates outside the school year.
+- **Add event, rebuilt for mobile.** The add event screen opens as a full-screen sheet with one field per row, large tap targets, and a pinned Cancel / Add event bar.
+
+### Changed
+
+- **Lessons overview on mobile** uses a dropdown class selector, giving the lesson list the full height of the screen.
+- **Tidier mobile controls.** Form fields across the add event sheet and settings share one rounded-rectangle shape, and collapsible settings headings keep their arrow on the title line.
+- **Clear of the system bars.** Lists, sheets, and buttons leave room for Obsidian's floating navigation bar and the phone's status and navigation bars.
+
+### Fixed
+
+- **The on-screen keyboard no longer covers the add event form.** The sheet resizes around the keyboard so the field being filled in stays visible and scrollable.
+- **The calendar no longer jumps or leaves empty space** as you change month, and the Today button stays put.
+- **The week and day lists clear the bottom bar,** so the last lesson of the day is not tucked behind Obsidian's floating toolbar.
+
+## [0.3.2] — 2026-06-25
+
+### Added
+
+- **Live week notes.** The week-notes panel in the sidebar is now a formatting editor: bold, highlights, headings, checklists, and links render as you type. Each week's note is a real Markdown file in the vault, so it is searchable and linkable, and a button opens the full note in a new tab, a split, or the current pane. Notes save as you go, and the panel falls back to the plain text box if the rich editor cannot load. On by default for new planners; existing planners opt in via **Settings → Notes → Store week notes as vault files**, which migrates current notes across.
+- **Timetable editor zoom.** The editor has its own vertical zoom, as a control in the editor and a slider in settings. Stored per device.
+- **Confirm before deleting.** Removing an event or lesson, or deleting a subject, class, activity, or block type, now asks first. Switchable in **Settings → Reset**.
+- **Open week note where you like.** A setting chooses whether the open-note button uses a new tab, a split, or the current pane.
+
+### Changed
+
+- **The planner follows your Obsidian theme.** It no longer ships its own colours: backgrounds, borders, text, and accent are inherited from the active theme and follow light and dark automatically.
+- **Readable chips on every theme.** Lesson and event chips pick text and icon colours from the chip's own colour, and the prepared tick switches between black and white so it never disappears into the colour behind it.
+- **Clearer settings sections.** "Lessons" became "My Classes", and the recurring-event sections became "Recurring Events: Directed Time" and "Recurring Events: Non-Directed Time".
+
+### Fixed
+
+- **The edit-event box opens cleanly,** without the name field selected and the suggestion list covering the form.
+- **Keyboard-opened menus appear next to what you selected** rather than in the corner of the screen.
+- **The open-note button shows its icon,** and an empty week note shows a prompt instead of blank space.
+
+### Note
+
+Week notes saved as files are now named `Wn - <date>.md` (previously `Week note - <date>.md`). Rename existing files to the new pattern in the same folder, or those weeks will look empty. Notes kept inside the plugin data are unaffected.
+
+## [0.3.1] — 2026-06-21
+
+### Added
+
+- **Keyboard navigation in the week grid.** Lesson chips, event chips, and empty "＋ Event" cells respond to Enter and Space, and arrow keys move a roving focus around the grid — up and down between time slots within a day, left and right between days — using geometry-based neighbour finding so it copes with merged blocks, partial blocks, and several chips in one period. A roving tabindex keeps the grid to a single Tab stop, and a focus outline makes the focused cell clear.
+- **Custom start times for events and lessons.** An event or timetabled lesson can begin partway through a period, including running on into the next block. Add Event gains a Start time field, the timetable editor shows a start·length badge only when a slot is customised, and the week grid positions the block at its real start with a time-range marker. Directed-time totals follow the duration and are unchanged.
+- **Lesson overview: selector and list together.** The class cards stay pinned at the top with the selected card highlighted, and that class's lessons fill the space below, so both are visible at once. The jump-to-date control moved to a slim sub-header and the back button is gone.
+- **Support development section in settings.** A footer with a "What's new" link to the GitHub releases page, plus Star on GitHub and Buy me a coffee buttons.
+
+### Changed
+
+- **The timetable editor is now a time axis,** with one popover for the whole slot rather than separate controls, fixing layout with multiple day schedules.
+- **New classes get a random colour** that prefers one not already in use, so adjacent additions no longer look similar.
+- **The A/B week toggle sits at the top of timetable setup,** in both settings and the setup wizard, since it shapes everything below it.
+- **Week-view hover no longer makes the band disappear** or leaves a gap.
+
+### Fixed
+
+- **Empty-cell keyboard focus is now visible** when focus lands on an empty period.
+
 ## [0.3.0] — 2026-06-16
 
 ### Added

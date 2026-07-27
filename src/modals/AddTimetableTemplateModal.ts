@@ -32,7 +32,7 @@ export class AddTimetableTemplateModal extends Modal {
     contentEl.empty();
     contentEl.addClass("tp-modal");
 
-    contentEl.createEl("h3", { text: "New Timetable Template" });
+    this.setTitle("New timetable template");
     contentEl.createEl("p", {
       text: "Create a new timetable from a chosen start date. The new template will run to the end of the academic year.",
       cls: "tp-modal-desc",

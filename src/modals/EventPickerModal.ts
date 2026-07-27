@@ -20,7 +20,7 @@ export class EventPickerModal extends Modal {
     contentEl.empty();
     contentEl.addClass("tp-event-picker-modal");
 
-    contentEl.createEl("h3", { text: "Add Event", cls: "tp-epm-title" });
+    this.setTitle("Add event");
 
     const classes    = this.plugin.settings.classes    ?? [];
     const activities = this.plugin.settings.activities ?? [];

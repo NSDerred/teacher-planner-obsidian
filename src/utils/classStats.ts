@@ -23,15 +23,18 @@ export interface ClassStats {
   nextWeekStart: string;
   /** Next lesson that hasn't finished yet. */
   next?: LessonOccurrence;
-  /** Upcoming lessons before the next holiday, with the date of the last of them. */
+  /** Upcoming lessons before the next break (holiday or INSET), with the date of the last of them. */
   beforeBreak: { count: number; lastDate: string; toYearEnd: boolean } | null;
   /** Next N upcoming lessons that are not marked prepared. */
   needsAttention: LessonOccurrence[];
 }
 
 function tMin(t: string): number {
-  const [h, m] = (t || "0:0").split(":").map(Number);
-  return (h || 0) * 60 + (m || 0);
+  const m = /^\s*(\d{1,2}):(\d{2})\s*$/.exec(t ?? "");
+  // No parseable end time: treat the lesson as running to the end of the day, so
+  // it is never counted taught early. (A 0 fallback would mark it taught at 00:00.)
+  if (!m) return 24 * 60;
+  return Number(m[1]) * 60 + Number(m[2]);
 }
 
 /**
@@ -81,9 +84,12 @@ export function computeClassStats(
 
   const upcoming = occ.filter(o => !isTaught(o, nowIso, nowMins));
 
-  // Lessons left before the next holiday (falls back to the end of the year).
+  // Lessons left before the next break (falls back to the end of the year).
+  // INSET counts as a break — it stops teaching just as a holiday does — and a
+  // break starting today counts, so "before break" reads 0 rather than running
+  // on to the one after it.
   const nextBreak = (s.weekOverrides ?? [])
-    .filter(o => o.type === "holiday" && o.startDate > nowIso)
+    .filter(o => (o.type === "holiday" || o.type === "inset") && o.startDate >= nowIso)
     .map(o => o.startDate)
     .sort()[0];
   const beforeList = nextBreak ? upcoming.filter(o => o.date < nextBreak) : upcoming;

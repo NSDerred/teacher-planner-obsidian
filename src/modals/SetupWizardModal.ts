@@ -151,7 +151,7 @@ export class SetupWizardModal extends Modal {
   private stepHeading(body: HTMLElement, step: number, title: string, desc: string) {
     const hdr = body.createDiv("tp-wizard-step-hdr");
     hdr.createEl("span", { text: `Step ${step} of ${TOTAL_STEPS}`, cls: "tp-wizard-step-label" });
-    hdr.createEl("h2",   { text: title, cls: "tp-wizard-title" });
+    hdr.createDiv({ text: title, cls: "tp-wizard-title" });
     hdr.createEl("p",    { text: desc,  cls: "tp-wizard-desc" });
   }
 
@@ -966,7 +966,7 @@ export class SetupWizardModal extends Modal {
   /** Create the directed time guide note in the planner folder. */
   private async createDirectedTimeGuideNote(plannerFolder: string) {
     const path = plannerFolder + "/Directed Time — Guide.md";
-    if (this.app.vault.getAbstractFileByPath(path)) return; // already exists
+    if (this.app.vault.getFileByPath(path)) return; // already exists
 
     const contractedHours   = this.state.contractedHours;
     const timetablePct      = this.state.timetablePercentage;

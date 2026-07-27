@@ -1,4 +1,4 @@
-import { TFile, TFolder } from "obsidian";
+import { TFile } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { PlannerRecord } from "../types";
 import { writeLibraryFile, listLibraryFiles, readLibraryFile, libraryFolder, type LibFile } from "./pluginLibrary";
@@ -38,13 +38,13 @@ export function buildFullBackup(plugin: TeacherPlannerPlugin): string {
 export async function writeBackupFile(plugin: TeacherPlannerPlugin, baseName: string, json: string): Promise<string> {
   const app = plugin.app;
   const folder = backupsFolder(plugin);
-  if (!app.vault.getAbstractFileByPath(folder)) {
+  if (!app.vault.getFolderByPath(folder)) {
     try { await app.vault.createFolder(folder); } catch { /* exists / race — non-fatal */ }
   }
   const name = safeName(baseName);
   let path = `${folder}/${name}.json`;
   let i = 2;
-  while (app.vault.getAbstractFileByPath(path)) path = `${folder}/${name} (${i++}).json`;
+  while (app.vault.getFileByPath(path)) path = `${folder}/${name} (${i++}).json`;
   await app.vault.create(path, json);
   return path;
 }
@@ -127,8 +127,8 @@ export function parseBackup(text: string): ParsedBackup {
 
 /** List backup .json files in the Backups folder, newest first. */
 export function listBackupFiles(plugin: TeacherPlannerPlugin): TFile[] {
-  const folder = plugin.app.vault.getAbstractFileByPath(backupsFolder(plugin));
-  if (!(folder instanceof TFolder)) return [];
+  const folder = plugin.app.vault.getFolderByPath(backupsFolder(plugin));
+  if (!folder) return [];
   return folder.children
     .filter((c): c is TFile => c instanceof TFile && c.extension === "json")
     .sort((a, b) => b.stat.mtime - a.stat.mtime);

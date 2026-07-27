@@ -15,7 +15,7 @@ export class AddPeriodModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("tp-add-period-modal");
-    contentEl.createEl("h3", { text: "Add Period" });
+    this.setTitle("Add period");
 
     let name = "";
     let start = "";

@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Platform, TFile } from "obsidian";
+import { App, Modal, Notice, Platform } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import { buildXlsx, type SheetRows } from "../utils/xlsxWriter";
 import {
@@ -38,7 +38,7 @@ export class ExportModal extends Modal {
     contentEl.empty();
     contentEl.addClass("tp-export-modal");
 
-    contentEl.createEl("h3", { text: "Export Planner Data", cls: "tp-epm-title" });
+    this.setTitle("Export planner data");
 
     const form = contentEl.createDiv("tp-modal-form");
 
@@ -241,7 +241,7 @@ export class ExportModal extends Modal {
   // ── Export helpers ─────────────────────────────────────────────────────────
 
   private async ensureFolder(folderPath: string) {
-    if (!this.app.vault.getAbstractFileByPath(folderPath)) {
+    if (!this.app.vault.getFolderByPath(folderPath)) {
       try { await this.app.vault.createFolder(folderPath); } catch { /* non-fatal */ }
     }
   }
@@ -253,9 +253,9 @@ export class ExportModal extends Modal {
   }
 
   private async writeText(path: string, content: string) {
-    const existing = this.app.vault.getAbstractFileByPath(path);
-    if (existing instanceof TFile) {
-      await this.app.vault.modify(existing, content);
+    const existing = this.app.vault.getFileByPath(path);
+    if (existing) {
+      await this.app.vault.process(existing, () => content);
     } else {
       await this.app.vault.create(path, content);
     }
@@ -307,8 +307,8 @@ export class ExportModal extends Modal {
       const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
       await this.ensureFolder(folder);
       const path = `${folder}/${filename}`;
-      const existing = this.app.vault.getAbstractFileByPath(path);
-      if (existing instanceof TFile) await this.app.vault.modifyBinary(existing, buf);
+      const existing = this.app.vault.getFileByPath(path);
+      if (existing) await this.app.vault.modifyBinary(existing, buf);
       else await this.app.vault.createBinary(path, buf);
       new Notice(`Exported to ${path}`);
     }

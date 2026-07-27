@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Platform, TFile } from "obsidian";
+import { App, Modal, Notice, Platform } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import { buildXlsx } from "../utils/xlsxWriter";
 import {
@@ -23,7 +23,7 @@ export class DirectedTimeExportModal extends Modal {
     contentEl.empty();
     contentEl.addClass("tp-export-modal");
 
-    contentEl.createEl("h3", { text: "Export Directed Time", cls: "tp-epm-title" });
+    this.setTitle("Export directed time");
 
     const body = contentEl.createDiv("tp-modal-form");
     body.createEl("p", {
@@ -67,7 +67,7 @@ export class DirectedTimeExportModal extends Modal {
     const ayName = s.academicYear.name;
     const folder = (s.plannerFolder || "Teacher Planner") + "/exports";
 
-    if (!this.app.vault.getAbstractFileByPath(folder)) {
+    if (!this.app.vault.getFolderByPath(folder)) {
       try { await this.app.vault.createFolder(folder); } catch { /* non-fatal */ }
     }
 
@@ -134,12 +134,12 @@ export class DirectedTimeExportModal extends Modal {
       new Notice(`Directed time exported to ${absPath}`);
     } else {
       const vaultFolder = this.destination.vaultPath || folder;
-      if (!this.app.vault.getAbstractFileByPath(vaultFolder)) {
+      if (!this.app.vault.getFolderByPath(vaultFolder)) {
         try { await this.app.vault.createFolder(vaultFolder); } catch { /* non-fatal */ }
       }
       const path = `${vaultFolder}/${filename}`;
-      const existing = this.app.vault.getAbstractFileByPath(path);
-      if (existing instanceof TFile) await this.app.vault.modifyBinary(existing, buf);
+      const existing = this.app.vault.getFileByPath(path);
+      if (existing) await this.app.vault.modifyBinary(existing, buf);
       else await this.app.vault.createBinary(path, buf);
       new Notice(`Directed time exported to ${path}`);
     }

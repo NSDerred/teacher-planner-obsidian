@@ -1,4 +1,4 @@
-import { App, FuzzySuggestModal, Notice, TFile, TFolder } from "obsidian";
+import { App, FuzzySuggestModal, Notice, TFile } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import { DEFAULT_PLAN_TEMPLATE, defaultPlansFolder } from "../utils/planLinkUtils";
 import { TextPromptModal } from "../settings/SettingsTab";
@@ -51,12 +51,12 @@ export class LessonPlanSuggestModal extends FuzzySuggestModal<PlanChoice> {
     // Create new plan from template
     new TextPromptModal(this.app, "New lesson plan", `${this.classCode} — `, "Plan name", (name) => { void (async () => {
       const folder = defaultPlansFolder(this.plugin.settings);
-      if (!(this.app.vault.getAbstractFileByPath(folder) instanceof TFolder)) {
+      if (!this.app.vault.getFolderByPath(folder)) {
         try { await this.app.vault.createFolder(folder); } catch { /* non-fatal */ }
       }
       const safe = name.replace(/[\\/:*?"<>|]/g, "-");
       const path = `${folder}/${safe}.md`;
-      if (this.app.vault.getAbstractFileByPath(path)) {
+      if (this.app.vault.getFileByPath(path)) {
         new Notice("A note with that name already exists — linking it instead.");
         this.onPick(path);
         return;

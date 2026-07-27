@@ -1,7 +1,7 @@
 <script lang="ts">
   import type TeacherPlannerPlugin from "../main";
   import type { TimetableSlot, SchoolPeriod, DateEvent, SchoolDay } from "../types";
-  import { TFile, Menu, Notice, Platform, setIcon } from "obsidian";
+  import { Menu, Notice, Platform, setIcon } from "obsidian";
 
   // Svelte action: renders an Obsidian Lucide icon into the element
   function obsIcon(node: HTMLElement, id: string) {
@@ -809,10 +809,13 @@
     nowMinutes = n.getHours() * 60 + n.getMinutes();
   }
   updateNow();
-  const _nowInterval = setInterval(updateNow, 60_000);
+  // Registered with the plugin as well as cleared in onDestroy: onDestroy handles
+  // the normal case (view closed), the registration is the backstop if the plugin
+  // is unloaded with the view still open.
+  const _nowInterval = plugin.registerInterval(window.setInterval(updateNow, 60_000));
   // Re-sync immediately when Obsidian regains focus — intervals are throttled when idle
   function _onVisibilityChange() { if (document.visibilityState === "visible") updateNow(); }
-  document.addEventListener("visibilitychange", _onVisibilityChange);
+  plugin.registerDomEvent(document, "visibilitychange", _onVisibilityChange);
   // Re-resolve theme-derived block colours when the Obsidian theme changes
   const _cssChangeRef = plugin.app.workspace.on("css-change", () => {
     clearThemeColourCache();
@@ -1067,7 +1070,7 @@
   function findExistingNote(dateIso: string, fileName: string): string | null {
     const base = plugin.settings.plannerFolder || "Teacher Planner";
     for (const p of [`${wcFolderFor(dateIso)}/${fileName}.md`, `${base}/${fileName}.md`]) {
-      if (plugin.app.vault.getAbstractFileByPath(p) instanceof TFile) return p;
+      if (plugin.app.vault.getFileByPath(p)) return p;
     }
     return null;
   }
@@ -1075,8 +1078,8 @@
   async function createNoteIn(dateIso: string, fileName: string, content: string): Promise<void> {
     const base = plugin.settings.plannerFolder || "Teacher Planner";
     const folder = wcFolderFor(dateIso);
-    if (!plugin.app.vault.getAbstractFileByPath(base))   { try { await plugin.app.vault.createFolder(base); }   catch {} }
-    if (folder !== base && !plugin.app.vault.getAbstractFileByPath(folder)) { try { await plugin.app.vault.createFolder(folder); } catch {} }
+    if (!plugin.app.vault.getFolderByPath(base))   { try { await plugin.app.vault.createFolder(base); }   catch {} }
+    if (folder !== base && !plugin.app.vault.getFolderByPath(folder)) { try { await plugin.app.vault.createFolder(folder); } catch {} }
     try {
       await plugin.app.vault.create(`${folder}/${fileName}.md`, content);
       plugin.app.workspace.openLinkText(`${folder}/${fileName}.md`, "", false);
@@ -1096,13 +1099,9 @@
   }
 
   function showBulkUndoNotice(count: number) {
-    const frag = document.createDocumentFragment();
-    frag.appendChild(document.createTextNode(`Plan linked to ${count} lesson${count === 1 ? "" : "s"}. `));
-    const btn = document.createElement("button");
-    btn.textContent = "Undo";
-    btn.className = "tp-btn";
-    btn.style.marginLeft = "8px";
-    frag.appendChild(btn);
+    const frag = createFragment();
+    frag.appendText(`Plan linked to ${count} lesson${count === 1 ? "" : "s"}. `);
+    const btn = frag.createEl("button", { text: "Undo", cls: "tp-btn tp-notice-undo" });
     const notice = new Notice(frag, 10000);
     btn.addEventListener("click", () => { notice.hide(); doUndoBulkApply(); });
   }
@@ -1122,7 +1121,7 @@
   }
 
   function openPlan(path: string) {
-    if (!plugin.app.vault.getAbstractFileByPath(path)) {
+    if (!plugin.app.vault.getFileByPath(path)) {
       new Notice("Lesson plan note not found — it may have been deleted. Re-link from the lesson menu.");
       return;
     }

@@ -225,12 +225,12 @@
     const key = currentWeekKey;
     if (liveHandle) await flushLiveSave(liveHandle.value);
     const path = weekNoteFilePath(plugin, key);
-    let f = plugin.app.vault.getAbstractFileByPath(path);
-    if (!(f instanceof TFile)) {
+    let f = plugin.app.vault.getFileByPath(path);
+    if (!f) {
       await writeWeekNote(plugin, key, liveHandle?.value ?? notesValue ?? "");
-      f = plugin.app.vault.getAbstractFileByPath(path);
+      f = plugin.app.vault.getFileByPath(path);
     }
-    if (!(f instanceof TFile)) return;
+    if (!f) return;
     const where = plugin.settings.weekNoteOpenIn ?? "tab";
     const leaf = where === "current"
       ? plugin.app.workspace.getLeaf(false)

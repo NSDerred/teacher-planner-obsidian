@@ -1,5 +1,5 @@
 
-import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon, FuzzySuggestModal, TFile, Platform } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon, FuzzySuggestModal, Platform } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity, DaySchedule, SchoolDay, TeacherPlannerSettings } from "../types";
 import { ensureDaySchedules, getScheduleForDay } from "../utils/scheduleUtils";
@@ -327,13 +327,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           .onClick(async () => {
             await this.createDirectedTimeGuideNote();
             const path = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/Directed Time — Guide.md";
-            const file = this.app.vault.getAbstractFileByPath(path);
-            if (file instanceof TFile) await this.app.workspace.getLeaf(false).openFile(file);
+            const file = this.app.vault.getFileByPath(path);
+            if (file) await this.app.workspace.getLeaf(false).openFile(file);
           }));
     }
 
     // ── Holidays & INSET Days ──────────────────────────────────────────────
-    new Setting(containerEl).setName("Holidays & INSET Days").setHeading();
+    new Setting(containerEl).setName("Holidays and INSET days").setHeading();
     containerEl.createEl("p", {
       text: "Mark date ranges as holidays or INSET training days. Individual day columns are greyed out in the planner.",
       cls: "setting-item-description"
@@ -511,7 +511,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Lessons ────────────────────────────────────────────────────────────
-    new Setting(containerEl).setName("My Classes").setHeading();
+    new Setting(containerEl).setName("My classes").setHeading();
     containerEl.createEl("p", {
       text: "Define your subjects and class groups. Colours appear on lesson blocks in the week view.",
       cls: "setting-item-description"
@@ -528,7 +528,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Directed time activities ───────────────────────────────────────────
-    new Setting(containerEl).setName("Recurring Events: Directed Time").setHeading();
+    new Setting(containerEl).setName("Recurring events: directed time").setHeading();
     containerEl.createEl("p", {
       text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Each one counts the length of the block you put it in; to count a different amount, click the duration badge on that block in the timetable editor.",
       cls: "setting-item-description"
@@ -559,7 +559,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Other Events ───────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Recurring Events: Non-Directed Time").setHeading();
+    new Setting(containerEl).setName("Recurring events: non-directed time").setHeading();
     containerEl.createEl("p", {
       text: "⚠️  Items in this section appear in the planner but are excluded from the directed time count. Use these for personal appointments, reminders, or any non-directed activity.",
       cls: "setting-item-description"
@@ -1644,10 +1644,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const path = folder + "/Directed Time — Guide.md";
 
     // Don't overwrite if it already exists
-    if (this.app.vault.getAbstractFileByPath(path)) return;
+    if (this.app.vault.getFileByPath(path)) return;
 
     // Ensure planner folder exists
-    if (!this.app.vault.getAbstractFileByPath(folder)) {
+    if (!this.app.vault.getFolderByPath(folder)) {
       try { await this.app.vault.createFolder(folder); } catch { /* non-fatal */ }
     }
 
@@ -1914,7 +1914,7 @@ class BackupExportModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("tp-modal-form");
-    contentEl.createEl("h3", { text: "Export backup" });
+    this.setTitle("Export backup");
     contentEl.createEl("p", { text: "Choose which planners to back up and where to save. The default plugin folder keeps it out of your vault and listed under Import.", cls: "setting-item-description" });
     const list = contentEl.createDiv();
     for (const pl of this.plugin.plannerData.planners) {

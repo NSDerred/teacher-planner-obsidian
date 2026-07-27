@@ -1,4 +1,3 @@
-import { TFile } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import { formatUkDate } from "./noteTitleUtils";
 
@@ -35,8 +34,8 @@ function stripFrontmatter(text: string): string {
 
 /** Read a week note's body from its file (empty string if none). */
 export async function readWeekNote(plugin: TeacherPlannerPlugin, mondayIso: string): Promise<string> {
-  const f = plugin.app.vault.getAbstractFileByPath(weekNoteFilePath(plugin, mondayIso));
-  if (!(f instanceof TFile)) return "";
+  const f = plugin.app.vault.getFileByPath(weekNoteFilePath(plugin, mondayIso));
+  if (!f) return "";
   try {
     return stripFrontmatter(await plugin.app.vault.read(f));
   } catch (e) {
@@ -51,12 +50,12 @@ export async function writeWeekNote(plugin: TeacherPlannerPlugin, mondayIso: str
   const folder = weekNotesFolder(plugin);
   const path = weekNoteFilePath(plugin, mondayIso);
   const content = buildFrontmatter(mondayIso) + "\n" + body;
-  if (!app.vault.getAbstractFileByPath(folder)) {
+  if (!app.vault.getFolderByPath(folder)) {
     try { await app.vault.createFolder(folder); } catch { /* exists / race — non-fatal */ }
   }
-  const existing = app.vault.getAbstractFileByPath(path);
+  const existing = app.vault.getFileByPath(path);
   try {
-    if (existing instanceof TFile) await app.vault.modify(existing, content);
+    if (existing) await app.vault.process(existing, () => content);
     else await app.vault.create(path, content);
   } catch (e) {
     console.error("Teacher Planner: failed to write week note.", e);
@@ -77,8 +76,8 @@ export async function migrateWeekNotesToFiles(plugin: TeacherPlannerPlugin): Pro
     const body = String(raw ?? "");
     if (!body.trim()) continue; // empty source — nothing to preserve
     const path = weekNoteFilePath(plugin, mondayIso);
-    const existing = plugin.app.vault.getAbstractFileByPath(path);
-    if (existing instanceof TFile) {
+    const existing = plugin.app.vault.getFileByPath(path);
+    if (existing) {
       // Never clobber a file that already holds real content; but DO overwrite
       // an accidentally-empty file (the cause of the 0.2.6 migration data loss).
       let existingBody = "";
@@ -88,8 +87,8 @@ export async function migrateWeekNotesToFiles(plugin: TeacherPlannerPlugin): Pro
     await writeWeekNote(plugin, mondayIso, body);
     // Verify the content actually landed before dropping it from data.json.
     let ok = false;
-    const after = plugin.app.vault.getAbstractFileByPath(path);
-    if (after instanceof TFile) {
+    const after = plugin.app.vault.getFileByPath(path);
+    if (after) {
       try { ok = stripFrontmatter(await plugin.app.vault.read(after)).trim().length > 0; } catch { ok = false; }
     }
     if (ok) migrated++;

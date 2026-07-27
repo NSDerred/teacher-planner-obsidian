@@ -173,7 +173,9 @@ export const DEFAULT_GLOBAL_DATA: GlobalPluginData = {
   confirmBeforeDelete: true,
   weekNoteOpenIn: "tab",
   loClassesOpen: true,
-  loStatsOpen: true,
+  // loStatsOpen is deliberately absent: the lesson overview falls back to
+  // "expanded on desktop, collapsed on mobile" while it is unset. Giving it a
+  // default here would make that fallback dead code.
   todayHighlightColour: "theme:accent",
   planners: [],
 };
