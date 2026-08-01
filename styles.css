@@ -1681,3 +1681,83 @@
   flex: 0 0 46px;
   display: flex; align-items: center; justify-content: center;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   0.3.5 — LESSON PLAN & NOTE TEMPLATES
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Guide call-to-action at the top of the settings tab */
+.tp-settings .tp-guide-cta {
+  border: 1px solid var(--interactive-accent);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: color-mix(in srgb, var(--interactive-accent) 6%, transparent);
+}
+
+/* Template editor + live preview */
+.tp-template-editor-wrap { margin: 6px 0 10px; }
+.tp-template-editor {
+  width: 100%;
+  min-height: 160px;
+  resize: vertical;
+  font-family: var(--font-monospace);
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-modifier-form-field);
+  color: var(--text-normal);
+  box-sizing: border-box;
+}
+.tp-template-preview {
+  margin-top: 8px;
+  border: 1px dashed var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--background-secondary);
+}
+.tp-template-preview-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-accent);
+  margin-bottom: 6px;
+}
+.tp-template-preview-body {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Manage-templates list */
+.tp-manage-list { margin: 4px 0 8px; }
+.tp-manage-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.tp-manage-row:last-child { border-bottom: none; }
+.tp-manage-row--hidden { opacity: 0.55; }
+.tp-manage-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tp-manage-name { font-size: 13.5px; font-weight: 600; color: var(--text-normal); }
+.tp-manage-meta { font-size: 11.5px; color: var(--text-muted); }
+.tp-manage-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.tp-manage-actions .tp-icon-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Roomier controls on mobile */
+.is-mobile .tp-manage-actions .tp-icon-btn { width: 40px; height: 40px; }
+.is-mobile .tp-template-editor { min-height: 200px; }

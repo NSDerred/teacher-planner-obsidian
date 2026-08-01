@@ -32,7 +32,7 @@
   import { openOSFolderPicker, openOSFilePicker, openSystemPath } from "../utils/exportDestination";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
   import { buildNoteTitle } from "../utils/noteTitleUtils";
-  import { DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE } from "../settings";
+  import { DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE, DEFAULT_LESSON_TEMPLATE } from "../settings";
 
   export let plugin: TeacherPlannerPlugin;
   export let initialDate: Date = new Date();
@@ -1128,15 +1128,21 @@
     plugin.app.workspace.openLinkText(path, "", false);
   }
 
-  function planPickerInfo(classId: string): { code: string; subject: string } {
+  function planCtx(classId: string, date: string, periodId: string, roomFallback: string) {
     const cls = _classes.find(c => c.id === classId);
     const subj = cls ? _subjects.find(x => x.id === cls.subjectId) : undefined;
-    return { code: cls?.code ?? "", subject: subj?.name ?? "" };
+    const periodName = _periods.find(p => p.id === periodId)?.name ?? "";
+    return {
+      classCode: cls?.code ?? "", subjectName: subj?.name ?? "", emoji: subj?.emoji, year: cls?.year,
+      academicYear: plugin.settings.academicYear?.name,
+      lessonDate: date, period: periodName, room: roomFallback,
+    };
   }
 
   function linkPlanForSlot(slot: TimetableSlot, date: string) {
-    const info = planPickerInfo(slot.classId);
-    new LessonPlanSuggestModal(plugin.app, plugin, info.code, info.subject, async (path) => {
+    const cls = _classes.find(c => c.id === slot.classId);
+    const ctx = planCtx(slot.classId, date, slot.periodId, effRoom(slot.id, date, cls?.classroom ?? ""));
+    new LessonPlanSuggestModal(plugin.app, plugin, ctx, async (path) => {
       setSlotPlan(plugin.settings, slot.id, date, path);
       await plugin.saveSettings();
       invalidate();
@@ -1144,8 +1150,9 @@
   }
 
   function linkPlanForEvent(ev: DateEvent) {
-    const info = planPickerInfo(ev.classId);
-    new LessonPlanSuggestModal(plugin.app, plugin, info.code, info.subject, async (path) => {
+    const cls = _classes.find(c => c.id === ev.classId);
+    const ctx = planCtx(ev.classId, ev.date, ev.periodId, ev.classroom || cls?.classroom || "");
+    new LessonPlanSuggestModal(plugin.app, plugin, ctx, async (path) => {
       setEventPlan(plugin.settings, ev.id, path);
       await plugin.saveSettings();
       invalidate();
@@ -1153,7 +1160,6 @@
   }
 
   // ── Lesson / event note creation ───────────────────────────────────────────
-  const LESSON_BODY_FALLBACK = "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
 
   /** Pre-fill an editable title, then create the note — or open an existing match without prompting. */
   function promptAndCreateNote(opts: { dayDate: string; defaultTitle: string; body: string; promptTitle: string; classIdForCount?: string }) {
@@ -1183,7 +1189,7 @@
       subjectName: subj?.name, emoji: subj?.emoji,
     }) || `${dayDate} ${getSlotLabel(slot).code}`;
     const fm = lessonNoteFrontmatter({ code: cls?.code ?? getSlotLabel(slot).code, subjectName: subj?.name, emoji: subj?.emoji }, periodName, dayDate);
-    const body = fm + (plugin.settings.lessonNoteTemplate ?? LESSON_BODY_FALLBACK);
+    const body = fm + (plugin.settings.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE);
     promptAndCreateNote({ dayDate, defaultTitle, body, promptTitle: "New lesson note", classIdForCount: slot.classId });
   }
 
@@ -1198,7 +1204,7 @@
       dateIso: dayDate, periodName,
       classCode: cls.code, subjectName: subj?.name, emoji: subj?.emoji,
     }) || `${dayDate} ${cls.code}`;
-    const body = plugin.settings.lessonNoteTemplate ?? LESSON_BODY_FALLBACK;
+    const body = plugin.settings.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE;
     promptAndCreateNote({ dayDate, defaultTitle, body, promptTitle: "New lesson note", classIdForCount: ev.classId });
   }
 

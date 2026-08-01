@@ -155,9 +155,14 @@
   }
 
   function linkPlan(o: LessonOccurrence) {
-    const code = selectedClass?.code ?? "";
-    const subject = selectedClass ? subjectFor(selectedClass)?.name ?? "" : "";
-    new LessonPlanSuggestModal(plugin.app, plugin, code, subject, async (path) => {
+    const subj = selectedClass ? subjectFor(selectedClass) : undefined;
+    const ctx = {
+      classCode: selectedClass?.code ?? "", subjectName: subj?.name ?? "", emoji: subj?.emoji,
+      year: selectedClass?.year, academicYear: plugin.settings.academicYear?.name,
+      lessonDate: o.date, period: o.periodName,
+      room: getLessonRoom(plugin.settings, o.slotId, o.date) || defaultRoom(o),
+    };
+    new LessonPlanSuggestModal(plugin.app, plugin, ctx, async (path) => {
       setSlotPlan(plugin.settings, o.slotId, o.date, path);
       await plugin.saveSettings(); refresh();
     }).open();

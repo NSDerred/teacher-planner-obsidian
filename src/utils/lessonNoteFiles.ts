@@ -3,7 +3,7 @@ import type { TeacherPlannerSettings } from "../types";
 import type { NoteMove } from "./lessonShiftApply";
 import { buildNoteTitle } from "./noteTitleUtils";
 import { getMondayOfWeek, localIso } from "./weekUtils";
-import { DEFAULT_LESSON_NOTE_TITLE_TEMPLATE } from "../settings";
+import { DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_LESSON_TEMPLATE } from "../settings";
 
 interface ClassMeta { code: string; subjectName?: string; emoji?: string; }
 
@@ -157,8 +157,6 @@ export async function reverseNoteMoves(app: App, ops: NoteUndoOp[]): Promise<voi
   }
 }
 
-const LESSON_BODY_FALLBACK = "## Notes:\n---\n\n## Homework set:\n---\n\n## Next lesson:\n---\n";
-
 /** Default generated title for a lesson note (same template the week grid uses). */
 export function lessonNoteDefaultTitle(s: TeacherPlannerSettings, classId: string, periodName: string, dateIso: string): string {
   const meta = classMeta(s, classId) ?? { code: "Lesson" };
@@ -185,7 +183,7 @@ export async function createLessonNoteFile(app: App, s: TeacherPlannerSettings, 
   const folder = noteFolder(s, dateIso);
   await ensureFolder(app, base);
   if (folder !== base) await ensureFolder(app, folder);
-  const body = lessonNoteFrontmatter(meta, periodName, dateIso) + (s.lessonNoteTemplate ?? LESSON_BODY_FALLBACK);
+  const body = lessonNoteFrontmatter(meta, periodName, dateIso) + (s.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE);
   try {
     await app.vault.create(`${folder}/${fileName}.md`, body);
     void app.workspace.openLinkText(`${folder}/${fileName}.md`, "", false);

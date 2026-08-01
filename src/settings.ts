@@ -1,7 +1,7 @@
 import type { TeacherPlannerSettings } from "./types";
 
 /** Default lesson note template */
-const DEFAULT_LESSON_TEMPLATE = `## Notes:
+export const DEFAULT_LESSON_TEMPLATE = `## Notes:
 ---
 
 ## Homework set:

@@ -289,6 +289,10 @@ export interface TeacherPlannerSettings {
   lessonPlansFolder?: string;
   /** Template for new lesson plans ({{class}}, {{subject}}, {{date}} placeholders). */
   lessonPlanTemplate?: string;
+  /** Id of the default plan template: a built-in id or a user-template file path. */
+  defaultPlanTemplateId?: string;
+  /** Built-in plan-template ids the user has hidden from the picker. */
+  hiddenBuiltinTemplateIds?: string[];
   /** Show a faint hollow dot on lessons without a linked plan. Default true. */
   showUnplannedDot?: boolean;
   /** Manual "lesson prepared" marks (Option B tick). */
@@ -356,6 +360,10 @@ export interface PlannerRecord {
   lessonPlanLinks?: LessonPlanLink[];
   lessonPlansFolder?: string;
   lessonPlanTemplate?: string;
+  /** Id of the default plan template: a built-in id or a user-template file path. */
+  defaultPlanTemplateId?: string;
+  /** Built-in plan-template ids the user has hidden from the picker. */
+  hiddenBuiltinTemplateIds?: string[];
   showUnplannedDot?: boolean;
   preparedMarks?: PreparedMark[];
   showPreparedMark?: boolean;

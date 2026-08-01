@@ -3,7 +3,7 @@ import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon
 import type TeacherPlannerPlugin from "../main";
 import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity, DaySchedule, SchoolDay, TeacherPlannerSettings } from "../types";
 import { ensureDaySchedules, getScheduleForDay } from "../utils/scheduleUtils";
-import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE, randomClassColour } from "../settings";
+import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE, DEFAULT_LESSON_TEMPLATE, randomClassColour } from "../settings";
 import { buildNoteTitle } from "../utils/noteTitleUtils";
 import { migrateWeekNotesToFiles } from "../utils/weekNoteFiles";
 import { backupPlanner, parseBackup, importPlanners, buildBackupOf, listLibraryBackups, readBackupText, backupsLibraryFolder, writeBackupToDestination } from "../utils/plannerBackup";
@@ -18,6 +18,11 @@ import { ExportModal } from "../modals/ExportModal";
 import { DirectedTimeExportModal } from "../modals/DirectedTimeExportModal";
 import { SetupWizardModal } from "../modals/SetupWizardModal";
 import { EditPlannerModal } from "../modals/EditPlannerModal";
+import {
+  type PlanTemplate, type TemplateContext,
+  DEFAULT_PLAN_TEMPLATE_ID, renderTemplateBody, listPlanTemplates,
+  defaultPlanBody, saveUserTemplate, hiddenBuiltins, buildTemplatesGuide,
+} from "../utils/planTemplates";
 
 // ── Subject emoji picker ───────────────────────────────────────────────────────
 
@@ -223,6 +228,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     containerEl.addClass("tp-settings");
     // Capture snapshot of current settings so hide() can detect changes
     this._snapshot = JSON.stringify(this.plugin.settings);
+
+    // ── Templates guide (top of tab) ──────────────────────────────────────
+    this.renderTemplatesGuideButton(containerEl);
 
     // ── Planners ───────────────────────────────────────────────────────────
     this.renderPlannersSection(containerEl);
@@ -894,6 +902,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
+    // ── Lesson plan & note templates (0.3.5) ──────────────────────────────
+    const planTemplatesArea = containerEl.createDiv("tp-plan-templates-area");
+    void this.buildPlanTemplatesUI(planTemplatesArea);
+    this.renderLessonNoteTemplateUI(containerEl);
+
     new Setting(containerEl).setName("Notes").setHeading();
     new Setting(containerEl)
       .setName("Organise notes into weekly folders")
@@ -986,6 +999,220 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   // ── Planners section ──────────────────────────────────────────────────────
+
+  // ── Lesson plan & note templates (0.3.5) ───────────────────────────────────
+
+  /** Sample context for template previews, drawn from the first real class. */
+  private sampleTemplateContext(): TemplateContext {
+    const s = this.plugin.settings;
+    const cls = s.classes?.[0];
+    const subj = cls ? s.subjects?.find(x => x.id === cls.subjectId) : s.subjects?.[0];
+    return {
+      classCode: cls?.code ?? "10B",
+      subjectName: subj?.name ?? "Science",
+      emoji: subj?.emoji ?? "🔬",
+      year: cls?.year ?? "10",
+      academicYear: s.academicYear?.name,
+      lessonDate: new Date().toISOString().slice(0, 10),
+      period: "Period 2",
+      room: cls?.classroom ?? "B310",
+    };
+  }
+
+  /** A labelled live preview block bound to a template textarea. */
+  private buildTemplatePreview(host: HTMLElement, getText: () => string): () => void {
+    const box = host.createDiv("tp-template-preview");
+    box.createDiv({ cls: "tp-template-preview-label", text: "Preview" });
+    const pre = box.createEl("pre", { cls: "tp-template-preview-body" });
+    const refresh = () => {
+      const { body } = renderTemplateBody(getText(), this.sampleTemplateContext());
+      pre.setText(body);
+    };
+    refresh();
+    return refresh;
+  }
+
+  /** Guide button (top of the tab) + the plan/note template editors. */
+  private renderTemplatesGuideButton(container: HTMLElement) {
+    const setting = new Setting(container)
+      .setName("Lesson plan & note templates")
+      .setDesc("New in 0.3.5 — customise the templates used for lesson plans and notes.")
+      .addButton(b => b.setButtonText("Open templates guide").setCta()
+        .onClick(() => { void this.openTemplatesGuide(); }));
+    setting.settingEl.addClass("tp-guide-cta");
+  }
+
+  /** Create (if needed) and open the templates guide note; close settings. */
+  private async openTemplatesGuide() {
+    const folder = this.plugin.settings.plannerFolder || "Teacher Planner";
+    const path = `${folder}/Teacher Planner — Lesson templates guide.md`;
+    let existing = this.app.vault.getFileByPath(path);
+    if (!existing) {
+      if (!this.app.vault.getFolderByPath(folder)) {
+        try { await this.app.vault.createFolder(folder); } catch { /* race/exists */ }
+      }
+      try { existing = await this.app.vault.create(path, buildTemplatesGuide()); }
+      catch (e) { console.error("Teacher Planner: could not create templates guide.", e); new Notice("Could not create the guide note — see console."); return; }
+    }
+    (this.app as unknown as { setting?: { close(): void } }).setting?.close();
+    void this.app.workspace.openLinkText(path, "", false);
+  }
+
+  /** Plan-template default picker, editor, save/reset, and manage list. */
+  private async buildPlanTemplatesUI(area: HTMLElement) {
+    area.empty();
+    const s = this.plugin.settings;
+    const templates = await listPlanTemplates(this.app, s);
+    const defId = templates.some(t => t.id === (s.defaultPlanTemplateId ?? DEFAULT_PLAN_TEMPLATE_ID))
+      ? (s.defaultPlanTemplateId ?? DEFAULT_PLAN_TEMPLATE_ID)
+      : DEFAULT_PLAN_TEMPLATE_ID;
+
+    new Setting(area)
+      .setName("Default plan template")
+      .setDesc('Used by "＋ Create new plan…". Editing the text below customises it.')
+      .addDropdown(d => {
+        for (const t of templates) d.addOption(t.id, t.builtin ? t.name : `${t.name} (yours)`);
+        d.setValue(defId);
+        d.onChange(async v => {
+          s.defaultPlanTemplateId = v;
+          s.lessonPlanTemplate = undefined; // drop the in-place override when switching
+          await this.plugin.saveSettings();
+          void this.buildPlanTemplatesUI(area);
+        });
+      });
+
+    // Editor + live preview
+    const editorWrap = area.createDiv("tp-template-editor-wrap");
+    const ta = editorWrap.createEl("textarea", { cls: "tp-template-editor" });
+    ta.value = defaultPlanBody(s, id => templates.find(t => t.id === id)?.body);
+    ta.rows = 12;
+    ta.spellcheck = false;
+    const refreshPreview = this.buildTemplatePreview(editorWrap, () => ta.value);
+    ta.addEventListener("input", () => {
+      s.lessonPlanTemplate = ta.value;
+      this.plugin.requestSave();
+      refreshPreview();
+    });
+
+    new Setting(area)
+      .addButton(b => b.setButtonText("Save as template…").setCta().onClick(() => {
+        new TextPromptModal(this.app, "Save plan template", "", "Template name", (name) => { void (async () => {
+          const path = await saveUserTemplate(this.app, s, name, ta.value);
+          s.defaultPlanTemplateId = path;
+          s.lessonPlanTemplate = undefined;
+          await this.plugin.saveSettings();
+          new Notice(`Saved template to ${path}`);
+          void this.buildPlanTemplatesUI(area);
+        })(); }).open();
+      }))
+      .addButton(b => b.setButtonText("Reset to built-in")
+        .setTooltip("Discard in-place edits and show the selected template's original text")
+        .onClick(async () => {
+          s.lessonPlanTemplate = undefined;
+          await this.plugin.saveSettings();
+          void this.buildPlanTemplatesUI(area);
+        }));
+
+    // Manage list
+    new Setting(area).setName("Manage templates")
+      .setDesc("Edit or remove any template. Your templates are markdown files; built-ins hide with a restore option.");
+    const list = area.createDiv("tp-manage-list");
+    for (const t of templates) this.renderManageTemplateRow(list, t, defId, area);
+    for (const t of hiddenBuiltins(s)) this.renderHiddenTemplateRow(list, t, area);
+  }
+
+  private renderManageTemplateRow(list: HTMLElement, t: PlanTemplate, defId: string, area: HTMLElement) {
+    const s = this.plugin.settings;
+    const row = list.createDiv("tp-manage-row");
+    const info = row.createDiv("tp-manage-info");
+    info.createSpan({ cls: "tp-manage-name", text: t.name });
+    const meta = [t.id === defId ? "Default" : "", t.builtin ? "Built-in" : "Yours"].filter(Boolean).join(" · ");
+    info.createSpan({ cls: "tp-manage-meta", text: meta });
+    const actions = row.createDiv("tp-manage-actions");
+
+    const editBtn = actions.createEl("button", { cls: "tp-icon-btn", attr: { "aria-label": "Edit template" } });
+    setIcon(editBtn, "pencil");
+    editBtn.addEventListener("click", () => { void (async () => {
+      if (t.builtin) {
+        // Built-ins can't be edited in code — make an editable copy.
+        const path = await saveUserTemplate(this.app, s, `${t.name} (copy)`, t.body);
+        s.defaultPlanTemplateId = path;
+        s.lessonPlanTemplate = undefined;
+        await this.plugin.saveSettings();
+        new Notice(`Created an editable copy: ${path}`);
+        (this.app as unknown as { setting?: { close(): void } }).setting?.close();
+        void this.app.workspace.openLinkText(path, "", false);
+      } else if (t.path) {
+        (this.app as unknown as { setting?: { close(): void } }).setting?.close();
+        void this.app.workspace.openLinkText(t.path, "", false);
+      }
+    })(); });
+
+    const delBtn = actions.createEl("button", { cls: "tp-icon-btn tp-icon-btn--danger", attr: { "aria-label": "Remove template" } });
+    setIcon(delBtn, "trash-2");
+    delBtn.addEventListener("click", () => {
+      if (t.builtin) {
+        void (async () => {
+          // Never allow hiding the last visible template.
+          const templates = await listPlanTemplates(this.app, s);
+          if (templates.length <= 1) { new Notice("At least one template must stay visible."); return; }
+          confirmDelete(this.plugin, `Hide the built-in template "${t.name}"? You can restore it any time.`, async () => {
+            s.hiddenBuiltinTemplateIds = [...(s.hiddenBuiltinTemplateIds ?? []), t.id];
+            if ((s.defaultPlanTemplateId ?? DEFAULT_PLAN_TEMPLATE_ID) === t.id) {
+              const remaining = await listPlanTemplates(this.app, s);
+              s.defaultPlanTemplateId = remaining[0]?.id ?? DEFAULT_PLAN_TEMPLATE_ID;
+              s.lessonPlanTemplate = undefined;
+            }
+            await this.plugin.saveSettings();
+            void this.buildPlanTemplatesUI(area);
+          });
+        })();
+      } else if (t.path) {
+        confirmDelete(this.plugin, `Delete your template "${t.name}"? The markdown file is moved to trash.`, async () => {
+          const file = this.app.vault.getFileByPath(t.path!);
+          if (file) { try { await this.app.vault.trash(file, true); } catch (e) { console.error("Teacher Planner: template delete failed.", e); } }
+          if ((s.defaultPlanTemplateId ?? "") === t.id) {
+            s.defaultPlanTemplateId = DEFAULT_PLAN_TEMPLATE_ID;
+            s.lessonPlanTemplate = undefined;
+          }
+          await this.plugin.saveSettings();
+          void this.buildPlanTemplatesUI(area);
+        });
+      }
+    });
+  }
+
+  private renderHiddenTemplateRow(list: HTMLElement, t: PlanTemplate, area: HTMLElement) {
+    const s = this.plugin.settings;
+    const row = list.createDiv("tp-manage-row tp-manage-row--hidden");
+    const info = row.createDiv("tp-manage-info");
+    info.createSpan({ cls: "tp-manage-name", text: t.name });
+    info.createSpan({ cls: "tp-manage-meta", text: "Built-in · hidden" });
+    const restore = row.createDiv("tp-manage-actions").createEl("button", { cls: "tp-btn", text: "Restore" });
+    restore.addEventListener("click", () => { void (async () => {
+      s.hiddenBuiltinTemplateIds = (s.hiddenBuiltinTemplateIds ?? []).filter(id => id !== t.id);
+      await this.plugin.saveSettings();
+      void this.buildPlanTemplatesUI(area);
+    })(); });
+  }
+
+  /** Lesson-note template editor + preview (single template, no library). */
+  private renderLessonNoteTemplateUI(area: HTMLElement) {
+    const s = this.plugin.settings;
+    new Setting(area).setName("Lesson note template")
+      .setDesc("Body of new per-lesson note files. Tracking frontmatter is added automatically.");
+    const wrap = area.createDiv("tp-template-editor-wrap");
+    const ta = wrap.createEl("textarea", { cls: "tp-template-editor" });
+    ta.value = s.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE;
+    ta.rows = 7;
+    ta.spellcheck = false;
+    const refreshPreview = this.buildTemplatePreview(wrap, () => ta.value);
+    ta.addEventListener("input", () => {
+      s.lessonNoteTemplate = ta.value;
+      this.plugin.requestSave();
+      refreshPreview();
+    });
+  }
 
   private renderPlannersSection(container: HTMLElement) {
     new Setting(container).setName("Planners").setHeading();
