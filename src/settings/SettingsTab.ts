@@ -1,5 +1,5 @@
 
-import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon, FuzzySuggestModal, Platform } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon, FuzzySuggestModal, Platform, Menu } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity, DaySchedule, SchoolDay, TeacherPlannerSettings } from "../types";
 import { ensureDaySchedules, getScheduleForDay } from "../utils/scheduleUtils";
@@ -170,6 +170,14 @@ export function confirmDelete(
   new ConfirmModal(plugin.app, message, onConfirm, "Delete").open();
 }
 
+/** Live-updatable elements of a mobile accordion summary row (0.3.5). */
+type MaccSummaryRefs = {
+  dot: HTMLElement | null;
+  nameEl: HTMLElement;
+  subEl: HTMLElement;
+  badgeEl: HTMLElement | null;
+};
+
 export class TeacherPlannerSettingTab extends PluginSettingTab {
   plugin: TeacherPlannerPlugin;
   /** JSON snapshot taken when the tab opens — used to detect unsaved changes on close. */
@@ -244,23 +252,42 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const schoolDaysSetting = new Setting(containerEl)
       .setName("School days")
       .setDesc("Enable Saturday or Sunday for boarding or Saturday schools.");
-    const sdWrap = schoolDaysSetting.controlEl.createDiv("tp-school-days-wrap");
-    for (const opt of schoolDayOptions) {
-      const lbl = sdWrap.createEl("label", { cls: "tp-school-day-label" });
-      const cb = lbl.createEl("input", { type: "checkbox" });
-      cb.checked = (this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(opt.key);
-      lbl.appendText(opt.label);
-      cb.addEventListener("change", () => { void (async () => {
-        const current = this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"];
-        if (cb.checked) {
-          if (!current.includes(opt.key)) current.push(opt.key);
-        } else {
+    if (Platform.isMobile) {
+      // 0.3.5: toggle chips — same pattern as the timetable day pills, no
+      // checkboxes, no truncated labels.
+      const chipWrap = schoolDaysSetting.controlEl.createDiv("tp-day-chips");
+      for (const opt of schoolDayOptions) {
+        const isOn = () => (this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(opt.key);
+        const chip = chipWrap.createEl("button", { text: opt.label, cls: "tp-day-chip" });
+        chip.toggleClass("tp-day-chip--on", isOn());
+        chip.addEventListener("click", () => { void (async () => {
+          const current = this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"];
           const idx = current.indexOf(opt.key);
-          if (idx !== -1) current.splice(idx, 1);
-        }
-        this.plugin.settings.schoolDays = [...current];
-        await this.plugin.saveSettings();
-      })(); });
+          if (idx === -1) current.push(opt.key); else current.splice(idx, 1);
+          this.plugin.settings.schoolDays = [...current];
+          chip.toggleClass("tp-day-chip--on", isOn());
+          await this.plugin.saveSettings();
+        })(); });
+      }
+    } else {
+      const sdWrap = schoolDaysSetting.controlEl.createDiv("tp-school-days-wrap");
+      for (const opt of schoolDayOptions) {
+        const lbl = sdWrap.createEl("label", { cls: "tp-school-day-label" });
+        const cb = lbl.createEl("input", { type: "checkbox" });
+        cb.checked = (this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(opt.key);
+        lbl.appendText(opt.label);
+        cb.addEventListener("change", () => { void (async () => {
+          const current = this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"];
+          if (cb.checked) {
+            if (!current.includes(opt.key)) current.push(opt.key);
+          } else {
+            const idx = current.indexOf(opt.key);
+            if (idx !== -1) current.splice(idx, 1);
+          }
+          this.plugin.settings.schoolDays = [...current];
+          await this.plugin.saveSettings();
+        })(); });
+      }
     }
 
     // ── Directed Time Tracker ──────────────────────────────────────────────
@@ -535,18 +562,20 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     });
     if (!this.plugin.settings.activities) this.plugin.settings.activities = [];
 
-    // Column headers
-    const activityHeaders = containerEl.createDiv("tp-activity-row tp-activity-headers");
-    activityHeaders.createDiv("tp-activity-header-spacer"); // colour swatch placeholder
-    const makeHeader = (text: string, extraCls = "") => {
-      const cls = "tp-activity-header-label" + (extraCls ? " " + extraCls : "");
-      return activityHeaders.createSpan({ text, cls });
-    };
-    makeHeader("Name");
-    makeHeader("Info");
-    makeHeader("Classroom");
-    activityHeaders.createDiv("tp-activity-header-spacer"); // archive btn placeholder
-    activityHeaders.createDiv("tp-activity-header-spacer"); // delete btn placeholder
+    // Column headers (desktop only — the mobile accordion rows have no columns)
+    if (!Platform.isMobile) {
+      const activityHeaders = containerEl.createDiv("tp-activity-row tp-activity-headers");
+      activityHeaders.createDiv("tp-activity-header-spacer"); // colour swatch placeholder
+      const makeHeader = (text: string, extraCls = "") => {
+        const cls = "tp-activity-header-label" + (extraCls ? " " + extraCls : "");
+        return activityHeaders.createSpan({ text, cls });
+      };
+      makeHeader("Name");
+      makeHeader("Info");
+      makeHeader("Classroom");
+      activityHeaders.createDiv("tp-activity-header-spacer"); // archive btn placeholder
+      activityHeaders.createDiv("tp-activity-header-spacer"); // delete btn placeholder
+    }
 
     const activitiesContainer = containerEl.createDiv("tp-activities-list");
     this.renderActivitiesList(activitiesContainer, "directed");
@@ -970,7 +999,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     for (const p of planners) {
       const isActive = p.id === activePlannerId;
-      const card = plannerList.createDiv("tp-planner-card" + (isActive ? " tp-planner-card--active" : ""));
+      const card = plannerList.createDiv(
+        "tp-planner-card" + (isActive ? " tp-planner-card--active" : "") + (Platform.isMobile ? " tp-planner-card--stack" : ""),
+      );
 
       // Left accent strip — colour handled by CSS .tp-planner-card--active .tp-planner-card-accent
       card.createDiv("tp-planner-card-accent");
@@ -981,43 +1012,69 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       nameRow.createSpan({ text: p.name, cls: "tp-planner-card-name" });
       if (isActive) nameRow.createSpan({ text: "Active", cls: "tp-planner-badge" });
       info.createSpan({
-        text: p.academicYear.startDate + " → " + p.academicYear.endDate,
+        text: Platform.isMobile
+          ? this.mFmtDate(p.academicYear.startDate) + " → " + this.mFmtDate(p.academicYear.endDate)
+          : p.academicYear.startDate + " → " + p.academicYear.endDate,
         cls: "tp-planner-card-dates",
       });
 
-      // Right: action buttons — always on the same line
       const actions = card.createDiv("tp-planner-card-actions");
 
-      const exportBtn = actions.createEl("button", { text: "Export", cls: "tp-btn" });
-      exportBtn.addEventListener("click", () => { void (async () => {
+      const doExport = () => { void (async () => {
         try { const path = await backupPlanner(this.plugin, p); new Notice(`Backed up to ${path}`); }
         catch (e) { console.error("Teacher Planner: export failed.", e); new Notice("Backup failed — see console."); }
-      })(); });
+      })(); };
+      const doSwitch = () => { void (async () => {
+        await this.plugin.switchPlanner(p.id);
+        this.render();
+      })(); };
+      const doEdit = () => new EditPlannerModal(this.app, this.plugin, () => this.render()).open();
+      const doDelete = () => {
+        const isLast = planners.length === 1;
+        new DeletePlannerModal(this.app, this.plugin, p.id, p.name, isLast, () => this.render()).open();
+      };
 
-      if (!isActive) {
-        const switchBtn = actions.createEl("button", { text: "Switch", cls: "tp-btn tp-btn--primary" });
-        switchBtn.addEventListener("click", () => { void (async () => {
-          await this.plugin.switchPlanner(p.id);
-          this.render();
-        })(); });
-        const delBtn = actions.createEl("button", { text: "Delete", cls: "tp-btn tp-btn--danger" });
-        delBtn.addEventListener("click", () => {
-          const isLast = planners.length === 1;
-          new DeletePlannerModal(this.app, this.plugin, p.id, p.name, isLast, () => this.render()).open();
+      if (Platform.isMobile) {
+        // 0.3.5: stacked card — name gets the full width, actions on their own
+        // row beneath, delete tucked into an overflow menu so it can never be
+        // mis-tapped next to Switch/Edit.
+        const primary = actions.createEl("button", { text: isActive ? "Edit" : "Switch", cls: "tp-btn tp-btn--primary" });
+        primary.addEventListener("click", isActive ? doEdit : doSwitch);
+        const exportBtn = actions.createEl("button", { text: "Export", cls: "tp-btn" });
+        exportBtn.addEventListener("click", doExport);
+        const moreBtn = actions.createEl("button", { cls: "tp-btn tp-btn--icon", attr: { "aria-label": "More options" } });
+        setIcon(moreBtn, "more-horizontal");
+        moreBtn.addEventListener("click", (e) => {
+          const menu = new Menu();
+          menu.addItem(i => {
+            i.setTitle(isActive ? "Delete planner (switch to another planner first)" : "Delete planner")
+              .setIcon("trash-2");
+            if (isActive) i.setDisabled(true);
+            else { i.setWarning(true); i.onClick(doDelete); }
+          });
+          menu.showAtMouseEvent(e);
         });
       } else {
-        const editBtn = actions.createEl("button", { text: "Edit", cls: "tp-btn tp-btn--primary" });
-        editBtn.addEventListener("click", () => {
-          new EditPlannerModal(this.app, this.plugin, () => this.render()).open();
-        });
-        // Active planner — delete disabled with tooltip
-        const disabledDel = actions.createEl("button", {
-          text: "Delete",
-          cls: "tp-btn tp-btn--danger",
-          attr: { disabled: "true", title: "Switch to another planner before deleting this one" },
-        });
-        disabledDel.setCssStyles({ opacity: "0.35" });
-        disabledDel.setCssStyles({ cursor: "not-allowed" });
+        const exportBtn = actions.createEl("button", { text: "Export", cls: "tp-btn" });
+        exportBtn.addEventListener("click", doExport);
+
+        if (!isActive) {
+          const switchBtn = actions.createEl("button", { text: "Switch", cls: "tp-btn tp-btn--primary" });
+          switchBtn.addEventListener("click", doSwitch);
+          const delBtn = actions.createEl("button", { text: "Delete", cls: "tp-btn tp-btn--danger" });
+          delBtn.addEventListener("click", doDelete);
+        } else {
+          const editBtn = actions.createEl("button", { text: "Edit", cls: "tp-btn tp-btn--primary" });
+          editBtn.addEventListener("click", doEdit);
+          // Active planner — delete disabled with tooltip
+          const disabledDel = actions.createEl("button", {
+            text: "Delete",
+            cls: "tp-btn tp-btn--danger",
+            attr: { disabled: "true", title: "Switch to another planner before deleting this one" },
+          });
+          disabledDel.setCssStyles({ opacity: "0.35" });
+          disabledDel.setCssStyles({ cursor: "not-allowed" });
+        }
       }
     }
 
@@ -1088,6 +1145,468 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     }
   }
 
+  // ── Mobile settings redesign (0.3.5) ──────────────────────────────────────
+  // List sections collapse to compact summary rows that expand into labelled
+  // editors when tapped. Mobile only — desktop keeps the always-visible rows.
+  // Presentation-layer only: the same settings objects and save paths are used.
+
+  /** The list item whose accordion editor is currently open. Object references
+   *  survive in-place list rebuilds, so a row can be re-opened after its list
+   *  re-renders (e.g. after a period start-time change re-sorts the list). */
+  private _openAccItem: unknown = null;
+
+  private renderMobileAccordion(
+    container: HTMLElement,
+    opts: {
+      /** List item backing this row — used to restore open state across rebuilds. */
+      item?: unknown;
+      /** Builds the compact summary (dot / name / sub / badge). */
+      summary: (el: HTMLElement) => void;
+      /** Builds icon actions shown in the header only while open. */
+      actions?: (el: HTMLElement) => void;
+      /** Builds the labelled editor fields. */
+      body: (el: HTMLElement) => void;
+    },
+  ): HTMLElement {
+    const root = container.createDiv("tp-macc");
+    const head = root.createDiv("tp-macc-head");
+    const summaryEl = head.createDiv("tp-macc-summary");
+    opts.summary(summaryEl);
+    const actionsEl = head.createDiv("tp-macc-actions");
+    if (opts.actions) opts.actions(actionsEl);
+    const chev = head.createSpan({ cls: "tp-macc-chev" });
+    setIcon(chev, "chevron-right");
+    const bodyEl = root.createDiv("tp-macc-body");
+    opts.body(bodyEl);
+    if (opts.item != null && this._openAccItem === opts.item) root.addClass("tp-macc--open");
+    head.addEventListener("click", (e) => {
+      // Taps on the action buttons (or any control that ends up in the head)
+      // must not toggle the row.
+      if ((e.target as HTMLElement).closest(".tp-macc-actions, button, input, select")) return;
+      const open = !root.hasClass("tp-macc--open");
+      root.toggleClass("tp-macc--open", open);
+      this._openAccItem = open ? (opts.item ?? null) : null;
+    });
+    return root;
+  }
+
+  private maccSummary(
+    el: HTMLElement,
+    o: { colour?: string; name: string; sub?: string; badge?: { text: string; cls: string } },
+  ): MaccSummaryRefs {
+    let dot: HTMLElement | null = null;
+    if (o.colour !== undefined) {
+      dot = el.createSpan("tp-macc-dot");
+      dot.setCssStyles({ background: o.colour });
+    }
+    const text = el.createDiv("tp-macc-text");
+    const nameEl = text.createDiv({ cls: "tp-macc-name", text: o.name });
+    const subEl = text.createDiv({ cls: "tp-macc-sub", text: o.sub ?? "" });
+    let badgeEl: HTMLElement | null = null;
+    if (o.badge) badgeEl = el.createSpan({ cls: "tp-macc-badge " + o.badge.cls, text: o.badge.text });
+    return { dot, nameEl, subEl, badgeEl };
+  }
+
+  /** Labelled field wrapper: small caps label above a full-width control. */
+  private mField(host: HTMLElement, label: string): HTMLElement {
+    const wrap = host.createDiv("tp-mfield");
+    wrap.createDiv({ cls: "tp-mfield-label", text: label });
+    return wrap;
+  }
+
+  /** Two labelled fields side by side (e.g. start/end times, from/to dates). */
+  private mPair(host: HTMLElement): HTMLElement {
+    return host.createDiv("tp-mpair");
+  }
+
+  private mIconBtn(host: HTMLElement, icon: string, title: string, onClick: () => void, danger = false): HTMLElement {
+    const b = host.createEl("button", { cls: "tp-icon-btn" + (danger ? " tp-icon-btn--danger" : ""), title });
+    setIcon(b, icon);
+    b.addEventListener("click", (e) => { e.stopPropagation(); onClick(); });
+    return b;
+  }
+
+  /** "12 Oct 2026" — human-readable date for summaries. Falls back to the raw ISO string. */
+  private mFmtDate(iso: string): string {
+    if (!iso) return "?";
+    const d = new Date(iso + "T12:00:00");
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  /** "12–16 Oct 2026 · 5 days" — compact range with an inclusive day count. */
+  private mFmtRange(fromIso: string, toIso?: string): string {
+    const to = toIso ?? fromIso;
+    const df = new Date(fromIso + "T12:00:00");
+    const dt = new Date(to + "T12:00:00");
+    if (isNaN(df.getTime()) || isNaN(dt.getTime())) return `${fromIso} – ${to}`;
+    if (fromIso === to) return `${this.mFmtDate(fromIso)} · 1 day`;
+    const days = Math.round((dt.getTime() - df.getTime()) / 86400000) + 1;
+    let range: string;
+    if (df.getFullYear() === dt.getFullYear() && df.getMonth() === dt.getMonth()) {
+      range = `${df.getDate()}–${dt.getDate()} ${dt.toLocaleDateString(undefined, { month: "short", year: "numeric" })}`;
+    } else if (df.getFullYear() === dt.getFullYear()) {
+      range = `${df.toLocaleDateString(undefined, { day: "numeric", month: "short" })} – ${this.mFmtDate(to)}`;
+    } else {
+      range = `${this.mFmtDate(fromIso)} – ${this.mFmtDate(to)}`;
+    }
+    return `${range} · ${days} days`;
+  }
+
+  private renderPeriodRowMobile(container: HTMLElement, period: SchoolPeriod, index: number) {
+    const types = this.plugin.settings.periodTypes ?? [];
+    const typeLabel = () => types.find(t => t.id === period.type)?.label ?? period.type;
+    const subOf = () => `${period.start} – ${period.end} · ${typeLabel()}`;
+    let refs!: MaccSummaryRefs;
+    this.renderMobileAccordion(container, {
+      item: period,
+      summary: el => { refs = this.maccSummary(el, { name: period.name, sub: subOf() }); },
+      actions: el => {
+        this.mIconBtn(el, "trash", "Remove", () => { void (async () => {
+          this.getSelectedSchedule().periods.splice(index, 1);
+          await this.plugin.saveSettings();
+          container.empty(); this.renderPeriodsList(container);
+        })(); }, true);
+      },
+      body: el => {
+        const nameInput = this.mField(el, "Name").createEl("input", { type: "text" });
+        nameInput.value = period.name;
+        nameInput.placeholder = "Name";
+        nameInput.addEventListener("blur", () => { void (async () => {
+          period.name = nameInput.value;
+          refs.nameEl.setText(period.name);
+          await this.plugin.saveSettings();
+        })(); });
+        const pair = this.mPair(el);
+        const startInput = this.mField(pair, "Starts").createEl("input", { type: "text" });
+        startInput.value = period.start;
+        startInput.placeholder = "HH:MM";
+        const commitStart = async () => {
+          if (startInput.value === period.start) return;
+          period.start = startInput.value;
+          this.sortPeriods();
+          await this.plugin.saveSettings();
+          // Re-render so the row moves to its sorted position; _openAccItem
+          // keeps this period's editor open across the rebuild.
+          container.empty();
+          this.renderPeriodsList(container);
+        };
+        startInput.addEventListener("blur", () => { void commitStart(); });
+        startInput.addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Enter") startInput.blur(); });
+        const endInput = this.mField(pair, "Ends").createEl("input", { type: "text" });
+        endInput.value = period.end;
+        endInput.placeholder = "HH:MM";
+        endInput.addEventListener("blur", () => { void (async () => {
+          period.end = endInput.value;
+          refs.subEl.setText(subOf());
+          await this.plugin.saveSettings();
+        })(); });
+        const typeSel = this.mField(el, "Block type").createEl("select");
+        if (types.length === 0) {
+          for (const [v, l] of [["lesson", "Lesson"], ["break", "Break"], ["registration", "Registration"], ["free", "Free"]] as [string, string][]) {
+            const opt = typeSel.createEl("option", { text: l, value: v });
+            if (period.type === v) opt.selected = true;
+          }
+        } else {
+          for (const pt of types) {
+            const opt = typeSel.createEl("option", { text: pt.label, value: pt.id });
+            if (period.type === pt.id) opt.selected = true;
+          }
+        }
+        typeSel.addEventListener("change", () => { void (async () => {
+          period.type = typeSel.value;
+          refs.subEl.setText(subOf());
+          await this.plugin.saveSettings();
+        })(); });
+      },
+    });
+  }
+
+  private renderClassRowMobile(container: HTMLElement, cls: ClassGroup, subject: Subject, parentContainer: HTMLElement, isArchived: boolean) {
+    const subOf = () => [cls.year, cls.classroom].filter(s => s && s.trim()).join(" · ");
+    let refs!: MaccSummaryRefs;
+    const row = this.renderMobileAccordion(container, {
+      item: cls,
+      summary: el => { refs = this.maccSummary(el, { colour: cls.colour, name: cls.code, sub: subOf() }); },
+      actions: el => {
+        this.mIconBtn(el, isArchived ? "rotate-ccw" : "archive", isArchived ? "Restore class" : "Archive class (hides from timetable editor)", () => { void (async () => {
+          cls.archived = !isArchived;
+          await this.plugin.saveSettings();
+          parentContainer.empty(); this.renderSubjectsList(parentContainer);
+        })(); });
+        this.mIconBtn(el, "trash-2", "Delete class", () => confirmDelete(this.plugin, `Delete class "${cls.code}"? It is removed from the timetable too.`, async () => {
+          this.plugin.settings.classes = this.plugin.settings.classes.filter(c => c.id !== cls.id);
+          this.plugin.settings.timetable = this.plugin.settings.timetable.filter(t => t.classId !== cls.id);
+          await this.plugin.saveSettings();
+          parentContainer.empty(); this.renderSubjectsList(parentContainer);
+        }), true);
+      },
+      body: el => {
+        const pair = this.mPair(el);
+        const yearInput = this.mField(pair, "Year").createEl("input", { type: "text" });
+        yearInput.value = cls.year ?? "";
+        yearInput.placeholder = "e.g. Y12";
+        yearInput.addEventListener("change", () => { void (async () => {
+          cls.year = yearInput.value;
+          refs.subEl.setText(subOf());
+          await this.plugin.saveSettings();
+        })(); });
+        const codeInput = this.mField(pair, "Class code").createEl("input", { type: "text" });
+        codeInput.value = cls.code;
+        codeInput.placeholder = "e.g. IB DP1";
+        codeInput.addEventListener("change", () => { void (async () => {
+          cls.code = codeInput.value;
+          refs.nameEl.setText(cls.code);
+          await this.plugin.saveSettings();
+        })(); });
+        const roomInput = this.mField(el, "Classroom").createEl("input", { type: "text" });
+        roomInput.value = cls.classroom ?? "";
+        roomInput.placeholder = "Optional";
+        roomInput.addEventListener("change", () => { void (async () => {
+          cls.classroom = roomInput.value;
+          refs.subEl.setText(subOf());
+          await this.plugin.saveSettings();
+        })(); });
+        const crow = this.mField(el, "Colour").createDiv("tp-mcolour-row");
+        const swatch = crow.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
+        swatch.setCssStyles({ background: cls.colour });
+        swatch.title = "Override class colour";
+        const resetBtn = crow.createEl("button", { cls: "tp-btn", text: "Use subject colour" });
+        resetBtn.setCssStyles({ display: cls.colourOverridden && !isArchived ? "" : "none" });
+        swatch.addEventListener("click", () => {
+          new ColourPickerModal(this.app, cls.colour, cls.code, async colour => {
+            cls.colour = colour;
+            cls.colourOverridden = colour !== subject.colour;
+            await this.plugin.saveSettings();
+            swatch.setCssStyles({ background: colour });
+            refs.dot?.setCssStyles({ background: colour });
+            resetBtn.setCssStyles({ display: cls.colourOverridden && !isArchived ? "" : "none" });
+          }).open();
+        });
+        resetBtn.addEventListener("click", () => { void (async () => {
+          cls.colour = subject.colour ?? CLASS_COLOUR_PALETTE[0];
+          cls.colourOverridden = false;
+          await this.plugin.saveSettings();
+          swatch.setCssStyles({ background: cls.colour });
+          refs.dot?.setCssStyles({ background: cls.colour });
+          resetBtn.setCssStyles({ display: "none" });
+        })(); });
+      },
+    });
+    if (isArchived) row.setCssStyles({ opacity: "0.5" });
+  }
+
+  private renderActivityRowMobile(
+    container: HTMLElement,
+    activity: Activity,
+    isArchived: boolean,
+    outerContainer: HTMLElement,
+    typeFilter: "directed" | "other",
+  ) {
+    const subOf = () => [activity.info, activity.classroom].filter(s => s && s.trim()).join(" · ");
+    let refs!: MaccSummaryRefs;
+    const row = this.renderMobileAccordion(container, {
+      item: activity,
+      summary: el => { refs = this.maccSummary(el, { colour: activity.colour, name: activity.label, sub: subOf() }); },
+      actions: el => {
+        this.mIconBtn(el, isArchived ? "rotate-ccw" : "archive", isArchived ? "Restore" : "Archive (hides from timetable editor)", () => { void (async () => {
+          activity.archived = !isArchived;
+          await this.plugin.saveSettings();
+          outerContainer.empty(); this.renderActivitiesList(outerContainer, typeFilter);
+        })(); });
+        this.mIconBtn(el, "trash-2", "Delete", () => confirmDelete(this.plugin, `Delete "${activity.label}"?`, async () => {
+          this.plugin.settings.activities = this.plugin.settings.activities.filter(a => a.id !== activity.id);
+          await this.plugin.saveSettings();
+          outerContainer.empty(); this.renderActivitiesList(outerContainer, typeFilter);
+        }), true);
+      },
+      body: el => {
+        const nameInput = this.mField(el, "Name").createEl("input", { type: "text" });
+        nameInput.value = activity.label;
+        nameInput.placeholder = "Activity name";
+        nameInput.addEventListener("change", () => { void (async () => {
+          activity.label = nameInput.value;
+          refs.nameEl.setText(activity.label);
+          await this.plugin.saveSettings();
+        })(); });
+        const pair = this.mPair(el);
+        const infoInput = this.mField(pair, "Info").createEl("input", { type: "text" });
+        infoInput.value = activity.info ?? "";
+        infoInput.placeholder = "Optional";
+        infoInput.addEventListener("change", () => { void (async () => {
+          activity.info = infoInput.value;
+          refs.subEl.setText(subOf());
+          await this.plugin.saveSettings();
+        })(); });
+        const roomInput = this.mField(pair, "Classroom").createEl("input", { type: "text" });
+        roomInput.value = activity.classroom ?? "";
+        roomInput.placeholder = "Optional";
+        roomInput.addEventListener("change", () => { void (async () => {
+          activity.classroom = roomInput.value;
+          refs.subEl.setText(subOf());
+          await this.plugin.saveSettings();
+        })(); });
+        const crow = this.mField(el, "Colour").createDiv("tp-mcolour-row");
+        const swatch = crow.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
+        swatch.setCssStyles({ background: activity.colour });
+        swatch.addEventListener("click", () => {
+          new ColourPickerModal(this.app, activity.colour, activity.label, async colour => {
+            activity.colour = colour;
+            await this.plugin.saveSettings();
+            swatch.setCssStyles({ background: colour });
+            refs.dot?.setCssStyles({ background: colour });
+          }).open();
+        });
+      },
+    });
+    if (isArchived) row.setCssStyles({ opacity: "0.5" });
+  }
+
+  private renderPeriodTypeRowMobile(container: HTMLElement, pt: PeriodTypeConfig) {
+    let refs!: MaccSummaryRefs;
+    this.renderMobileAccordion(container, {
+      item: pt,
+      summary: el => { refs = this.maccSummary(el, { colour: resolveColour(pt.colour), name: pt.label }); },
+      actions: el => {
+        this.mIconBtn(el, "trash-2", "Delete type", () => confirmDelete(this.plugin, `Delete block type "${pt.label}"?`, async () => {
+          this.plugin.settings.periodTypes = this.plugin.settings.periodTypes.filter(t => t.id !== pt.id);
+          await this.plugin.saveSettings();
+          container.empty(); this.renderPeriodTypesList(container);
+        }), true);
+      },
+      body: el => {
+        const nameInput = this.mField(el, "Name").createEl("input", { type: "text" });
+        nameInput.value = pt.label;
+        nameInput.placeholder = "Type name";
+        nameInput.addEventListener("change", () => { void (async () => {
+          pt.label = nameInput.value;
+          refs.nameEl.setText(pt.label);
+          await this.plugin.saveSettings();
+        })(); });
+        const crow = this.mField(el, "Colour").createDiv("tp-mcolour-row");
+        const swatch = crow.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
+        swatch.setCssStyles({ background: resolveColour(pt.colour) });
+        swatch.title = isThemeToken(pt.colour) ? "Following your Obsidian theme" : "Custom colour";
+        const resetBtn = crow.createEl("button", { cls: "tp-btn", text: "Reset to theme" });
+        swatch.addEventListener("click", () => {
+          new ColourPickerModal(this.app, pt.colour, pt.label, async colour => {
+            pt.colour = colour;
+            await this.plugin.saveSettings();
+            swatch.setCssStyles({ background: resolveColour(colour) });
+            swatch.title = isThemeToken(colour) ? "Following your Obsidian theme" : "Custom colour";
+            refs.dot?.setCssStyles({ background: resolveColour(colour) });
+          }, true).open();
+        });
+        resetBtn.addEventListener("click", () => { void (async () => {
+          pt.colour = DEFAULT_PERIOD_TYPE_COLOURS[pt.id] ?? FALLBACK_PERIOD_TYPE_COLOUR;
+          await this.plugin.saveSettings();
+          swatch.setCssStyles({ background: resolveColour(pt.colour) });
+          swatch.title = "Following your Obsidian theme";
+          refs.dot?.setCssStyles({ background: resolveColour(pt.colour) });
+        })(); });
+      },
+    });
+  }
+
+  private renderWeekOverrideRowMobile(container: HTMLElement, override: WeekOverride) {
+    const isInset = () => override.type === "inset";
+    const nameOf = () => (override.label ?? "").trim() || (isInset() ? "INSET" : "Holiday");
+    let refs!: MaccSummaryRefs;
+    const setBadge = () => {
+      if (!refs.badgeEl) return;
+      refs.badgeEl.setText(isInset() ? "INSET" : "Holiday");
+      refs.badgeEl.className = "tp-macc-badge " + (isInset() ? "tp-macc-badge--inset" : "tp-macc-badge--holiday");
+    };
+    this.renderMobileAccordion(container, {
+      item: override,
+      summary: el => {
+        refs = this.maccSummary(el, {
+          name: nameOf(),
+          sub: this.mFmtRange(override.startDate, override.endDate),
+          badge: {
+            text: isInset() ? "INSET" : "Holiday",
+            cls: isInset() ? "tp-macc-badge--inset" : "tp-macc-badge--holiday",
+          },
+        });
+      },
+      actions: el => {
+        this.mIconBtn(el, "trash", "Remove", () => { void (async () => {
+          this.plugin.settings.weekOverrides = this.plugin.settings.weekOverrides.filter(w => w !== override);
+          await this.plugin.saveSettings();
+          el.closest(".tp-macc")?.remove();
+          if (this.plugin.settings.weekOverrides.length === 0) {
+            container.createEl("p", { text: "No holidays or INSET days marked.", cls: "setting-item-description" });
+          }
+        })(); }, true);
+      },
+      body: el => {
+        const pair = this.mPair(el);
+        const fromInput = this.mField(pair, "From").createEl("input", { type: "date" });
+        fromInput.value = override.startDate;
+        const toInput = this.mField(pair, "To").createEl("input", { type: "date" });
+        toInput.value = override.endDate ?? override.startDate;
+        fromInput.addEventListener("change", () => { void (async () => {
+          override.startDate = fromInput.value;
+          if (override.endDate && override.endDate < override.startDate) {
+            override.endDate = override.startDate;
+            toInput.value = override.startDate;
+          }
+          refs.subEl.setText(this.mFmtRange(override.startDate, override.endDate));
+          await this.plugin.saveSettings();
+          this.warnIfOverridesOverlap();
+        })(); });
+        toInput.addEventListener("change", () => { void (async () => {
+          const val = toInput.value;
+          override.endDate = val === override.startDate ? undefined : val;
+          refs.subEl.setText(this.mFmtRange(override.startDate, override.endDate));
+          await this.plugin.saveSettings();
+          this.warnIfOverridesOverlap();
+        })(); });
+
+        const seg = this.mField(el, "Type").createDiv("tp-mseg");
+        const holBtn = seg.createEl("button", { text: "Holiday" });
+        const insBtn = seg.createEl("button", { text: "INSET" });
+        const dtEnabled = () => this.plugin.settings.directedTime?.enabled ?? false;
+        const syncType = () => {
+          holBtn.toggleClass("tp-mseg--on", !isInset());
+          insBtn.toggleClass("tp-mseg--on", isInset());
+          hoursField.setCssStyles({ display: isInset() && dtEnabled() ? "" : "none" });
+          refs.nameEl.setText(nameOf());
+          setBadge();
+        };
+        const setType = (t: "holiday" | "inset") => { void (async () => {
+          if (override.type === t) return;
+          override.type = t;
+          syncType();
+          await this.plugin.saveSettings();
+        })(); };
+        holBtn.addEventListener("click", () => setType("holiday"));
+        insBtn.addEventListener("click", () => setType("inset"));
+
+        const nameInput = this.mField(el, "Name").createEl("input", { type: "text" });
+        nameInput.value = override.label ?? "";
+        nameInput.placeholder = "e.g. Christmas";
+        nameInput.addEventListener("change", () => { void (async () => {
+          override.label = nameInput.value;
+          refs.nameEl.setText(nameOf());
+          await this.plugin.saveSettings();
+        })(); });
+
+        const hoursField = this.mField(el, "Directed hours for this period");
+        const hoursInput = hoursField.createEl("input", { type: "number" });
+        hoursInput.placeholder = "0"; hoursInput.min = "0"; hoursInput.max = "80"; hoursInput.step = "0.5";
+        hoursInput.title = "Total directed hours for this entire INSET period";
+        hoursInput.value = override.insetHours != null ? String(override.insetHours) : "";
+        hoursInput.addEventListener("change", () => { void (async () => {
+          const n = parseFloat(hoursInput.value);
+          override.insetHours = isNaN(n) || n <= 0 ? undefined : n;
+          await this.plugin.saveSettings();
+        })(); });
+        syncType();
+      },
+    });
+  }
+
   private sortPeriods() {
     this.getSelectedSchedule().periods.sort((a, b) => a.start.localeCompare(b.start));
   }
@@ -1103,6 +1622,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   private renderPeriodRow(container: HTMLElement, period: SchoolPeriod, index: number) {
+    if (Platform.isMobile) { this.renderPeriodRowMobile(container, period, index); return; }
     new Setting(container)
       .setName(period.name).setDesc(`${period.start} - ${period.end}`)
       .addText(t => {
@@ -1231,6 +1751,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   private renderClassRow(container: HTMLElement, cls: ClassGroup, subject: Subject, parentContainer: HTMLElement, isArchived: boolean = false) {
+    if (Platform.isMobile) { this.renderClassRowMobile(container, cls, subject, parentContainer, isArchived); return; }
     const row = container.createDiv("tp-class-row");
     if (isArchived) row.setCssStyles({ opacity: "0.5" });
 
@@ -1427,6 +1948,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     outerContainer: HTMLElement = container,
     typeFilter: "directed" | "other" = "directed",
   ) {
+    if (Platform.isMobile) { this.renderActivityRowMobile(container, activity, isArchived, outerContainer, typeFilter); return; }
     const row = container.createDiv("tp-activity-row");
     if (isArchived) row.setCssStyles({ opacity: "0.5" });
 
@@ -1487,6 +2009,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   private renderPeriodTypeRow(container: HTMLElement, pt: PeriodTypeConfig) {
+    if (Platform.isMobile) { this.renderPeriodTypeRowMobile(container, pt); return; }
     const row = container.createDiv("tp-activity-row");
     const swatchBtn = row.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
     swatchBtn.setCssStyles({ background: resolveColour(pt.colour) });
@@ -1552,6 +2075,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   private renderWeekOverrideRow(container: HTMLElement, override: WeekOverride) {
+    if (Platform.isMobile) { this.renderWeekOverrideRowMobile(container, override); return; }
     // Wrapper div stacks the Setting row + optional INSET sub-row
     const wrapper = container.createDiv("tp-override-entry");
     const row = new Setting(wrapper).setName("").setDesc("");

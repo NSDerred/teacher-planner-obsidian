@@ -1549,3 +1549,135 @@
 .is-mobile .tp-settings .dropdown,
 .is-mobile .tp-settings button:not(.checkbox-container) { border-radius: 8px; }
 
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   0.3.5 — MOBILE SETTINGS REDESIGN
+   List sections collapse to summary rows that expand into labelled editors.
+   Everything here is scoped to .is-mobile — desktop settings are untouched.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Opaque settings header so scrolling content disappears behind it instead of
+   colliding with the title. No-op on WebViews without :has() support. */
+.is-mobile .modal-container:has(.tp-settings) .modal-header,
+.is-mobile .modal:has(.tp-settings) .modal-header {
+  background-color: var(--background-primary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* Clear the system navigation bar below the last section */
+.is-mobile .tp-settings { padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+
+/* Section headers: bigger tap target */
+.is-mobile .tp-settings .tp-collapsible-header.setting-item-heading {
+  min-height: 48px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* ── Accordion rows ─────────────────────────────────────────────────────────── */
+.is-mobile .tp-macc {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.is-mobile .tp-macc--open { border-color: var(--background-modifier-border-hover); }
+.is-mobile .tp-macc-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  min-height: 48px;
+  cursor: pointer;
+}
+.is-mobile .tp-macc-summary { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
+.is-mobile .tp-macc-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+.is-mobile .tp-macc-text { min-width: 0; flex: 1; }
+.is-mobile .tp-macc-name {
+  font-size: 14px; font-weight: 600; color: var(--text-normal);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.is-mobile .tp-macc-sub {
+  font-size: 12px; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.is-mobile .tp-macc-sub:empty { display: none; }
+.is-mobile .tp-macc-badge {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 2px 8px; border-radius: 10px; flex-shrink: 0;
+}
+.is-mobile .tp-macc-badge--holiday { color: var(--color-green); background: rgba(var(--color-green-rgb), 0.15); }
+.is-mobile .tp-macc-badge--inset { color: var(--color-purple); background: rgba(var(--color-purple-rgb), 0.15); }
+.is-mobile .tp-macc-chev { display: flex; color: var(--text-faint); transition: transform 0.15s ease; flex-shrink: 0; }
+.is-mobile .tp-macc--open .tp-macc-chev { transform: rotate(90deg); }
+.is-mobile .tp-macc-actions { display: none; gap: 6px; flex-shrink: 0; }
+.is-mobile .tp-macc--open .tp-macc-actions { display: flex; }
+.is-mobile .tp-macc-actions .tp-icon-btn {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+}
+.is-mobile .tp-icon-btn--danger { color: var(--text-error); }
+.is-mobile .tp-macc-body {
+  display: none;
+  padding: 0 12px 14px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+.is-mobile .tp-macc--open .tp-macc-body { display: block; }
+
+/* ── Labelled fields inside an open editor ──────────────────────────────────── */
+.is-mobile .tp-mfield { margin-top: 12px; min-width: 0; }
+.is-mobile .tp-mfield-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text-muted); margin-bottom: 4px;
+}
+.is-mobile .tp-mfield > input[type="text"],
+.is-mobile .tp-mfield > input[type="number"],
+.is-mobile .tp-mfield > input[type="date"],
+.is-mobile .tp-mfield > select { width: 100%; min-height: 40px; box-sizing: border-box; }
+.is-mobile .tp-mpair { display: flex; gap: 10px; }
+.is-mobile .tp-mpair > .tp-mfield { flex: 1 1 0; }
+.is-mobile .tp-mcolour-row { display: flex; align-items: center; gap: 10px; }
+
+/* ── Segmented Holiday / INSET toggle ───────────────────────────────────────── */
+.is-mobile .tp-mseg {
+  display: flex; gap: 3px; padding: 3px;
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+}
+.is-mobile .tp-mseg > button {
+  flex: 1 1 0; min-height: 36px; border-radius: 6px;
+  background: transparent; box-shadow: none; color: var(--text-muted);
+}
+.is-mobile .tp-mseg > button.tp-mseg--on {
+  background: var(--interactive-accent); color: var(--text-on-accent); font-weight: 600;
+}
+
+/* ── School days: toggle chips (replaces checkboxes) ────────────────────────── */
+.is-mobile .tp-day-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.is-mobile .tp-day-chip {
+  min-width: 46px; min-height: 40px; padding: 6px 10px;
+  border-radius: 10px; font-size: 13px;
+  border: 1px solid var(--background-modifier-border);
+  background: transparent; color: var(--text-muted);
+}
+.is-mobile .tp-day-chip--on {
+  border-color: var(--interactive-accent);
+  color: var(--interactive-accent);
+  background: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
+}
+
+/* ── Planners: stacked cards ────────────────────────────────────────────────── */
+.is-mobile .tp-planner-card--stack { flex-wrap: wrap; padding-bottom: 10px; }
+.is-mobile .tp-planner-card--stack .tp-planner-card-info { flex: 1 1 calc(100% - 4px); }
+.is-mobile .tp-planner-card--stack .tp-planner-card-name { white-space: normal; overflow: visible; }
+.is-mobile .tp-planner-card--stack .tp-planner-card-actions {
+  flex: 1 1 100%;
+  margin-left: 4px;
+  padding: 0 12px;
+}
+.is-mobile .tp-planner-card--stack .tp-planner-card-actions .tp-btn { flex: 1 1 0; min-height: 40px; }
+.is-mobile .tp-planner-card--stack .tp-planner-card-actions .tp-btn--icon {
+  flex: 0 0 46px;
+  display: flex; align-items: center; justify-content: center;
+}
