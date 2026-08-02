@@ -44,6 +44,8 @@ Every lesson in the week view has its own note, built from a template you contro
 
 Link a reusable lesson-plan note to any lesson and open it straight from the chip, or attach a file or folder from anywhere on your computer. A small icon on each lesson shows what is ready at a glance, and a green tick lets you mark a lesson as prepared by hand if you would rather not link a plan note.
 
+When you create a plan you can start it from a template. Six are built in — an everyday Essentials plan, a review-build-apply structure for teaching new material, a 5E inquiry lesson for practical science, a cover lesson, a blank one, and a revision-and-feedback plan for exam classes — and each opens with the class, subject, date, period, and room already filled in for that lesson, and your cursor where you start writing. Edit any of them with a live preview in settings, save your own as ordinary notes, and hide the ones you do not use.
+
 ![Linking a lesson plan](docs/screenshots/linking-lesson-plan.gif)
 
 ## Plan a class across the whole year
@@ -101,6 +103,8 @@ Everything is configurable from Settings, then Teacher Planner. Two of the most-
 The subjects and classes panel gives each subject an emoji and nests its class groups beneath it, each with its own colour, year group, code, and default room.
 
 ![Subjects and classes](docs/screenshots/lessons-settings.png)
+
+On a phone the settings are built for touch: each list of periods, classes, activities, or holidays shows one tidy row per item that opens into a full editor when you tap it, so a whole term of holidays or a full set of classes is easy to scan and edit with a thumb.
 
 ## Support
 
