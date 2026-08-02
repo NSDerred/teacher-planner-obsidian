@@ -8,6 +8,7 @@
   import { shiftForward, shiftBackward, snapshotState, restoreState, type ShiftSnapshot } from "../utils/lessonShiftApply";
   import { applyNoteMoves, reverseNoteMoves, type NoteUndoOp, lessonNoteDefaultTitle, findLessonNoteByTitle, createLessonNoteFile } from "../utils/lessonNoteFiles";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
+  import { NoteTemplatePromptModal } from "../modals/NoteTemplatePromptModal";
   import { DatePickerModal } from "../modals/DatePickerModal";
   import { getMondayOfWeek, localIso } from "../utils/weekUtils";
   import { computeClassStats } from "../utils/classStats";
@@ -176,8 +177,14 @@
     const title = lessonNoteDefaultTitle(plugin.settings, cid, o.periodName, o.date);
     const existing = findLessonNoteByTitle(plugin.app, plugin.settings, o.date, title);
     if (existing) { void plugin.app.workspace.openLinkText(existing, "", false); return; }
-    new TextPromptModal(plugin.app, "New lesson note", title, "Note title", (name) => {
-      void createLessonNoteFile(plugin.app, plugin.settings, cid, o.periodName, o.date, name);
+    const cls = selectedClass; const subj = cls ? subjectFor(cls) : undefined;
+    const ctx = {
+      classCode: cls?.code ?? "", subjectName: subj?.name ?? "", emoji: subj?.emoji, year: cls?.year,
+      academicYear: plugin.settings.academicYear?.name,
+      lessonDate: o.date, period: o.periodName, room: getLessonRoom(plugin.settings, o.slotId, o.date) || (o.classroom ?? ""),
+    };
+    new NoteTemplatePromptModal(plugin.app, plugin, { ctx, fmPrefix: "", defaultTitle: title, promptTitle: "New lesson note" }, (name, body, cursorOffset) => {
+      void createLessonNoteFile(plugin.app, plugin.settings, cid, o.periodName, o.date, name, body, cursorOffset);
     }).open();
   }
 

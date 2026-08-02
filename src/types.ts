@@ -293,6 +293,10 @@ export interface TeacherPlannerSettings {
   defaultPlanTemplateId?: string;
   /** Built-in plan-template ids the user has hidden from the picker. */
   hiddenBuiltinTemplateIds?: string[];
+  /** Id of the default lesson-note template: a built-in id or a user-template file path. */
+  defaultNoteTemplateId?: string;
+  /** Built-in note-template ids the user has hidden from the picker. */
+  hiddenNoteTemplateIds?: string[];
   /** Show a faint hollow dot on lessons without a linked plan. Default true. */
   showUnplannedDot?: boolean;
   /** Manual "lesson prepared" marks (Option B tick). */
@@ -364,6 +368,10 @@ export interface PlannerRecord {
   defaultPlanTemplateId?: string;
   /** Built-in plan-template ids the user has hidden from the picker. */
   hiddenBuiltinTemplateIds?: string[];
+  /** Id of the default lesson-note template: a built-in id or a user-template file path. */
+  defaultNoteTemplateId?: string;
+  /** Built-in note-template ids the user has hidden from the picker. */
+  hiddenNoteTemplateIds?: string[];
   showUnplannedDot?: boolean;
   preparedMarks?: PreparedMark[];
   showPreparedMark?: boolean;

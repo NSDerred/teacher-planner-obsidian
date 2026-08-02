@@ -23,6 +23,10 @@ import {
   DEFAULT_PLAN_TEMPLATE_ID, renderTemplateBody, listPlanTemplates,
   defaultPlanBody, saveUserTemplate, hiddenBuiltins, buildTemplatesGuide,
 } from "../utils/planTemplates";
+import {
+  type NoteTemplate,
+  DEFAULT_NOTE_TEMPLATE_ID, listNoteTemplates, saveUserNoteTemplate, hiddenNoteBuiltins,
+} from "../utils/noteTemplates";
 
 // ── Subject emoji picker ───────────────────────────────────────────────────────
 
@@ -912,7 +916,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // ── Lesson plan & note templates (0.3.5) ──────────────────────────────
     const planTemplatesArea = containerEl.createDiv("tp-plan-templates-area");
     void this.buildPlanTemplatesUI(planTemplatesArea);
-    this.renderLessonNoteTemplateUI(containerEl);
+
+    // ── Lesson note templates (0.3.6) — its own section ───────────────────
+    new Setting(containerEl).setName("Lesson note templates").setHeading();
+    const noteTemplatesArea = containerEl.createDiv("tp-note-templates-area");
+    void this.buildNoteTemplatesUI(noteTemplatesArea);
 
     new Setting(containerEl).setName("Notes").setHeading();
     new Setting(containerEl)
@@ -1211,22 +1219,136 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     })(); });
   }
 
-  /** Lesson-note template editor + preview (single template, no library). */
-  private renderLessonNoteTemplateUI(area: HTMLElement) {
+  /** Lesson-note template default picker, Standard editor, and manage list (0.3.6). */
+  private async buildNoteTemplatesUI(area: HTMLElement) {
+    area.empty();
     const s = this.plugin.settings;
-    new Setting(area).setName("Lesson note template")
-      .setDesc("Body of new per-lesson note files. Tracking frontmatter is added automatically.");
-    const wrap = area.createDiv("tp-template-editor-wrap");
-    const ta = wrap.createEl("textarea", { cls: "tp-template-editor" });
+    const templates = await listNoteTemplates(this.app, s);
+    const defId = templates.some(t => t.id === (s.defaultNoteTemplateId ?? DEFAULT_NOTE_TEMPLATE_ID))
+      ? (s.defaultNoteTemplateId ?? DEFAULT_NOTE_TEMPLATE_ID)
+      : DEFAULT_NOTE_TEMPLATE_ID;
+
+    new Setting(area)
+      .setName("Default note template")
+      .setDesc('Preselected in the "New lesson note" dialog. Default: Blank.')
+      .addDropdown(d => {
+        for (const t of templates) d.addOption(t.id, t.builtin ? t.name : `${t.name} (yours)`);
+        d.setValue(defId);
+        d.onChange(async v => {
+          s.defaultNoteTemplateId = v;
+          await this.plugin.saveSettings();
+          void this.buildNoteTemplatesUI(area);
+        });
+      });
+
+    // Standard template editor — backed by the existing lessonNoteTemplate setting
+    new Setting(area).setName("Standard template")
+      .setDesc("The editable house note template. Changes apply to new notes created from Standard.");
+    const editorWrap = area.createDiv("tp-template-editor-wrap");
+    const ta = editorWrap.createEl("textarea", { cls: "tp-template-editor" });
     ta.value = s.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE;
     ta.rows = 7;
     ta.spellcheck = false;
-    const refreshPreview = this.buildTemplatePreview(wrap, () => ta.value);
+    const refreshPreview = this.buildTemplatePreview(editorWrap, () => ta.value);
     ta.addEventListener("input", () => {
       s.lessonNoteTemplate = ta.value;
       this.plugin.requestSave();
       refreshPreview();
     });
+
+    new Setting(area)
+      .addButton(b => b.setButtonText("Save as template…").setCta().onClick(() => {
+        new TextPromptModal(this.app, "Save note template", "", "Template name", (name) => { void (async () => {
+          const path = await saveUserNoteTemplate(this.app, s, name, ta.value);
+          s.defaultNoteTemplateId = path;
+          await this.plugin.saveSettings();
+          new Notice(`Saved template to ${path}`);
+          void this.buildNoteTemplatesUI(area);
+        })(); }).open();
+      }))
+      .addButton(b => b.setButtonText("Reset Standard")
+        .setTooltip("Restore the built-in Standard note body")
+        .onClick(async () => {
+          s.lessonNoteTemplate = DEFAULT_LESSON_TEMPLATE;
+          await this.plugin.saveSettings();
+          void this.buildNoteTemplatesUI(area);
+        }));
+
+    new Setting(area).setName("Manage templates")
+      .setDesc("Edit or remove any note template. Your templates are markdown files; built-ins hide with a restore option.");
+    const list = area.createDiv("tp-manage-list");
+    for (const t of templates) this.renderNoteManageRow(list, t, defId, area);
+    for (const t of hiddenNoteBuiltins(s)) this.renderHiddenNoteRow(list, t, area);
+  }
+
+  private renderNoteManageRow(list: HTMLElement, t: NoteTemplate, defId: string, area: HTMLElement) {
+    const s = this.plugin.settings;
+    const row = list.createDiv("tp-manage-row");
+    const info = row.createDiv("tp-manage-info");
+    info.createSpan({ cls: "tp-manage-name", text: t.name });
+    const meta = [t.id === defId ? "Default" : "", t.builtin ? "Built-in" : "Yours"].filter(Boolean).join(" · ");
+    info.createSpan({ cls: "tp-manage-meta", text: meta });
+    const actions = row.createDiv("tp-manage-actions");
+
+    const editBtn = actions.createEl("button", { cls: "tp-icon-btn", attr: { "aria-label": "Edit template" } });
+    setIcon(editBtn, "pencil");
+    editBtn.addEventListener("click", () => { void (async () => {
+      if (t.id === "standard") {
+        new Notice("Edit the Standard template in the editor above.");
+      } else if (t.builtin) {
+        const path = await saveUserNoteTemplate(this.app, s, `${t.name} (copy)`, t.body);
+        s.defaultNoteTemplateId = path;
+        await this.plugin.saveSettings();
+        new Notice(`Created an editable copy: ${path}`);
+        (this.app as unknown as { setting?: { close(): void } }).setting?.close();
+        void this.app.workspace.openLinkText(path, "", false);
+      } else if (t.path) {
+        (this.app as unknown as { setting?: { close(): void } }).setting?.close();
+        void this.app.workspace.openLinkText(t.path, "", false);
+      }
+    })(); });
+
+    const delBtn = actions.createEl("button", { cls: "tp-icon-btn tp-icon-btn--danger", attr: { "aria-label": "Remove template" } });
+    setIcon(delBtn, "trash-2");
+    delBtn.addEventListener("click", () => {
+      if (t.builtin) {
+        void (async () => {
+          const all = await listNoteTemplates(this.app, s);
+          if (all.length <= 1) { new Notice("At least one template must stay visible."); return; }
+          confirmDelete(this.plugin, `Hide the built-in template "${t.name}"? You can restore it any time.`, async () => {
+            s.hiddenNoteTemplateIds = [...(s.hiddenNoteTemplateIds ?? []), t.id];
+            if ((s.defaultNoteTemplateId ?? DEFAULT_NOTE_TEMPLATE_ID) === t.id) {
+              const remaining = await listNoteTemplates(this.app, s);
+              s.defaultNoteTemplateId = remaining[0]?.id ?? DEFAULT_NOTE_TEMPLATE_ID;
+            }
+            await this.plugin.saveSettings();
+            void this.buildNoteTemplatesUI(area);
+          });
+        })();
+      } else if (t.path) {
+        confirmDelete(this.plugin, `Delete your template "${t.name}"? The markdown file is moved to trash.`, async () => {
+          const file = this.app.vault.getFileByPath(t.path!);
+          if (file) { try { await this.app.fileManager.trashFile(file); } catch (e) { console.error("Teacher Planner: note template delete failed.", e); } }
+          if ((s.defaultNoteTemplateId ?? "") === t.id) s.defaultNoteTemplateId = DEFAULT_NOTE_TEMPLATE_ID;
+          await this.plugin.saveSettings();
+          void this.buildNoteTemplatesUI(area);
+        });
+      }
+    });
+  }
+
+  private renderHiddenNoteRow(list: HTMLElement, t: NoteTemplate, area: HTMLElement) {
+    const s = this.plugin.settings;
+    const row = list.createDiv("tp-manage-row tp-manage-row--hidden");
+    const info = row.createDiv("tp-manage-info");
+    info.createSpan({ cls: "tp-manage-name", text: t.name });
+    info.createSpan({ cls: "tp-manage-meta", text: "Built-in · hidden" });
+    const restore = row.createDiv("tp-manage-actions").createEl("button", { cls: "tp-btn", text: "Restore" });
+    restore.addEventListener("click", () => { void (async () => {
+      s.hiddenNoteTemplateIds = (s.hiddenNoteTemplateIds ?? []).filter(id => id !== t.id);
+      await this.plugin.saveSettings();
+      void this.buildNoteTemplatesUI(area);
+    })(); });
   }
 
   private renderPlannersSection(container: HTMLElement) {

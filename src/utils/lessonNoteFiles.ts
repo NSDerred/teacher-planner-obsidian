@@ -1,4 +1,4 @@
-import { App, TFile, normalizePath } from "obsidian";
+import { App, TFile, MarkdownView, normalizePath } from "obsidian";
 import type { TeacherPlannerSettings } from "../types";
 import type { NoteMove } from "./lessonShiftApply";
 import { buildNoteTitle } from "./noteTitleUtils";
@@ -169,7 +169,7 @@ export function findLessonNoteByTitle(app: App, s: TeacherPlannerSettings, dateI
 }
 
 /** Create (or open an existing) lesson note with tracking frontmatter, then open it. */
-export async function createLessonNoteFile(app: App, s: TeacherPlannerSettings, classId: string, periodName: string, dateIso: string, rawName: string): Promise<void> {
+export async function createLessonNoteFile(app: App, s: TeacherPlannerSettings, classId: string, periodName: string, dateIso: string, rawName: string, bodyOverride?: string, cursorOffset = -1): Promise<void> {
   const meta = classMeta(s, classId) ?? { code: "Lesson" };
   const fallback = noteFileName(s, meta, dateIso, periodName);
   const fileName = rawName.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim() || fallback;
@@ -179,9 +179,15 @@ export async function createLessonNoteFile(app: App, s: TeacherPlannerSettings, 
   const folder = noteFolder(s, dateIso);
   await ensureFolder(app, base);
   if (folder !== base) await ensureFolder(app, folder);
-  const body = lessonNoteFrontmatter(meta, periodName, dateIso) + (s.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE);
+  const fm = lessonNoteFrontmatter(meta, periodName, dateIso);
+  const body = fm + (bodyOverride ?? (s.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE));
+  const path = `${folder}/${fileName}.md`;
   try {
-    await app.vault.create(`${folder}/${fileName}.md`, body);
-    void app.workspace.openLinkText(`${folder}/${fileName}.md`, "", false);
+    await app.vault.create(path, body);
+    await app.workspace.openLinkText(path, "", false);
+    if (cursorOffset >= 0) {
+      const view = app.workspace.getActiveViewOfType(MarkdownView);
+      if (view && view.file?.path === path) { const ed = view.editor; ed.setCursor(ed.offsetToPos(fm.length + cursorOffset)); ed.focus(); }
+    }
   } catch (e) { console.error("Teacher Planner: lesson note create failed", e); }
 }

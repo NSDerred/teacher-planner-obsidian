@@ -1,7 +1,7 @@
 <script lang="ts">
   import type TeacherPlannerPlugin from "../main";
   import type { TimetableSlot, SchoolPeriod, DateEvent, SchoolDay } from "../types";
-  import { Menu, Notice, Platform, setIcon } from "obsidian";
+  import { Menu, Notice, Platform, setIcon, MarkdownView } from "obsidian";
 
   // Svelte action: renders an Obsidian Lucide icon into the element
   function obsIcon(node: HTMLElement, id: string) {
@@ -31,8 +31,10 @@
   } from "../utils/planLinkUtils";
   import { openOSFolderPicker, openOSFilePicker, openSystemPath } from "../utils/exportDestination";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
+  import { NoteTemplatePromptModal } from "../modals/NoteTemplatePromptModal";
+  import type { TemplateContext } from "../utils/planTemplates";
   import { buildNoteTitle } from "../utils/noteTitleUtils";
-  import { DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE, DEFAULT_LESSON_TEMPLATE } from "../settings";
+  import { DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE } from "../settings";
 
   export let plugin: TeacherPlannerPlugin;
   export let initialDate: Date = new Date();
@@ -729,7 +731,14 @@
         const defaultTitle = buildNoteTitle(tpl, {
           dateIso: date, periodName, eventName: getDateEventLabel(event).code,
         }) || `${date} ${getDateEventLabel(event).code}`;
-        promptAndCreateNote({ dayDate: date, defaultTitle, body: "", promptTitle: "New event note" });
+        const existingEv = findExistingNote(date, defaultTitle);
+        if (existingEv) { plugin.app.workspace.openLinkText(existingEv, "", false); return; }
+        new TextPromptModal(plugin.app, "New event note", defaultTitle, "Note title", (name) => { void (async () => {
+          const fileName = name.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim() || defaultTitle;
+          const ex = findExistingNote(date, fileName);
+          if (ex) { plugin.app.workspace.openLinkText(ex, "", false); return; }
+          await createNoteIn(date, fileName, "");
+        })(); }).open();
       }));
       menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
@@ -1057,14 +1066,19 @@
     return null;
   }
 
-  async function createNoteIn(dateIso: string, fileName: string, content: string): Promise<void> {
+  async function createNoteIn(dateIso: string, fileName: string, content: string, cursorOffset = -1): Promise<void> {
     const base = plugin.settings.plannerFolder || "Teacher Planner";
     const folder = wcFolderFor(dateIso);
     if (!plugin.app.vault.getFolderByPath(base))   { try { await plugin.app.vault.createFolder(base); }   catch {} }
     if (folder !== base && !plugin.app.vault.getFolderByPath(folder)) { try { await plugin.app.vault.createFolder(folder); } catch {} }
+    const path = `${folder}/${fileName}.md`;
     try {
-      await plugin.app.vault.create(`${folder}/${fileName}.md`, content);
-      plugin.app.workspace.openLinkText(`${folder}/${fileName}.md`, "", false);
+      await plugin.app.vault.create(path, content);
+      await plugin.app.workspace.openLinkText(path, "", false);
+      if (cursorOffset >= 0) {
+        const view = plugin.app.workspace.getActiveViewOfType(MarkdownView);
+        if (view && view.file?.path === path) { const ed = view.editor; ed.setCursor(ed.offsetToPos(cursorOffset)); ed.focus(); }
+      }
     } catch (err) { console.error("Teacher Planner: note create failed.", err); }
   }
 
@@ -1144,11 +1158,11 @@
   // ── Lesson / event note creation ───────────────────────────────────────────
 
   /** Pre-fill an editable title, then create the note — or open an existing match without prompting. */
-  function promptAndCreateNote(opts: { dayDate: string; defaultTitle: string; body: string; promptTitle: string; classIdForCount?: string }) {
-    const { dayDate, defaultTitle, body, promptTitle, classIdForCount } = opts;
+  function promptAndCreateNote(opts: { dayDate: string; defaultTitle: string; ctx: TemplateContext; fmPrefix: string; promptTitle: string; classIdForCount?: string }) {
+    const { dayDate, defaultTitle, ctx, fmPrefix, promptTitle, classIdForCount } = opts;
     const existing = findExistingNote(dayDate, defaultTitle);
     if (existing) { plugin.app.workspace.openLinkText(existing, "", false); return; }
-    new TextPromptModal(plugin.app, promptTitle, defaultTitle, "Note title", (name) => { void (async () => {
+    new NoteTemplatePromptModal(plugin.app, plugin, { ctx, fmPrefix, defaultTitle, promptTitle }, (name, body, cursorOffset) => { void (async () => {
       const fileName = name.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim() || defaultTitle;
       const ex = findExistingNote(dayDate, fileName);
       if (ex) { plugin.app.workspace.openLinkText(ex, "", false); return; }
@@ -1156,7 +1170,7 @@
         const cls = _classes.find(c => c.id === classIdForCount);
         if (cls) { cls.lessonCount = (cls.lessonCount ?? 0) + 1; await plugin.saveSettings(); }
       }
-      await createNoteIn(dayDate, fileName, body);
+      await createNoteIn(dayDate, fileName, body, cursorOffset);
     })(); }).open();
   }
 
@@ -1170,9 +1184,14 @@
       classCode: cls?.code ?? getSlotLabel(slot).code,
       subjectName: subj?.name, emoji: subj?.emoji,
     }) || `${dayDate} ${getSlotLabel(slot).code}`;
-    const fm = lessonNoteFrontmatter({ code: cls?.code ?? getSlotLabel(slot).code, subjectName: subj?.name, emoji: subj?.emoji }, periodName, dayDate);
-    const body = fm + (plugin.settings.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE);
-    promptAndCreateNote({ dayDate, defaultTitle, body, promptTitle: "New lesson note", classIdForCount: slot.classId });
+    const code = cls?.code ?? getSlotLabel(slot).code;
+    const fm = lessonNoteFrontmatter({ code, subjectName: subj?.name, emoji: subj?.emoji }, periodName, dayDate);
+    const ctx: TemplateContext = {
+      classCode: code, subjectName: subj?.name ?? "", emoji: subj?.emoji, year: cls?.year,
+      academicYear: plugin.settings.academicYear?.name,
+      lessonDate: dayDate, period: periodName, room: effRoom(slot.id, dayDate, cls?.classroom ?? ""),
+    };
+    promptAndCreateNote({ dayDate, defaultTitle, ctx, fmPrefix: fm, promptTitle: "New lesson note", classIdForCount: slot.classId });
   }
 
   // ── Lesson note from date event ──────────────────────────────────────────
@@ -1186,8 +1205,12 @@
       dateIso: dayDate, periodName,
       classCode: cls.code, subjectName: subj?.name, emoji: subj?.emoji,
     }) || `${dayDate} ${cls.code}`;
-    const body = plugin.settings.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE;
-    promptAndCreateNote({ dayDate, defaultTitle, body, promptTitle: "New lesson note", classIdForCount: ev.classId });
+    const ctx: TemplateContext = {
+      classCode: cls.code, subjectName: subj?.name ?? "", emoji: subj?.emoji, year: cls.year,
+      academicYear: plugin.settings.academicYear?.name,
+      lessonDate: dayDate, period: periodName, room: ev.classroom || cls.classroom || "",
+    };
+    promptAndCreateNote({ dayDate, defaultTitle, ctx, fmPrefix: "", promptTitle: "New lesson note", classIdForCount: ev.classId });
   }
 
 
