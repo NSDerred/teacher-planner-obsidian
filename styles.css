@@ -1557,9 +1557,9 @@
    ══════════════════════════════════════════════════════════════════════════════ */
 
 /* Opaque settings header so scrolling content disappears behind it instead of
-   colliding with the title. No-op on WebViews without :has() support. */
-.is-mobile .modal-container:has(.tp-settings) .modal-header,
-.is-mobile .modal:has(.tp-settings) .modal-header {
+   colliding with the title. Uses a marker class added by the settings tab
+   (tp-settings-modal) rather than :has() — no broad selector invalidation. */
+.is-mobile .tp-settings-modal .modal-header {
   background-color: var(--background-primary);
   border-bottom: 1px solid var(--background-modifier-border);
 }

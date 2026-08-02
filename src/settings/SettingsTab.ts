@@ -204,6 +204,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   /** Called by Obsidian when the settings tab is navigated away from or closed. */
   hide(): void {
     this.containerEl.closest(".modal")?.removeClass("tp-settings-modal");
+    this.containerEl.closest(".modal-container")?.removeClass("tp-settings-modal");
     // Tear down any open emoji popup — it lives on activeDocument.body and would
     // otherwise outlive the tab along with its document-level listeners.
     closeEmojiPicker();
@@ -227,9 +228,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.addClass("tp-settings");
-    // Marker on the enclosing modal so the mobile header style can target it
-    // without a :has() selector (P2 — avoids broad selector invalidation).
+    // Marker on the enclosing modal (and its container) so the mobile header
+    // style can target it without a :has() selector (P2 — avoids broad selector
+    // invalidation). Both are marked so the rule matches wherever .modal-header sits.
     containerEl.closest(".modal")?.addClass("tp-settings-modal");
+    containerEl.closest(".modal-container")?.addClass("tp-settings-modal");
     // Capture snapshot of current settings so hide() can detect changes
     this._snapshot = JSON.stringify(this.plugin.settings);
 

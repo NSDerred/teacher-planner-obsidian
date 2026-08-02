@@ -10201,8 +10201,9 @@ var init_SettingsTab = __esm({
       }
       /** Called by Obsidian when the settings tab is navigated away from or closed. */
       hide() {
-        var _a2;
+        var _a2, _b2;
         (_a2 = this.containerEl.closest(".modal")) == null ? void 0 : _a2.removeClass("tp-settings-modal");
+        (_b2 = this.containerEl.closest(".modal-container")) == null ? void 0 : _b2.removeClass("tp-settings-modal");
         closeEmojiPicker();
         this.plugin.flushPendingSave().catch((err2) => {
           console.error("Teacher Planner: flushPendingSave on settings hide failed.", err2);
@@ -10219,11 +10220,12 @@ var init_SettingsTab = __esm({
         this.render();
       }
       render() {
-        var _a2, _b2, _c, _d, _e, _f, _g, _h, _i;
+        var _a2, _b2, _c, _d, _e, _f, _g, _h, _i, _j;
         const { containerEl } = this;
         containerEl.empty();
         containerEl.addClass("tp-settings");
         (_a2 = containerEl.closest(".modal")) == null ? void 0 : _a2.addClass("tp-settings-modal");
+        (_b2 = containerEl.closest(".modal-container")) == null ? void 0 : _b2.addClass("tp-settings-modal");
         this._snapshot = JSON.stringify(this.plugin.settings);
         this.renderTemplatesGuideButton(containerEl);
         this.renderPlannersSection(containerEl);
@@ -10277,7 +10279,7 @@ var init_SettingsTab = __esm({
           for (const opt of schoolDayOptions) {
             const lbl = sdWrap.createEl("label", { cls: "tp-school-day-label" });
             const cb = lbl.createEl("input", { type: "checkbox" });
-            cb.checked = ((_b2 = this.plugin.settings.schoolDays) != null ? _b2 : ["monday", "tuesday", "wednesday", "thursday", "friday"]).includes(opt.key);
+            cb.checked = ((_c = this.plugin.settings.schoolDays) != null ? _c : ["monday", "tuesday", "wednesday", "thursday", "friday"]).includes(opt.key);
             lbl.appendText(opt.label);
             cb.addEventListener("change", () => {
               void (async () => {
@@ -10573,8 +10575,8 @@ var init_SettingsTab = __esm({
           text: "Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default.",
           cls: "setting-item-description"
         });
-        const _sampleSubj = (_c = this.plugin.settings.subjects) == null ? void 0 : _c[0];
-        const _sampleCls = (_d = this.plugin.settings.classes) == null ? void 0 : _d[0];
+        const _sampleSubj = (_d = this.plugin.settings.subjects) == null ? void 0 : _d[0];
+        const _sampleCls = (_e = this.plugin.settings.classes) == null ? void 0 : _e[0];
         const _sampleDate = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
         const renderLessonTitle = (tpl) => {
           var _a3, _b3, _c2;
@@ -10605,7 +10607,7 @@ var init_SettingsTab = __esm({
           });
         });
         lessonTitlePreview = lessonTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
-        lessonTitlePreview.setText("Preview:  " + renderLessonTitle((_e = this.plugin.settings.lessonNoteTitleTemplate) != null ? _e : DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
+        lessonTitlePreview.setText("Preview:  " + renderLessonTitle((_f = this.plugin.settings.lessonNoteTitleTemplate) != null ? _f : DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
         const eventTitleSetting = new import_obsidian11.Setting(containerEl).setName("Event note title").addText((t) => {
           var _a3;
           t.setPlaceholder(DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
@@ -10618,7 +10620,7 @@ var init_SettingsTab = __esm({
           });
         });
         eventTitlePreview = eventTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
-        eventTitlePreview.setText("Preview:  " + renderEventTitle((_f = this.plugin.settings.eventNoteTitleTemplate) != null ? _f : DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
+        eventTitlePreview.setText("Preview:  " + renderEventTitle((_g = this.plugin.settings.eventNoteTitleTemplate) != null ? _g : DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
         new import_obsidian11.Setting(containerEl).setName("Lesson overview").setHeading();
         new import_obsidian11.Setting(containerEl).setName("Main line shows").setDesc("What to show on each lesson row in the overview. Notes are the per-lesson note field; plan title is the linked lesson-plan filename.").addDropdown((d) => {
           var _a3;
@@ -10634,7 +10636,7 @@ var init_SettingsTab = __esm({
         blockColourSetting.controlEl.setCssStyles({ alignItems: "center" });
         blockColourSetting.controlEl.setCssStyles({ gap: "8px" });
         blockColourSetting.controlEl.setCssStyles({ flexWrap: "wrap" });
-        const currentBlockColour = (_g = this.plugin.settings.blockBorderColour) != null ? _g : GRID_THEME_TOKEN;
+        const currentBlockColour = (_h = this.plugin.settings.blockBorderColour) != null ? _h : GRID_THEME_TOKEN;
         const blockSwatchBtn = blockColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
         blockSwatchBtn.setCssStyles({ background: resolveColour(currentBlockColour) });
         const blockPresetRow = blockColourSetting.controlEl.createDiv("tp-preset-swatches");
@@ -10690,7 +10692,7 @@ var init_SettingsTab = __esm({
         gridColourSetting.controlEl.setCssStyles({ alignItems: "center" });
         gridColourSetting.controlEl.setCssStyles({ gap: "8px" });
         gridColourSetting.controlEl.setCssStyles({ flexWrap: "wrap" });
-        const currentGridColour = (_h = this.plugin.settings.gridLineColour) != null ? _h : GRID_THEME_TOKEN;
+        const currentGridColour = (_i = this.plugin.settings.gridLineColour) != null ? _i : GRID_THEME_TOKEN;
         const gridSwatchBtn = gridColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
         gridSwatchBtn.setCssStyles({ background: resolveColour(currentGridColour) });
         const gridPresetRow = gridColourSetting.controlEl.createDiv("tp-preset-swatches");
@@ -10737,7 +10739,7 @@ var init_SettingsTab = __esm({
         todayColourSetting.controlEl.setCssStyles({ gap: "8px" });
         todayColourSetting.controlEl.setCssStyles({ flexWrap: "wrap" });
         const TODAY_THEME_TOKEN = "theme:accent";
-        const currentTodayColour = (_i = this.plugin.settings.todayHighlightColour) != null ? _i : TODAY_THEME_TOKEN;
+        const currentTodayColour = (_j = this.plugin.settings.todayHighlightColour) != null ? _j : TODAY_THEME_TOKEN;
         const todaySwatchBtn = todayColourSetting.controlEl.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small", title: "Custom colour" });
         todaySwatchBtn.setCssStyles({ background: resolveColour(currentTodayColour) });
         const todayPresetRow = todayColourSetting.controlEl.createDiv("tp-preset-swatches");
