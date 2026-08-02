@@ -5,6 +5,18 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] — 2026-08-02
+
+### Added
+
+- **Settings rebuilt for mobile.** On a phone the settings lists — periods, classes, activities, block types, holidays and INSET — now show one summary row per item (a colour dot, the name, and a line of detail) that expands into a labelled editor on tap and closes again, instead of a stack of always-open forms. Planners stack cleanly so the full name is always readable, with Switch or Edit up front and Delete moved into an overflow menu; the school-days picker uses the same day chips as the timetable; holidays get a Holiday / INSET toggle and a day count; and the settings header no longer collides with the content scrolling beneath it. Desktop settings are unchanged.
+- **Lesson plans and notes from templates.** Linking a plan now offers "Create new plan" (your default template, one tap as before) and "Create from template" (a chooser of six built-ins plus your own): Essentials, Review · Build · Apply, 5E Inquiry, Cover lesson, Blank, and Revision & feedback. Plans open with the class, subject, date, period, and room filled in for that lesson and the cursor where you start writing. Settings gain a template editor with a live preview, a Save-as-template button, and a Manage list to edit or remove any template (your own are ordinary notes; built-ins hide and restore); the lesson-note template gets the same editor. A button at the top of the settings tab opens a short how-to. Nothing is written to your vault until you save a template or open the guide.
+
+### Changed
+
+- **Deleting a template respects your preference.** Removing one of your own templates now follows your Obsidian "Deleted files" setting — system trash, vault trash, or permanent — rather than forcing one.
+- **Housekeeping under the bonnet.** Several near-identical helpers were folded into single shared ones, the weekly-folder path logic now lives in one place so it can never drift, the mobile settings-header style uses a marker class instead of a `:has()` selector, and the linter now checks the Svelte components as well as the TypeScript. Nothing changes on screen.
+
 ## [0.3.4] — 2026-07-27
 
 ### Added
