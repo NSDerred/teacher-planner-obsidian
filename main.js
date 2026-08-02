@@ -11218,8 +11218,8 @@ var init_SettingsTab = __esm({
         }
         new import_obsidian11.Setting(container).addButton((btn) => btn.setButtonText("+ New planner").setCta().onClick(() => {
           var _a2;
-          new SetupWizardModal(this.app, this.plugin, true).open();
           (_a2 = this.app.setting) == null ? void 0 : _a2.close();
+          new SetupWizardModal(this.app, this.plugin, true).open();
         }));
         const backupSetting = new import_obsidian11.Setting(container).setName("Backups").setDesc("Saved as .json in the plugin folder (hidden, no vault clutter); the auto-backup taken before deleting a planner goes here too. Export lets you also save a copy to a vault folder or your computer.").addButton((btn) => btn.setButtonText("Export\u2026").onClick(() => new BackupExportModal(this.app, this.plugin, () => this.render()).open())).addButton((btn) => btn.setButtonText("Import from library\u2026").onClick(() => this.importBackupFromLibrary()));
         if (!import_obsidian11.Platform.isMobile) {

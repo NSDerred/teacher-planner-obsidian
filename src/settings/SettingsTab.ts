@@ -1323,8 +1323,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // "+ New planner" button — primary action, directly under the planner list
     new Setting(container).addButton(btn => btn.setButtonText("+ New planner").setCta()
       .onClick(() => {
-        new SetupWizardModal(this.app, this.plugin, true).open();
+        // Close the settings window BEFORE opening the wizard. Opening first and
+        // closing settings after cascades a close onto the just-opened wizard,
+        // which its close() override catches and turns into the "Exit setup
+        // wizard?" confirm over the main view (the reported loop). Matches the
+        // ordering used by the guide/manage-template actions below.
         (this.app as unknown as { setting?: { close(): void } }).setting?.close();
+        new SetupWizardModal(this.app, this.plugin, true).open();
       }));
 
     // Backups: export (select + destination) / import (library or file)
