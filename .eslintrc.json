@@ -3,9 +3,22 @@
   "parser": "@typescript-eslint/parser",
   "parserOptions": { "project": "./tsconfig.json", "sourceType": "module" },
   "plugins": ["@typescript-eslint"],
+  "extends": ["plugin:svelte/recommended"],
   "ignorePatterns": ["main.js", "esbuild.config.mjs", "node_modules/"],
   "rules": {
     "@typescript-eslint/no-misused-promises": ["warn", { "checksVoidReturn": true }],
     "@typescript-eslint/no-floating-promises": "warn"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.svelte"],
+      "parser": "svelte-eslint-parser",
+      "parserOptions": { "parser": "@typescript-eslint/parser", "project": null, "sourceType": "module" },
+      "rules": {
+        "svelte/no-unused-svelte-ignore": "off",
+        "@typescript-eslint/no-misused-promises": "off",
+        "@typescript-eslint/no-floating-promises": "off"
+      }
+    }
+  ]
 }

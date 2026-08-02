@@ -2,7 +2,7 @@ import { App, TFile, normalizePath } from "obsidian";
 import type { TeacherPlannerSettings } from "../types";
 import type { NoteMove } from "./lessonShiftApply";
 import { buildNoteTitle } from "./noteTitleUtils";
-import { getMondayOfWeek, localIso } from "./weekUtils";
+import { wcNoteFolder } from "./weekUtils";
 import { DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_LESSON_TEMPLATE } from "../settings";
 
 interface ClassMeta { code: string; subjectName?: string; emoji?: string; }
@@ -19,11 +19,7 @@ function plannerFolder(s: TeacherPlannerSettings): string {
 }
 /** Folder a lesson note for a date lives in (mirrors the week-grid's wcFolderFor). */
 function noteFolder(s: TeacherPlannerSettings, dateIso: string): string {
-  const base = plannerFolder(s);
-  if (!(s.weeklyNoteFolders ?? true)) return base;
-  const monday = getMondayOfWeek(new Date(dateIso + "T12:00:00"));
-  const iso = localIso(monday);
-  return `${base}/WC - ${iso}`;
+  return wcNoteFolder(s, dateIso);
 }
 function unplacedFolder(s: TeacherPlannerSettings): string {
   return `${plannerFolder(s)}/Unplaced lessons`;

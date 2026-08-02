@@ -135,8 +135,14 @@ export class LessonPlanSuggestModal extends FuzzySuggestModal<PlanChoice> {
       })();
       return;
     }
-    // createDefault — silent fast path
-    const body = defaultPlanBody(this.plugin.settings);
-    createPlanFromBody(this.app, this.plugin, this.ctx, body, this.onPick);
+    // createDefault — silent fast path. Resolve via listPlanTemplates so a
+    // user-template default (whose body lives on disk) is honoured, not just
+    // built-ins; falls back to defaultPlanBody if it can't be found.
+    void (async () => {
+      const templates = await listPlanTemplates(this.app, this.plugin.settings);
+      const defId = this.plugin.settings.defaultPlanTemplateId ?? "essentials";
+      const body = templates.find(t => t.id === defId)?.body ?? defaultPlanBody(this.plugin.settings);
+      createPlanFromBody(this.app, this.plugin, this.ctx, body, this.onPick);
+    })();
   }
 }

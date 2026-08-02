@@ -114,3 +114,23 @@ export function resolveColour(colour: string | undefined | null): string {
   _cache.set(colour, result);
   return result;
 }
+
+/**
+ * Convert a hex colour to an rgba() string at the given alpha. Handles 3- and
+ * 6-digit hex; returns neutral grey on malformed input. Single source of truth
+ * (P10 dedupe) — replaces four near-identical copies across components.
+ */
+export function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace("#", "");
+  const full = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+  const r = parseInt(full.substring(0, 2), 16);
+  const g = parseInt(full.substring(2, 4), 16);
+  const b = parseInt(full.substring(4, 6), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(128, 128, 128, ${alpha})`;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** Resolve a period type's display colour (theme token or hex), grey fallback. */
+export function periodTypeColour(periodTypes: { id: string; colour: string }[] | undefined, typeId: string): string {
+  return resolveColour((periodTypes ?? []).find(t => t.id === typeId)?.colour ?? "#888888");
+}

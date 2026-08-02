@@ -1,6 +1,7 @@
 import { App, Modal, Notice, Platform, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { DateEvent, SchoolDay, SchoolPeriod } from "../types";
+import { hexToRgba } from "../utils/themeColours";
 import { getPeriodsForDay } from "../utils/scheduleUtils";
 import { eventPeriodIds, sumPeriodMinutes } from "../utils/eventUtils";
 import { CLASS_COLOUR_PALETTE } from "../settings";
@@ -564,10 +565,4 @@ export class AddDateEventModal extends Modal {
 }
 
 /** Local hex→rgba (modal-scoped). */
-function hexToRgba(hex: string, alpha: number): string {
-  const h = hex.replace("#", "");
-  const full = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
-  const n = parseInt(full, 16);
-  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+

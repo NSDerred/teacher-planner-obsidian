@@ -10,7 +10,7 @@
   }
   import {
     getWeekLabel, formatDateRange, addWeeks,
-    getMondayOfWeek, weekKey, getAbWeekType, localIso,
+    getMondayOfWeek, weekKey, getAbWeekType, localIso, wcNoteFolder,
   } from "../utils/weekUtils";
   import { TimetableEditorModal } from "../modals/TimetableEditorModal";
   import { SlotNotesModal } from "../modals/SlotNotesModal";
@@ -18,7 +18,7 @@
   import { AddDateEventModal } from "../modals/AddDateEventModal";
   import { DatePickerModal } from "../modals/DatePickerModal";
   import { lessonNoteFrontmatter } from "../utils/lessonNoteFiles";
-  import { resolveColour, clearThemeColourCache, colourToCss } from "../utils/themeColours";
+  import { resolveColour, clearThemeColourCache, colourToCss, hexToRgba, periodTypeColour } from "../utils/themeColours";
   import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
   import { eventPeriodIds, eventIsDirected } from "../utils/eventUtils";
   import {
@@ -273,12 +273,6 @@
     ? (nowMinutes - _axis.start) * PX_PER_MIN
     : null;
 
-  function getPeriodTypeColour(typeId: string): string {
-    // resolveColour maps "theme:*" tokens to the active Obsidian theme;
-    // plain hex overrides pass through unchanged.
-    return resolveColour(_periodTypes.find(t => t.id === typeId)?.colour ?? "#888888");
-  }
-
   // ── Chip auto-contrast ────────────────────────────────────────────────────
   // Chips paint the class colour at low alpha over the theme background, so the
   // readable foreground depends on the effective colour. Read the theme background
@@ -323,14 +317,6 @@
   }
   $: _prepFg = _dep(_tick, contrastBW(_rootEl ? getComputedStyle(_rootEl).getPropertyValue("--color-green").trim() : ""));
 
-  function hexToRgba(hex: string, alpha: number): string {
-    const clean = hex.replace("#", "");
-    const r = parseInt(clean.substring(0, 2), 16);
-    const g = parseInt(clean.substring(2, 4), 16);
-    const b = parseInt(clean.substring(4, 6), 16);
-    if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(128,128,128,${alpha})`;
-    return `rgba(${r},${g},${b},${alpha})`;
-  }
 
   function getDayDate(offset: number, monday: Date): string {
     const d = new Date(monday);
@@ -1059,11 +1045,7 @@
   }
 
   function wcFolderFor(dateIso: string): string {
-    const base = plugin.settings.plannerFolder || "Teacher Planner";
-    if (!(plugin.settings.weeklyNoteFolders ?? true)) return base;
-    const monday = getMondayOfWeek(new Date(dateIso + "T12:00:00"));
-    const iso = localIso(monday);
-    return `${base}/WC - ${iso}`;
+    return wcNoteFolder(plugin.settings, dateIso);
   }
 
   /** Existing note for this name: weekly folder first, then the legacy flat path. */
@@ -1480,7 +1462,7 @@
             {:else}
               {@const dayMerges = computeMerges(day.key, dayDate)}
               {#each getPeriodsForDay(plugin.settings.academicYear, day.key) as period (period.id)}
-                {@const tc        = getPeriodTypeColour(period.type)}
+                {@const tc        = periodTypeColour(_periodTypes, period.type)}
                 {@const bTop      = (timeToMinutes(period.start) - _axis.start) * PX_PER_MIN}
                 {@const bHeight   = Math.max(20, (timeToMinutes(period.end) - timeToMinutes(period.start)) * PX_PER_MIN)}
                 {@const _rawSlot  = _slotMap[day.key + ":" + period.id]}

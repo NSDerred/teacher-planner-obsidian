@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { CLASS_COLOUR_PALETTE } from "../settings";
-  import { THEME_COLOUR_TOKENS, isThemeToken, resolveColour } from "../utils/themeColours";
+  import { THEME_COLOUR_TOKENS, isThemeToken, resolveColour, hexToRgba } from "../utils/themeColours";
 
   export let initialColour: string = "#4ade80";
   export let label: string = "";
@@ -168,13 +168,6 @@
     return { h, s: max === 0 ? 0 : d / max, v: max };
   }
 
-  function hexToRgba(hex: string, alpha: number): string {
-    const clean = hex.replace("#", "");
-    const r = parseInt(clean.substring(0, 2), 16);
-    const g = parseInt(clean.substring(2, 4), 16);
-    const b = parseInt(clean.substring(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
 </script>
 
 <!-- ── Markup ────────────────────────────────────────────────────────────── -->

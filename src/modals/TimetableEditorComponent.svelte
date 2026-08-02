@@ -5,7 +5,7 @@
   import { AddTimetableTemplateModal } from "./AddTimetableTemplateModal";
   import { setIcon, Platform, Menu } from "obsidian";
   import { ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
-  import { resolveColour } from "../utils/themeColours";
+  import { resolveColour, hexToRgba, periodTypeColour } from "../utils/themeColours";
   import { periodAppliesTo, periodLengthMinutes, getPeriodsForDay } from "../utils/scheduleUtils";
 
   function icon(node: HTMLElement, name: string) {
@@ -537,9 +537,6 @@
   // ── Period type colours ────────────────────────────────────────────────────
   $: periodTypes = plugin.settings.periodTypes ?? [];
 
-  function getPeriodTypeColour(typeId: string): string {
-    return resolveColour(periodTypes.find(t => t.id === typeId)?.colour ?? "#888888");
-  }
 
   // ── Time-axis layout (each day column shows its own schedule's blocks) ──────
   // Vertical zoom in px/hour (per-device, shared with the Settings slider via
@@ -575,14 +572,6 @@
   $: hourMarks  = (() => { const out: number[] = []; for (let h = Math.ceil(_axisStart / 60); h <= Math.floor((_axisEnd - 1) / 60); h++) out.push(h * 60); return out; })();
   function fmtAxis(min: number): string { return `${String(Math.floor(min / 60)).padStart(2, "0")}:00`; }
 
-  function hexToRgba(hex: string, alpha: number): string {
-    const clean = hex.replace("#", "");
-    const r = parseInt(clean.substring(0, 2), 16);
-    const g = parseInt(clean.substring(2, 4), 16);
-    const b = parseInt(clean.substring(4, 6), 16);
-    if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(128,128,128,${alpha})`;
-    return `rgba(${r},${g},${b},${alpha})`;
-  }
 </script>
 
 <svelte:window
@@ -754,7 +743,7 @@
         {#each DAYS as day}
           <div class="tp-te-axis-col" style="height:{axisHeight}px;">
             {#each getDayPeriods(day.key) as period (period.id)}
-              {@const tc      = getPeriodTypeColour(period.type)}
+              {@const tc      = periodTypeColour(periodTypes, period.type)}
               {@const _bt     = (tMin(period.start) - _axisStart) * TE_PX}
               {@const _bh     = Math.max(2, (tMin(period.end) - tMin(period.start)) * TE_PX)}
               {@const slot    = _slotGrid[day.key + ":" + period.id]}

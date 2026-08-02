@@ -1,4 +1,4 @@
-import type { WeekOverride, AcademicYear, SchoolDay } from "../types";
+import type { WeekOverride, AcademicYear, SchoolDay, TeacherPlannerSettings } from "../types";
 
 /**
  * Returns the Monday of the week containing the given date.
@@ -200,3 +200,15 @@ export function findOverlappingOverrides(
 export const DAY_OF_WEEK_MAP: Record<string, number> = {
   monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5,
 };
+
+/**
+ * Folder a dated note lives in: "<planner>/WC - <Monday>" when weekly folders
+ * are on, else the planner folder. Single source of truth for the week-grid
+ * (wcFolderFor) and lesson-note creation (noteFolder). (P8 dedupe.)
+ */
+export function wcNoteFolder(s: TeacherPlannerSettings, dateIso: string): string {
+  const base = s.plannerFolder || "Teacher Planner";
+  if (!(s.weeklyNoteFolders ?? true)) return base;
+  const monday = getMondayOfWeek(new Date(dateIso + "T12:00:00"));
+  return `${base}/WC - ${localIso(monday)}`;
+}

@@ -203,6 +203,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
   /** Called by Obsidian when the settings tab is navigated away from or closed. */
   hide(): void {
+    this.containerEl.closest(".modal")?.removeClass("tp-settings-modal");
     // Tear down any open emoji popup — it lives on activeDocument.body and would
     // otherwise outlive the tab along with its document-level listeners.
     closeEmojiPicker();
@@ -226,6 +227,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.addClass("tp-settings");
+    // Marker on the enclosing modal so the mobile header style can target it
+    // without a :has() selector (P2 — avoids broad selector invalidation).
+    containerEl.closest(".modal")?.addClass("tp-settings-modal");
     // Capture snapshot of current settings so hide() can detect changes
     this._snapshot = JSON.stringify(this.plugin.settings);
 
@@ -1074,10 +1078,18 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         for (const t of templates) d.addOption(t.id, t.builtin ? t.name : `${t.name} (yours)`);
         d.setValue(defId);
         d.onChange(async v => {
-          s.defaultPlanTemplateId = v;
-          s.lessonPlanTemplate = undefined; // drop the in-place override when switching
-          await this.plugin.saveSettings();
-          void this.buildPlanTemplatesUI(area);
+          const applySwitch = async () => {
+            s.defaultPlanTemplateId = v;
+            s.lessonPlanTemplate = undefined; // drop the in-place override when switching
+            await this.plugin.saveSettings();
+            void this.buildPlanTemplatesUI(area);
+          };
+          if (s.lessonPlanTemplate != null) {
+            d.setValue(defId); // revert the visible selection until confirmed
+            new ConfirmModal(this.app, "Discard your unsaved edits to the current template and switch?", () => { void applySwitch(); }, "Discard and switch").open();
+          } else {
+            await applySwitch();
+          }
         });
       });
 
@@ -1170,7 +1182,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       } else if (t.path) {
         confirmDelete(this.plugin, `Delete your template "${t.name}"? The markdown file is moved to trash.`, async () => {
           const file = this.app.vault.getFileByPath(t.path!);
-          if (file) { try { await this.app.vault.trash(file, true); } catch (e) { console.error("Teacher Planner: template delete failed.", e); } }
+          if (file) { try { await this.app.fileManager.trashFile(file); } catch (e) { console.error("Teacher Planner: template delete failed.", e); } }
           if ((s.defaultPlanTemplateId ?? "") === t.id) {
             s.defaultPlanTemplateId = DEFAULT_PLAN_TEMPLATE_ID;
             s.lessonPlanTemplate = undefined;

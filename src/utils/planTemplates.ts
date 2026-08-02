@@ -209,7 +209,7 @@ export function renderTemplateBody(
     return key in map ? map[key] : "";
   });
   const cursorOffset = body.indexOf(CURSOR_SENTINEL);
-  if (cursorOffset >= 0) body = body.replace(CURSOR_SENTINEL, "");
+  if (cursorOffset >= 0) body = body.split(CURSOR_SENTINEL).join(""); // strip all; first offset kept
   return { body, cursorOffset };
 }
 
