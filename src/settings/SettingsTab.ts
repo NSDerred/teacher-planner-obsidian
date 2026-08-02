@@ -628,8 +628,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addText(t => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder)
         .onChange(v => { this.plugin.settings.plannerFolder = v; this.plugin.requestSave(); }));
 
-    // -- Note titles ---------------------------------------------------------
-    new Setting(containerEl).setName("Note titles").setHeading();
+    // -- Lesson notes (note titles + note templates, merged 0.3.6) -----------
+    new Setting(containerEl).setName("Lesson notes").setHeading();
     containerEl.createEl("p", {
       text: "Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default.",
       cls: "setting-item-description",
@@ -684,6 +684,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       });
     eventTitlePreview = eventTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
     eventTitlePreview.setText("Preview:  " + renderEventTitle(this.plugin.settings.eventNoteTitleTemplate ?? DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
+
+    // Note body templates — same "Lesson notes" section as the title patterns above.
+    const noteTemplatesArea = containerEl.createDiv("tp-note-templates-area");
+    void this.buildNoteTemplatesUI(noteTemplatesArea);
 
     // ── Lesson overview ────────────────────────────────────────────────────
     new Setting(containerEl).setName("Lesson overview").setHeading();
@@ -917,12 +921,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const planTemplatesArea = containerEl.createDiv("tp-plan-templates-area");
     void this.buildPlanTemplatesUI(planTemplatesArea);
 
-    // ── Lesson note templates (0.3.6) — its own section ───────────────────
-    new Setting(containerEl).setName("Lesson note templates").setHeading();
-    const noteTemplatesArea = containerEl.createDiv("tp-note-templates-area");
-    void this.buildNoteTemplatesUI(noteTemplatesArea);
-
-    new Setting(containerEl).setName("Notes").setHeading();
+    new Setting(containerEl).setName("Note files").setHeading();
     new Setting(containerEl)
       .setName("Organise notes into weekly folders")
       .setDesc("Create lesson and event notes inside \"WC - <Monday date>\" folders under the planner folder. Existing notes stay where they are and keep opening.")

@@ -10675,7 +10675,7 @@ var init_SettingsTab = __esm({
           this.plugin.settings.plannerFolder = v;
           this.plugin.requestSave();
         }));
-        new import_obsidian12.Setting(containerEl).setName("Note titles").setHeading();
+        new import_obsidian12.Setting(containerEl).setName("Lesson notes").setHeading();
         containerEl.createEl("p", {
           text: "Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default.",
           cls: "setting-item-description"
@@ -10726,6 +10726,8 @@ var init_SettingsTab = __esm({
         });
         eventTitlePreview = eventTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
         eventTitlePreview.setText("Preview:  " + renderEventTitle((_g = this.plugin.settings.eventNoteTitleTemplate) != null ? _g : DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
+        const noteTemplatesArea = containerEl.createDiv("tp-note-templates-area");
+        void this.buildNoteTemplatesUI(noteTemplatesArea);
         new import_obsidian12.Setting(containerEl).setName("Lesson overview").setHeading();
         new import_obsidian12.Setting(containerEl).setName("Main line shows").setDesc("What to show on each lesson row in the overview. Notes are the per-lesson note field; plan title is the linked lesson-plan filename.").addDropdown((d) => {
           var _a3;
@@ -10942,10 +10944,7 @@ var init_SettingsTab = __esm({
         });
         const planTemplatesArea = containerEl.createDiv("tp-plan-templates-area");
         void this.buildPlanTemplatesUI(planTemplatesArea);
-        new import_obsidian12.Setting(containerEl).setName("Lesson note templates").setHeading();
-        const noteTemplatesArea = containerEl.createDiv("tp-note-templates-area");
-        void this.buildNoteTemplatesUI(noteTemplatesArea);
-        new import_obsidian12.Setting(containerEl).setName("Notes").setHeading();
+        new import_obsidian12.Setting(containerEl).setName("Note files").setHeading();
         new import_obsidian12.Setting(containerEl).setName("Organise notes into weekly folders").setDesc('Create lesson and event notes inside "WC - <Monday date>" folders under the planner folder. Existing notes stay where they are and keep opening.').addToggle((t) => {
           var _a3;
           return t.setValue((_a3 = this.plugin.settings.weeklyNoteFolders) != null ? _a3 : true).onChange(async (v) => {
