@@ -682,7 +682,10 @@
       menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
       menu.addItem(i => i.setTitle("Change colour").setIcon("palette").onClick(() => changeColour(slot.classId)));
-      menu.addItem(i => i.setTitle("Remove from timetable").setIcon("trash-2").onClick(() => confirmDelete(plugin, "Remove this lesson from the timetable? It is removed from the timetable template (every week), not just this date.", () => removeSlot(slot.id))));
+      {
+        const [ry, rmo, rd] = date.split("-");
+        menu.addItem(i => i.setTitle("Remove this lesson (this date only)").setIcon("trash-2").onClick(() => confirmDelete(plugin, `Remove this lesson on ${rd}/${rmo}/${ry}? Other weeks and the timetable template are not affected — directed time for this week adjusts accordingly. You can restore it from the empty block.`, () => excludeSlotOnDate(slot.id, date))));
+      }
     } else if (type === "event" && event) {
       menu.addItem(i => i.setTitle("Edit").setIcon("pencil").onClick(() => onEditDateEvent(event)));
       {
@@ -771,10 +774,21 @@
     }).open();
   }
 
-  async function removeSlot(slotId: string) {
-    for (const tmpl of (plugin.settings.timetableTemplates ?? [])) {
-      tmpl.slots = tmpl.slots.filter(s => s.id !== slotId);
+  // Date-only removal: hide the recurring lesson on one date via a slotExclusion.
+  // The timetable template is untouched; directed time, class stats, occurrences
+  // and iCal export all honour slotExclusions, so the tracker adjusts automatically.
+  async function excludeSlotOnDate(slotId: string, date: string) {
+    if (!plugin.settings.slotExclusions) plugin.settings.slotExclusions = [];
+    if (!plugin.settings.slotExclusions.some(ex => ex.slotId === slotId && ex.date === date)) {
+      plugin.settings.slotExclusions.push({ slotId, date });
     }
+    await plugin.saveSettings(); invalidate();
+  }
+
+  async function restoreSlotOnDate(slotId: string, date: string) {
+    plugin.settings.slotExclusions = (plugin.settings.slotExclusions ?? []).filter(
+      ex => !(ex.slotId === slotId && ex.date === date)
+    );
     await plugin.saveSettings(); invalidate();
   }
 
@@ -980,8 +994,17 @@
     }
   }
 
-  function openEventPicker(e: MouseEvent, dayDate: string, periodId: string) {
+  function openEventPicker(e: MouseEvent, dayDate: string, periodId: string, rawSlot?: TimetableSlot) {
     e.stopPropagation();
+    // If the recurring lesson was removed on this date, offer to restore it.
+    if (rawSlot && isSlotExcluded(rawSlot.id, dayDate)) {
+      const menu = new Menu();
+      const lbl = getSlotLabel(rawSlot);
+      menu.addItem(i => i.setTitle(`Restore removed lesson (${lbl.code})`).setIcon("undo-2").onClick(() => restoreSlotOnDate(rawSlot.id, dayDate)));
+      menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => onAddEvent(dayDate, periodId)));
+      showMenuAt(menu, e);
+      return;
+    }
     onAddEvent(dayDate, periodId);
   }
 
@@ -1350,7 +1373,7 @@
             </div>
           {/each}
           {#if !dSlot && dEvents.length === 0}
-            <button class="tp-dslim" on:click={(e) => openEventPicker(e, dDate, period.id)} aria-label={"Add event to " + period.name}>
+            <button class="tp-dslim" on:click={(e) => openEventPicker(e, dDate, period.id, dRaw)} aria-label={"Add event to " + period.name}>
               <span class="tp-dslim-time">{period.start}</span>
               <span class="tp-dslim-name">{period.name}</span>
               <span class="tp-dslim-add">＋</span>
@@ -1712,7 +1735,7 @@
                       tabindex={gridFocusKey === `${day.key}:${period.id}:add` ? 0 : -1}
                       data-gridkey={`${day.key}:${period.id}:add`}
                       on:keydown={onCellKeydown}
-                      on:click={(e) => openEventPicker(e, dayDate, period.id)}
+                      on:click={(e) => openEventPicker(e, dayDate, period.id, _rawSlot)}
                     >＋ Event</button>
                   {/if}
                   {#if _partial}
