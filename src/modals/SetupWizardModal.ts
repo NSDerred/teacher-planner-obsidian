@@ -92,10 +92,15 @@ export class SetupWizardModal extends Modal {
 
   onClose() { closeEmojiPicker(); this.contentEl.empty(); }
 
+  /** Guards a cascaded close() from stacking multiple exit confirms (0.3.6). */
+  private closePromptOpen = false;
+
   /** Intercept all close attempts on steps 1–8 — planner not yet committed. */
   close() {
     if (this.step >= 9) { super.close(); return; }
-    new WizardCloseConfirmModal(this.app, () => super.close()).open();
+    if (this.closePromptOpen) return;
+    this.closePromptOpen = true;
+    new WizardCloseConfirmModal(this.app, () => super.close(), () => { this.closePromptOpen = false; }).open();
   }
 
   // ── Render dispatcher ───────────────────────────────────────────────────────
@@ -912,7 +917,12 @@ export class SetupWizardModal extends Modal {
 
   // ── Commit the planner to plugin data ───────────────────────────────────────
 
+  /** Guards renderStep9 re-renders from committing a duplicate planner (0.3.6). */
+  private plannerCommitted = false;
+
   private async commitPlanner() {
+    if (this.plannerCommitted) return;
+    this.plannerCommitted = true;
     const rootFolder   = this.plugin.plannerData.rootPlannerFolder;
     const plannerFolder = rootFolder + "/" + this.state.name;
 
@@ -1055,11 +1065,15 @@ export class SetupWizardModal extends Modal {
 
 class WizardCloseConfirmModal extends Modal {
   private onConfirm: () => void;
+  private onDone?: () => void;
 
-  constructor(app: App, onConfirm: () => void) {
+  constructor(app: App, onConfirm: () => void, onDone?: () => void) {
     super(app);
     this.onConfirm = onConfirm;
+    this.onDone = onDone;
   }
+
+
 
   onOpen() {
     const { contentEl, titleEl } = this;
@@ -1079,7 +1093,12 @@ class WizardCloseConfirmModal extends Modal {
         .onClick(() => { this.close(); this.onConfirm(); }));
   }
 
-  onClose() { this.contentEl.empty(); }
+  onClose() {
+    this.contentEl.empty();
+    // Fires for every path out of the modal (either button, Esc, click-away)
+    // so the wizard can re-arm its close guard.
+    this.onDone?.();
+  }
 }
 
 

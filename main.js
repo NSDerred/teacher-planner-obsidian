@@ -1504,25 +1504,32 @@ function periodAppliesTo(ay, periodId, day2) {
   if (!ay.daySchedules || ay.daySchedules.length === 0) return true;
   return getPeriodsForDay(ay, day2).some((p) => p.id === periodId);
 }
+function timeMins(t) {
+  const [h, m] = (t != null ? t : "").split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+function normalizeTime(t) {
+  const m = /^\s*(\d{1,2}):(\d{2})\s*$/.exec(t != null ? t : "");
+  if (!m) return t;
+  return `${String(Number(m[1])).padStart(2, "0")}:${m[2]}`;
+}
 function syncPeriodsUnion(ay) {
   if (!ay.daySchedules || ay.daySchedules.length === 0) return;
   const seen = /* @__PURE__ */ new Map();
   for (const sched of ay.daySchedules) {
     for (const p of sched.periods) {
+      p.start = normalizeTime(p.start);
+      p.end = normalizeTime(p.end);
       if (!seen.has(p.id)) seen.set(p.id, p);
     }
   }
-  ay.periods = [...seen.values()].sort((a, b) => a.start.localeCompare(b.start));
+  ay.periods = [...seen.values()].sort((a, b) => timeMins(a.start) - timeMins(b.start));
 }
 function periodLengthMinutes(ay, periodId) {
   var _a2;
   const pr = ((_a2 = ay.periods) != null ? _a2 : []).find((pp) => pp.id === periodId);
   if (!pr) return 0;
-  const toMin = (hm) => {
-    const [h, m] = (hm != null ? hm : "").split(":").map(Number);
-    return (h || 0) * 60 + (m || 0);
-  };
-  return Math.max(0, toMin(pr.end) - toMin(pr.start));
+  return Math.max(0, timeMins(pr.end) - timeMins(pr.start));
 }
 var init_scheduleUtils = __esm({
   "src/utils/scheduleUtils.ts"() {
@@ -8553,9 +8560,14 @@ var init_SetupWizardModal = __esm({
       constructor(app, plugin, isNewPlanner = false) {
         super(app);
         this.step = 1;
+        /** Guards a cascaded close() from stacking multiple exit confirms (0.3.6). */
+        this.closePromptOpen = false;
         // ── Step 7: School periods ──────────────────────────────────────────────────
         /** Schedule selected for editing in Step 7. */
         this.wizScheduleId = null;
+        // ── Commit the planner to plugin data ───────────────────────────────────────
+        /** Guards renderStep9 re-renders from committing a duplicate planner (0.3.6). */
+        this.plannerCommitted = false;
         this.plugin = plugin;
         this.isNewPlanner = isNewPlanner;
         const ay = DEFAULT_PLANNER.academicYear;
@@ -8599,7 +8611,11 @@ var init_SetupWizardModal = __esm({
           super.close();
           return;
         }
-        new WizardCloseConfirmModal(this.app, () => super.close()).open();
+        if (this.closePromptOpen) return;
+        this.closePromptOpen = true;
+        new WizardCloseConfirmModal(this.app, () => super.close(), () => {
+          this.closePromptOpen = false;
+        }).open();
       }
       // ── Render dispatcher ───────────────────────────────────────────────────────
       render() {
@@ -9452,8 +9468,9 @@ var init_SetupWizardModal = __esm({
           })();
         }).open();
       }
-      // ── Commit the planner to plugin data ───────────────────────────────────────
       async commitPlanner() {
+        if (this.plannerCommitted) return;
+        this.plannerCommitted = true;
         const rootFolder = this.plugin.plannerData.rootPlannerFolder;
         const plannerFolder2 = rootFolder + "/" + this.state.name;
         const record = {
@@ -9583,9 +9600,10 @@ var init_SetupWizardModal = __esm({
       }
     };
     WizardCloseConfirmModal = class extends import_obsidian8.Modal {
-      constructor(app, onConfirm) {
+      constructor(app, onConfirm, onDone) {
         super(app);
         this.onConfirm = onConfirm;
+        this.onDone = onDone;
       }
       onOpen() {
         const { contentEl, titleEl } = this;
@@ -9600,7 +9618,9 @@ var init_SetupWizardModal = __esm({
         }));
       }
       onClose() {
+        var _a2;
         this.contentEl.empty();
+        (_a2 = this.onDone) == null ? void 0 : _a2.call(this);
       }
     };
     WizardTemplatePickModal = class extends import_obsidian8.FuzzySuggestModal {
@@ -11599,8 +11619,14 @@ var init_SettingsTab = __esm({
             startInput.value = period.start;
             startInput.placeholder = "HH:MM";
             const commitStart = async () => {
-              if (startInput.value === period.start) return;
-              period.start = startInput.value;
+              const norm = this.cleanPeriodTime(startInput.value, "Start time");
+              if (norm === null) {
+                startInput.value = period.start;
+                return;
+              }
+              startInput.value = norm;
+              if (norm === period.start) return;
+              period.start = norm;
               this.sortPeriods();
               await this.plugin.saveSettings();
               container.empty();
@@ -11617,7 +11643,14 @@ var init_SettingsTab = __esm({
             endInput.placeholder = "HH:MM";
             endInput.addEventListener("blur", () => {
               void (async () => {
-                period.end = endInput.value;
+                const norm = this.cleanPeriodTime(endInput.value, "End time");
+                if (norm === null) {
+                  endInput.value = period.end;
+                  return;
+                }
+                endInput.value = norm;
+                if (norm === period.end) return;
+                period.end = norm;
                 refs.subEl.setText(subOf());
                 await this.plugin.saveSettings();
               })();
@@ -11980,7 +12013,21 @@ var init_SettingsTab = __esm({
         });
       }
       sortPeriods() {
-        this.getSelectedSchedule().periods.sort((a, b) => a.start.localeCompare(b.start));
+        this.getSelectedSchedule().periods.sort((a, b) => timeMins(a.start) - timeMins(b.start));
+      }
+      /**
+       * Validate + normalise a typed period time. Returns zero-padded "HH:MM",
+       * or null (with a Notice) if the input is not a valid time — matching the
+       * validation AddPeriodModal has always had. (0.3.6: these editors used to
+       * accept anything, which is how unpadded times like "9:20" crept in.)
+       */
+      cleanPeriodTime(raw, label) {
+        const norm = normalizeTime(raw.trim());
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(norm)) {
+          new import_obsidian12.Notice(`${label} must be HH:MM (e.g. 08:50).`);
+          return null;
+        }
+        return norm;
       }
       renderPeriodsList(container) {
         const periods = this.getSelectedSchedule().periods;
@@ -12007,7 +12054,14 @@ var init_SettingsTab = __esm({
         }).addText((t) => {
           t.setPlaceholder("HH:MM").setValue(period.start);
           const commitStart = async () => {
-            period.start = t.inputEl.value;
+            const norm = this.cleanPeriodTime(t.inputEl.value, "Start time");
+            if (norm === null) {
+              t.inputEl.value = period.start;
+              return;
+            }
+            t.inputEl.value = norm;
+            if (norm === period.start) return;
+            period.start = norm;
             this.sortPeriods();
             await this.plugin.saveSettings();
             container.empty();
@@ -12023,7 +12077,14 @@ var init_SettingsTab = __esm({
           t.setPlaceholder("HH:MM").setValue(period.end);
           t.inputEl.addEventListener("blur", () => {
             void (async () => {
-              period.end = t.inputEl.value;
+              const norm = this.cleanPeriodTime(t.inputEl.value, "End time");
+              if (norm === null) {
+                t.inputEl.value = period.end;
+                return;
+              }
+              t.inputEl.value = norm;
+              if (norm === period.end) return;
+              period.end = norm;
               await this.plugin.saveSettings();
             })();
           });
@@ -19153,6 +19214,12 @@ function setSlotPlan(s, slotId, date, path) {
   clearSlotPlan(s, slotId, date);
   links(s).push({ slotId, date, path });
 }
+function clearEventRecords(s, eventId) {
+  var _a2;
+  clearEventPlan(s, eventId);
+  clearEventExternal(s, eventId);
+  s.preparedMarks = ((_a2 = s.preparedMarks) != null ? _a2 : []).filter((m) => m.eventId !== eventId);
+}
 function setEventPlan(s, eventId, path) {
   clearEventPlan(s, eventId);
   links(s).push({ eventId, path });
@@ -20024,6 +20091,7 @@ var AddDateEventModal = class extends import_obsidian17.Modal {
         var _a3;
         if (!this.existingEvent) return;
         this.plugin.settings.dateEvents = ((_a3 = this.plugin.settings.dateEvents) != null ? _a3 : []).filter((e) => e.id !== this.existingEvent.id);
+        clearEventRecords(this.plugin.settings, this.existingEvent.id);
         await this.plugin.saveSettings();
         this.onSaved();
         this.close();
@@ -20082,6 +20150,7 @@ var AddDateEventModal = class extends import_obsidian17.Modal {
       }
       if (evIds.size) {
         this.plugin.settings.dateEvents = ((_a3 = this.plugin.settings.dateEvents) != null ? _a3 : []).filter((e) => !evIds.has(e.id));
+        for (const id of evIds) clearEventRecords(this.plugin.settings, id);
       }
       if (slotIds.size) {
         if (!this.plugin.settings.slotExclusions) this.plugin.settings.slotExclusions = [];
@@ -29766,6 +29835,7 @@ function instance3($$self, $$props, $$invalidate) {
       plugin.settings.dateEvents = ((_a3 = plugin.settings.dateEvents) !== null && _a3 !== void 0 ? _a3 : []).filter((e) => e.id !== eventId),
       plugin
     );
+    clearEventRecords(plugin.settings, eventId);
     await plugin.saveSettings();
     invalidate();
   }

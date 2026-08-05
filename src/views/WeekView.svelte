@@ -27,7 +27,7 @@
     getSlotExternal, setSlotExternal, clearSlotExternal,
     getEventExternal, setEventExternal, clearEventExternal, migrateSlotExternalToEvent, externalKindOf,
     isSlotPrepared, isEventPrepared, toggleSlotPrepared, toggleEventPrepared, migrateSlotPreparedToEvent,
-    getLessonNote, getLessonRoom,
+    getLessonNote, getLessonRoom, clearEventRecords,
   } from "../utils/planLinkUtils";
   import { openOSFolderPicker, openOSFilePicker, openSystemPath } from "../utils/exportDestination";
   import { LessonPlanSuggestModal } from "../modals/LessonPlanSuggestModal";
@@ -979,6 +979,7 @@
 
   async function removeDateEvent(eventId: string) {
     plugin.settings.dateEvents = (plugin.settings.dateEvents ?? []).filter(e => e.id !== eventId);
+    clearEventRecords(plugin.settings, eventId);  // plan link, external link, prepared mark
     await plugin.saveSettings();
     invalidate();
   }

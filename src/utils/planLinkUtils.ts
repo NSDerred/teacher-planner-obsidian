@@ -49,6 +49,17 @@ export function setSlotPlan(s: TeacherPlannerSettings, slotId: string, date: str
   links(s).push({ slotId, date, path });
 }
 
+/**
+ * Remove every stored record keyed to a date event — plan link, external
+ * resource link, prepared mark. Call when the event itself is deleted, so
+ * orphaned records stop accumulating in data.json (0.3.6).
+ */
+export function clearEventRecords(s: TeacherPlannerSettings, eventId: string): void {
+  clearEventPlan(s, eventId);
+  clearEventExternal(s, eventId);
+  s.preparedMarks = (s.preparedMarks ?? []).filter(m => m.eventId !== eventId);
+}
+
 export function setEventPlan(s: TeacherPlannerSettings, eventId: string, path: string): void {
   clearEventPlan(s, eventId);
   links(s).push({ eventId, path });

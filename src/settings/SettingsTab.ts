@@ -2,7 +2,7 @@
 import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon, FuzzySuggestModal, Platform, Menu } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { SchoolPeriod, PeriodTypeConfig, Subject, ClassGroup, WeekOverride, Activity, DaySchedule, SchoolDay, TeacherPlannerSettings } from "../types";
-import { ensureDaySchedules, getScheduleForDay } from "../utils/scheduleUtils";
+import { ensureDaySchedules, getScheduleForDay, timeMins, normalizeTime } from "../utils/scheduleUtils";
 import { DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, DEFAULT_PERIOD_TYPE_COLOURS, FALLBACK_PERIOD_TYPE_COLOUR, DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_EVENT_NOTE_TITLE_TEMPLATE, DEFAULT_LESSON_TEMPLATE, randomClassColour } from "../settings";
 import { buildNoteTitle } from "../utils/noteTitleUtils";
 import { migrateWeekNotesToFiles } from "../utils/weekNoteFiles";
@@ -1650,8 +1650,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         startInput.value = period.start;
         startInput.placeholder = "HH:MM";
         const commitStart = async () => {
-          if (startInput.value === period.start) return;
-          period.start = startInput.value;
+          const norm = this.cleanPeriodTime(startInput.value, "Start time");
+          if (norm === null) { startInput.value = period.start; return; }
+          startInput.value = norm;
+          if (norm === period.start) return;
+          period.start = norm;
           this.sortPeriods();
           await this.plugin.saveSettings();
           // Re-render so the row moves to its sorted position; _openAccItem
@@ -1665,7 +1668,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         endInput.value = period.end;
         endInput.placeholder = "HH:MM";
         endInput.addEventListener("blur", () => { void (async () => {
-          period.end = endInput.value;
+          const norm = this.cleanPeriodTime(endInput.value, "End time");
+          if (norm === null) { endInput.value = period.end; return; }
+          endInput.value = norm;
+          if (norm === period.end) return;
+          period.end = norm;
           refs.subEl.setText(subOf());
           await this.plugin.saveSettings();
         })(); });
@@ -1976,7 +1983,22 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   private sortPeriods() {
-    this.getSelectedSchedule().periods.sort((a, b) => a.start.localeCompare(b.start));
+    this.getSelectedSchedule().periods.sort((a, b) => timeMins(a.start) - timeMins(b.start));
+  }
+
+  /**
+   * Validate + normalise a typed period time. Returns zero-padded "HH:MM",
+   * or null (with a Notice) if the input is not a valid time — matching the
+   * validation AddPeriodModal has always had. (0.3.6: these editors used to
+   * accept anything, which is how unpadded times like "9:20" crept in.)
+   */
+  private cleanPeriodTime(raw: string, label: string): string | null {
+    const norm = normalizeTime(raw.trim());
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(norm)) {
+      new Notice(`${label} must be HH:MM (e.g. 08:50).`);
+      return null;
+    }
+    return norm;
   }
 
   private renderPeriodsList(container: HTMLElement) {
@@ -2003,7 +2025,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addText(t => {
         t.setPlaceholder("HH:MM").setValue(period.start);
         const commitStart = async () => {
-          period.start = t.inputEl.value;
+          const norm = this.cleanPeriodTime(t.inputEl.value, "Start time");
+          if (norm === null) { t.inputEl.value = period.start; return; }
+          t.inputEl.value = norm;
+          if (norm === period.start) return;
+          period.start = norm;
           this.sortPeriods();
           await this.plugin.saveSettings();
           container.empty();
@@ -2015,7 +2041,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addText(t => {
         t.setPlaceholder("HH:MM").setValue(period.end);
         t.inputEl.addEventListener("blur", () => { void (async () => {
-          period.end = t.inputEl.value;
+          const norm = this.cleanPeriodTime(t.inputEl.value, "End time");
+          if (norm === null) { t.inputEl.value = period.end; return; }
+          t.inputEl.value = norm;
+          if (norm === period.end) return;
+          period.end = norm;
           await this.plugin.saveSettings();
         })(); });
       })

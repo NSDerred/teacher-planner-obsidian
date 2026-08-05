@@ -7,6 +7,7 @@ import { eventPeriodIds, sumPeriodMinutes } from "../utils/eventUtils";
 import { CLASS_COLOUR_PALETTE } from "../settings";
 import { ColourPickerModal, ConfirmModal, confirmDelete } from "../settings/SettingsTab";
 import { blockOccupants } from "../utils/clashUtils";
+import { clearEventRecords } from "../utils/planLinkUtils";
 import { DatePickerModal } from "./DatePickerModal";
 
 const DAY_OF_WEEK: Record<number, SchoolDay> = {
@@ -415,6 +416,7 @@ export class AddDateEventModal extends Modal {
       delBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete this event${title.trim() ? ` “${title.trim()}”` : ""}?`, async () => {
         if (!this.existingEvent) return;
         this.plugin.settings.dateEvents = (this.plugin.settings.dateEvents ?? []).filter(e => e.id !== this.existingEvent!.id);
+        clearEventRecords(this.plugin.settings, this.existingEvent.id);  // plan link, external link, prepared mark
         await this.plugin.saveSettings();
         this.onSaved(); this.close();
       }));
@@ -470,6 +472,7 @@ export class AddDateEventModal extends Modal {
       }
       if (evIds.size) {
         this.plugin.settings.dateEvents = (this.plugin.settings.dateEvents ?? []).filter(e => !evIds.has(e.id));
+        for (const id of evIds) clearEventRecords(this.plugin.settings, id);
       }
       if (slotIds.size) {
         if (!this.plugin.settings.slotExclusions) this.plugin.settings.slotExclusions = [];

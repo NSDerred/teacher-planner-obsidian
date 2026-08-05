@@ -5,6 +5,22 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.6] — 2026-08-05
+
+### Added
+
+- **Lesson notes from templates.** Creating a lesson note now opens a small dialog with a template dropdown and the title field together. Four built-ins — Blank, Standard, Lesson record, and Homework log — plus any templates of your own, kept separate from the lesson-plan templates. The Standard template is your existing lesson-note body, so nothing you have customised is lost. Notes open with the lesson's details filled in and the cursor where you start writing. Settings gain a "Lesson note templates" section with a default picker, an editor with live preview, Save-as-template, and a Manage list. New notes default to Blank; your Standard body is one pick away.
+- **Remove a lesson for just one date.** "Remove from timetable" on a week-view lesson is now "Remove this lesson (this date only)": it hides that one occurrence without touching the timetable template or any other week, and directed time adjusts for that week only. The empty block offers "Restore removed lesson" to undo it, with plan links, prepared marks, and notes intact. Removing a lesson from every week now lives only in the timetable editor, where that decision belongs.
+
+### Fixed
+
+- **"+ New planner" no longer triggers a repeating "Exit setup wizard?" dialog.** Settings now close before the wizard opens instead of after, which had cascaded a close onto the wizard itself. The wizard also gains guards against creating a duplicate planner if its final step renders twice, and against stacking multiple exit confirms.
+- **Period times typed without a leading zero sorted to the wrong place.** A start time entered as "9:20" in settings sorted after "16:30" in the period lists and the add-event block picker, because ordering compared text rather than times. Times are now validated as HH:MM in the settings editors (as the add-period dialog always did), normalised to zero-padded form, and sorted numerically — and existing unpadded times are repaired automatically on load.
+
+### Changed
+
+- **Deleting a one-off event now cleans up after itself.** The event's lesson-plan link, external-resource link, and prepared mark are removed with it instead of accumulating invisibly in the plugin data.
+
 ## [0.3.5] — 2026-08-02
 
 ### Added
