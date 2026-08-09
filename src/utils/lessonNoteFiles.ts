@@ -5,13 +5,13 @@ import { buildNoteTitle } from "./noteTitleUtils";
 import { wcNoteFolder } from "./weekUtils";
 import { DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_LESSON_TEMPLATE } from "../settings";
 
-interface ClassMeta { code: string; subjectName?: string; emoji?: string; }
+interface ClassMeta { code: string; year?: string; subjectName?: string; emoji?: string; }
 
 function classMeta(s: TeacherPlannerSettings, classId: string): ClassMeta | null {
   const cls = (s.classes ?? []).find(c => c.id === classId);
   if (!cls) return null;
   const subj = (s.subjects ?? []).find(x => x.id === cls.subjectId);
-  return { code: cls.code, subjectName: subj?.name, emoji: subj?.emoji };
+  return { code: cls.code, year: cls.year, subjectName: subj?.name, emoji: subj?.emoji };
 }
 
 function plannerFolder(s: TeacherPlannerSettings): string {
@@ -26,7 +26,7 @@ function unplacedFolder(s: TeacherPlannerSettings): string {
 }
 function noteFileName(s: TeacherPlannerSettings, meta: ClassMeta, dateIso: string, periodName: string): string {
   const tpl = s.lessonNoteTitleTemplate ?? DEFAULT_LESSON_NOTE_TITLE_TEMPLATE;
-  return buildNoteTitle(tpl, { dateIso, periodName, classCode: meta.code, subjectName: meta.subjectName, emoji: meta.emoji }) || `${dateIso} ${meta.code}`;
+  return buildNoteTitle(tpl, { dateIso, periodName, year: meta.year, classCode: meta.code, subjectName: meta.subjectName, emoji: meta.emoji }) || `${dateIso} ${meta.code}`;
 }
 
 /** The frontmatter block stamped on a lesson note so it can be tracked through renames. */

@@ -1205,6 +1205,7 @@
     const tpl = plugin.settings.lessonNoteTitleTemplate ?? DEFAULT_LESSON_NOTE_TITLE_TEMPLATE;
     const defaultTitle = buildNoteTitle(tpl, {
       dateIso: dayDate, periodName,
+      year: cls?.year,
       classCode: cls?.code ?? getSlotLabel(slot).code,
       subjectName: subj?.name, emoji: subj?.emoji,
     }) || `${dayDate} ${getSlotLabel(slot).code}`;
@@ -1227,6 +1228,7 @@
     const tpl = plugin.settings.lessonNoteTitleTemplate ?? DEFAULT_LESSON_NOTE_TITLE_TEMPLATE;
     const defaultTitle = buildNoteTitle(tpl, {
       dateIso: dayDate, periodName,
+      year: cls.year,
       classCode: cls.code, subjectName: subj?.name, emoji: subj?.emoji,
     }) || `${dayDate} ${cls.code}`;
     const ctx: TemplateContext = {

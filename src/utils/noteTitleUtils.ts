@@ -4,6 +4,7 @@
  * Templates use {{token}} placeholders. Available tokens:
  *   {{date}}    → UK date, e.g. 13-06-2026
  *   {{period}}  → short period/block label, e.g. P1 (numbered) or Break/Lunch (named)
+ *   {{year}}    → year group, e.g. 10
  *   {{class}}   → class code, e.g. 10A
  *   {{subject}} → subject name, e.g. Biology
  *   {{emoji}}   → subject emoji, e.g. 🌱 (empty for activities)
@@ -18,13 +19,15 @@ export interface NoteTitleParts {
   dateIso?: string;
   /** Raw period/block name, e.g. "Period 1" — shortened by the renderer. */
   periodName?: string;
+  /** Year group, e.g. "10" — distinguishes classes sharing a code. */
+  year?: string;
   classCode?: string;
   subjectName?: string;
   emoji?: string;
   eventName?: string;
 }
 
-type TitleTokenKey = "date" | "period" | "class" | "subject" | "emoji" | "event";
+type TitleTokenKey = "date" | "period" | "year" | "class" | "subject" | "emoji" | "event";
 
 /** Convert an ISO date (YYYY-MM-DD) to UK format (DD-MM-YYYY). */
 export function formatUkDate(iso?: string): string {
@@ -59,6 +62,7 @@ export function buildNoteTitle(template: string, parts: NoteTitleParts): string 
   const values: Record<TitleTokenKey, string> = {
     date:    formatUkDate(parts.dateIso),
     period:  shortPeriodLabel(parts.periodName),
+    year:    (parts.year ?? "").trim(),
     class:   (parts.classCode ?? "").trim(),
     subject: (parts.subjectName ?? "").trim(),
     emoji:   (parts.emoji ?? "").trim(),
@@ -66,7 +70,7 @@ export function buildNoteTitle(template: string, parts: NoteTitleParts): string 
   };
 
   let out = (template ?? "").replace(
-    /\{\{(date|period|class|subject|emoji|event)\}\}/g,
+    /\{\{(date|period|year|class|subject|emoji|event)\}\}/g,
     (_match, key: keyof typeof values) => values[key] ?? "",
   );
 

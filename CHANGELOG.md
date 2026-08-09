@@ -5,6 +5,12 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`{{year}}` token in note-title templates.** Lesson- and event-note title templates now accept `{{year}}` — the class's year group — so two classes that share a code (e.g. a Year 1 "B" and a Year 2 "B") can be told apart in generated filenames: `{{date}} - {{period}} - {{year}}{{class}}` gives `13-06-2026 - P1 - 1B`. An empty year collapses cleanly like every other token, and the default templates are unchanged, so nobody's existing filenames shift. The class year was already available to plan and note *body* templates; the title templates had simply never been given it.
+
 ## [0.3.6] — 2026-08-05
 
 ### Added

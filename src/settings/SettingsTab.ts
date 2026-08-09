@@ -631,7 +631,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // -- Lesson notes (note titles + note templates, merged 0.3.6) -----------
     new Setting(containerEl).setName("Lesson notes").setHeading();
     containerEl.createEl("p", {
-      text: "Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default.",
+      text: "Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{year}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default.",
       cls: "setting-item-description",
     });
 
@@ -642,6 +642,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const renderLessonTitle = (tpl: string) => buildNoteTitle(tpl, {
       dateIso: _sampleDate,
       periodName: "Period 1",
+      year: _sampleCls?.year ?? "10",
       classCode: _sampleCls?.code ?? "10A",
       subjectName: _sampleSubj?.name ?? "Biology",
       emoji: _sampleSubj?.emoji ?? "🌱",

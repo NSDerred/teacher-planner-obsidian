@@ -1552,17 +1552,18 @@ function sanitiseNoteFileName(s) {
   return s.replace(/[\\/:*?"<>|]/g, "-").replace(/\s{2,}/g, " ").trim();
 }
 function buildNoteTitle(template, parts) {
-  var _a2, _b2, _c, _d;
+  var _a2, _b2, _c, _d, _e;
   const values = {
     date: formatUkDate(parts.dateIso),
     period: shortPeriodLabel(parts.periodName),
-    class: ((_a2 = parts.classCode) != null ? _a2 : "").trim(),
-    subject: ((_b2 = parts.subjectName) != null ? _b2 : "").trim(),
-    emoji: ((_c = parts.emoji) != null ? _c : "").trim(),
-    event: ((_d = parts.eventName) != null ? _d : "").trim()
+    year: ((_a2 = parts.year) != null ? _a2 : "").trim(),
+    class: ((_b2 = parts.classCode) != null ? _b2 : "").trim(),
+    subject: ((_c = parts.subjectName) != null ? _c : "").trim(),
+    emoji: ((_d = parts.emoji) != null ? _d : "").trim(),
+    event: ((_e = parts.eventName) != null ? _e : "").trim()
   };
   let out = (template != null ? template : "").replace(
-    /\{\{(date|period|class|subject|emoji|event)\}\}/g,
+    /\{\{(date|period|year|class|subject|emoji|event)\}\}/g,
     (_match, key) => {
       var _a3;
       return (_a3 = values[key]) != null ? _a3 : "";
@@ -10697,20 +10698,21 @@ var init_SettingsTab = __esm({
         }));
         new import_obsidian12.Setting(containerEl).setName("Lesson notes").setHeading();
         containerEl.createEl("p", {
-          text: "Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default.",
+          text: "Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{year}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default.",
           cls: "setting-item-description"
         });
         const _sampleSubj = (_d = this.plugin.settings.subjects) == null ? void 0 : _d[0];
         const _sampleCls = (_e = this.plugin.settings.classes) == null ? void 0 : _e[0];
         const _sampleDate = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
         const renderLessonTitle = (tpl) => {
-          var _a3, _b3, _c2;
+          var _a3, _b3, _c2, _d2;
           return buildNoteTitle(tpl, {
             dateIso: _sampleDate,
             periodName: "Period 1",
-            classCode: (_a3 = _sampleCls == null ? void 0 : _sampleCls.code) != null ? _a3 : "10A",
-            subjectName: (_b3 = _sampleSubj == null ? void 0 : _sampleSubj.name) != null ? _b3 : "Biology",
-            emoji: (_c2 = _sampleSubj == null ? void 0 : _sampleSubj.emoji) != null ? _c2 : "\u{1F331}"
+            year: (_a3 = _sampleCls == null ? void 0 : _sampleCls.year) != null ? _a3 : "10",
+            classCode: (_b3 = _sampleCls == null ? void 0 : _sampleCls.code) != null ? _b3 : "10A",
+            subjectName: (_c2 = _sampleSubj == null ? void 0 : _sampleSubj.name) != null ? _c2 : "Biology",
+            emoji: (_d2 = _sampleSubj == null ? void 0 : _sampleSubj.emoji) != null ? _d2 : "\u{1F331}"
           });
         };
         const renderEventTitle = (tpl) => buildNoteTitle(tpl, {
@@ -20267,7 +20269,7 @@ function classMeta(s, classId) {
   const cls = ((_a2 = s.classes) != null ? _a2 : []).find((c) => c.id === classId);
   if (!cls) return null;
   const subj = ((_b2 = s.subjects) != null ? _b2 : []).find((x) => x.id === cls.subjectId);
-  return { code: cls.code, subjectName: subj == null ? void 0 : subj.name, emoji: subj == null ? void 0 : subj.emoji };
+  return { code: cls.code, year: cls.year, subjectName: subj == null ? void 0 : subj.name, emoji: subj == null ? void 0 : subj.emoji };
 }
 function plannerFolder(s) {
   return s.plannerFolder || "Teacher Planner";
@@ -20281,7 +20283,7 @@ function unplacedFolder(s) {
 function noteFileName(s, meta, dateIso, periodName) {
   var _a2;
   const tpl = (_a2 = s.lessonNoteTitleTemplate) != null ? _a2 : DEFAULT_LESSON_NOTE_TITLE_TEMPLATE;
-  return buildNoteTitle(tpl, { dateIso, periodName, classCode: meta.code, subjectName: meta.subjectName, emoji: meta.emoji }) || `${dateIso} ${meta.code}`;
+  return buildNoteTitle(tpl, { dateIso, periodName, year: meta.year, classCode: meta.code, subjectName: meta.subjectName, emoji: meta.emoji }) || `${dateIso} ${meta.code}`;
 }
 function lessonNoteFrontmatter(meta, periodName, dateIso) {
   return `---
@@ -30082,6 +30084,7 @@ function instance3($$self, $$props, $$invalidate) {
     const defaultTitle = buildNoteTitle(tpl, {
       dateIso: dayDate,
       periodName,
+      year: cls === null || cls === void 0 ? void 0 : cls.year,
       classCode: (_d2 = cls === null || cls === void 0 ? void 0 : cls.code) !== null && _d2 !== void 0 ? _d2 : getSlotLabel(slot).code,
       subjectName: subj === null || subj === void 0 ? void 0 : subj.name,
       emoji: subj === null || subj === void 0 ? void 0 : subj.emoji
@@ -30125,6 +30128,7 @@ function instance3($$self, $$props, $$invalidate) {
     const defaultTitle = buildNoteTitle(tpl, {
       dateIso: dayDate,
       periodName,
+      year: cls.year,
       classCode: cls.code,
       subjectName: subj === null || subj === void 0 ? void 0 : subj.name,
       emoji: subj === null || subj === void 0 ? void 0 : subj.emoji
