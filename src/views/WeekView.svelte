@@ -20,7 +20,7 @@
   import { lessonNoteFrontmatter } from "../utils/lessonNoteFiles";
   import { resolveColour, clearThemeColourCache, colourToCss, hexToRgba, periodTypeColour } from "../utils/themeColours";
   import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
-  import { eventPeriodIds, eventIsDirected } from "../utils/eventUtils";
+  import { eventPeriodIds, eventIsDirected, contiguousRuns, occurrenceTime } from "../utils/eventUtils";
   import {
     getSlotPlan, setSlotPlan, clearSlotPlan, getEventPlan, setEventPlan, clearEventPlan,
     migrateSlotPlanToEvent, bulkApplyPlan, undoBulkApply,
@@ -52,6 +52,9 @@
   $: DAYS = _dep(_tick, ALL_DAYS.filter(d =>
     (plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(d.key)
   ));
+
+  /** JS getDay() index → SchoolDay key. One copy for the whole view. */
+  const dayMap: Record<number, SchoolDay> = { 0:"sunday", 1:"monday", 2:"tuesday", 3:"wednesday", 4:"thursday", 5:"friday", 6:"saturday" };
 
   // ── Reactivity tick ───────────────────────────────────────────────────────
   let _tick = 0;
@@ -149,7 +152,6 @@
   $: _dateEventMap = (() => {
     const m: Record<string, DateEvent[]> = {};
     const monday = currentMonday;
-    const dayMap: Record<number, SchoolDay> = { 0:"sunday", 1:"monday", 2:"tuesday", 3:"wednesday", 4:"thursday", 5:"friday", 6:"saturday" };
     for (const ev of _dateEvents) {
       const d = new Date(ev.date + "T12:00:00");
       if (getMondayOfWeek(d).getTime() !== monday.getTime()) continue;
@@ -162,6 +164,27 @@
     return m;
   })();
 
+  // The same events grouped into contiguous runs and keyed "day:periodId" of
+  // each run's FIRST period. The mobile day/agenda lists iterate this instead
+  // of `_dateEventMap` so a P1+P2 event yields ONE card (the grid gets the
+  // equivalent from `computeMerges`), and the run supplies the true start/end
+  // for a custom time range spanning several blocks.
+  $: _dateEventRunMap = (() => {
+    const m: Record<string, { ev: DateEvent; run: SchoolPeriod[] }[]> = {};
+    const monday = currentMonday;
+    for (const ev of _dateEvents) {
+      const d = new Date(ev.date + "T12:00:00");
+      if (getMondayOfWeek(d).getTime() !== monday.getTime()) continue;
+      const day = dayMap[d.getDay()];
+      if (!day) continue;
+      const ordered = getPeriodsForDay(plugin.settings.academicYear, day);
+      for (const run of contiguousRuns(ordered, eventPeriodIds(ev))) {
+        (m[day + ":" + run[0].id] ??= []).push({ ev, run });
+      }
+    }
+    return m;
+  })();
+
   // ── Multi-period event block merging ─────────────────────────────────────
   // A multi-period event covering 2+ adjacent blocks that are otherwise empty
   // (no lesson, no other event) merges those blocks into ONE spanning block
@@ -169,7 +192,6 @@
   // into the normal in-block chips. All reactive — removing the event reverts.
   function multiEventsOnDay(dayKey: SchoolDay): DateEvent[] {
     const monday = currentMonday;
-    const dayMap: Record<number, SchoolDay> = { 0:"sunday", 1:"monday", 2:"tuesday", 3:"wednesday", 4:"thursday", 5:"friday", 6:"saturday" };
     return _dateEvents.filter(ev => {
       if (eventPeriodIds(ev).length < 2) return false;
       const d = new Date(ev.date + "T12:00:00");
@@ -625,10 +647,31 @@
     const menu = new Menu();
 
     // Header row: period name and times (info only) — useful on mobile where
-    // the hover reveal doesn't exist.
-    const period = plugin.settings.academicYear.periods.find(p => p.id === periodId);
+    // the hover reveal doesn't exist. Reports the occurrence's OWN span, so a
+    // lesson or event with a custom start/duration shows its real range rather
+    // than the containing period's, and a multi-period event shows its whole
+    // run rather than whichever single block was tapped.
+    const _menuDay = dayMap[new Date(date + "T12:00:00").getDay()];
+    const _menuOrdered = _menuDay
+      ? getPeriodsForDay(plugin.settings.academicYear, _menuDay)
+      : (plugin.settings.academicYear.periods ?? []);
+    const period = _menuOrdered.find(p => p.id === periodId)
+      ?? plugin.settings.academicYear.periods.find(p => p.id === periodId);
     if (period) {
-      menu.addItem(i => i.setTitle(`${period.name} · ${period.start}–${period.end}`).setIcon("clock").setDisabled(true));
+      let run: SchoolPeriod[] = [period];
+      if (type === "event" && event) {
+        const found = contiguousRuns(_menuOrdered, eventPeriodIds(event)).find(r => r.some(p => p.id === periodId));
+        if (found && found.length) run = found;
+      }
+      const last = run[run.length - 1];
+      const ot = occurrenceTime(run, type === "slot"
+        ? { start: slot?.start, durationMinutes: slot?.durationMinutes }
+        : { start: event?.startTime, durationMinutes: event?.durationMinutes });
+      const runName = run.length > 1 ? `${run[0].name} – ${last.name}` : period.name;
+      const title = ot.isPartial
+        ? `${runName} · ${ot.range} · ${ot.teachingMins} min`
+        : `${runName} · ${run[0].start}–${last.end}`;
+      menu.addItem(i => i.setTitle(title).setIcon("clock").setDisabled(true));
       menu.addSeparator();
     }
 
@@ -1321,19 +1364,24 @@
           {@const dRaw = _slotMap[selectedDay.key + ":" + period.id]}
           {@const dSlot = dRaw && !isSlotExcluded(dRaw.id, dDate) ? dRaw : undefined}
           {@const dEvents = _dateEventMap[selectedDay.key + ":" + period.id] ?? []}
+          {@const dRuns = _dateEventRunMap[selectedDay.key + ":" + period.id] ?? []}
           {#if dSlot}
             {@const lbl = getSlotLabel(dSlot)}
             {@const planPath = _slotPlanMap[dSlot.id + "|" + dDate]}
             {@const prep = _preparedSlotMap[dSlot.id + "|" + dDate]}
             {@const dNote = effNote(dSlot.id, dDate, lbl.notes)}
             {@const dRoom = effRoom(dSlot.id, dDate, lbl.classroom)}
+            {@const dTime = occurrenceTime([period], { start: dSlot.start, durationMinutes: dSlot.durationMinutes })}
+            {#if dTime.leadMins > 0}
+              <div class="tp-dfree">{period.start}–{dTime.startLabel} · free</div>
+            {/if}
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="tp-dcard" role="button" tabindex="0"
+            <div class="tp-dcard" class:tp-dcard--partial={dTime.isPartial} role="button" tabindex="0"
               style="--chip-fg:{chipFg(lbl.colour, _themeBg)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour, 0.16)};"
               on:click={(e) => openChipMenu(e, "slot", dDate, period.id, dSlot)} on:keydown={onCardKeydown}>
-              <div class="tp-dcard-time">{period.name}<br><span>{period.start}</span></div>
+              <div class="tp-dcard-time">{period.name}<br><span>{dTime.startLabel}</span>{#if dTime.isPartial}<br><span>–{dTime.endLabel}</span>{/if}</div>
               <div class="tp-dcard-body">
-                <div class="tp-dcard-code">{subjectEmoji(dSlot.classId)} {lbl.code}</div>
+                <div class="tp-dcard-code">{subjectEmoji(dSlot.classId)} {lbl.code}{#if dTime.isPartial}<span class="tp-dcard-dur">{dTime.teachingMins}m</span>{/if}</div>
                 <div class="tp-dcard-sub">{[lbl.year, lbl.subjectName].filter(Boolean).join(" · ")}{#if dRoom} · {dRoom}{/if}</div>
                 <div class="tp-dcard-note">{dNote || "No notes"}</div>
               </div>
@@ -1348,18 +1396,28 @@
                 {/if}
               </div>
             </div>
+            {#if dTime.trailMins > 0}
+              <div class="tp-dfree">{dTime.endLabel}–{period.end} · free</div>
+            {/if}
           {/if}
-          {#each dEvents as dEv (dEv.id)}
+          {#each dRuns as dRun (dRun.ev.id + ":" + dRun.run[0].id)}
+            {@const dEv = dRun.ev}
+            {@const dLast = dRun.run[dRun.run.length - 1]}
+            {@const eTime = occurrenceTime(dRun.run, { start: dEv.startTime, durationMinutes: dEv.durationMinutes })}
+            {@const eName = dRun.run.length > 1 ? period.name + " – " + dLast.name : period.name}
             {@const elbl = getDateEventLabel(dEv)}
             {@const eplan = _eventPlanMap[dEv.id]}
             {@const eprep = _preparedEventMap[dEv.id]}
+            {#if eTime.leadMins > 0}
+              <div class="tp-dfree">{period.start}–{eTime.startLabel} · free</div>
+            {/if}
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="tp-dcard" role="button" tabindex="0"
+            <div class="tp-dcard" class:tp-dcard--partial={eTime.isPartial} role="button" tabindex="0"
               style="--chip-fg:{chipFg(elbl.colour, _themeBg)}; border-left:3px solid {elbl.colour}; background:{hexToRgba(elbl.colour, 0.16)};"
               on:click={(e) => openChipMenu(e, "event", dDate, period.id, undefined, dEv)} on:keydown={onCardKeydown}>
-              <div class="tp-dcard-time">{period.name}<br><span>{period.start}</span></div>
+              <div class="tp-dcard-time">{eName}<br><span>{eTime.startLabel}</span>{#if eTime.isPartial || dRun.run.length > 1}<br><span>–{eTime.endLabel}</span>{/if}</div>
               <div class="tp-dcard-body">
-                <div class="tp-dcard-code">{elbl.code}</div>
+                <div class="tp-dcard-code">{elbl.code}{#if eTime.isPartial}<span class="tp-dcard-dur">{eTime.teachingMins}m</span>{/if}</div>
                 <div class="tp-dcard-sub">{elbl.meta}{#if elbl.classroom} · {elbl.classroom}{/if}</div>
                 {#if elbl.notes}<div class="tp-dcard-note">{elbl.notes}</div>{/if}
               </div>
@@ -1374,6 +1432,9 @@
                 {/if}
               </div>
             </div>
+            {#if eTime.trailMins > 0}
+              <div class="tp-dfree">{eTime.endLabel}–{dLast.end} · free</div>
+            {/if}
           {/each}
           {#if !dSlot && dEvents.length === 0}
             <button class="tp-dslim" on:click={(e) => openEventPicker(e, dDate, period.id, dRaw)} aria-label={"Add event to " + period.name}>
@@ -1403,15 +1464,16 @@
             {#each getPeriodsForDay(plugin.settings.academicYear, day.key) as period (period.id)}
               {@const aRaw = _slotMap[day.key + ":" + period.id]}
               {@const aSlot = aRaw && !isSlotExcluded(aRaw.id, aDate) ? aRaw : undefined}
-              {@const aEvents = _dateEventMap[day.key + ":" + period.id] ?? []}
+              {@const aRuns = _dateEventRunMap[day.key + ":" + period.id] ?? []}
               {#if aSlot}
                 {@const sl = getSlotLabel(aSlot)}
                 {@const aPrep = _preparedSlotMap[aSlot.id + "|" + aDate]}
                 {@const aPlan = _slotPlanMap[aSlot.id + "|" + aDate]}
+                {@const aTime = occurrenceTime([period], { start: aSlot.start, durationMinutes: aSlot.durationMinutes })}
                 <!-- svelte-ignore a11y-no-static-element-interactions -->
-                <div class="tp-agenda-row" role="button" tabindex="0" style="--chip-fg:{chipFg(sl.colour, _themeBg)}; border-left:3px solid {sl.colour}; background:{hexToRgba(sl.colour,0.16)};"
+                <div class="tp-agenda-row" class:tp-agenda-row--partial={aTime.isPartial} role="button" tabindex="0" style="--chip-fg:{chipFg(sl.colour, _themeBg)}; border-left:3px solid {sl.colour}; background:{hexToRgba(sl.colour,0.16)};"
                   on:click={(e) => openChipMenu(e, "slot", aDate, period.id, aSlot)} on:keydown={onCardKeydown}>
-                  <span class="tp-agenda-period">{period.name}</span>
+                  <span class="tp-agenda-period">{period.name}{#if aTime.isPartial}<br><span class="tp-agenda-range">{aTime.range}</span>{/if}</span>
                   <span class="tp-agenda-main">{subjectEmoji(aSlot.classId)} {sl.code}{#if sl.subjectName} · {sl.subjectName}{/if}</span>
                   {#if effRoom(aSlot.id, aDate, sl.classroom)}<span class="tp-agenda-room">{effRoom(aSlot.id, aDate, sl.classroom)}</span>{/if}
                   <span class="tp-agenda-marks">
@@ -1426,14 +1488,18 @@
                   </span>
                 </div>
               {/if}
-              {#each aEvents as aEv (aEv.id)}
+              {#each aRuns as aRun (aRun.ev.id + ":" + aRun.run[0].id)}
+                {@const aEv = aRun.ev}
+                {@const aLast = aRun.run[aRun.run.length - 1]}
+                {@const aeTime = occurrenceTime(aRun.run, { start: aEv.startTime, durationMinutes: aEv.durationMinutes })}
+                {@const aeName = aRun.run.length > 1 ? period.name + " – " + aLast.name : period.name}
                 {@const el = getDateEventLabel(aEv)}
                 {@const aeP = _preparedEventMap[aEv.id]}
                 {@const aePlan = _eventPlanMap[aEv.id]}
                 <!-- svelte-ignore a11y-no-static-element-interactions -->
-                <div class="tp-agenda-row tp-agenda-row--event" role="button" tabindex="0" style="--chip-fg:{chipFg(el.colour, _themeBg)}; border-left:3px solid {el.colour}; background:{hexToRgba(el.colour,0.16)};"
+                <div class="tp-agenda-row tp-agenda-row--event" class:tp-agenda-row--partial={aeTime.isPartial} role="button" tabindex="0" style="--chip-fg:{chipFg(el.colour, _themeBg)}; border-left:3px solid {el.colour}; background:{hexToRgba(el.colour,0.16)};"
                   on:click={(e) => openChipMenu(e, "event", aDate, period.id, undefined, aEv)} on:keydown={onCardKeydown}>
-                  <span class="tp-agenda-period">{period.name}</span>
+                  <span class="tp-agenda-period">{aeName}{#if aeTime.isPartial || aRun.run.length > 1}<br><span class="tp-agenda-range">{aeTime.range}</span>{/if}</span>
                   <span class="tp-agenda-main">{el.code}{#if el.meta} · {el.meta}{/if}</span>
                   {#if el.classroom}<span class="tp-agenda-room">{el.classroom}</span>{/if}
                   <span class="tp-agenda-marks">
@@ -1520,47 +1586,42 @@
                 {@const key       = cellKey(day.key, period.id)}
                 {@const isOver    = dragOverKey === key && !slot}
                 {@const isReject  = rejectKey   === key}
-                {@const _blockMins = timeToMinutes(period.end) - timeToMinutes(period.start)}
                 {@const _occCount = (slot ? 1 : 0) + devEvents.length}
                 {@const _soleEv = (!slot && devEvents.length === 1) ? devEvents[0] : undefined}
                 {@const _evSingleBlock = _soleEv ? (eventPeriodIds(_soleEv).length <= 1) : false}
-                {@const _occMins = slot && devEvents.length === 0
-                  ? (slot.durationMinutes ?? _blockMins)
-                  : (_soleEv && _evSingleBlock ? (_soleEv.durationMinutes ?? _blockMins) : _blockMins)}
-                {@const _periodStartMin = timeToMinutes(period.start)}
+                {@const _soleTime = occurrenceTime([period], slot && devEvents.length === 0
+                  ? { start: slot.start, durationMinutes: slot.durationMinutes }
+                  : (_soleEv && _evSingleBlock ? { start: _soleEv.startTime, durationMinutes: _soleEv.durationMinutes } : {}))}
+                {@const _partial = _occCount === 1 && (slot ? true : _evSingleBlock) && _soleTime.isPartial && _soleTime.mins > 0}
+                {@const _occMins = _soleTime.mins}
+                {@const _occDur = _soleTime.teachingMins}
+                {@const _occEndMin = _soleTime.endMin}
+                {@const _occEnd = _soleTime.endLabel}
+                {@const _leadMins = _soleTime.leadMins}
                 {@const _blockEndMin = timeToMinutes(period.end)}
-                {@const _soleStartMin = slot && devEvents.length === 0
-                  ? timeToMinutes(slot.start ?? period.start)
-                  : (_soleEv && _evSingleBlock ? timeToMinutes(_soleEv.startTime ?? period.start) : _periodStartMin)}
-                {@const _leadMins = Math.max(0, _soleStartMin - _periodStartMin)}
-                {@const _leadPx = _leadMins * PX_PER_MIN}
-                {@const _partial = _occCount === 1 && _occMins > 0 && (_occMins < _blockMins || _leadMins > 0) && (slot ? true : _evSingleBlock) && ((_leadMins + _occMins) * PX_PER_MIN) <= bHeight}
-                {@const _occEndMin = _soleStartMin + _occMins}
-                {@const _occEnd = minutesToTime(_occEndMin)}
                 {@const _innerH = Math.max(0, bHeight - 6)}
                 {@const _stackH = Math.min(_innerH, Math.max(_occMins * PX_PER_MIN, 22))}
-                {@const _stackTop = Math.min(_leadPx, Math.max(0, _innerH - _stackH))}
+                {@const _stackTop = Math.min(_leadMins * PX_PER_MIN, Math.max(0, _innerH - _stackH))}
                 {#if dayMerges.starts[period.id]}
                   {@const _mrun  = dayMerges.starts[period.id]}
                   {@const _mev   = _mrun.ev}
                   {@const _first = _mrun.run[0]}
                   {@const _last  = _mrun.run[_mrun.run.length - 1]}
-                  {@const _mHasStart = !!_mev.startTime}
+                  {@const _mTime = occurrenceTime(_mrun.run, { start: _mev.startTime, durationMinutes: _mev.durationMinutes })}
                   {@const _mFirstStartMin = timeToMinutes(_first.start)}
-                  {@const _mLastEndMin = timeToMinutes(_last.end)}
-                  {@const _mStartMin = _mHasStart ? Math.max(_mFirstStartMin, Math.min(timeToMinutes(_mev.startTime ?? _first.start), timeToMinutes(_first.end) - 1)) : _mFirstStartMin}
-                  {@const _mEndMin = _mHasStart && _mev.durationMinutes ? Math.min(_mStartMin + _mev.durationMinutes, _mLastEndMin) : _mLastEndMin}
+                  {@const _mStartMin = _mTime.startMin}
+                  {@const _mEndMin = _mTime.endMin}
                   {@const _mTop  = (_mStartMin - _axis.start) * PX_PER_MIN}
-                  {@const _mH    = Math.max(20, (_mEndMin - _mStartMin) * PX_PER_MIN)}
-                  {@const _mLeadMins = _mStartMin - _mFirstStartMin}
-                  {@const _mTrailMins = _mLastEndMin - _mEndMin}
+                  {@const _mH    = Math.max(20, _mTime.mins * PX_PER_MIN)}
+                  {@const _mLeadMins = _mTime.leadMins}
+                  {@const _mTrailMins = _mTime.trailMins}
                   {@const _mlbl  = getDateEventLabel(_mev)}
                   {@const _mPlan = _eventPlanMap[_mev.id]}
                   {@const _mPrep = _preparedEventMap[_mev.id]}
                   {@const _mExt  = _eventExternalMap[_mev.id]}
-                  {@const _mRange = _first.name + (_mrun.run.length > 1 ? " – " + _last.name : "") + " · " + minutesToTime(_mStartMin) + "–" + minutesToTime(_mEndMin)}
+                  {@const _mRange = _first.name + (_mrun.run.length > 1 ? " – " + _last.name : "") + " · " + _mTime.range + (_mTime.isPartial ? " · " + _mTime.teachingMins + " min" : "")}
                   {#if _mLeadMins > 0}
-                    <div class="tp-merged-gap" style="top:{(_mFirstStartMin - _axis.start) * PX_PER_MIN}px; height:{_mLeadMins * PX_PER_MIN}px;">{_first.start}–{minutesToTime(_mStartMin)}</div>
+                    <div class="tp-merged-gap" style="top:{(_mFirstStartMin - _axis.start) * PX_PER_MIN}px; height:{_mLeadMins * PX_PER_MIN}px;">{_first.start}–{_mTime.startLabel}</div>
                   {/if}
                   <div class="tp-block tp-block--merged" style="top:{_mTop}px; height:{_mH}px; --bh:{_mH}px; --tint:{hexToRgba(_mlbl.colour, 0.08)}; background:{hexToRgba(_mlbl.colour, 0.08)}; border-left:3px solid {_mlbl.colour};">
                     <div class="tp-event-stack">
@@ -1600,7 +1661,7 @@
                     </div>
                   </div>
                   {#if _mTrailMins > 0}
-                    <div class="tp-merged-gap" style="top:{(_mEndMin - _axis.start) * PX_PER_MIN}px; height:{_mTrailMins * PX_PER_MIN}px;">{minutesToTime(_mEndMin)}–{_last.end}</div>
+                    <div class="tp-merged-gap" style="top:{(_mEndMin - _axis.start) * PX_PER_MIN}px; height:{_mTrailMins * PX_PER_MIN}px;">{_mTime.endLabel}–{_last.end}</div>
                   {/if}
                 {:else if dayMerges.consumed.has(period.id)}
                   <!-- block consumed by the merged event rendered above -->
@@ -1635,6 +1696,7 @@
                         {@const slotPlanPath = _slotPlanMap[slot.id + "|" + dayDate]}
                         {@const slotPrepared = _preparedSlotMap[slot.id + "|" + dayDate]}
                         {@const slotExternal = _slotExternalMap[slot.id + "|" + dayDate]}
+                        {@const _slotTime = occurrenceTime([period], { start: slot.start, durationMinutes: slot.durationMinutes })}
                         <!-- svelte-ignore a11y-interactive-supports-focus -->
                         <div
                           class="tp-chip"
@@ -1648,7 +1710,7 @@
                           on:keydown={onCellKeydown}
                           style="--chip-fg:{chipFg(lbl.colour, _themeBg)}; --ctint:{hexToRgba(lbl.colour,0.22)}; background:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour};"
                         >
-                          <span class="tp-chip-period-time">{_partial ? `${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
+                          <span class="tp-chip-period-time">{_slotTime.isPartial ? `${_slotTime.range} · ${_slotTime.teachingMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
                           <div class="tp-chip-body">
                             <span class="tp-chip-code">{lbl.code}</span>
                             {#if lbl.year || lbl.subjectName}
@@ -1686,6 +1748,9 @@
                         {@const evPlanPath = _eventPlanMap[devEv.id]}
                         {@const evPrepared = _preparedEventMap[devEv.id]}
                         {@const evExternal = _eventExternalMap[devEv.id]}
+                        {@const _evTime = occurrenceTime([period], eventPeriodIds(devEv).length <= 1
+                          ? { start: devEv.startTime, durationMinutes: devEv.durationMinutes }
+                          : {})}
                         <!-- svelte-ignore a11y-interactive-supports-focus -->
                         <div
                           class="tp-chip tp-chip--event"
@@ -1699,7 +1764,7 @@
                           on:keydown={onCellKeydown}
                           style="--chip-fg:{chipFg(lbl.colour, _themeBg)}; --ctint:{hexToRgba(lbl.colour,0.22)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour,0.22)};"
                         >
-                          <span class="tp-chip-period-time">{_partial ? `${minutesToTime(_soleStartMin)}–${_occEnd} · ${_occMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
+                          <span class="tp-chip-period-time">{_evTime.isPartial ? `${_evTime.range} · ${_evTime.teachingMins} min` : `${period.name} · ${period.start}–${period.end}`}</span>
                           <div class="tp-chip-body">
                             <span class="tp-chip-code">{lbl.code}</span>
                             {#if lbl.meta}
@@ -1743,9 +1808,9 @@
                   {/if}
                   {#if _partial}
                     {#if _leadMins > 0}
-                      <div class="tp-block-free tp-block-free--lead" style="height:{_stackTop}px;">{period.start}–{minutesToTime(_soleStartMin)}</div>
+                      <div class="tp-block-free tp-block-free--lead" style="height:{_stackTop}px;">{period.start}–{_soleTime.startLabel}</div>
                     {/if}
-                    <div class="tp-block-durbadge">{_occMins}m</div>
+                    <div class="tp-block-durbadge">{_occDur}m</div>
                     {#if _occEndMin < _blockEndMin}
                       <div class="tp-block-free" style="top:{3 + _stackTop + _stackH}px;">{_occEnd}–{period.end}</div>
                     {/if}
@@ -2016,7 +2081,10 @@
   .tp-agenda-head--today { color:var(--interactive-accent); }
   .tp-agenda-dayname { text-transform:uppercase; letter-spacing:0.03em; }
   .tp-agenda-row { display:flex; align-items:center; gap:8px; width:100%; text-align:left; border:none; border-radius:0 7px 7px 0; padding:8px 10px; margin-bottom:5px; color:var(--chip-fg, var(--text-normal)); cursor:pointer; font-size:13px; font-family:var(--font-interface); }
-  .tp-agenda-period { font-size:11px; color:var(--text-muted); min-width:64px; flex-shrink:0; }
+  .tp-agenda-period { font-size:11px; color:var(--text-muted); min-width:64px; flex-shrink:0; line-height:1.3; }
+  .tp-agenda-range { font-size:10px; opacity:0.85; white-space:nowrap; }
+  /* A partial occurrence is inset from the row edge so it visibly does not fill the period */
+  .tp-agenda-row--partial { margin-left:10px; width:calc(100% - 10px); }
   .tp-agenda-main { flex:1; min-width:0; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-agenda-room { font-size:11px; font-style:italic; color:var(--text-muted); flex-shrink:0; }
   .tp-agenda-marks { --mark-size:18px; display:flex; gap:6px; align-items:center; flex-shrink:0; margin-left:4px; }
@@ -2027,8 +2095,15 @@
   .tp-daylist-empty { font-size:13px; color:var(--text-faint); font-style:italic; padding:14px; text-align:center; }
   .tp-dcard { display:flex; gap:10px; align-items:flex-start; width:100%; text-align:left; border:none; border-radius:0 9px 9px 0; padding:9px 11px; min-height:62px; box-sizing:border-box; cursor:pointer; color:var(--chip-fg, var(--text-normal)); font-family:var(--font-interface); }
   .tp-dcard:active { filter:brightness(1.06); }
-  .tp-dcard-time { font-size:11px; color:var(--text-muted); width:40px; flex-shrink:0; line-height:1.3; }
-  .tp-dcard-time span { font-size:10px; opacity:0.8; }
+  .tp-dcard-time { font-size:11px; color:var(--text-muted); width:46px; flex-shrink:0; line-height:1.3; }
+  .tp-dcard-time span { font-size:10px; opacity:0.8; white-space:nowrap; }
+  /* Partial occurrence: inset + shorter, so it reads as not filling the block */
+  .tp-dcard--partial { margin-left:12px; width:calc(100% - 12px); min-height:52px; }
+  .tp-dcard-dur { display:inline-block; margin-left:6px; padding:0 5px; border-radius:8px; font-size:10px; font-weight:600; vertical-align:middle;
+                  background:var(--background-modifier-border); color:var(--text-muted); }
+  /* Free remainder of a block either side of a partial occurrence (mirrors the desktop grid strips) */
+  .tp-dfree { display:flex; align-items:center; height:20px; margin:0 0 3px 12px; padding:0 8px; border-radius:6px;
+              border:1px dashed var(--background-modifier-border); font-size:10px; color:var(--text-faint); }
   .tp-dcard-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
   .tp-dcard-code { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-dcard-sub { font-size:11px; color:var(--chip-fg, var(--text-normal)); opacity:0.82; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }

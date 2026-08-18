@@ -80,3 +80,109 @@ export function sumPeriodMinutes(orderedPeriods: SchoolPeriod[], selectedIds: st
     .filter(p => sel.has(p.id))
     .reduce((acc, p) => acc + minutesBetween(p.start, p.end), 0);
 }
+
+
+// ── Occurrence times (partial periods / custom ranges) ──────────────────────
+
+/** Resolved clock span of one lesson or event occurrence inside its period run. */
+export interface OccurrenceTime {
+  /** Start, minutes since midnight. */
+  startMin: number;
+  /** End, minutes since midnight — never past the run's last period. */
+  endMin: number;
+  /** Wall-clock length in minutes (endMin - startMin). Use for geometry. */
+  mins: number;
+  /** Minutes actually spent inside periods, i.e. excluding any break the run spans. Use for "N min" labels. */
+  teachingMins: number;
+  /** Empty minutes before the occurrence starts. */
+  leadMins: number;
+  /** Empty minutes after the occurrence ends. */
+  trailMins: number;
+  /** True when the occurrence does not fill the whole run. */
+  isPartial: boolean;
+  /** Zero-padded "HH:MM" start. */
+  startLabel: string;
+  /** Zero-padded "HH:MM" end. */
+  endLabel: string;
+  /** "10:20\u201310:45" */
+  range: string;
+}
+
+function toMins(t: string): number {
+  const [h, m] = (t ?? "").split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+function toClock(mins: number): string {
+  const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+/**
+ * Resolve the real clock span of an occupant of `run` — one or more
+ * chronologically ordered periods (a single period for a timetabled lesson or
+ * a single-block event, the whole contiguous run for a multi-period event).
+ *
+ * `start` ("HH:MM") and `durationMinutes` are the per-lesson / per-event
+ * overrides and either may be absent: no start means "start of the run", no
+ * duration means "run to the end of the run".
+ *
+ * The duration is spent as *teaching* minutes, matching how the event editor
+ * pre-fills it (`sumPeriodMinutes` — the sum of the selected blocks, breaks
+ * excluded). So a 120-minute event over P1+P2 either side of a 20-minute break
+ * still ends at P2's end rather than 20 minutes early. Everything is clamped
+ * to the run, so an over-long duration can never spill past the last period
+ * and a start before the run simply pins to its beginning.
+ *
+ * This is the single source of truth for partial-period display — the desktop
+ * grid chips, the mobile day cards, the mobile agenda rows and the chip action
+ * menu header all read their times from here.
+ */
+export function occurrenceTime(
+  run: SchoolPeriod[],
+  opts: { start?: string; durationMinutes?: number },
+): OccurrenceTime {
+  if (!run || run.length === 0) {
+    return {
+      startMin: 0, endMin: 0, mins: 0, teachingMins: 0, leadMins: 0, trailMins: 0,
+      isPartial: false, startLabel: "", endLabel: "", range: "",
+    };
+  }
+  const runStart = toMins(run[0].start);
+  const runEnd   = Math.max(runStart, toMins(run[run.length - 1].end));
+  // A start past the end of the run would give a zero-length occurrence; pin it
+  // one minute short so the block still renders (matches the pre-0.3.7 clamp).
+  const startMin = opts.start
+    ? Math.max(runStart, Math.min(toMins(opts.start), Math.max(runStart, runEnd - 1)))
+    : runStart;
+
+  // Walk the run consuming teaching minutes, skipping any gap between blocks.
+  let endMin = startMin;
+  let teachingMins = 0;
+  let remaining = opts.durationMinutes && opts.durationMinutes > 0 ? opts.durationMinutes : Infinity;
+  for (const pr of run) {
+    const ps = toMins(pr.start), pe = toMins(pr.end);
+    if (pe <= startMin) continue;                 // block already behind the start
+    const from = Math.max(ps, startMin);
+    const avail = Math.max(0, pe - from);
+    if (avail === 0) continue;
+    if (remaining <= avail) { endMin = from + remaining; teachingMins += remaining; remaining = 0; break; }
+    remaining -= avail; teachingMins += avail; endMin = pe;
+  }
+  endMin = Math.max(startMin, Math.min(endMin, runEnd));
+
+  const startLabel = toClock(startMin);
+  const endLabel   = toClock(endMin);
+  return {
+    startMin,
+    endMin,
+    mins: endMin - startMin,
+    teachingMins,
+    leadMins: startMin - runStart,
+    trailMins: runEnd - endMin,
+    isPartial: startMin > runStart || endMin < runEnd,
+    startLabel,
+    endLabel,
+    range: `${startLabel}\u2013${endLabel}`,
+  };
+}
