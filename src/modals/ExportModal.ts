@@ -8,7 +8,7 @@ import {
   joinSystemPath,
 } from "../utils/exportDestination";
 import { generateIcal } from "../utils/icalUtils";
-import { isValidIsoDate } from "../utils/weekUtils";
+import { isValidIsoDate, localIso } from "../utils/weekUtils";
 import type { SchoolDay } from "../types";
 
 type ExportDataset = "timetable" | "events" | "both";
@@ -81,7 +81,7 @@ export class ExportModal extends Modal {
 
     // iCal-only options: content toggles + date range
     const ay = this.plugin.settings.academicYear;
-    const todayIso = new Date().toISOString().slice(0, 10);
+    const todayIso = localIso(new Date());
     if (!this.icalFrom) {
       this.icalFrom = (todayIso >= ay.startDate && todayIso <= ay.endDate) ? todayIso : ay.startDate;
     }

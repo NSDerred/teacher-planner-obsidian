@@ -27,3 +27,6 @@ npm-debug.log*
 _tw_test.*
 _cs_*
 /_TO DELETE/
+
+# Bundled test output (test/run.mjs)
+/.test-build/

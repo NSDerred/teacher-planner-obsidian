@@ -1,5 +1,5 @@
 import type { TeacherPlannerSettings, SchoolDay } from "../types";
-import { getMondayOfWeek, getAbWeekType, schoolDayOf } from "./weekUtils";
+import { getMondayOfWeek, getAbWeekType, schoolDayOf, localIso } from "./weekUtils";
 import { periodAppliesTo, periodLengthMinutes } from "./scheduleUtils";
 
 export interface WeekBreakdown {
@@ -56,7 +56,7 @@ function workingDaysInRange(startIso: string, endIso: string, schoolDays: School
   const days: string[] = [];
   for (let d = new Date(start); d <= end; d = new Date(d.getTime() + MS_DAY)) {
     if (schoolDays.includes(schoolDayOf(d))) {
-      days.push(d.toISOString().slice(0, 10));
+      days.push(localIso(d));
     }
   }
   return days;
@@ -101,7 +101,7 @@ export function calcDirectedTime(s: TeacherPlannerSettings): DirectedTimeCalc {
   const ayEnd = new Date(s.academicYear.endDate + "T23:59:59");
 
   while (weekMon <= ayEnd) {
-    const wKey   = weekMon.toISOString().slice(0, 10);
+    const wKey   = localIso(weekMon);
     const isPast = weekMon.getTime() <= todayMonday.getTime();
 
     // School days within this week
@@ -110,7 +110,7 @@ export function calcDirectedTime(s: TeacherPlannerSettings): DirectedTimeCalc {
       const d = new Date(weekMon.getTime() + i * MS_DAY);
       const dayName = schoolDayOf(d);
       if (schoolDays.includes(dayName)) {
-        weekDays.push({ iso: d.toISOString().slice(0, 10), dayName, offset: i });
+        weekDays.push({ iso: localIso(d), dayName, offset: i });
       }
     }
 
@@ -174,7 +174,7 @@ export function calcDirectedTime(s: TeacherPlannerSettings): DirectedTimeCalc {
 
     let eventCount = 0, eventMins = 0;
     for (const ev of s.dateEvents ?? []) {
-      const evMon = getMondayOfWeek(new Date(ev.date + "T12:00:00")).toISOString().slice(0, 10);
+      const evMon = localIso(getMondayOfWeek(new Date(ev.date + "T12:00:00")));
       // Custom (title) events use their explicit isDirected flag; legacy events
       // are directed if their class/activity is.
       const directed = (ev.title && ev.title.trim())

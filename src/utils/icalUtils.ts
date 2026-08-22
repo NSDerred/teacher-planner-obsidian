@@ -1,7 +1,7 @@
 import type {
   TeacherPlannerSettings, SchoolDay, SchoolPeriod,
 } from "../types";
-import { getMondayOfWeek, getAbWeekType, schoolDayOf } from "./weekUtils";
+import { getMondayOfWeek, getAbWeekType, schoolDayOf, localIso } from "./weekUtils";
 import { getPeriodsForDay } from "./scheduleUtils";
 import { eventPeriodIds } from "./eventUtils";
 
@@ -154,7 +154,7 @@ function collectEvents(s: TeacherPlannerSettings, opts: IcalOptions): VEvent[] {
     const dayPeriods: SchoolPeriod[] = getPeriodsForDay(s.academicYear, dayName);
     const periodById = new Map(dayPeriods.map(p => [p.id, p]));
     const monday = getMondayOfWeek(d);
-    const mondayKey = monday.toISOString().slice(0, 10);
+    const mondayKey = localIso(monday);
     const template = s.timetableTemplates?.find(t => t.startDate <= mondayKey && t.endDate >= mondayKey);
     const abType = s.academicYear?.abWeekEnabled
       ? getAbWeekType(d, s.academicYear, s.weekOverrides ?? [], s.schoolDays)

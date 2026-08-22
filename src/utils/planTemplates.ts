@@ -1,5 +1,6 @@
 import { App, TFile, normalizePath } from "obsidian";
 import type { TeacherPlannerSettings } from "../types";
+import { localIso } from "./weekUtils";
 
 /**
  * Lesson plan templates (0.3.5). Six templates ship as code constants so a
@@ -178,7 +179,7 @@ function fridayOfWeek(iso?: string): string {
   if (isNaN(d.getTime())) return "";
   const day = d.getDay();
   d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day) + 4);
-  return friendlyDate(d.toISOString().slice(0, 10));
+  return friendlyDate(localIso(d));
 }
 
 function mondayIso(iso?: string): string {
@@ -187,7 +188,7 @@ function mondayIso(iso?: string): string {
   if (isNaN(d.getTime())) return "";
   const day = d.getDay();
   d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
-  return friendlyDate(d.toISOString().slice(0, 10));
+  return friendlyDate(localIso(d));
 }
 
 /**
@@ -199,7 +200,7 @@ function mondayIso(iso?: string): string {
 export function renderTemplateBody(
   tpl: string,
   ctx: TemplateContext,
-  today: string = new Date().toISOString().slice(0, 10),
+  today: string = localIso(new Date()),
 ): { body: string; cursorOffset: number } {
   const map: Record<string, string> = {
     class: ctx.classCode ?? "",

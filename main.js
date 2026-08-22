@@ -1304,12 +1304,12 @@ var init_weekUtils = __esm({
 function subtractOneDay(dateStr) {
   const d = /* @__PURE__ */ new Date(dateStr + "T12:00:00");
   d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
+  return localIso(d);
 }
 function addOneDay(dateStr) {
   const d = /* @__PURE__ */ new Date(dateStr + "T12:00:00");
   d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
+  return localIso(d);
 }
 function fmtDate(dateStr) {
   const d = /* @__PURE__ */ new Date(dateStr + "T12:00:00");
@@ -1319,6 +1319,7 @@ var import_obsidian, AddTimetableTemplateModal;
 var init_AddTimetableTemplateModal = __esm({
   "src/modals/AddTimetableTemplateModal.ts"() {
     import_obsidian = require("obsidian");
+    init_weekUtils();
     AddTimetableTemplateModal = class extends import_obsidian.Modal {
       constructor(app, plugin, onCreated) {
         super(app);
@@ -1343,7 +1344,7 @@ var init_AddTimetableTemplateModal = __esm({
         window.setTimeout(() => nameInput.focus(), 50);
         this.label(form, "Start Date (YYYY-MM-DD)");
         const dateInput = form.createEl("input", { type: "date", cls: "tp-modal-input" });
-        const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+        const today = localIso(/* @__PURE__ */ new Date());
         dateInput.value = today;
         dateInput.setCssStyles({ width: "100%", boxSizing: "border-box", marginBottom: "14px" });
         this.label(form, "Copy slots from (optional)");
@@ -7799,7 +7800,7 @@ function collectEvents(s, opts) {
     const dayPeriods = getPeriodsForDay(s.academicYear, dayName);
     const periodById = new Map(dayPeriods.map((p) => [p.id, p]));
     const monday = getMondayOfWeek(d);
-    const mondayKey = monday.toISOString().slice(0, 10);
+    const mondayKey = localIso(monday);
     const template = (_i = s.timetableTemplates) == null ? void 0 : _i.find((t) => t.startDate <= mondayKey && t.endDate >= mondayKey);
     const abType = ((_j = s.academicYear) == null ? void 0 : _j.abWeekEnabled) ? getAbWeekType(d, s.academicYear, (_k = s.weekOverrides) != null ? _k : [], s.schoolDays) : null;
     const occupiedPeriods = /* @__PURE__ */ new Set();
@@ -7980,7 +7981,7 @@ var init_ExportModal = __esm({
           lbl.createSpan({ text: label });
         }
         const ay = this.plugin.settings.academicYear;
-        const todayIso = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+        const todayIso = localIso(/* @__PURE__ */ new Date());
         if (!this.icalFrom) {
           this.icalFrom = todayIso >= ay.startDate && todayIso <= ay.endDate ? todayIso : ay.startDate;
         }
@@ -8304,7 +8305,7 @@ function workingDaysInRange(startIso, endIso, schoolDays) {
   const days = [];
   for (let d = new Date(start); d <= end; d = new Date(d.getTime() + MS_DAY)) {
     if (schoolDays.includes(schoolDayOf(d))) {
-      days.push(d.toISOString().slice(0, 10));
+      days.push(localIso(d));
     }
   }
   return days;
@@ -8337,14 +8338,14 @@ function calcDirectedTime(s) {
   let weekMon = getMondayOfWeek(/* @__PURE__ */ new Date(s.academicYear.startDate + "T12:00:00"));
   const ayEnd = /* @__PURE__ */ new Date(s.academicYear.endDate + "T23:59:59");
   while (weekMon <= ayEnd) {
-    const wKey = weekMon.toISOString().slice(0, 10);
+    const wKey = localIso(weekMon);
     const isPast = weekMon.getTime() <= todayMonday.getTime();
     const weekDays = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(weekMon.getTime() + i * MS_DAY);
       const dayName = schoolDayOf(d);
       if (schoolDays.includes(dayName)) {
-        weekDays.push({ iso: d.toISOString().slice(0, 10), dayName, offset: i });
+        weekDays.push({ iso: localIso(d), dayName, offset: i });
       }
     }
     const totalSchoolDays = weekDays.length;
@@ -8414,7 +8415,7 @@ function calcDirectedTime(s) {
     }
     let eventCount = 0, eventMins = 0;
     for (const ev of (_h = s.dateEvents) != null ? _h : []) {
-      const evMon = getMondayOfWeek(/* @__PURE__ */ new Date(ev.date + "T12:00:00")).toISOString().slice(0, 10);
+      const evMon = localIso(getMondayOfWeek(/* @__PURE__ */ new Date(ev.date + "T12:00:00")));
       const directed = ev.title && ev.title.trim() ? !!ev.isDirected : isDirectedId(ev.classId, s);
       if (evMon !== wKey || !directed) continue;
       if (holidayDates.has(ev.date)) continue;
@@ -9054,7 +9055,7 @@ var init_SetupWizardModal = __esm({
             });
           }
           new import_obsidian8.Setting(listEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET").setCta().onClick(() => {
-            const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+            const today = localIso(/* @__PURE__ */ new Date());
             this.state.weekOverrides.push({ startDate: today, type: "holiday" });
             renderOverrides();
           })).addButton((btn) => btn.setButtonText("Clear all").setClass("mod-warning").onClick(() => {
@@ -9826,7 +9827,7 @@ function fridayOfWeek(iso) {
   if (isNaN(d.getTime())) return "";
   const day2 = d.getDay();
   d.setDate(d.getDate() + (day2 === 0 ? -6 : 1 - day2) + 4);
-  return friendlyDate(d.toISOString().slice(0, 10));
+  return friendlyDate(localIso(d));
 }
 function mondayIso(iso) {
   if (!iso) return "";
@@ -9834,9 +9835,9 @@ function mondayIso(iso) {
   if (isNaN(d.getTime())) return "";
   const day2 = d.getDay();
   d.setDate(d.getDate() + (day2 === 0 ? -6 : 1 - day2));
-  return friendlyDate(d.toISOString().slice(0, 10));
+  return friendlyDate(localIso(d));
 }
-function renderTemplateBody(tpl, ctx, today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)) {
+function renderTemplateBody(tpl, ctx, today = localIso(/* @__PURE__ */ new Date())) {
   var _a2, _b2, _c, _d, _e, _f, _g;
   const map = {
     class: (_a2 = ctx.classCode) != null ? _a2 : "",
@@ -9997,6 +9998,7 @@ var import_obsidian10, HEADER, TEMPLATE_ESSENTIALS, TEMPLATE_REVIEW_BUILD_APPLY,
 var init_planTemplates = __esm({
   "src/utils/planTemplates.ts"() {
     import_obsidian10 = require("obsidian");
+    init_weekUtils();
     HEADER = "# {{class}} \u2014 {{subject}} {{emoji}}\n{{lessonDate}} \xB7 {{period}} \xB7 {{room}}\n";
     TEMPLATE_ESSENTIALS = `${HEADER}
 ## Learning objectives
@@ -10616,7 +10618,7 @@ var init_SettingsTab = __esm({
         this.renderWeekOverridesList(overridesContainer);
         new import_obsidian13.Setting(containerEl).addButton((btn) => btn.setButtonText("+ Add holiday / INSET range").setCta().onClick(async () => {
           var _a3;
-          const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+          const today = localIso(/* @__PURE__ */ new Date());
           const newOverride = { startDate: today, type: "holiday", label: "" };
           this.plugin.settings.weekOverrides.push(newOverride);
           await this.plugin.saveSettings();
@@ -10847,7 +10849,7 @@ var init_SettingsTab = __esm({
         });
         const _sampleSubj = (_d = this.plugin.settings.subjects) == null ? void 0 : _d[0];
         const _sampleCls = (_e = this.plugin.settings.classes) == null ? void 0 : _e[0];
-        const _sampleDate = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+        const _sampleDate = localIso(/* @__PURE__ */ new Date());
         const renderLessonTitle = (tpl) => {
           var _a3, _b3, _c2, _d2;
           return buildNoteTitle(tpl, {
@@ -11189,7 +11191,7 @@ var init_SettingsTab = __esm({
           emoji: (_f = subj == null ? void 0 : subj.emoji) != null ? _f : "\u{1F52C}",
           year: (_g = cls == null ? void 0 : cls.year) != null ? _g : "10",
           academicYear: (_h = s.academicYear) == null ? void 0 : _h.name,
-          lessonDate: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+          lessonDate: localIso(/* @__PURE__ */ new Date()),
           period: "Period 2",
           room: (_i = cls == null ? void 0 : cls.classroom) != null ? _i : "B310"
         };
@@ -11469,7 +11471,7 @@ var init_SettingsTab = __esm({
         ta.placeholder = "## Priorities\n\n## Teaching notes\n\n## Admin\n";
         const refreshPreview = this.buildTemplatePreview(editorWrap, () => ta.value, {
           academicYear: (_b2 = s.academicYear) == null ? void 0 : _b2.name,
-          lessonDate: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)
+          lessonDate: localIso(/* @__PURE__ */ new Date())
         });
         ta.addEventListener("input", () => refreshPreview());
         new import_obsidian13.Setting(area).addButton((b) => b.setButtonText("Save as template\u2026").setCta().onClick(() => {
@@ -12820,11 +12822,7 @@ var init_SettingsTab = __esm({
       }
       getMondayStr(date) {
         const d = new Date(date);
-        d.setHours(0, 0, 0, 0);
-        const day2 = d.getDay();
-        const diff = day2 === 0 ? -6 : 1 - day2;
-        d.setDate(d.getDate() + diff);
-        return d.toISOString().split("T")[0];
+        return localIso(getMondayOfWeek(d));
       }
       renderWeekOverridesList(container) {
         const { weekOverrides } = this.plugin.settings;
@@ -18510,7 +18508,7 @@ function instance2($$self, $$props, $$invalidate) {
     }
     doSwitchTemplate(id);
   }
-  const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  const today = localIso(/* @__PURE__ */ new Date());
   let showPastConfirm = false;
   let warnCollapsed = false;
   let renamingId = null;
@@ -19339,6 +19337,7 @@ var init_TimetableEditorComponent = __esm({
     init_SettingsTab();
     init_themeColours();
     init_scheduleUtils();
+    init_weekUtils();
     ({ window: window_1 } = globals);
     func_3 = (c) => c.archived;
     func_4 = (a) => a.archived;
@@ -19972,7 +19971,7 @@ var AddDateEventModal = class extends import_obsidian18.Modal {
       durationMinutes = (_f = ev.durationMinutes) != null ? _f : 0;
       start = (_g = ev.startTime) != null ? _g : "";
     } else {
-      date = (_h = this.prefillDate) != null ? _h : (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+      date = (_h = this.prefillDate) != null ? _h : localIso(/* @__PURE__ */ new Date());
       title = "";
       colour = randomPaletteColour();
       directed = directedTimeEnabled;

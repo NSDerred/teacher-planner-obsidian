@@ -1,5 +1,5 @@
 import type { TeacherPlannerSettings, LessonPlanLink, ExternalResourceLink, PreparedMark, SchoolDay } from "../types";
-import { getMondayOfWeek, getAbWeekType, schoolDayOf } from "./weekUtils";
+import { getMondayOfWeek, getAbWeekType, schoolDayOf, localIso } from "./weekUtils";
 import { periodAppliesTo } from "./scheduleUtils";
 
 /**
@@ -146,7 +146,7 @@ export function bulkApplyPlan(s: TeacherPlannerSettings, classId: string, fromIs
     if (!schoolDays.includes(dayName)) continue;
     if (overrideDates.has(iso)) continue;
 
-    const mondayKey = getMondayOfWeek(d).toISOString().slice(0, 10);
+    const mondayKey = localIso(getMondayOfWeek(d));
     const template = s.timetableTemplates?.find(t => t.startDate <= mondayKey && t.endDate >= mondayKey);
     if (!template) continue;
     const abType = ay.abWeekEnabled ? getAbWeekType(d, ay, s.weekOverrides ?? [], schoolDays) : null;

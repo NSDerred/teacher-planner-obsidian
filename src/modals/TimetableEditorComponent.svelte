@@ -7,6 +7,7 @@
   import { ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
   import { resolveColour, hexToRgba, periodTypeColour } from "../utils/themeColours";
   import { periodAppliesTo, periodLengthMinutes, getPeriodsForDay } from "../utils/scheduleUtils";
+  import { localIso } from "../utils/weekUtils";
 
   function icon(node: HTMLElement, name: string) {
     setIcon(node, name);
@@ -143,7 +144,7 @@
   }
 
   // ── Template edit warning ─────────────────────────────────────────────────
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localIso(new Date());
   $: isPast = activeTemplate ? activeTemplate.endDate < today : false;
   let showPastConfirm = false;
   let warnCollapsed = false;

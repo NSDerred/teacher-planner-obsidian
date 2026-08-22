@@ -14,11 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Dates were keyed in UTC, so holidays and removals could land on the wrong day.** Week and day keys were built by converting a local-midnight date to UTC, which returns the previous day anywhere east of UTC — including the whole of the UK through British Summer Time, and so most of the school year. The consequences were quiet rather than visible: a Friday holiday was not deducted from directed time at all, a Monday-to-Thursday holiday or a lesson removed for one date was applied to the neighbouring day, and a timetable template starting exactly on a Monday was treated as not yet started for its own first week, which could drop that week's lessons from bulk plan apply and from the iCal export. Every date key now goes through the plugin's local-time formatter. Nothing stored changes, so no repair is needed — the numbers simply come out right from this version on.
 - **Mobile ignored custom lesson and event times.** On a phone, the Day and Agenda lists drew every lesson and event as filling its whole period, however you had set its start time or duration — all of that arithmetic lived inside the desktop grid and had never been given to the mobile views. Both now show the real start and end, mark a shortened block as inset, add a duration pill, and draw the unused remainder of the period as a dashed "free" strip. The desktop grid was rebuilt on the same shared calculation, so a block holding both a lesson and an event now labels each with its own times instead of both with the period's.
 - **A multi-period event appeared once per period on mobile.** An event covering two or three blocks produced a card for each of them. It now renders as a single card spanning its whole run, matching how the desktop grid merges the same event, and the tap menu reports the event's own span and full run rather than whichever block you happened to tap.
 
 ### Changed
 
+- **The plugin now has a test suite.** Thirty-five tests cover the parts where a mistake is silent rather than loud: the A/B rotation, directed-time accrual, partial-period times, template tokens and date keys. They run in three timezones on every pass, because the UTC bug above was invisible at UTC and only appeared east of it. No new dependency was added; the existing bundler and Node's built-in test runner do the work, via `npm test`.
 - **Housekeeping under the bonnet.** The map from a calendar date to a school day was written out in eight separate files, so a change to the school week meant finding all eight. There is now one shared `schoolDayOf` helper, and an unused day-name lookup left over from an earlier version has gone. Nothing changes on screen.
 
 ## [0.3.6] — 2026-08-05

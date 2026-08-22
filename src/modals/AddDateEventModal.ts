@@ -9,7 +9,7 @@ import { ColourPickerModal, ConfirmModal, confirmDelete } from "../settings/Sett
 import { blockOccupants } from "../utils/clashUtils";
 import { clearEventRecords } from "../utils/planLinkUtils";
 import { DatePickerModal } from "./DatePickerModal";
-import { schoolDayOf } from "../utils/weekUtils";
+import { schoolDayOf, localIso } from "../utils/weekUtils";
 
 function randomPaletteColour(): string {
   return CLASS_COLOUR_PALETTE[Math.floor(Math.random() * CLASS_COLOUR_PALETTE.length)];
@@ -134,7 +134,7 @@ export class AddDateEventModal extends Modal {
       durationMinutes = ev.durationMinutes ?? 0;
       start = ev.startTime ?? "";
     } else {
-      date = this.prefillDate ?? new Date().toISOString().split("T")[0];
+      date = this.prefillDate ?? localIso(new Date());
       title = ""; colour = randomPaletteColour(); directed = directedTimeEnabled;
       classroom = ""; notes = "";
       if (this.prefillPeriodId) selected.add(this.prefillPeriodId);

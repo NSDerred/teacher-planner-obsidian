@@ -11,7 +11,7 @@ import { renderDestinationPicker, openOSFilePicker, readSystemFile, type ExportD
 import { buildStructureTemplate, buildHolidayTemplate, writeTemplateFile, listTemplateFiles, readTemplateText, parseTemplate, applyStructureTemplate, applyHolidayTemplate, holidayCount, shiftOverrideDates, structureTemplatesFolder, holidayTemplatesFolder, type ParsedTemplate } from "../utils/schoolTemplates";
 import type { LibFile } from "../utils/pluginLibrary";
 import { resolveColour, isThemeToken, GRID_THEME_TOKEN } from "../utils/themeColours";
-import { findOverlappingOverrides } from "../utils/weekUtils";
+import { findOverlappingOverrides, getMondayOfWeek, localIso } from "../utils/weekUtils";
 import ColourPickerComponent from "../modals/ColourPickerComponent.svelte";
 import { AddPeriodModal } from "../modals/AddPeriodModal";
 import { ExportModal } from "../modals/ExportModal";
@@ -392,7 +392,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     this.renderWeekOverridesList(overridesContainer);
     new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add holiday / INSET range").setCta()
       .onClick(async () => {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = localIso(new Date());
         const newOverride: WeekOverride = { startDate: today, type: "holiday", label: "" };
         this.plugin.settings.weekOverrides.push(newOverride);
         await this.plugin.saveSettings();
@@ -641,7 +641,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     const _sampleSubj = this.plugin.settings.subjects?.[0];
     const _sampleCls = this.plugin.settings.classes?.[0];
-    const _sampleDate = new Date().toISOString().slice(0, 10);
+    const _sampleDate = localIso(new Date());
 
     const renderLessonTitle = (tpl: string) => buildNoteTitle(tpl, {
       dateIso: _sampleDate,
@@ -1036,7 +1036,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       emoji: subj?.emoji ?? "🔬",
       year: cls?.year ?? "10",
       academicYear: s.academicYear?.name,
-      lessonDate: new Date().toISOString().slice(0, 10),
+      lessonDate: localIso(new Date()),
       period: "Period 2",
       room: cls?.classroom ?? "B310",
     };
@@ -1324,7 +1324,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     ta.placeholder = "## Priorities\n\n## Teaching notes\n\n## Admin\n";
     const refreshPreview = this.buildTemplatePreview(editorWrap, () => ta.value, {
       academicYear: s.academicYear?.name,
-      lessonDate: new Date().toISOString().slice(0, 10),
+      lessonDate: localIso(new Date()),
     });
     ta.addEventListener("input", () => refreshPreview());
 
@@ -2541,11 +2541,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
   private getMondayStr(date: Date): string {
     const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    const day = d.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    d.setDate(d.getDate() + diff);
-    return d.toISOString().split("T")[0];
+    return localIso(getMondayOfWeek(d));
   }
 
   private renderWeekOverridesList(container: HTMLElement) {

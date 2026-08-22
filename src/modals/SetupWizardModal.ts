@@ -6,7 +6,7 @@ import type {
 } from "../types";
 import { DEFAULT_PLANNER, DEFAULT_SETTINGS, CLASS_COLOUR_PALETTE, FALLBACK_PERIOD_TYPE_COLOUR, randomClassColour } from "../settings";
 import { resolveColour } from "../utils/themeColours";
-import { isValidIsoDate, findOverlappingOverrides } from "../utils/weekUtils";
+import { isValidIsoDate, findOverlappingOverrides, localIso } from "../utils/weekUtils";
 import { syncPeriodsUnion } from "../utils/scheduleUtils";
 import { listTemplateFiles, readTemplateText, parseTemplate, structureTemplatesFolder, holidayTemplatesFolder, buildStructureTemplate, buildHolidayTemplate, writeTemplateFile, holidayCount, type ParsedTemplate } from "../utils/schoolTemplates";
 import type { LibFile } from "../utils/pluginLibrary";
@@ -451,7 +451,7 @@ export class SetupWizardModal extends Modal {
       new Setting(listEl)
         .addButton(btn => btn.setButtonText("+ Add holiday / INSET").setCta()
           .onClick(() => {
-            const today = new Date().toISOString().slice(0, 10);
+            const today = localIso(new Date());
             this.state.weekOverrides.push({ startDate: today, type: "holiday" });
             renderOverrides();
           }))

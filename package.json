@@ -7,9 +7,10 @@
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
     "typecheck": "tsc -noEmit -skipLibCheck",
+    "test": "node test/run.mjs",
     "lint": "eslint src --ext .ts,.svelte",
-    "check:svelte": "svelte-check --threshold error --compiler-warnings \"a11y-interactive-supports-focus:ignore\"",
-    "verify": "npm run typecheck && npm run check:svelte && npm run lint && npm run build"
+    "check:svelte": "svelte-check --threshold warning --compiler-warnings \"a11y-interactive-supports-focus:ignore\"",
+    "verify": "npm run typecheck && npm run check:svelte && npm run lint && npm run test && npm run build"
   },
   "keywords": [
     "obsidian",

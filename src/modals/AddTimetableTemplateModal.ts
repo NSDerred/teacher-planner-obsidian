@@ -1,16 +1,17 @@
 import { App, Modal } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { TimetableTemplate, TimetableSlot } from "../types";
+import { localIso } from "../utils/weekUtils";
 
 function subtractOneDay(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
   d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
+  return localIso(d);
 }
 function addOneDay(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
   d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
+  return localIso(d);
 }
 function fmtDate(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
@@ -50,7 +51,7 @@ export class AddTimetableTemplateModal extends Modal {
     // ── Start date ────────────────────────────────────────────────────────────
     this.label(form, "Start Date (YYYY-MM-DD)");
     const dateInput = form.createEl("input", { type: "date", cls: "tp-modal-input" });
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localIso(new Date());
     dateInput.value = today;
     dateInput.setCssStyles({ width: "100%", boxSizing: "border-box", marginBottom: "14px" });
 
