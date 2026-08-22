@@ -1,7 +1,7 @@
 import type {
   TeacherPlannerSettings, SchoolDay, SchoolPeriod,
 } from "../types";
-import { getMondayOfWeek, getAbWeekType } from "./weekUtils";
+import { getMondayOfWeek, getAbWeekType, schoolDayOf } from "./weekUtils";
 import { getPeriodsForDay } from "./scheduleUtils";
 import { eventPeriodIds } from "./eventUtils";
 
@@ -23,11 +23,6 @@ export interface IcalOptions {
   /** Days of the week to export. Defaults to the planner's school days. */
   days?: SchoolDay[];
 }
-
-const DAY_INDEX_MAP: Record<number, SchoolDay> = {
-  0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday",
-  4: "thursday", 5: "friday", 6: "saturday",
-};
 
 /** Escape per RFC 5545 §3.3.11 (TEXT): backslash, semicolon, comma, newline. */
 function icsEscape(s: string): string {
@@ -152,7 +147,7 @@ function collectEvents(s: TeacherPlannerSettings, opts: IcalOptions): VEvent[] {
   // ── Day-by-day walk ───────────────────────────────────────────────────────
   for (let iso = opts.fromDate; iso <= opts.toDate; iso = shiftIso(iso, 1)) {
     const d = new Date(iso + "T12:00:00");
-    const dayName = DAY_INDEX_MAP[d.getDay()];
+    const dayName = schoolDayOf(d);
     if (!schoolDays.includes(dayName)) continue;
     if (overrideByDate.has(iso)) continue; // holiday/INSET day — nothing timetabled
 

@@ -5,11 +5,21 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.7] — 2026-08-22
 
 ### Added
 
+- **Week note templates.** The week note in the sidebar can now be started from a template of your own. Nothing opinionated ships: the only built-in is Blank, so week notes behave exactly as before until you write a layout in Settings and press "Save as template". Once you have one, an Insert template button appears in the week-notes toolbar whenever the current week's note is empty — one tap on a single template, or a picker when you keep several. Templates are ordinary markdown files under "<planner folder>/Week note templates", so they are yours to edit, and they understand `{{week}}` (the Monday), `{{weekEnd}}` (the Friday), `{{date}}`, `{{dateUK}}`, `{{academicYear}}` and `{{cursor}}`.
 - **`{{year}}` token in note-title templates.** Lesson- and event-note title templates now accept `{{year}}` — the class's year group — so two classes that share a code (e.g. a Year 1 "B" and a Year 2 "B") can be told apart in generated filenames: `{{date}} - {{period}} - {{year}}{{class}}` gives `13-06-2026 - P1 - 1B`. An empty year collapses cleanly like every other token, and the default templates are unchanged, so nobody's existing filenames shift. The class year was already available to plan and note *body* templates; the title templates had simply never been given it.
+
+### Fixed
+
+- **Mobile ignored custom lesson and event times.** On a phone, the Day and Agenda lists drew every lesson and event as filling its whole period, however you had set its start time or duration — all of that arithmetic lived inside the desktop grid and had never been given to the mobile views. Both now show the real start and end, mark a shortened block as inset, add a duration pill, and draw the unused remainder of the period as a dashed "free" strip. The desktop grid was rebuilt on the same shared calculation, so a block holding both a lesson and an event now labels each with its own times instead of both with the period's.
+- **A multi-period event appeared once per period on mobile.** An event covering two or three blocks produced a card for each of them. It now renders as a single card spanning its whole run, matching how the desktop grid merges the same event, and the tap menu reports the event's own span and full run rather than whichever block you happened to tap.
+
+### Changed
+
+- **Housekeeping under the bonnet.** The map from a calendar date to a school day was written out in eight separate files, so a change to the school week meant finding all eight. There is now one shared `schoolDayOf` helper, and an unused day-name lookup left over from an earlier version has gone. Nothing changes on screen.
 
 ## [0.3.6] — 2026-08-05
 

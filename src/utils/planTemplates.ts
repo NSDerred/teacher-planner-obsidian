@@ -171,6 +171,16 @@ function ukDate(iso: string): string {
   return d && m && y ? `${d}-${m}-${y}` : iso;
 }
 
+/** Friendly date of the Friday of the week containing `iso`. */
+function fridayOfWeek(iso?: string): string {
+  if (!iso) return "";
+  const d = new Date(iso + "T12:00:00");
+  if (isNaN(d.getTime())) return "";
+  const day = d.getDay();
+  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day) + 4);
+  return friendlyDate(d.toISOString().slice(0, 10));
+}
+
 function mondayIso(iso?: string): string {
   if (!iso) return "";
   const d = new Date(iso + "T12:00:00");
@@ -203,6 +213,7 @@ export function renderTemplateBody(
     period: ctx.period ?? "",
     room: ctx.room ?? "",
     week: mondayIso(ctx.lessonDate),
+    weekEnd: fridayOfWeek(ctx.lessonDate),
   };
   let body = tpl.replace(/\{\{(\w+)\}\}/g, (_m, key: string) => {
     if (key === "cursor") return CURSOR_SENTINEL;

@@ -1,12 +1,7 @@
 import type { TeacherPlannerSettings, SchoolDay } from "../types";
-import { getMondayOfWeek, getAbWeekType, localIso } from "./weekUtils";
+import { getMondayOfWeek, getAbWeekType, localIso, schoolDayOf } from "./weekUtils";
 import { getPeriodsForDay } from "./scheduleUtils";
 import { resolvedSlotForDate } from "./clashUtils";
-
-const DOW: Record<number, SchoolDay> = {
-  0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday",
-  4: "thursday", 5: "friday", 6: "saturday",
-};
 
 export interface LessonOccurrence {
   date: string;        // ISO "YYYY-MM-DD"
@@ -57,7 +52,7 @@ export function classOccurrences(s: TeacherPlannerSettings, classId: string): Le
       const d = addDays(monday, i);
       const dateIso = localIso(d);
       if (dateIso < startIso || dateIso > endIso) continue;
-      const dayName = DOW[d.getDay()];
+      const dayName = schoolDayOf(d);
       if (!dayName || !schoolDays.has(dayName)) continue;
       if (isBlockedDay(dateIso)) continue;
       for (const p of getPeriodsForDay(ay, dayName)) {

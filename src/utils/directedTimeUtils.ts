@@ -1,5 +1,5 @@
 import type { TeacherPlannerSettings, SchoolDay } from "../types";
-import { getMondayOfWeek, getAbWeekType } from "./weekUtils";
+import { getMondayOfWeek, getAbWeekType, schoolDayOf } from "./weekUtils";
 import { periodAppliesTo, periodLengthMinutes } from "./scheduleUtils";
 
 export interface WeekBreakdown {
@@ -21,12 +21,6 @@ export interface DirectedTimeCalc {
   predictedMins: number;
   weeks: WeekBreakdown[];
 }
-
-/** Maps JS getDay() return values to SchoolDay strings. */
-const DAY_INDEX_MAP: Record<number, SchoolDay> = {
-  0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday",
-  4: "thursday", 5: "friday", 6: "saturday",
-};
 
 function isDirectedId(classId: string, s: TeacherPlannerSettings): boolean {
   if (s.classes?.find(c => c.id === classId)) return true;
@@ -61,7 +55,7 @@ function workingDaysInRange(startIso: string, endIso: string, schoolDays: School
   const end   = new Date(endIso   + "T12:00:00");
   const days: string[] = [];
   for (let d = new Date(start); d <= end; d = new Date(d.getTime() + MS_DAY)) {
-    if (schoolDays.includes(DAY_INDEX_MAP[d.getDay()])) {
+    if (schoolDays.includes(schoolDayOf(d))) {
       days.push(d.toISOString().slice(0, 10));
     }
   }
@@ -114,7 +108,7 @@ export function calcDirectedTime(s: TeacherPlannerSettings): DirectedTimeCalc {
     const weekDays: { iso: string; dayName: SchoolDay; offset: number }[] = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(weekMon.getTime() + i * MS_DAY);
-      const dayName = DAY_INDEX_MAP[d.getDay()];
+      const dayName = schoolDayOf(d);
       if (schoolDays.includes(dayName)) {
         weekDays.push({ iso: d.toISOString().slice(0, 10), dayName, offset: i });
       }

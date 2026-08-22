@@ -83,7 +83,22 @@ export function isWithinAcademicYear(date: Date, startDate: string, endDate: str
   return d >= new Date(startDate).getTime() && d <= new Date(endDate).getTime();
 }
 
-const _AB_DAY_KEYS: SchoolDay[] = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+/**
+ * JS `Date.getDay()` (0 = Sunday) to SchoolDay key. THE copy for the plugin —
+ * this map used to be written out in eight files, so any change to the school
+ * week had to be found in all of them. Import `schoolDayOf` rather than
+ * indexing this directly unless you already hold the index.
+ */
+export const DAY_INDEX_MAP: Record<number, SchoolDay> = {
+  0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday",
+  4: "thursday", 5: "friday", 6: "saturday",
+};
+
+/** The SchoolDay a date falls on. */
+export function schoolDayOf(date: Date): SchoolDay {
+  return DAY_INDEX_MAP[date.getDay()];
+}
+
 const _DEFAULT_SCHOOL_DAYS: SchoolDay[] = ["monday","tuesday","wednesday","thursday","friday"];
 
 function _isoLocal(d: Date): string {
@@ -100,7 +115,7 @@ export function isFullyHolidayWeek(monday: Date, schoolDays: SchoolDay[], overri
   let sawSchoolDay = false;
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday); d.setDate(d.getDate() + i);
-    const key = _AB_DAY_KEYS[(d.getDay() + 6) % 7];
+    const key = schoolDayOf(d);
     if (!schoolDays.includes(key)) continue;
     sawSchoolDay = true;
     const iso = _isoLocal(d);
@@ -196,10 +211,6 @@ export function findOverlappingOverrides(
   }
   return null;
 }
-
-export const DAY_OF_WEEK_MAP: Record<string, number> = {
-  monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5,
-};
 
 /**
  * Folder a dated note lives in: "<planner>/WC - <Monday>" when weekly folders

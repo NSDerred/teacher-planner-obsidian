@@ -1,5 +1,5 @@
 import type { TeacherPlannerSettings, LessonPlanLink, ExternalResourceLink, PreparedMark, SchoolDay } from "../types";
-import { getMondayOfWeek, getAbWeekType } from "./weekUtils";
+import { getMondayOfWeek, getAbWeekType, schoolDayOf } from "./weekUtils";
 import { periodAppliesTo } from "./scheduleUtils";
 
 /**
@@ -8,11 +8,6 @@ import { periodAppliesTo } from "./scheduleUtils";
  * data only; the note itself is never modified, which is what makes plans
  * reusable across lessons and academic years.
  */
-
-const DAY_INDEX_MAP: Record<number, SchoolDay> = {
-  0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday",
-  4: "thursday", 5: "friday", 6: "saturday",
-};
 
 function shiftIso(iso: string, days: number): string {
   const d = new Date(iso + "T12:00:00");
@@ -147,7 +142,7 @@ export function bulkApplyPlan(s: TeacherPlannerSettings, classId: string, fromIs
 
   for (let iso = fromIso; iso <= ay.endDate; iso = shiftIso(iso, 1)) {
     const d = new Date(iso + "T12:00:00");
-    const dayName = DAY_INDEX_MAP[d.getDay()];
+    const dayName = schoolDayOf(d);
     if (!schoolDays.includes(dayName)) continue;
     if (overrideDates.has(iso)) continue;
 

@@ -27,6 +27,10 @@ import {
   type NoteTemplate,
   DEFAULT_NOTE_TEMPLATE_ID, listNoteTemplates, saveUserNoteTemplate, hiddenNoteBuiltins,
 } from "../utils/noteTemplates";
+import {
+  type WeekNoteTemplate, BLANK_WEEK_TEMPLATE_ID,
+  listWeekNoteTemplates, saveUserWeekNoteTemplate,
+} from "../utils/weekNoteTemplates";
 
 // ── Subject emoji picker ───────────────────────────────────────────────────────
 
@@ -970,6 +974,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           .onChange(v => { this.plugin.settings.weekNoteOpenIn = v as "tab" | "split" | "current"; this.plugin.requestSave(); }));
     }
 
+    // ── Week note templates (0.3.7) ────────────────────────────────────────
+    const weekNoteTemplatesArea = containerEl.createDiv("tp-week-note-templates-area");
+    void this.buildWeekNoteTemplatesUI(weekNoteTemplatesArea);
+
     new Setting(containerEl).setName("Export").setHeading();
     new Setting(containerEl)
       .setName("Export planner data")
@@ -1035,12 +1043,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   /** A labelled live preview block bound to a template textarea. */
-  private buildTemplatePreview(host: HTMLElement, getText: () => string): () => void {
+  private buildTemplatePreview(host: HTMLElement, getText: () => string, ctx?: TemplateContext): () => void {
     const box = host.createDiv("tp-template-preview");
     box.createDiv({ cls: "tp-template-preview-label", text: "Preview" });
     const pre = box.createEl("pre", { cls: "tp-template-preview-body" });
     const refresh = () => {
-      const { body } = renderTemplateBody(getText(), this.sampleTemplateContext());
+      const { body } = renderTemplateBody(getText(), ctx ?? this.sampleTemplateContext());
       pre.setText(body);
     };
     refresh();
@@ -1279,6 +1287,95 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const list = area.createDiv("tp-manage-list");
     for (const t of templates) this.renderNoteManageRow(list, t, defId, area);
     for (const t of hiddenNoteBuiltins(s)) this.renderHiddenNoteRow(list, t, area);
+  }
+
+  /**
+   * Week-note templates (0.3.7). Deliberately unopinionated: Blank is the only
+   * built-in and the default, so this section does nothing to a user's notes
+   * until they write a layout here and save it.
+   */
+  private async buildWeekNoteTemplatesUI(area: HTMLElement) {
+    area.empty();
+    const s = this.plugin.settings;
+    const templates = await listWeekNoteTemplates(this.app, s);
+    const stored = s.defaultWeekNoteTemplateId ?? BLANK_WEEK_TEMPLATE_ID;
+    const defId = templates.some(t => t.id === stored) ? stored : BLANK_WEEK_TEMPLATE_ID;
+
+    new Setting(area).setName("Week note templates").setHeading();
+    new Setting(area)
+      .setName("Default week note template")
+      .setDesc("Offered first by the Insert template button in the week-notes toolbar, which appears on an empty week note once you have saved a template. Nothing but Blank ships — write your own layout below.")
+      .addDropdown(d => {
+        for (const t of templates) d.addOption(t.id, t.builtin ? t.name : `${t.name} (yours)`);
+        d.setValue(defId);
+        d.onChange(async v => {
+          s.defaultWeekNoteTemplateId = v;
+          await this.plugin.saveSettings();
+          void this.buildWeekNoteTemplatesUI(area);
+        });
+      });
+
+    new Setting(area).setName("New week note template")
+      .setDesc("Tokens: {{week}} (the Monday), {{weekEnd}} (the Friday), {{date}}, {{dateUK}}, {{academicYear}}, {{cursor}}.");
+    const editorWrap = area.createDiv("tp-template-editor-wrap");
+    const ta = editorWrap.createEl("textarea", { cls: "tp-template-editor" });
+    ta.rows = 7;
+    ta.spellcheck = false;
+    ta.placeholder = "## Priorities\n\n## Teaching notes\n\n## Admin\n";
+    const refreshPreview = this.buildTemplatePreview(editorWrap, () => ta.value, {
+      academicYear: s.academicYear?.name,
+      lessonDate: new Date().toISOString().slice(0, 10),
+    });
+    ta.addEventListener("input", () => refreshPreview());
+
+    new Setting(area)
+      .addButton(b => b.setButtonText("Save as template…").setCta().onClick(() => {
+        if (!ta.value.trim()) { new Notice("Write the template first."); return; }
+        new TextPromptModal(this.app, "Save week note template", "", "Template name", (name) => { void (async () => {
+          const path = await saveUserWeekNoteTemplate(this.app, s, name, ta.value);
+          s.defaultWeekNoteTemplateId = path;
+          await this.plugin.saveSettings();
+          new Notice(`Saved template to ${path}`);
+          void this.buildWeekNoteTemplatesUI(area);
+        })(); }).open();
+      }));
+
+    if (templates.some(t => !t.builtin)) {
+      new Setting(area).setName("Manage week note templates")
+        .setDesc("Your templates are ordinary markdown files — edit one to open it in the vault.");
+      const list = area.createDiv("tp-manage-list");
+      for (const t of templates.filter(x => !x.builtin)) this.renderWeekNoteManageRow(list, t, defId, area);
+    }
+  }
+
+  private renderWeekNoteManageRow(list: HTMLElement, t: WeekNoteTemplate, defId: string, area: HTMLElement) {
+    const s = this.plugin.settings;
+    const row = list.createDiv("tp-manage-row");
+    const info = row.createDiv("tp-manage-info");
+    info.createSpan({ cls: "tp-manage-name", text: t.name });
+    info.createSpan({ cls: "tp-manage-meta", text: t.id === defId ? "Default · Yours" : "Yours" });
+    const actions = row.createDiv("tp-manage-actions");
+
+    const editBtn = actions.createEl("button", { cls: "tp-icon-btn", attr: { "aria-label": "Edit template" } });
+    setIcon(editBtn, "pencil");
+    editBtn.addEventListener("click", () => {
+      if (!t.path) return;
+      (this.app as unknown as { setting?: { close(): void } }).setting?.close();
+      void this.app.workspace.openLinkText(t.path, "", false);
+    });
+
+    const delBtn = actions.createEl("button", { cls: "tp-icon-btn tp-icon-btn--danger", attr: { "aria-label": "Remove template" } });
+    setIcon(delBtn, "trash-2");
+    delBtn.addEventListener("click", () => {
+      if (!t.path) return;
+      confirmDelete(this.plugin, `Delete your week note template "${t.name}"? The markdown file is moved to trash.`, async () => {
+        const file = this.app.vault.getFileByPath(t.path!);
+        if (file) { try { await this.app.fileManager.trashFile(file); } catch (e) { console.error("Teacher Planner: week note template delete failed.", e); } }
+        if ((s.defaultWeekNoteTemplateId ?? "") === t.id) s.defaultWeekNoteTemplateId = BLANK_WEEK_TEMPLATE_ID;
+        await this.plugin.saveSettings();
+        void this.buildWeekNoteTemplatesUI(area);
+      });
+    });
   }
 
   private renderNoteManageRow(list: HTMLElement, t: NoteTemplate, defId: string, area: HTMLElement) {

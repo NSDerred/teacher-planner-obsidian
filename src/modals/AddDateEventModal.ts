@@ -1,6 +1,6 @@
 import { App, Modal, Notice, Platform, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
-import type { DateEvent, SchoolDay, SchoolPeriod } from "../types";
+import type { DateEvent, SchoolPeriod } from "../types";
 import { hexToRgba } from "../utils/themeColours";
 import { getPeriodsForDay } from "../utils/scheduleUtils";
 import { eventPeriodIds, sumPeriodMinutes } from "../utils/eventUtils";
@@ -9,11 +9,7 @@ import { ColourPickerModal, ConfirmModal, confirmDelete } from "../settings/Sett
 import { blockOccupants } from "../utils/clashUtils";
 import { clearEventRecords } from "../utils/planLinkUtils";
 import { DatePickerModal } from "./DatePickerModal";
-
-const DAY_OF_WEEK: Record<number, SchoolDay> = {
-  0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday",
-  4: "thursday", 5: "friday", 6: "saturday",
-};
+import { schoolDayOf } from "../utils/weekUtils";
 
 function randomPaletteColour(): string {
   return CLASS_COLOUR_PALETTE[Math.floor(Math.random() * CLASS_COLOUR_PALETTE.length)];
@@ -146,7 +142,7 @@ export class AddDateEventModal extends Modal {
 
     const periodsForDate = (iso: string): SchoolPeriod[] => {
       const d = new Date(iso + "T12:00:00");
-      const day = DAY_OF_WEEK[d.getDay()];
+      const day = schoolDayOf(d);
       return day ? getPeriodsForDay(this.plugin.settings.academicYear, day) : [];
     };
     const timeToMin = (t: string): number => { const [h, m] = (t || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };

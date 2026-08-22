@@ -10,7 +10,7 @@
   }
   import {
     getWeekLabel, formatDateRange, addWeeks,
-    getMondayOfWeek, weekKey, getAbWeekType, localIso, wcNoteFolder,
+    getMondayOfWeek, weekKey, getAbWeekType, localIso, wcNoteFolder, schoolDayOf,
   } from "../utils/weekUtils";
   import { TimetableEditorModal } from "../modals/TimetableEditorModal";
   import { SlotNotesModal } from "../modals/SlotNotesModal";
@@ -52,9 +52,6 @@
   $: DAYS = _dep(_tick, ALL_DAYS.filter(d =>
     (plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(d.key)
   ));
-
-  /** JS getDay() index → SchoolDay key. One copy for the whole view. */
-  const dayMap: Record<number, SchoolDay> = { 0:"sunday", 1:"monday", 2:"tuesday", 3:"wednesday", 4:"thursday", 5:"friday", 6:"saturday" };
 
   // ── Reactivity tick ───────────────────────────────────────────────────────
   let _tick = 0;
@@ -155,7 +152,7 @@
     for (const ev of _dateEvents) {
       const d = new Date(ev.date + "T12:00:00");
       if (getMondayOfWeek(d).getTime() !== monday.getTime()) continue;
-      const day = dayMap[d.getDay()];
+      const day = schoolDayOf(d);
       if (!day) continue;
       for (const pid of eventPeriodIds(ev)) {
         (m[day + ":" + pid] ??= []).push(ev);
@@ -175,7 +172,7 @@
     for (const ev of _dateEvents) {
       const d = new Date(ev.date + "T12:00:00");
       if (getMondayOfWeek(d).getTime() !== monday.getTime()) continue;
-      const day = dayMap[d.getDay()];
+      const day = schoolDayOf(d);
       if (!day) continue;
       const ordered = getPeriodsForDay(plugin.settings.academicYear, day);
       for (const run of contiguousRuns(ordered, eventPeriodIds(ev))) {
@@ -195,7 +192,7 @@
     return _dateEvents.filter(ev => {
       if (eventPeriodIds(ev).length < 2) return false;
       const d = new Date(ev.date + "T12:00:00");
-      return getMondayOfWeek(d).getTime() === monday.getTime() && dayMap[d.getDay()] === dayKey;
+      return getMondayOfWeek(d).getTime() === monday.getTime() && schoolDayOf(d) === dayKey;
     });
   }
   // A period is free for merging if it has no visible lesson and the only date
@@ -651,7 +648,7 @@
     // lesson or event with a custom start/duration shows its real range rather
     // than the containing period's, and a multi-period event shows its whole
     // run rather than whichever single block was tapped.
-    const _menuDay = dayMap[new Date(date + "T12:00:00").getDay()];
+    const _menuDay = schoolDayOf(new Date(date + "T12:00:00"));
     const _menuOrdered = _menuDay
       ? getPeriodsForDay(plugin.settings.academicYear, _menuDay)
       : (plugin.settings.academicYear.periods ?? []);

@@ -1,11 +1,6 @@
-import type { TeacherPlannerSettings, TimetableSlot, SchoolDay } from "../types";
-import { getAbWeekType } from "./weekUtils";
+import type { TeacherPlannerSettings, TimetableSlot } from "../types";
+import { getAbWeekType, schoolDayOf } from "./weekUtils";
 import { eventPeriodIds, eventIsDirected } from "./eventUtils";
-
-const DOW: Record<number, SchoolDay> = {
-  0: "sunday", 1: "monday", 2: "tuesday", 3: "wednesday",
-  4: "thursday", 5: "friday", 6: "saturday",
-};
 
 function labelForId(s: TeacherPlannerSettings, classId: string): string {
   const cls = s.classes?.find(c => c.id === classId);
@@ -31,7 +26,7 @@ export function resolvedSlotForDate(
   s: TeacherPlannerSettings, dateIso: string, periodId: string,
 ): TimetableSlot | undefined {
   const d = new Date(dateIso + "T12:00:00");
-  const day = DOW[d.getDay()];
+  const day = schoolDayOf(d);
   if (!day) return undefined;
   const tmpl = (s.timetableTemplates ?? []).find(t => t.startDate <= dateIso && t.endDate >= dateIso);
   if (!tmpl) return undefined;

@@ -1,13 +1,16 @@
 <script lang="ts">
   import type TeacherPlannerPlugin from "../main";
   import type { SchoolDay } from "../types";
-  import { getMondayOfWeek, weekKey } from "../utils/weekUtils";
+  import { getMondayOfWeek, weekKey, schoolDayOf } from "../utils/weekUtils";
   import { readWeekNote, writeWeekNote, weekNoteFilePath } from "../utils/weekNoteFiles";
   import { calcDirectedTime, fmtMins } from "../utils/directedTimeUtils";
-  import { setIcon, MarkdownRenderer, TFile } from "obsidian";
+  import { setIcon, MarkdownRenderer, Menu, Notice, TFile } from "obsidian";
   import type { TAbstractFile, EventRef } from "obsidian";
   import { tick, onMount, onDestroy } from "svelte";
   import { createEmbeddableEditor, type EmbeddableEditorHandle } from "../utils/embeddableEditor";
+  import {
+    listWeekNoteTemplates, hasUserWeekNoteTemplates, renderWeekNoteBody,
+  } from "../utils/weekNoteTemplates";
 
   function icon(node: HTMLElement, name: string) {
     setIcon(node, name);
@@ -81,9 +84,8 @@
     return dt >= ayStart && dt <= ayEnd;
   }
 
-  const _dayNames = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
   function isSchoolDay(d: Date): boolean {
-    const dayName = _dayNames[d.getDay()];
+    const dayName = schoolDayOf(d);
     return (plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(dayName as SchoolDay);
   }
 
@@ -236,6 +238,46 @@
       ? plugin.app.workspace.getLeaf(false)
       : plugin.app.workspace.getLeaf(where === "split" ? "split" : "tab");
     await leaf.openFile(f);
+  }
+
+  // ── Week note templates (0.3.7) ───────────────────────────────────────────
+  // The Template button appears only on an EMPTY week note, and only once the
+  // user has saved a template of their own: nothing opinionated ships, so with
+  // no templates there is nothing to offer and the button stays out of the way.
+  $: noteIsEmpty = useLive ? liveEmpty : !notesValue.trim();
+  $: hasTemplates = _dep(_tick, _dep(currentWeekKey, hasUserWeekNoteTemplates(plugin.app, plugin.settings)));
+
+  /** Fill the week note from a template body. Refuses if the note has any content. */
+  async function applyWeekTemplate(body: string) {
+    // Re-check against the live source, not `noteIsEmpty`. Clicking the button
+    // blurs the textarea first, and that blur's save is async, so the note can
+    // hold text the reactive flag has not caught up with yet. Never clobber it.
+    const current = useLive && liveHandle ? liveHandle.value : (textareaEl?.value ?? notesValue);
+    if (current.trim()) { new Notice("This week's note already has content."); return; }
+    const rendered = renderWeekNoteBody(body, plugin.settings, currentWeekKey);
+    if (!rendered.trim()) { new Notice("That template is empty."); return; }
+    if (useLive && liveHandle) {
+      liveHandle.setValue(rendered);
+      liveEmpty = false;
+      await flushLiveSave(rendered);
+    } else {
+      await persistFrom(rendered, true);
+    }
+  }
+
+  async function onTemplateClick(e: MouseEvent) {
+    const mine = (await listWeekNoteTemplates(plugin.app, plugin.settings)).filter(t => !t.builtin);
+    if (mine.length === 0) { new Notice("No week note templates yet — save one in Settings."); return; }
+    if (mine.length === 1) { await applyWeekTemplate(mine[0].body); return; }
+    const defId = plugin.settings.defaultWeekNoteTemplateId ?? "";
+    const menu = new Menu();
+    for (const tpl of mine) {
+      menu.addItem(i => i
+        .setTitle(tpl.id === defId ? `${tpl.name} (default)` : tpl.name)
+        .setIcon("clipboard-list")
+        .onClick(() => { void applyWeekTemplate(tpl.body); }));
+    }
+    menu.showAtMouseEvent(e);
   }
 
   // Mount / remount when the editor becomes usable or the week changes; tear down otherwise.
@@ -412,6 +454,11 @@
           </div>
         {/if}
       </div>
+      {#if hasTemplates && noteIsEmpty}
+        <span class="tp-fmt-sep"></span>
+        <button class="tp-fmt-btn" aria-label="Insert a week note template" title="Insert template"
+                on:click={onTemplateClick} use:icon={"clipboard-list"}></button>
+      {/if}
       {#if useLive}
         <span class="tp-fmt-spacer"></span>
         <button class="tp-fmt-btn" aria-label="Open week note in a pane" title="Open full note"
