@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { occurrenceTime, contiguousRuns, eventPeriodIds, minutesBetween } from "../src/utils/eventUtils";
+import { occurrenceTime, contiguousRuns, eventPeriodIds, minutesBetween, runsWhereFree } from "../src/utils/eventUtils";
 
 const P1: any = { id: "p1", name: "P1", start: "09:00", end: "10:00", type: "lesson" };
 const BREAK: any = { id: "br", name: "Break", start: "10:00", end: "10:20", type: "break" };
@@ -81,4 +81,23 @@ test("minutesBetween shares the one time parser and never returns NaN", () => {
   assert.equal(minutesBetween("9:00", "10:20"), 80, "unpadded hours parse");
   assert.equal(minutesBetween("10:00", "09:00"), 0, "never negative");
   assert.equal(minutesBetween("", "10:00"), 600, "an unparseable time is 0, not NaN");
+});
+
+test("runsWhereFree splits a run where a block is not free (mobile vs desktop)", () => {
+  const free = () => true;
+  // Nothing in the way: P1 and P2 are one run even across an unselected break.
+  assert.equal(runsWhereFree([P1, BREAK, P2], ["p1", "p2"], free).length, 1);
+
+  // P2 shared with a lesson: the run ends at P1 and P2 stands alone, so the
+  // event is still shown there — matching how the desktop grid splits.
+  const runs = runsWhereFree([P1, BREAK, P2], ["p1", "p2"], (id) => id !== "p2");
+  assert.equal(runs.length, 2);
+  assert.deepEqual(runs[0].map((p: any) => p.id), ["p1"]);
+  assert.deepEqual(runs[1].map((p: any) => p.id), ["p2"]);
+
+  // A clash on the FIRST block still leaves it visible on its own.
+  const first = runsWhereFree([P1, BREAK, P2], ["p1", "p2"], (id) => id !== "p1");
+  assert.deepEqual(first.map(r => r.map((p: any) => p.id)), [["p1"], ["p2"]]);
+
+  assert.equal(runsWhereFree([P1, BREAK, P2], [], free).length, 0);
 });

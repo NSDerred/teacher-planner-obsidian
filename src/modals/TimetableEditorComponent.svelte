@@ -510,7 +510,7 @@
 
   function fmtDate(dateStr: string): string {
     const d = new Date(dateStr + "T12:00:00");
-    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
   }
 
   $: sortedSubjects    = [...subjects].sort((a, b) => a.name.localeCompare(b.name));

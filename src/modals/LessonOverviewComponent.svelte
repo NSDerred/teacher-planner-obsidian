@@ -60,9 +60,9 @@
   onDestroy(() => clearInterval(_nowTimer));
 
   const fmtDayMon = (iso: string) =>
-    new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+    new Date(iso + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
   const fmtWc = (iso: string) =>
-    "w/c " + new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    "w/c " + new Date(iso + "T12:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short" });
   function scrollToLesson(o: LessonOccurrence) {
     const el = listEl?.querySelector<HTMLElement>(`[data-lesson="${CSS.escape(keyOf(o))}"]`);
     if (el) el.scrollIntoView({ block: "center" });

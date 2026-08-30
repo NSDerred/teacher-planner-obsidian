@@ -21,7 +21,7 @@ export function getWeekLabel(date: Date): string {
   if (diffWeeks === -1) return "Previous Week";
   if (diffWeeks === 1) return "Next Week";
   const yy = String(monday.getFullYear()).slice(-2);
-  return `Week of ${monday.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} '${yy}`;
+  return `Week of ${monday.toLocaleDateString(undefined, { day: "numeric", month: "short" })} '${yy}`;
 }
 
 export function formatDateRange(date: Date): string {

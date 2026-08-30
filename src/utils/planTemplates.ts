@@ -161,11 +161,16 @@ export interface TemplateContext {
 
 const CURSOR_SENTINEL = "\u0000";
 
+/**
+ * Display date for a template token. Follows the reader's locale like every
+ * other date the plugin shows; {{dateUK}} stays fixed for anyone who wants a
+ * format that never moves.
+ */
 function friendlyDate(iso?: string): string {
   if (!iso) return "";
   const d = new Date(iso + "T12:00:00");
   if (isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
 
 function ukDate(iso: string): string {

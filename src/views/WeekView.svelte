@@ -1,6 +1,6 @@
 <script lang="ts">
   import type TeacherPlannerPlugin from "../main";
-  import type { TimetableSlot, SchoolPeriod, DateEvent, SchoolDay } from "../types";
+  import type { TimetableSlot, SchoolPeriod, DateEvent, SchoolDay, SlotExclusion } from "../types";
   import { Menu, Notice, Platform, setIcon, MarkdownView } from "obsidian";
 
   // Svelte action: renders an Obsidian Lucide icon into the element
@@ -21,7 +21,7 @@
   import { resolveColour, clearThemeColourCache, colourToCss, hexToRgba, periodTypeColour } from "../utils/themeColours";
   import { periodAppliesTo, getPeriodsForDay, timeMins } from "../utils/scheduleUtils";
   import { warn } from "../utils/log";
-  import { eventPeriodIds, eventIsDirected, contiguousRuns, occurrenceTime } from "../utils/eventUtils";
+  import { eventPeriodIds, eventIsDirected, occurrenceTime, runsWhereFree } from "../utils/eventUtils";
   import {
     getSlotPlan, setSlotPlan, clearSlotPlan, getEventPlan, setEventPlan, clearEventPlan,
     migrateSlotPlanToEvent, bulkApplyPlan, undoBulkApply,
@@ -170,13 +170,18 @@
   $: _dateEventRunMap = (() => {
     const m: Record<string, { ev: DateEvent; run: SchoolPeriod[] }[]> = {};
     const monday = currentMonday;
+    // Named here so Svelte registers them as dependencies of this block: the
+    // freeness test reads them, but only through a function call.
+    const slotMap = _slotMap, evMap = _dateEventMap, exclusions = _slotExclusions;
     for (const ev of _dateEvents) {
       const d = new Date(ev.date + "T12:00:00");
       if (getMondayOfWeek(d).getTime() !== monday.getTime()) continue;
       const day = schoolDayOf(d);
       if (!day) continue;
       const ordered = getPeriodsForDay(plugin.settings.academicYear, day);
-      for (const run of contiguousRuns(ordered, eventPeriodIds(ev))) {
+      const runs = runsWhereFree(ordered, eventPeriodIds(ev), (pid) =>
+        blockFreeExceptEvent(slotMap, evMap, exclusions, day, ev.date, pid, ev));
+      for (const run of runs) {
         (m[day + ":" + run[0].id] ??= []).push({ ev, run });
       }
     }
@@ -198,12 +203,25 @@
   }
   // A period is free for merging if it has no visible lesson and the only date
   // event occupying it is `ev` itself.
-  function periodFreeExceptEvent(dayKey: SchoolDay, dayDate: string, periodId: string, ev: DateEvent): boolean {
-    const raw = _slotMap[dayKey + ":" + periodId];
-    if (raw && !isSlotExcluded(raw.id, dayDate)) return false;
-    const evs = _dateEventMap[dayKey + ":" + periodId] ?? [];
-    return evs.every(e => e.id === ev.id);
+  /**
+   * Is this block free of everything except `ev`? The maps are passed in rather
+   * than read from the closure so that a reactive block calling this still
+   * declares them as dependencies — Svelte cannot see inside a function body.
+   */
+  function blockFreeExceptEvent(
+    slotMap: Record<string, TimetableSlot>,
+    evMap: Record<string, DateEvent[]>,
+    exclusions: SlotExclusion[],
+    dayKey: SchoolDay, dayDate: string, periodId: string, ev: DateEvent,
+  ): boolean {
+    const raw = slotMap[dayKey + ":" + periodId];
+    if (raw && !exclusions.some(ex => ex.slotId === raw.id && ex.date === dayDate)) return false;
+    return (evMap[dayKey + ":" + periodId] ?? []).every(e => e.id === ev.id);
   }
+  function periodFreeExceptEvent(dayKey: SchoolDay, dayDate: string, periodId: string, ev: DateEvent): boolean {
+    return blockFreeExceptEvent(_slotMap, _dateEventMap, _slotExclusions, dayKey, dayDate, periodId, ev);
+  }
+
   interface MergeRun { ev: DateEvent; run: SchoolPeriod[]; }
   function computeMerges(dayKey: SchoolDay, dayDate: string): { starts: Record<string, MergeRun>; consumed: Set<string> } {
     const ordered = getPeriodsForDay(plugin.settings.academicYear, dayKey);
@@ -339,7 +357,7 @@
   function getDayDate(offset: number, monday: Date): string {
     const d = new Date(monday);
     d.setDate(d.getDate() + offset);
-    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
   }
 
   function isToday(offset: number, monday: Date): boolean {
@@ -654,7 +672,8 @@
     if (period) {
       let run: SchoolPeriod[] = [period];
       if (type === "event" && event) {
-        const found = contiguousRuns(_menuOrdered, eventPeriodIds(event)).find(r => r.some(p => p.id === periodId));
+        const found = runsWhereFree(_menuOrdered, eventPeriodIds(event), (pid) => periodFreeExceptEvent(_menuDay, date, pid, event))
+          .find(r => r.some(p => p.id === periodId));
         if (found && found.length) run = found;
       }
       const last = run[run.length - 1];
@@ -1088,8 +1107,8 @@
   $: selectedDay = _dep(_tick, DAYS.find(d => d.offset === selectedOffset) ?? DAYS[0]);
   $: renderDays  = isDayMode && selectedDay ? [selectedDay] : DAYS;
   $: selectedDateObj    = addDaysLocal(currentMonday, selectedDay ? selectedDay.offset : 0);
-  $: selectedDayLong    = selectedDateObj.toLocaleDateString("en-GB", { weekday: "long" });
-  $: selectedDayDateStr = selectedDateObj.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  $: selectedDayLong    = selectedDateObj.toLocaleDateString(undefined, { weekday: "long" });
+  $: selectedDayDateStr = selectedDateObj.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
 
   async function setMobileMode(m: MobileMode) {
     plugin.settings.mobileViewMode = m;

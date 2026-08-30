@@ -36,6 +36,49 @@ function copySettingsToGlobal<K extends SharedGlobalKey>(dst: GlobalPluginData, 
   if (value !== undefined) dst[k] = value as GlobalPluginData[K];
 }
 
+/** Settings that belong to one planner rather than the whole plugin. */
+type PlannerScopedKey = keyof PlannerRecord & keyof TeacherPlannerSettings;
+/** Settings shared across every planner. */
+type GlobalScopedKey = keyof GlobalPluginData & keyof TeacherPlannerSettings;
+
+/**
+ * Single source of truth for populate/sync. Order is irrelevant; membership is
+ * not — see the exhaustiveness guards below.
+ */
+const PLANNER_FIELDS = [
+  "academicYear", "periodTypes", "subjects", "classes", "timetable",
+  "timetableTemplates", "weekOverrides", "activities", "dateEvents",
+  "slotExclusions", "weekNotes", "notesHeight", "lessonNoteTemplate",
+  "lessonNoteTitleTemplate", "eventNoteTitleTemplate",
+  "directedTime", "schoolDays", "plannerFolder",
+  "lessonPlanLinks", "lessonPlansFolder", "lessonPlanTemplate", "showUnplannedDot",
+  "defaultPlanTemplateId", "hiddenBuiltinTemplateIds",
+  "defaultNoteTemplateId", "hiddenNoteTemplateIds", "defaultWeekNoteTemplateId",
+  "preparedMarks", "showPreparedMark", "mobileViewMode",
+  "externalLinks", "lessonNotes", "lessonRooms", "unplacedLessons", "lessonOverviewMainLine", "lastBulkApply", "weeklyNoteFolders",
+  "weekNoteFiles", "weekNotesFolder",
+] as const satisfies ReadonlyArray<PlannerScopedKey>;
+
+const GLOBAL_FIELDS = [
+  "gridLineColour", "gridLineWeight", "blockBorderColour", "blockBorderWeight",
+  "confirmBeforeDelete", "weekNoteOpenIn", "todayHighlightColour",
+  "loClassesOpen", "loStatsOpen",
+] as const satisfies ReadonlyArray<GlobalScopedKey>;
+
+/** `T` must be `never`; anything else is a compile error at the use site. */
+type AssertNever<T extends never> = T;
+
+/**
+ * The settings shape is declared twice — once as `TeacherPlannerSettings` and
+ * again, field by field, on `PlannerRecord` / `GlobalPluginData` — so a new
+ * setting has to be added in three places. These two guards catch the third
+ * one being forgotten: if a key exists on both the record and the settings but
+ * is missing from the list above, it would silently never persist, and this
+ * becomes a compile error naming it instead.
+ */
+export type UnlistedPlannerFields = AssertNever<Exclude<PlannerScopedKey, (typeof PLANNER_FIELDS)[number]>>;
+export type UnlistedGlobalFields  = AssertNever<Exclude<GlobalScopedKey,  (typeof GLOBAL_FIELDS)[number]>>;
+
 export default class TeacherPlannerPlugin extends Plugin {
   settings: TeacherPlannerSettings;
   plannerData: GlobalPluginData;
@@ -238,31 +281,16 @@ export default class TeacherPlannerPlugin extends Plugin {
   /**
    * Fields stored on the active PlannerRecord. Listed once so populate/sync
    * stay in lockstep — adding a new planner-scoped setting only needs an
-   * entry here.
+   * entry here, and `UnlistedPlannerFields` below turns forgetting into a
+   * compile error rather than a setting that silently never persists.
    */
-  private static readonly PLANNER_FIELDS: ReadonlyArray<keyof PlannerRecord & keyof TeacherPlannerSettings> = [
-    "academicYear", "periodTypes", "subjects", "classes", "timetable",
-    "timetableTemplates", "weekOverrides", "activities", "dateEvents",
-    "slotExclusions", "weekNotes", "notesHeight", "lessonNoteTemplate",
-    "lessonNoteTitleTemplate", "eventNoteTitleTemplate",
-    "directedTime", "schoolDays", "plannerFolder",
-    "lessonPlanLinks", "lessonPlansFolder", "lessonPlanTemplate", "showUnplannedDot",
-    "defaultPlanTemplateId", "hiddenBuiltinTemplateIds",
-    "defaultNoteTemplateId", "hiddenNoteTemplateIds", "defaultWeekNoteTemplateId",
-    "preparedMarks", "showPreparedMark", "mobileViewMode",
-    "externalLinks", "lessonNotes", "lessonRooms", "unplacedLessons", "lessonOverviewMainLine", "lastBulkApply", "weeklyNoteFolders",
-    "weekNoteFiles", "weekNotesFolder",
-  ];
+  private static readonly PLANNER_FIELDS = PLANNER_FIELDS;
 
   /**
-   * Global (cross-planner) fields stored on plannerData. Same pattern as
-   * PLANNER_FIELDS — single source of truth for populate/sync.
+   * Global (cross-planner) fields stored on plannerData. Same pattern.
    */
-  private static readonly GLOBAL_FIELDS: ReadonlyArray<keyof GlobalPluginData & keyof TeacherPlannerSettings> = [
-    "gridLineColour", "gridLineWeight", "blockBorderColour", "blockBorderWeight",
-    "confirmBeforeDelete", "weekNoteOpenIn", "todayHighlightColour",
-    "loClassesOpen", "loStatsOpen",
-  ];
+  private static readonly GLOBAL_FIELDS = GLOBAL_FIELDS;
+
 
   /** Populate plugin.settings from the active planner + global visual settings. */
   private populateSettings() {

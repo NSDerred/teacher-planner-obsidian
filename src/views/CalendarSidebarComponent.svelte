@@ -112,7 +112,7 @@
   // Dynamic placeholder shows the Monday date of the currently selected week
   $: notesPlaceholder = (() => {
     const monday = getMondayOfWeek(currentWeek);
-    const d = monday.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+    const d = monday.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
     return `Notes for week commencing ${d}:`;
   })();
 

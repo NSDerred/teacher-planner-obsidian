@@ -61,6 +61,39 @@ export function contiguousRuns(
   return runs;
 }
 
+/**
+ * An occupant's blocks split into runs, breaking where a block is not free for
+ * it. `isFree` decides that: a block shared with a lesson or another event ends
+ * the run and stands alone, so the occupant still appears there.
+ *
+ * `contiguousRuns` above ignores clashes entirely, which is right for laying
+ * out the desktop grid's merge candidates but wrong for the mobile lists, where
+ * it could draw one card for blocks the desktop had split into two.
+ */
+export function runsWhereFree(
+  orderedPeriods: SchoolPeriod[],
+  selectedIds: string[],
+  isFree: (periodId: string) => boolean,
+): SchoolPeriod[][] {
+  const covered = new Set(selectedIds);
+  const runs: SchoolPeriod[][] = [];
+  let run: SchoolPeriod[] = [];
+  const flush = () => { if (run.length) { runs.push(run); run = []; } };
+  for (const pr of orderedPeriods) {
+    if (!covered.has(pr.id)) {
+      // Same rule as contiguousRuns: an unselected *lesson* period is a real
+      // gap, a break or lunch the occupant spans is not.
+      if (pr.type === "lesson") flush();
+      continue;
+    }
+    if (isFree(pr.id)) { run.push(pr); continue; }
+    flush();
+    runs.push([pr]);
+  }
+  flush();
+  return runs;
+}
+
 /** Minutes between two "HH:MM" strings (end - start), never negative. */
 export function minutesBetween(start: string, end: string): number {
   return Math.max(0, timeMins(end) - timeMins(start));
