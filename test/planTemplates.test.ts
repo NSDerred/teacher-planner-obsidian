@@ -33,3 +33,19 @@ test("a template with no cursor marker reports -1", () => {
   const { cursorOffset } = renderTemplateBody("no marker", {});
   assert.equal(cursorOffset, -1);
 });
+
+test("{{week}} and {{weekEnd}} use the shared Monday-of-week rule", () => {
+  // Sunday belongs to the week that started on the preceding Monday, which is
+  // what getMondayOfWeek does — these labels now delegate to it rather than
+  // repeating the arithmetic.
+  const wed = renderTemplateBody("{{week}}|{{weekEnd}}", { lessonDate: "2026-09-09" }).body;
+  const sun = renderTemplateBody("{{week}}|{{weekEnd}}", { lessonDate: "2026-09-13" }).body;
+  const mon = renderTemplateBody("{{week}}|{{weekEnd}}", { lessonDate: "2026-09-07" }).body;
+  assert.equal(sun, wed, "Sunday sits in the week that began on the Monday before it");
+  assert.equal(mon, wed, "so does the Monday itself");
+});
+
+test("an unparseable lesson date yields empty week labels rather than junk", () => {
+  const { body } = renderTemplateBody("[{{week}}][{{weekEnd}}]", { lessonDate: "not-a-date" });
+  assert.equal(body, "[][]");
+});

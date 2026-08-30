@@ -2,6 +2,7 @@ import { App, TFile, normalizePath } from "obsidian";
 import type { TeacherPlannerSettings } from "../types";
 import type { PlanTemplate } from "./planTemplates";
 import { renderTemplateBody } from "./planTemplates";
+import { warn } from "./log";
 
 /**
  * Week NOTE templates (0.3.7) — a third, deliberately empty-handed template set.
@@ -50,7 +51,7 @@ export async function listUserWeekNoteTemplates(app: App, s: TeacherPlannerSetti
   const out: WeekNoteTemplate[] = [];
   for (const f of files.sort((a, b) => a.basename.localeCompare(b.basename))) {
     let body = "";
-    try { body = await app.vault.read(f); } catch { /* skip unreadable */ }
+    try { body = await app.vault.read(f); } catch (e) { warn(`could not read the week note template ${f.path}; skipping it.`, e); }
     out.push({ id: f.path, name: f.basename, body, builtin: false, path: f.path });
   }
   return out;
@@ -69,7 +70,7 @@ export async function weekNoteTemplateBody(
   if (builtin) return builtin.body;
   const f = app.vault.getFileByPath(id);
   if (!f) return undefined;
-  try { return await app.vault.read(f); } catch { return undefined; }
+  try { return await app.vault.read(f); } catch (e) { warn(`could not read the week note template ${id}.`, e); return undefined; }
 }
 
 /**

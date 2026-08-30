@@ -2,7 +2,7 @@ import { App, Modal, Notice, Platform, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { DateEvent, SchoolPeriod } from "../types";
 import { hexToRgba } from "../utils/themeColours";
-import { getPeriodsForDay } from "../utils/scheduleUtils";
+import { getPeriodsForDay, timeMins } from "../utils/scheduleUtils";
 import { eventPeriodIds, sumPeriodMinutes } from "../utils/eventUtils";
 import { CLASS_COLOUR_PALETTE } from "../settings";
 import { ColourPickerModal, ConfirmModal, confirmDelete } from "../settings/SettingsTab";
@@ -145,7 +145,6 @@ export class AddDateEventModal extends Modal {
       const day = schoolDayOf(d);
       return day ? getPeriodsForDay(this.plugin.settings.academicYear, day) : [];
     };
-    const timeToMin = (t: string): number => { const [h, m] = (t || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
     const selectedBlocks = (): SchoolPeriod[] => periodsForDate(date).filter(p => selected.has(p.id));
     const firstBlockStart = (): string => { const b = selectedBlocks(); return b.length ? b[0].start : ""; };
     const effStart = (): string => start || firstBlockStart();
@@ -154,7 +153,7 @@ export class AddDateEventModal extends Modal {
       const full = sumPeriodMinutes(periodsForDate(date), [...selected]);
       const blocks = selectedBlocks();
       if (start && blocks.length) {
-        const lead = Math.max(0, timeToMin(start) - timeToMin(blocks[0].start));
+        const lead = Math.max(0, timeMins(start) - timeMins(blocks[0].start));
         durationMinutes = Math.max(0, full - lead);
       } else {
         durationMinutes = full;
@@ -431,7 +430,7 @@ export class AddDateEventModal extends Modal {
       if (start) {
         const b = selectedBlocks();
         if (b.length) {
-          const fs = timeToMin(b[0].start), fe = timeToMin(b[0].end), sv = timeToMin(start);
+          const fs = timeMins(b[0].start), fe = timeMins(b[0].end), sv = timeMins(start);
           if (sv < fs || sv >= fe) { new Notice("Start time must be within the first period block — reset to the block start."); start = ""; }
         }
       }

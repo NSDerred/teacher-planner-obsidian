@@ -4,6 +4,7 @@ import type { NoteMove } from "./lessonShiftApply";
 import { buildNoteTitle } from "./noteTitleUtils";
 import { wcNoteFolder } from "./weekUtils";
 import { DEFAULT_LESSON_NOTE_TITLE_TEMPLATE, DEFAULT_LESSON_TEMPLATE } from "../settings";
+import { warn, notifyFailure } from "./log";
 
 interface ClassMeta { code: string; year?: string; subjectName?: string; emoji?: string; }
 
@@ -197,7 +198,9 @@ export async function reverseNoteMoves(app: App, ops: NoteUndoOp[]): Promise<voi
   }
   for (const t of temps) {
     const folder = t.op.toPath.slice(0, t.op.toPath.lastIndexOf("/"));
-    if (folder && !app.vault.getFolderByPath(folder)) { try { await app.vault.createFolder(folder); } catch { /* */ } }
+    if (folder && !app.vault.getFolderByPath(folder)) {
+      try { await app.vault.createFolder(folder); } catch (e) { warn(`could not create the folder ${folder}.`, e); }
+    }
     try {
       await app.fileManager.renameFile(t.file, normalizePath(t.op.toPath));
       await app.fileManager.processFrontMatter(t.file, (fm: Record<string, unknown>) => { fm.period = t.op.periodName; fm.date = t.op.date; });
@@ -245,5 +248,5 @@ export async function createLessonNoteFile(app: App, s: TeacherPlannerSettings, 
       const view = app.workspace.getActiveViewOfType(MarkdownView);
       if (view && view.file?.path === path) { const ed = view.editor; ed.setCursor(ed.offsetToPos(cursorIndex)); ed.focus(); }
     }
-  } catch (e) { console.error("Teacher Planner: lesson note create failed", e); }
+  } catch (e) { notifyFailure(`could not create the lesson note at ${path}.`, e); }
 }

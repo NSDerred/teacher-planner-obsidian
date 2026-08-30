@@ -6,7 +6,7 @@
   import { setIcon, Platform, Menu } from "obsidian";
   import { ConfirmModal, TextPromptModal } from "../settings/SettingsTab";
   import { resolveColour, hexToRgba, periodTypeColour } from "../utils/themeColours";
-  import { periodAppliesTo, periodLengthMinutes, getPeriodsForDay } from "../utils/scheduleUtils";
+  import { periodAppliesTo, periodLengthMinutes, getPeriodsForDay, timeMins } from "../utils/scheduleUtils";
   import { localIso } from "../utils/weekUtils";
 
   function icon(node: HTMLElement, name: string) {
@@ -47,7 +47,6 @@
   // ── Directed time ──────────────────────────────────────────────────────────
   $: directedTimeEnabled = plugin.settings.directedTime?.enabled ?? false;
 
-  const tMin = (t: string): number => { const [h, m] = (t || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
   const mTime = (n: number): string => `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 
   function getSlotDuration(slot: TimetableSlot): number {
@@ -67,8 +66,8 @@
   /** Set a slot's start time within its period; shrinks the length to fit the block (Phase 1: single block). */
   function commitSlotStart(slot: TimetableSlot, period: SchoolPeriod, val: string) {
     if (!val) return;
-    const ps = tMin(period.start), pe = tMin(period.end);
-    const sv = Math.max(ps, Math.min(tMin(val), pe - 1));
+    const ps = timeMins(period.start), pe = timeMins(period.end);
+    const sv = Math.max(ps, Math.min(timeMins(val), pe - 1));
     let dur = getSlotDuration(slot);
     if (sv + dur > pe) dur = pe - sv;
     slot.start = sv === ps ? period.start : mTime(sv);
@@ -81,7 +80,7 @@
   /** Set a slot's length, clamped to the time remaining in its period from its start. */
   function commitSlotLength(slot: TimetableSlot, period: SchoolPeriod, val: string) {
     let d = parseInt(val); if (isNaN(d)) return;
-    const ss = tMin(slotStartOf(slot, period)), pe = tMin(period.end);
+    const ss = timeMins(slotStartOf(slot, period)), pe = timeMins(period.end);
     d = Math.max(1, Math.min(d, pe - ss));
     slot.durationMinutes = d;
     slot.end = mTime(ss + d);
@@ -101,10 +100,10 @@
   }
   /** Resolve the drafted Start/Length/Room into slot fields for a new assignment. */
   function draftFields(period: SchoolPeriod): { start: string; end: string; durationMinutes?: number; classroom?: string } {
-    const ps = tMin(period.start), pe = tMin(period.end);
+    const ps = timeMins(period.start), pe = timeMins(period.end);
     let start = period.start;
-    if (draftStart) { const sv = Math.max(ps, Math.min(tMin(draftStart), pe - 1)); start = sv === ps ? period.start : mTime(sv); }
-    const ss = tMin(start);
+    if (draftStart) { const sv = Math.max(ps, Math.min(timeMins(draftStart), pe - 1)); start = sv === ps ? period.start : mTime(sv); }
+    const ss = timeMins(start);
     let durationMinutes: number | undefined;
     if (draftLen) { const d = parseInt(draftLen); if (!isNaN(d)) durationMinutes = Math.max(1, Math.min(d, pe - ss)); }
     const end = mTime(ss + (durationMinutes ?? (pe - ss)));
@@ -567,8 +566,8 @@
     if (allTemplates.length > 1) menu.addItem(i => i.setTitle("Delete template").setIcon("trash-2").onClick(() => deleteTemplate()));
     menu.showAtMouseEvent(e);
   }
-  $: _axisStart = periods.length ? Math.min(...periods.map(p => tMin(p.start))) : 8 * 60;
-  $: _axisEnd   = periods.length ? Math.max(...periods.map(p => tMin(p.end)))   : 16 * 60;
+  $: _axisStart = periods.length ? Math.min(...periods.map(p => timeMins(p.start))) : 8 * 60;
+  $: _axisEnd   = periods.length ? Math.max(...periods.map(p => timeMins(p.end)))   : 16 * 60;
   $: axisHeight = Math.max(40, (_axisEnd - _axisStart) * TE_PX);
   $: hourMarks  = (() => { const out: number[] = []; for (let h = Math.ceil(_axisStart / 60); h <= Math.floor((_axisEnd - 1) / 60); h++) out.push(h * 60); return out; })();
   function fmtAxis(min: number): string { return `${String(Math.floor(min / 60)).padStart(2, "0")}:00`; }
@@ -745,8 +744,8 @@
           <div class="tp-te-axis-col" style="height:{axisHeight}px;">
             {#each getDayPeriods(day.key) as period (period.id)}
               {@const tc      = periodTypeColour(periodTypes, period.type)}
-              {@const _bt     = (tMin(period.start) - _axisStart) * TE_PX}
-              {@const _bh     = Math.max(2, (tMin(period.end) - tMin(period.start)) * TE_PX)}
+              {@const _bt     = (timeMins(period.start) - _axisStart) * TE_PX}
+              {@const _bh     = Math.max(2, (timeMins(period.end) - timeMins(period.start)) * TE_PX)}
               {@const slot    = _slotGrid[day.key + ":" + period.id]}
               {@const cellKey = day.key + ":" + period.id}
               <!-- svelte-ignore a11y-no-static-element-interactions a11y-click-events-have-key-events -->
@@ -859,7 +858,7 @@
                 </label>
                 <label class="tp-te-detail-field">
                   <span class="tp-te-detail-label">Length</span>
-                  <input type="number" min="1" max="480" value={draftLen || (tMin(_pp.end) - tMin(_pp.start))}
+                  <input type="number" min="1" max="480" value={draftLen || (timeMins(_pp.end) - timeMins(_pp.start))}
                     on:click|stopPropagation
                     on:change={(e) => draftLen = e.currentTarget.value} />
                 </label>

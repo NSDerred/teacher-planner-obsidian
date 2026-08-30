@@ -29,6 +29,10 @@ export interface ClassStats {
   needsAttention: LessonOccurrence[];
 }
 
+/**
+ * NOT `scheduleUtils.timeMins`, deliberately: this one falls back to the end of
+ * the day rather than 0, which is the whole point of it here (see below).
+ */
 function tMin(t: string): number {
   const m = /^\s*(\d{1,2}):(\d{2})\s*$/.exec(t ?? "");
   // No parseable end time: treat the lesson as running to the end of the day, so

@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **"Restore removed lesson" could become unreachable.** Removing a lesson for a single date and then dropping an event into the freed block replaced the empty-block button that offered the restore, stranding the removal with no way back. The restore now also appears in the block's own menu whenever a lesson is hidden on that date.
 - **Lesson note templates can now carry their own frontmatter.** The plugin writes `class`, `period` and `date` into every generated lesson note, and a template that began with its own `---` block produced a second block that Obsidian could not read — so fields like `unit:` or `standards:` never worked. The two are now merged into one block, with the plugin's three keys taking precedence so notes stay findable. Anything else you put in a template's frontmatter comes through untouched and is queryable by Bases or Dataview.
 
+### Changed
+
+- **Housekeeping.** The same "HH:MM to minutes" parser had been written out seven times across the code; six of them now share one helper, and the seventh, which deliberately behaves differently, says so. A display-date helper in the template renderer called `mondayIso` returned neither a Monday-only value nor an ISO date and did its own weekday arithmetic; it now delegates to the shared week helper and is named for what it produces. The sidebar's check for whether you have any week note templates no longer walks the vault's file list on every refresh; it is cached and updated when a template is added, removed or renamed. And roughly a dozen silently swallowed errors now log with a consistent prefix, with the two that matter to you — a week note that failed to save, and a lesson note that failed to create — telling you so instead of failing quietly.
+
 ## [0.3.7] — 2026-08-22
 
 ### Added

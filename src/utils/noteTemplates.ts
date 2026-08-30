@@ -2,6 +2,7 @@ import { App, TFile, normalizePath } from "obsidian";
 import type { TeacherPlannerSettings } from "../types";
 import type { PlanTemplate } from "./planTemplates";
 import { DEFAULT_LESSON_TEMPLATE } from "../settings";
+import { warn } from "./log";
 
 /**
  * Lesson NOTE templates (0.3.6) — a separate set from plan templates. Built-ins
@@ -84,7 +85,7 @@ export async function listUserNoteTemplates(app: App, s: TeacherPlannerSettings)
   const out: NoteTemplate[] = [];
   for (const f of files.sort((a, b) => a.basename.localeCompare(b.basename))) {
     let body = "";
-    try { body = await app.vault.read(f); } catch { /* skip unreadable */ }
+    try { body = await app.vault.read(f); } catch (e) { warn(`could not read the note template ${f.path}; skipping it.`, e); }
     out.push({ id: f.path, name: f.basename, body, builtin: false, path: f.path });
   }
   return out;

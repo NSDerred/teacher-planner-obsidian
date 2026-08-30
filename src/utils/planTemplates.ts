@@ -1,6 +1,7 @@
 import { App, TFile, normalizePath } from "obsidian";
 import type { TeacherPlannerSettings } from "../types";
-import { localIso } from "./weekUtils";
+import { getMondayOfWeek, localIso } from "./weekUtils";
+import { warn } from "./log";
 
 /**
  * Lesson plan templates (0.3.5). Six templates ship as code constants so a
@@ -172,23 +173,27 @@ function ukDate(iso: string): string {
   return d && m && y ? `${d}-${m}-${y}` : iso;
 }
 
-/** Friendly date of the Friday of the week containing `iso`. */
-function fridayOfWeek(iso?: string): string {
+/**
+ * Friendly display date of the Monday of the week containing `iso` — what
+ * {{week}} renders. It was called `mondayIso` and did its own weekday
+ * arithmetic, which misled twice over: the result is a display string rather
+ * than an ISO date, and `getMondayOfWeek` already existed.
+ */
+function weekStartLabel(iso?: string): string {
   if (!iso) return "";
   const d = new Date(iso + "T12:00:00");
   if (isNaN(d.getTime())) return "";
-  const day = d.getDay();
-  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day) + 4);
-  return friendlyDate(localIso(d));
+  return friendlyDate(localIso(getMondayOfWeek(d)));
 }
 
-function mondayIso(iso?: string): string {
+/** Friendly display date of the Friday of that same week — {{weekEnd}}. */
+function weekEndLabel(iso?: string): string {
   if (!iso) return "";
   const d = new Date(iso + "T12:00:00");
   if (isNaN(d.getTime())) return "";
-  const day = d.getDay();
-  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
-  return friendlyDate(localIso(d));
+  const friday = getMondayOfWeek(d);
+  friday.setDate(friday.getDate() + 4);
+  return friendlyDate(localIso(friday));
 }
 
 /**
@@ -213,8 +218,8 @@ export function renderTemplateBody(
     lessonDate: friendlyDate(ctx.lessonDate),
     period: ctx.period ?? "",
     room: ctx.room ?? "",
-    week: mondayIso(ctx.lessonDate),
-    weekEnd: fridayOfWeek(ctx.lessonDate),
+    week: weekStartLabel(ctx.lessonDate),
+    weekEnd: weekEndLabel(ctx.lessonDate),
   };
   let body = tpl.replace(/\{\{(\w+)\}\}/g, (_m, key: string) => {
     if (key === "cursor") return CURSOR_SENTINEL;
@@ -251,7 +256,7 @@ export async function listUserTemplates(app: App, s: TeacherPlannerSettings): Pr
   const out: PlanTemplate[] = [];
   for (const f of files.sort((a, b) => a.basename.localeCompare(b.basename))) {
     let body = "";
-    try { body = await app.vault.read(f); } catch { /* skip unreadable */ }
+    try { body = await app.vault.read(f); } catch (e) { warn(`could not read the plan template ${f.path}; skipping it.`, e); }
     out.push({ id: f.path, name: f.basename, body, builtin: false, path: f.path });
   }
   return out;

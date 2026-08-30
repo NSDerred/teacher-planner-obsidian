@@ -2,7 +2,7 @@ import type {
   TeacherPlannerSettings, SchoolDay, SchoolPeriod,
 } from "../types";
 import { getMondayOfWeek, getAbWeekType, schoolDayOf, localIso } from "./weekUtils";
-import { getPeriodsForDay } from "./scheduleUtils";
+import { getPeriodsForDay, timeMins } from "./scheduleUtils";
 import { eventPeriodIds } from "./eventUtils";
 
 /** Options for the iCal export, gathered in the Export modal. */
@@ -65,8 +65,7 @@ function shiftIso(iso: string, days: number): string {
 
 /** Add minutes to "HH:MM", clamped to the same day. */
 function addMinutes(hhmm: string, mins: number): string {
-  const [h, m] = hhmm.split(":").map(Number);
-  const total = Math.min(h * 60 + m + mins, 23 * 60 + 59);
+  const total = Math.min(timeMins(hhmm) + mins, 23 * 60 + 59);
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 

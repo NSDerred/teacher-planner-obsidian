@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { occurrenceTime, contiguousRuns, eventPeriodIds } from "../src/utils/eventUtils";
+import { occurrenceTime, contiguousRuns, eventPeriodIds, minutesBetween } from "../src/utils/eventUtils";
 
 const P1: any = { id: "p1", name: "P1", start: "09:00", end: "10:00", type: "lesson" };
 const BREAK: any = { id: "br", name: "Break", start: "10:00", end: "10:20", type: "break" };
@@ -74,4 +74,11 @@ test("contiguousRuns splits on an unselected lesson, not on a break", () => {
 test("eventPeriodIds falls back to the single periodId", () => {
   assert.deepEqual(eventPeriodIds({ periodId: "p1" } as any), ["p1"]);
   assert.deepEqual(eventPeriodIds({ periodId: "p1", periodIds: ["p1", "p2"] } as any), ["p1", "p2"]);
+});
+
+test("minutesBetween shares the one time parser and never returns NaN", () => {
+  assert.equal(minutesBetween("09:00", "10:00"), 60);
+  assert.equal(minutesBetween("9:00", "10:20"), 80, "unpadded hours parse");
+  assert.equal(minutesBetween("10:00", "09:00"), 0, "never negative");
+  assert.equal(minutesBetween("", "10:00"), 600, "an unparseable time is 0, not NaN");
 });

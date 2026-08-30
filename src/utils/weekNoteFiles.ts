@@ -1,5 +1,6 @@
 import type TeacherPlannerPlugin from "../main";
 import { formatUkDate } from "./noteTitleUtils";
+import { warn, notifyFailure } from "./log";
 
 /**
  * Opt-in "week notes as vault files" mode. Each week's sidebar note is stored as
@@ -39,7 +40,7 @@ export async function readWeekNote(plugin: TeacherPlannerPlugin, mondayIso: stri
   try {
     return stripFrontmatter(await plugin.app.vault.read(f));
   } catch (e) {
-    console.error("Teacher Planner: failed to read week note.", e);
+    warn("could not read this week's note.", e);
     return "";
   }
 }
@@ -58,7 +59,8 @@ export async function writeWeekNote(plugin: TeacherPlannerPlugin, mondayIso: str
     if (existing) await app.vault.process(existing, () => content);
     else await app.vault.create(path, content);
   } catch (e) {
-    console.error("Teacher Planner: failed to write week note.", e);
+    // The user typed this and it did not save — they need to know.
+    notifyFailure("could not save this week's note.", e);
   }
 }
 
@@ -81,7 +83,8 @@ export async function migrateWeekNotesToFiles(plugin: TeacherPlannerPlugin): Pro
       // Never clobber a file that already holds real content; but DO overwrite
       // an accidentally-empty file (the cause of the 0.2.6 migration data loss).
       let existingBody = "";
-      try { existingBody = stripFrontmatter(await plugin.app.vault.read(existing)); } catch { /* treat as empty */ }
+      try { existingBody = stripFrontmatter(await plugin.app.vault.read(existing)); }
+      catch (e) { warn(`could not read the existing week note at ${path}; treating it as empty.`, e); }
       if (existingBody.trim()) continue; // content already safe in the file — drop from data.json
     }
     await writeWeekNote(plugin, mondayIso, body);
@@ -89,7 +92,8 @@ export async function migrateWeekNotesToFiles(plugin: TeacherPlannerPlugin): Pro
     let ok = false;
     const after = plugin.app.vault.getFileByPath(path);
     if (after) {
-      try { ok = stripFrontmatter(await plugin.app.vault.read(after)).trim().length > 0; } catch { ok = false; }
+      try { ok = stripFrontmatter(await plugin.app.vault.read(after)).trim().length > 0; }
+      catch (e) { ok = false; warn(`could not verify the migrated week note at ${path}; keeping it in data.json.`, e); }
     }
     if (ok) migrated++;
     else remaining[mondayIso] = body; // write failed — keep it in data.json

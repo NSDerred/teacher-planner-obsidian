@@ -1,4 +1,5 @@
 import type { DateEvent, SchoolPeriod, TeacherPlannerSettings } from "../types";
+import { timeMins } from "./scheduleUtils";
 
 /**
  * The period blocks a date event occupies. Falls back to the single
@@ -62,11 +63,7 @@ export function contiguousRuns(
 
 /** Minutes between two "HH:MM" strings (end - start), never negative. */
 export function minutesBetween(start: string, end: string): number {
-  const toMin = (t: string) => {
-    const [h, m] = t.split(":").map(Number);
-    return (h || 0) * 60 + (m || 0);
-  };
-  return Math.max(0, toMin(end) - toMin(start));
+  return Math.max(0, timeMins(end) - timeMins(start));
 }
 
 /**
@@ -108,11 +105,6 @@ export interface OccurrenceTime {
   range: string;
 }
 
-function toMins(t: string): number {
-  const [h, m] = (t ?? "").split(":").map(Number);
-  return (h || 0) * 60 + (m || 0);
-}
-
 function toClock(mins: number): string {
   const h = Math.floor(mins / 60), m = Math.round(mins % 60);
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
@@ -148,12 +140,12 @@ export function occurrenceTime(
       isPartial: false, startLabel: "", endLabel: "", range: "",
     };
   }
-  const runStart = toMins(run[0].start);
-  const runEnd   = Math.max(runStart, toMins(run[run.length - 1].end));
+  const runStart = timeMins(run[0].start);
+  const runEnd   = Math.max(runStart, timeMins(run[run.length - 1].end));
   // A start past the end of the run would give a zero-length occurrence; pin it
   // one minute short so the block still renders (matches the pre-0.3.7 clamp).
   const startMin = opts.start
-    ? Math.max(runStart, Math.min(toMins(opts.start), Math.max(runStart, runEnd - 1)))
+    ? Math.max(runStart, Math.min(timeMins(opts.start), Math.max(runStart, runEnd - 1)))
     : runStart;
 
   // Walk the run consuming teaching minutes, skipping any gap between blocks.
@@ -161,7 +153,7 @@ export function occurrenceTime(
   let teachingMins = 0;
   let remaining = opts.durationMinutes && opts.durationMinutes > 0 ? opts.durationMinutes : Infinity;
   for (const pr of run) {
-    const ps = toMins(pr.start), pe = toMins(pr.end);
+    const ps = timeMins(pr.start), pe = timeMins(pr.end);
     if (pe <= startMin) continue;                 // block already behind the start
     const from = Math.max(ps, startMin);
     const avail = Math.max(0, pe - from);

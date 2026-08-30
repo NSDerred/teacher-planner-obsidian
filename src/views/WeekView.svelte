@@ -19,7 +19,8 @@
   import { DatePickerModal } from "../modals/DatePickerModal";
   import { lessonNoteFrontmatter } from "../utils/lessonNoteFiles";
   import { resolveColour, clearThemeColourCache, colourToCss, hexToRgba, periodTypeColour } from "../utils/themeColours";
-  import { periodAppliesTo, getPeriodsForDay } from "../utils/scheduleUtils";
+  import { periodAppliesTo, getPeriodsForDay, timeMins } from "../utils/scheduleUtils";
+  import { warn } from "../utils/log";
   import { eventPeriodIds, eventIsDirected, contiguousRuns, occurrenceTime } from "../utils/eventUtils";
   import {
     getSlotPlan, setSlotPlan, clearSlotPlan, getEventPlan, setEventPlan, clearEventPlan,
@@ -257,10 +258,6 @@
   })();
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  function timeToMinutes(t: string): number {
-    const [h, m] = t.split(":").map(Number);
-    return h * 60 + m;
-  }
   function minutesToTime(mins: number): string {
     const h = Math.floor(mins / 60), m = Math.round(mins % 60);
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
@@ -274,8 +271,8 @@
     let min = 24 * 60, max = 0;
     for (const day of DAYS) {
       for (const p of getPeriodsForDay(plugin.settings.academicYear, day.key)) {
-        min = Math.min(min, timeToMinutes(p.start));
-        max = Math.max(max, timeToMinutes(p.end));
+        min = Math.min(min, timeMins(p.start));
+        max = Math.max(max, timeMins(p.end));
       }
     }
     if (min >= max) { min = 8 * 60; max = 16 * 60; }
@@ -1147,8 +1144,12 @@
   async function createNoteIn(dateIso: string, fileName: string, content: string, cursorOffset = -1): Promise<void> {
     const base = plugin.settings.plannerFolder || "Teacher Planner";
     const folder = wcFolderFor(dateIso);
-    if (!plugin.app.vault.getFolderByPath(base))   { try { await plugin.app.vault.createFolder(base); }   catch {} }
-    if (folder !== base && !plugin.app.vault.getFolderByPath(folder)) { try { await plugin.app.vault.createFolder(folder); } catch {} }
+    if (!plugin.app.vault.getFolderByPath(base)) {
+      try { await plugin.app.vault.createFolder(base); } catch (e) { warn(`could not create the planner folder ${base}.`, e); }
+    }
+    if (folder !== base && !plugin.app.vault.getFolderByPath(folder)) {
+      try { await plugin.app.vault.createFolder(folder); } catch (e) { warn(`could not create the folder ${folder}.`, e); }
+    }
     const path = `${folder}/${fileName}.md`;
     try {
       await plugin.app.vault.create(path, content);
@@ -1589,8 +1590,8 @@
               {@const dayMerges = computeMerges(day.key, dayDate)}
               {#each getPeriodsForDay(plugin.settings.academicYear, day.key) as period (period.id)}
                 {@const tc        = periodTypeColour(_periodTypes, period.type)}
-                {@const bTop      = (timeToMinutes(period.start) - _axis.start) * PX_PER_MIN}
-                {@const bHeight   = Math.max(20, (timeToMinutes(period.end) - timeToMinutes(period.start)) * PX_PER_MIN)}
+                {@const bTop      = (timeMins(period.start) - _axis.start) * PX_PER_MIN}
+                {@const bHeight   = Math.max(20, (timeMins(period.end) - timeMins(period.start)) * PX_PER_MIN)}
                 {@const _rawSlot  = _slotMap[day.key + ":" + period.id]}
                 {@const slot      = _rawSlot && !isSlotExcluded(_rawSlot.id, dayDate) ? _rawSlot : undefined}
                 {@const devEvents = _dateEventMap[day.key + ":" + period.id] ?? []}
@@ -1609,7 +1610,7 @@
                 {@const _occEndMin = _soleTime.endMin}
                 {@const _occEnd = _soleTime.endLabel}
                 {@const _leadMins = _soleTime.leadMins}
-                {@const _blockEndMin = timeToMinutes(period.end)}
+                {@const _blockEndMin = timeMins(period.end)}
                 {@const _innerH = Math.max(0, bHeight - 6)}
                 {@const _stackH = Math.min(_innerH, Math.max(_occMins * PX_PER_MIN, 22))}
                 {@const _stackTop = Math.min(_leadMins * PX_PER_MIN, Math.max(0, _innerH - _stackH))}
@@ -1619,7 +1620,7 @@
                   {@const _first = _mrun.run[0]}
                   {@const _last  = _mrun.run[_mrun.run.length - 1]}
                   {@const _mTime = occurrenceTime(_mrun.run, { start: _mev.startTime, durationMinutes: _mev.durationMinutes })}
-                  {@const _mFirstStartMin = timeToMinutes(_first.start)}
+                  {@const _mFirstStartMin = timeMins(_first.start)}
                   {@const _mStartMin = _mTime.startMin}
                   {@const _mEndMin = _mTime.endMin}
                   {@const _mTop  = (_mStartMin - _axis.start) * PX_PER_MIN}

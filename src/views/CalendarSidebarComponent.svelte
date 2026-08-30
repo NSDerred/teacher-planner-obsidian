@@ -10,6 +10,7 @@
   import { createEmbeddableEditor, type EmbeddableEditorHandle } from "../utils/embeddableEditor";
   import {
     listWeekNoteTemplates, hasUserWeekNoteTemplates, renderWeekNoteBody,
+    weekNoteTemplatesFolder,
   } from "../utils/weekNoteTemplates";
 
   function icon(node: HTMLElement, name: string) {
@@ -245,7 +246,23 @@
   // user has saved a template of their own: nothing opinionated ships, so with
   // no templates there is nothing to offer and the button stays out of the way.
   $: noteIsEmpty = useLive ? liveEmpty : !notesValue.trim();
-  $: hasTemplates = _dep(_tick, _dep(currentWeekKey, hasUserWeekNoteTemplates(plugin.app, plugin.settings)));
+
+  // Cached. The check walks the vault's markdown list, which is far too much
+  // work to repeat on every reactive tick just to decide whether one button is
+  // visible, so it is refreshed only when the templates folder changes or a
+  // file appears, disappears or is renamed inside it.
+  let _tplFolder = "";
+  let hasTemplates = false;
+  function refreshHasTemplates() {
+    _tplFolder = weekNoteTemplatesFolder(plugin.settings);
+    hasTemplates = hasUserWeekNoteTemplates(plugin.app, plugin.settings);
+  }
+  function onTemplateFolderChange(file: TAbstractFile, oldPath?: string) {
+    const prefix = _tplFolder + "/";
+    if (file.path.startsWith(prefix) || (oldPath ?? "").startsWith(prefix)) refreshHasTemplates();
+  }
+  // Also covers the planner folder being renamed in settings.
+  $: if (_dep(_tick, weekNoteTemplatesFolder(plugin.settings)) !== _tplFolder) refreshHasTemplates();
 
   /** Fill the week note from a template body. Refuses if the note has any content. */
   async function applyWeekTemplate(body: string) {
@@ -284,10 +301,19 @@
   $: if (useLive && liveEl && currentWeekKey !== liveKey) void mountLive();
   $: if (!useLive && liveHandle) destroyLive();
 
-  let modifyRef: EventRef | undefined;
-  onMount(() => { modifyRef = plugin.app.vault.on("modify", onVaultModify); });
+  let vaultRefs: EventRef[] = [];
+  onMount(() => {
+    vaultRefs = [
+      plugin.app.vault.on("modify", onVaultModify),
+      plugin.app.vault.on("create", (f) => onTemplateFolderChange(f)),
+      plugin.app.vault.on("delete", (f) => onTemplateFolderChange(f)),
+      plugin.app.vault.on("rename", (f, oldPath) => onTemplateFolderChange(f, oldPath)),
+    ];
+    refreshHasTemplates();
+  });
   onDestroy(() => {
-    if (modifyRef) plugin.app.vault.offref(modifyRef);
+    for (const ref of vaultRefs) plugin.app.vault.offref(ref);
+    vaultRefs = [];
     destroyLive();
   });
 

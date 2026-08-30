@@ -1,5 +1,6 @@
 import { normalizePath } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
+import { warn } from "./log";
 
 /**
  * A small "library" of .json files kept inside the plugin's own folder
@@ -60,13 +61,13 @@ export async function listLibraryFiles(plugin: TeacherPlannerPlugin, sub: string
   const folder = libraryFolder(plugin, sub);
   if (!(await adapter.exists(folder))) return [];
   let listed: { files: string[] };
-  try { listed = await adapter.list(folder); } catch { return []; }
+  try { listed = await adapter.list(folder); } catch (e) { warn(`could not list ${folder}.`, e); return []; }
   const out: LibFile[] = [];
   for (const path of listed.files) {
     if (!path.toLowerCase().endsWith(".json")) continue;
     const basename = (path.split("/").pop() ?? path).replace(/\.json$/i, "");
     let mtime = 0;
-    try { const st = await adapter.stat(path); mtime = st?.mtime ?? 0; } catch { /* ignore */ }
+    try { const st = await adapter.stat(path); mtime = st?.mtime ?? 0; } catch (e) { warn(`could not stat ${path}; treating it as undated.`, e); }
     out.push({ path, basename, mtime });
   }
   return out.sort((a, b) => b.mtime - a.mtime);
