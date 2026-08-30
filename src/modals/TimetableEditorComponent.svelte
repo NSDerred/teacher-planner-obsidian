@@ -8,6 +8,7 @@
   import { resolveColour, hexToRgba, periodTypeColour } from "../utils/themeColours";
   import { periodAppliesTo, periodLengthMinutes, getPeriodsForDay, timeMins } from "../utils/scheduleUtils";
   import { localIso } from "../utils/weekUtils";
+  import { clearSlotRecords } from "../utils/planLinkUtils";
 
   function icon(node: HTMLElement, name: string) {
     setIcon(node, name);
@@ -120,11 +121,28 @@
 
   // Local editable copy of slots
   let slots: TimetableSlot[] = JSON.parse(JSON.stringify(_initTmpl?.slots ?? []));
+  /**
+   * Slot ids as they were when this template was opened. On save, anything that
+   * has since disappeared takes its plan link, prepared mark, note, room and
+   * one-off removals with it — deliberately scoped to THIS session's deletions,
+   * so saving never quietly clears records left over from an earlier one.
+   */
+  let openedSlotIds = new Set<string>(slots.map(s => s.id));
+
+  /** Called from both save paths, before saveSettings. */
+  function clearRecordsForDeletedSlots() {
+    const live = new Set(slots.map(s => s.id));
+    for (const id of openedSlotIds) {
+      if (!live.has(id)) clearSlotRecords(plugin.settings, id);
+    }
+    openedSlotIds = live;
+  }
 
   function doSwitchTemplate(id: string) {
     activeTemplateId = id;
     const tmpl = (plugin.settings.timetableTemplates ?? []).find(t => t.id === id);
     slots = JSON.parse(JSON.stringify(tmpl?.slots ?? []));
+    openedSlotIds = new Set(slots.map(s => s.id));
     activeWeek = plugin.settings.academicYear.abWeekEnabled ? "A" : null;
     closePicker();
     showPastConfirm = false;
@@ -224,7 +242,11 @@
 
   async function saveWithoutClose() {
     const tmpl = plugin.settings.timetableTemplates?.find(t => t.id === activeTemplateId);
-    if (tmpl) { tmpl.slots = slots; await plugin.saveSettings(); }
+    if (tmpl) {
+      tmpl.slots = slots;
+      clearRecordsForDeletedSlots();
+      await plugin.saveSettings();
+    }
     isDirty = false;
   }
 
@@ -460,6 +482,7 @@
     const tmpl = plugin.settings.timetableTemplates?.find(t => t.id === activeTemplateId);
     if (tmpl) {
       tmpl.slots = slots;
+      clearRecordsForDeletedSlots();
       await plugin.saveSettings();
     }
     isDirty = false;

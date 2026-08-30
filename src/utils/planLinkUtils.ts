@@ -55,6 +55,21 @@ export function clearEventRecords(s: TeacherPlannerSettings, eventId: string): v
   s.preparedMarks = (s.preparedMarks ?? []).filter(m => m.eventId !== eventId);
 }
 
+/**
+ * The slot-side twin of clearEventRecords: everything keyed to a timetable slot
+ * goes when the slot does. Without this, deleting a lesson in the timetable
+ * editor left its plan link, external link, prepared mark, note, room and any
+ * one-off removals behind, invisible and carried in every save.
+ */
+export function clearSlotRecords(s: TeacherPlannerSettings, slotId: string): void {
+  s.lessonPlanLinks = (s.lessonPlanLinks ?? []).filter(l => l.slotId !== slotId);
+  s.externalLinks   = (s.externalLinks   ?? []).filter(l => l.slotId !== slotId);
+  s.preparedMarks   = (s.preparedMarks   ?? []).filter(m => m.slotId !== slotId);
+  s.lessonNotes     = (s.lessonNotes     ?? []).filter(n => n.slotId !== slotId);
+  s.lessonRooms     = (s.lessonRooms     ?? []).filter(r => r.slotId !== slotId);
+  s.slotExclusions  = (s.slotExclusions  ?? []).filter(x => x.slotId !== slotId);
+}
+
 export function setEventPlan(s: TeacherPlannerSettings, eventId: string, path: string): void {
   clearEventPlan(s, eventId);
   links(s).push({ eventId, path });

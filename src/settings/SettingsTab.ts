@@ -27,6 +27,7 @@ import {
   type NoteTemplate,
   DEFAULT_NOTE_TEMPLATE_ID, listNoteTemplates, saveUserNoteTemplate, hiddenNoteBuiltins,
 } from "../utils/noteTemplates";
+import { findOrphans, pruneOrphans, describeOrphans } from "../utils/orphanUtils";
 import {
   type WeekNoteTemplate, BLANK_WEEK_TEMPLATE_ID,
   listWeekNoteTemplates, saveUserWeekNoteTemplate,
@@ -991,6 +992,24 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .setDesc("Ask for confirmation before destructive actions — removing an event or lesson, or deleting a subject, class, activity or block type. Applies across all planners.")
       .addToggle(t => t.setValue(this.plugin.settings.confirmBeforeDelete !== false)
         .onChange(v => { this.plugin.settings.confirmBeforeDelete = v; this.plugin.requestSave(); }));
+    new Setting(containerEl)
+      .setName("Tidy up leftover records")
+      .setDesc("Plan links, prepared marks, per-lesson notes and rooms, and one-off lesson removals are attached to a lesson. Older versions left them behind when a lesson was deleted from the timetable. This counts what is left over before removing anything.")
+      .addButton(btn => btn.setButtonText("Check").onClick(() => {
+        const report = findOrphans(this.plugin.settings);
+        if (report.total === 0) { new Notice("Nothing left over — your planner is tidy."); return; }
+        const lines = describeOrphans(report).join(", ");
+        new ConfirmModal(
+          this.app,
+          `Found ${report.total} leftover record${report.total === 1 ? "" : "s"} pointing at lessons that no longer exist: ${lines}. Remove them? Nothing you can still see in the planner is affected.`,
+          async () => {
+            const removed = pruneOrphans(this.plugin.settings);
+            await this.plugin.saveSettings();
+            new Notice(`Removed ${removed.total} leftover record${removed.total === 1 ? "" : "s"}.`);
+          },
+          "Remove",
+        ).open();
+      }));
     new Setting(containerEl).setName("Reset periods to defaults")
       .addButton(btn => btn.setButtonText("Reset periods").setClass("mod-warning")
         .onClick(async () => {
