@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   localIso, getMondayOfWeek, schoolDayOf, getAbWeekType, isFullyHolidayWeek, isValidIsoDate,
+  canStepWeek,
 } from "../src/utils/weekUtils";
 
 const SCHOOL_DAYS: any = ["monday", "tuesday", "wednesday", "thursday", "friday"];
@@ -86,4 +87,38 @@ test("isValidIsoDate rejects well-formed impossible dates", () => {
   assert.equal(isValidIsoDate("2026-02-30"), false);
   assert.equal(isValidIsoDate("2026-13-01"), false);
   assert.equal(isValidIsoDate("26-01-01"), false);
+});
+
+// ── canStepWeek (GitHub #10) ────────────────────────────────────────────────
+
+test("the first week is reachable when the year starts mid-week", () => {
+  // Year runs Tuesday 8 September 2026 to Friday 16 July 2027. The first week's
+  // Monday (7 Sept) is EARLIER than the start date, which is what used to make
+  // the back arrow dead and strand the first week.
+  const START = "2026-09-08", END = "2027-07-16";
+  const secondWeek = new Date("2026-09-16T12:00:00");
+  assert.equal(canStepWeek(secondWeek, -1, START, END), true, "must be able to step back into week 1");
+
+  const firstWeek = new Date("2026-09-09T12:00:00");
+  assert.equal(canStepWeek(firstWeek, -1, START, END), false, "but no further back than week 1");
+  assert.equal(canStepWeek(firstWeek, 1, START, END), true);
+});
+
+test("a year starting on a Monday behaves the same", () => {
+  const START = "2026-09-07", END = "2027-07-16";
+  assert.equal(canStepWeek(new Date("2026-09-16T12:00:00"), -1, START, END), true);
+  assert.equal(canStepWeek(new Date("2026-09-09T12:00:00"), -1, START, END), false);
+});
+
+test("the far end of the year is bounded by the last week's Monday", () => {
+  const START = "2026-09-08", END = "2027-07-16"; // ends on a Friday
+  const lastWeek = new Date("2027-07-14T12:00:00");   // week of Mon 12 July
+  assert.equal(canStepWeek(lastWeek, 1, START, END), false, "no week after the final one");
+  assert.equal(canStepWeek(lastWeek, -1, START, END), true);
+  const penultimate = new Date("2027-07-07T12:00:00");
+  assert.equal(canStepWeek(penultimate, 1, START, END), true, "the final week is reachable");
+});
+
+test("canStepWeek refuses rather than throws on an unparseable year", () => {
+  assert.equal(canStepWeek(new Date("2026-09-16T12:00:00"), -1, "not-a-date", "2027-07-16"), false);
 });

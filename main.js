@@ -1261,6 +1261,13 @@ function getAbWeekType(date, ay, overrides = [], schoolDays = _DEFAULT_SCHOOL_DA
   }
   return null;
 }
+function canStepWeek(current, delta, ayStartIso, ayEndIso) {
+  const target = getMondayOfWeek(addWeeks(current, delta));
+  const firstMonday = getMondayOfWeek(/* @__PURE__ */ new Date(ayStartIso + "T12:00:00"));
+  const lastMonday = getMondayOfWeek(/* @__PURE__ */ new Date(ayEndIso + "T12:00:00"));
+  if (isNaN(target.getTime()) || isNaN(firstMonday.getTime()) || isNaN(lastMonday.getTime())) return false;
+  return target.getTime() >= firstMonday.getTime() && target.getTime() <= lastMonday.getTime();
+}
 function isValidIsoDate(s) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
   const d = /* @__PURE__ */ new Date(s + "T12:00:00");
@@ -20510,6 +20517,35 @@ date: "${dateIso}"
 ---
 `;
 }
+var FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*\r?\n?/;
+function fmKey(line) {
+  const m = /^([A-Za-z0-9_-]+)\s*:/.exec(line);
+  return m ? m[1].toLowerCase() : null;
+}
+function composeNoteBody(pluginFm, templateBody, cursorOffset = -1) {
+  var _a2, _b2;
+  const tpl = templateBody != null ? templateBody : "";
+  const m = FRONTMATTER_RE.exec(tpl);
+  if (!m) {
+    return { body: pluginFm + tpl, cursorIndex: cursorOffset >= 0 ? pluginFm.length + cursorOffset : -1 };
+  }
+  const pluginInner = ((_b2 = (_a2 = FRONTMATTER_RE.exec(pluginFm)) == null ? void 0 : _a2[1]) != null ? _b2 : "").split(/\r?\n/).filter((l) => l.trim().length > 0);
+  const reserved = new Set(pluginInner.map(fmKey).filter((k) => k !== null));
+  const extra = [];
+  let keeping = true;
+  for (const line of m[1].split(/\r?\n/)) {
+    const key = fmKey(line);
+    if (key !== null) keeping = !reserved.has(key);
+    if (keeping && line.trim().length > 0) extra.push(line);
+  }
+  const merged = `---
+${[...pluginInner, ...extra].join("\n")}
+---
+`;
+  const rest = tpl.slice(m[0].length);
+  const cursorIndex = cursorOffset >= 0 ? merged.length + Math.max(0, cursorOffset - m[0].length) : -1;
+  return { body: merged + rest, cursorIndex };
+}
 async function ensureFolder2(app, path) {
   if (!app.vault.getFolderByPath(path)) {
     try {
@@ -20678,16 +20714,20 @@ async function createLessonNoteFile(app, s, classId, periodName, dateIso, rawNam
   await ensureFolder2(app, base);
   if (folder !== base) await ensureFolder2(app, folder);
   const fm = lessonNoteFrontmatter(meta, periodName, dateIso);
-  const body = fm + (bodyOverride != null ? bodyOverride : (_b2 = s.lessonNoteTemplate) != null ? _b2 : DEFAULT_LESSON_TEMPLATE);
+  const { body, cursorIndex } = composeNoteBody(
+    fm,
+    bodyOverride != null ? bodyOverride : (_b2 = s.lessonNoteTemplate) != null ? _b2 : DEFAULT_LESSON_TEMPLATE,
+    cursorOffset
+  );
   const path = `${folder}/${fileName}.md`;
   try {
     await app.vault.create(path, body);
     await app.workspace.openLinkText(path, "", false);
-    if (cursorOffset >= 0) {
+    if (cursorIndex >= 0) {
       const view = app.workspace.getActiveViewOfType(import_obsidian19.MarkdownView);
       if (view && ((_c = view.file) == null ? void 0 : _c.path) === path) {
         const ed = view.editor;
-        ed.setCursor(ed.offsetToPos(fm.length + cursorOffset));
+        ed.setCursor(ed.offsetToPos(cursorIndex));
         ed.focus();
       }
     }
@@ -30461,6 +30501,14 @@ function instance3($$self, $$props, $$invalidate) {
       menu.addItem((i) => i.setTitle(title).setIcon("clock").setDisabled(true));
       menu.addSeparator();
     }
+    const _hiddenSlot = _menuDay ? _slotMap[_menuDay + ":" + periodId] : void 0;
+    if (_hiddenSlot && isSlotExcluded(_hiddenSlot.id, date)) {
+      const _hiddenLbl = getSlotLabel(_hiddenSlot);
+      menu.addItem((i) => i.setTitle(`Restore removed lesson (${_hiddenLbl.code})`).setIcon("undo-2").onClick(() => {
+        void restoreSlotOnDate(_hiddenSlot.id, date);
+      }));
+      menu.addSeparator();
+    }
     const isClass = type === "slot" ? !!_classes.find((c) => c.id === (slot === null || slot === void 0 ? void 0 : slot.classId)) : !!_classes.find((c) => c.id === (event === null || event === void 0 ? void 0 : event.classId));
     if (type === "slot" && slot) {
       menu.addItem((i) => i.setTitle("Edit").setIcon("pencil").onClick(() => openNotesModal(slot, date, periodId)));
@@ -31534,13 +31582,15 @@ function instance3($$self, $$props, $$invalidate) {
         return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
       })());
     }
-    if ($$self.$$.dirty[3] & /*_tick, currentDate*/
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[3] & /*_tick, currentDate*/
     1536) {
-      $: $$invalidate(108, canGoWeekPrev = _dep2(_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart()));
+      $: $$invalidate(108, canGoWeekPrev = _dep2(_tick, canStepWeek(currentDate, -1, plugin.settings.academicYear.startDate, plugin.settings.academicYear.endDate)));
     }
-    if ($$self.$$.dirty[3] & /*_tick, currentDate*/
+    if ($$self.$$.dirty[0] & /*plugin*/
+    1 | $$self.$$.dirty[3] & /*_tick, currentDate*/
     1536) {
-      $: $$invalidate(107, canGoWeekNext = _dep2(_tick, getMondayOfWeek(addWeeks(currentDate, 1)) <= _ayEnd()));
+      $: $$invalidate(107, canGoWeekNext = _dep2(_tick, canStepWeek(currentDate, 1, plugin.settings.academicYear.startDate, plugin.settings.academicYear.endDate)));
     }
     if ($$self.$$.dirty[0] & /*plugin*/
     1 | $$self.$$.dirty[3] & /*_tick*/

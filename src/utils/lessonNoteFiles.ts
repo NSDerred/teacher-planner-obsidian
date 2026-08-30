@@ -34,6 +34,58 @@ export function lessonNoteFrontmatter(meta: ClassMeta, periodName: string, dateI
   return `---\nclass: "${meta.code}"\nperiod: "${periodName}"\ndate: "${dateIso}"\n---\n`;
 }
 
+const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*\r?\n?/;
+
+/** The key of a YAML line ("class: 10B" → "class"), or null if the line isn't one. */
+function fmKey(line: string): string | null {
+  const m = /^([A-Za-z0-9_-]+)\s*:/.exec(line);
+  return m ? m[1].toLowerCase() : null;
+}
+
+/**
+ * Build a note's final body from the plugin's tracking frontmatter and a
+ * template body that may carry frontmatter of its own.
+ *
+ * The plugin used to simply prepend its block, so a template opening with
+ * `---` produced TWO frontmatter blocks and the second one never parsed —
+ * which is what stopped anyone adding `unit:` or `standards:` fields to
+ * generated lesson notes for Bases/Dataview to read. The two blocks are now
+ * merged, with the plugin's keys winning: `findNote` matches notes on `class`,
+ * `period` and `date`, so those three have to stay authoritative. Lines that
+ * belong to a dropped key (indented continuations, list items) are dropped
+ * with it.
+ *
+ * `cursorOffset` is an index into the TEMPLATE body; the returned
+ * `cursorIndex` is the matching index in the composed body, or -1.
+ */
+export function composeNoteBody(
+  pluginFm: string,
+  templateBody: string,
+  cursorOffset = -1,
+): { body: string; cursorIndex: number } {
+  const tpl = templateBody ?? "";
+  const m = FRONTMATTER_RE.exec(tpl);
+  if (!m) {
+    return { body: pluginFm + tpl, cursorIndex: cursorOffset >= 0 ? pluginFm.length + cursorOffset : -1 };
+  }
+
+  const pluginInner = (FRONTMATTER_RE.exec(pluginFm)?.[1] ?? "").split(/\r?\n/).filter(l => l.trim().length > 0);
+  const reserved = new Set(pluginInner.map(fmKey).filter((k): k is string => k !== null));
+
+  const extra: string[] = [];
+  let keeping = true;
+  for (const line of m[1].split(/\r?\n/)) {
+    const key = fmKey(line);
+    if (key !== null) keeping = !reserved.has(key);
+    if (keeping && line.trim().length > 0) extra.push(line);
+  }
+
+  const merged = `---\n${[...pluginInner, ...extra].join("\n")}\n---\n`;
+  const rest = tpl.slice(m[0].length);
+  const cursorIndex = cursorOffset >= 0 ? merged.length + Math.max(0, cursorOffset - m[0].length) : -1;
+  return { body: merged + rest, cursorIndex };
+}
+
 async function ensureFolder(app: App, path: string): Promise<void> {
   if (!app.vault.getFolderByPath(path)) {
     try { await app.vault.createFolder(path); } catch { /* exists / race */ }
@@ -180,14 +232,18 @@ export async function createLessonNoteFile(app: App, s: TeacherPlannerSettings, 
   await ensureFolder(app, base);
   if (folder !== base) await ensureFolder(app, folder);
   const fm = lessonNoteFrontmatter(meta, periodName, dateIso);
-  const body = fm + (bodyOverride ?? (s.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE));
+  const { body, cursorIndex } = composeNoteBody(
+    fm,
+    bodyOverride ?? (s.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE),
+    cursorOffset,
+  );
   const path = `${folder}/${fileName}.md`;
   try {
     await app.vault.create(path, body);
     await app.workspace.openLinkText(path, "", false);
-    if (cursorOffset >= 0) {
+    if (cursorIndex >= 0) {
       const view = app.workspace.getActiveViewOfType(MarkdownView);
-      if (view && view.file?.path === path) { const ed = view.editor; ed.setCursor(ed.offsetToPos(fm.length + cursorOffset)); ed.focus(); }
+      if (view && view.file?.path === path) { const ed = view.editor; ed.setCursor(ed.offsetToPos(cursorIndex)); ed.focus(); }
     }
   } catch (e) { console.error("Teacher Planner: lesson note create failed", e); }
 }

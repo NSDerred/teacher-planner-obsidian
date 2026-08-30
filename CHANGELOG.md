@@ -5,6 +5,14 @@ All notable changes to Teacher Planner will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **The back arrow was dead when the academic year started mid-week.** If your year began on any day but a Monday, the week view compared the previous week's Monday against the year's start date, which the first week's Monday falls before. The arrow was therefore disabled from the second week onwards and the first week could not be reached with the arrows at all, only through the date picker. Stepping is now measured Monday to Monday. (Reported on GitHub, #10.)
+- **"Restore removed lesson" could become unreachable.** Removing a lesson for a single date and then dropping an event into the freed block replaced the empty-block button that offered the restore, stranding the removal with no way back. The restore now also appears in the block's own menu whenever a lesson is hidden on that date.
+- **Lesson note templates can now carry their own frontmatter.** The plugin writes `class`, `period` and `date` into every generated lesson note, and a template that began with its own `---` block produced a second block that Obsidian could not read — so fields like `unit:` or `standards:` never worked. The two are now merged into one block, with the plugin's three keys taking precedence so notes stay findable. Anything else you put in a template's frontmatter comes through untouched and is queryable by Bases or Dataview.
+
 ## [0.3.7] — 2026-08-22
 
 ### Added

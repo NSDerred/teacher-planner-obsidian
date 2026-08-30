@@ -8,6 +8,7 @@ export class App {}
 export class Modal {}
 export class Notice {}
 export class TFile {}
+export class MarkdownView {}
 export class Menu {}
 export function setIcon() {}
 export function normalizePath(p) { return p; }

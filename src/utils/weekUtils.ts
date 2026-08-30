@@ -186,6 +186,29 @@ export function getAbWeekType(
 }
 
 /**
+ * Can the week view step `delta` weeks from `current` and stay inside the
+ * academic year?
+ *
+ * The comparison is Monday to Monday. Comparing a week's Monday against the
+ * raw start DATE (which is what the week view used to do) breaks whenever the
+ * academic year begins on any day but a Monday: the first week's Monday falls
+ * before the start date, so stepping back into the first week is refused and
+ * that week becomes unreachable with the arrows (GitHub #10).
+ */
+export function canStepWeek(
+  current: Date,
+  delta: number,
+  ayStartIso: string,
+  ayEndIso: string,
+): boolean {
+  const target = getMondayOfWeek(addWeeks(current, delta));
+  const firstMonday = getMondayOfWeek(new Date(ayStartIso + "T12:00:00"));
+  const lastMonday  = getMondayOfWeek(new Date(ayEndIso   + "T12:00:00"));
+  if (isNaN(target.getTime()) || isNaN(firstMonday.getTime()) || isNaN(lastMonday.getTime())) return false;
+  return target.getTime() >= firstMonday.getTime() && target.getTime() <= lastMonday.getTime();
+}
+
+/**
  * True if `s` is a real calendar date in YYYY-MM-DD form.
  * Rejects well-formed but impossible dates like "2025-02-30" or "2025-13-01".
  */

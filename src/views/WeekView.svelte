@@ -10,7 +10,7 @@
   }
   import {
     getWeekLabel, formatDateRange, addWeeks,
-    getMondayOfWeek, weekKey, getAbWeekType, localIso, wcNoteFolder, schoolDayOf,
+    getMondayOfWeek, weekKey, getAbWeekType, localIso, wcNoteFolder, schoolDayOf, canStepWeek,
   } from "../utils/weekUtils";
   import { TimetableEditorModal } from "../modals/TimetableEditorModal";
   import { SlotNotesModal } from "../modals/SlotNotesModal";
@@ -672,6 +672,17 @@
       menu.addSeparator();
     }
 
+    // A lesson removed for one date is normally restored from the empty block's
+    // "+" menu — but dropping an event into the freed block replaces that button
+    // and used to strand the removal with no way back. Offer it here too.
+    const _hiddenSlot = _menuDay ? _slotMap[_menuDay + ":" + periodId] : undefined;
+    if (_hiddenSlot && isSlotExcluded(_hiddenSlot.id, date)) {
+      const _hiddenLbl = getSlotLabel(_hiddenSlot);
+      menu.addItem(i => i.setTitle(`Restore removed lesson (${_hiddenLbl.code})`).setIcon("undo-2")
+        .onClick(() => { void restoreSlotOnDate(_hiddenSlot.id, date); }));
+      menu.addSeparator();
+    }
+
     const isClass = type === "slot"
       ? !!_classes.find(c => c.id === slot?.classId)
       : !!_classes.find(c => c.id === event?.classId);
@@ -894,8 +905,11 @@
   // ── Academic-year bounds ──────────────────────────────────────────────────
   function _ayStart(): Date { return new Date(plugin.settings.academicYear.startDate + "T00:00:00"); }
   function _ayEnd():   Date { return new Date(plugin.settings.academicYear.endDate   + "T23:59:59"); }
-  $: canGoWeekPrev = _dep(_tick, getMondayOfWeek(addWeeks(currentDate, -1)) >= _ayStart());
-  $: canGoWeekNext = _dep(_tick, getMondayOfWeek(addWeeks(currentDate,  1)) <= _ayEnd());
+  // Monday-to-Monday, via the shared helper: a year that starts mid-week has a
+  // first Monday earlier than its start date, and comparing against the raw
+  // start date made that first week unreachable with the arrows (GitHub #10).
+  $: canGoWeekPrev = _dep(_tick, canStepWeek(currentDate, -1, plugin.settings.academicYear.startDate, plugin.settings.academicYear.endDate));
+  $: canGoWeekNext = _dep(_tick, canStepWeek(currentDate,  1, plugin.settings.academicYear.startDate, plugin.settings.academicYear.endDate));
   $: canGoPrev = isDayMode ? !!_stepSchoolDay(currentDate, -1) : canGoWeekPrev;
   $: canGoNext = isDayMode ? !!_stepSchoolDay(currentDate,  1) : canGoWeekNext;
 
