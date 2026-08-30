@@ -1407,7 +1407,7 @@
               <div class="tp-dfree">{period.start}–{dTime.startLabel} · free</div>
             {/if}
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="tp-dcard" class:tp-dcard--partial={dTime.isPartial} role="button" tabindex="0"
+            <div class="tp-dcard" role="button" tabindex="0"
               style="--chip-fg:{chipFg(lbl.colour, _themeBg)}; border-left:3px solid {lbl.colour}; background:{hexToRgba(lbl.colour, 0.16)};"
               on:click={(e) => openChipMenu(e, "slot", dDate, period.id, dSlot)} on:keydown={onCardKeydown}>
               <div class="tp-dcard-time">{period.name}<br><span>{dTime.startLabel}</span>{#if dTime.isPartial}<br><span>–{dTime.endLabel}</span>{/if}</div>
@@ -1443,7 +1443,7 @@
               <div class="tp-dfree">{period.start}–{eTime.startLabel} · free</div>
             {/if}
             <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div class="tp-dcard" class:tp-dcard--partial={eTime.isPartial} role="button" tabindex="0"
+            <div class="tp-dcard" role="button" tabindex="0"
               style="--chip-fg:{chipFg(elbl.colour, _themeBg)}; border-left:3px solid {elbl.colour}; background:{hexToRgba(elbl.colour, 0.16)};"
               on:click={(e) => openChipMenu(e, "event", dDate, period.id, undefined, dEv)} on:keydown={onCardKeydown}>
               <div class="tp-dcard-time">{eName}<br><span>{eTime.startLabel}</span>{#if eTime.isPartial || dRun.run.length > 1}<br><span>–{eTime.endLabel}</span>{/if}</div>
@@ -1502,7 +1502,7 @@
                 {@const aPlan = _slotPlanMap[aSlot.id + "|" + aDate]}
                 {@const aTime = occurrenceTime([period], { start: aSlot.start, durationMinutes: aSlot.durationMinutes })}
                 <!-- svelte-ignore a11y-no-static-element-interactions -->
-                <div class="tp-agenda-row" class:tp-agenda-row--partial={aTime.isPartial} role="button" tabindex="0" style="--chip-fg:{chipFg(sl.colour, _themeBg)}; border-left:3px solid {sl.colour}; background:{hexToRgba(sl.colour,0.16)};"
+                <div class="tp-agenda-row" role="button" tabindex="0" style="--chip-fg:{chipFg(sl.colour, _themeBg)}; border-left:3px solid {sl.colour}; background:{hexToRgba(sl.colour,0.16)};"
                   on:click={(e) => openChipMenu(e, "slot", aDate, period.id, aSlot)} on:keydown={onCardKeydown}>
                   <span class="tp-agenda-period">{period.name}{#if aTime.isPartial}<br><span class="tp-agenda-range">{aTime.range}</span>{/if}</span>
                   <span class="tp-agenda-main">{subjectEmoji(aSlot.classId)} {sl.code}{#if sl.subjectName} · {sl.subjectName}{/if}</span>
@@ -1528,7 +1528,7 @@
                 {@const aeP = _preparedEventMap[aEv.id]}
                 {@const aePlan = _eventPlanMap[aEv.id]}
                 <!-- svelte-ignore a11y-no-static-element-interactions -->
-                <div class="tp-agenda-row tp-agenda-row--event" class:tp-agenda-row--partial={aeTime.isPartial} role="button" tabindex="0" style="--chip-fg:{chipFg(el.colour, _themeBg)}; border-left:3px solid {el.colour}; background:{hexToRgba(el.colour,0.16)};"
+                <div class="tp-agenda-row tp-agenda-row--event" role="button" tabindex="0" style="--chip-fg:{chipFg(el.colour, _themeBg)}; border-left:3px solid {el.colour}; background:{hexToRgba(el.colour,0.16)};"
                   on:click={(e) => openChipMenu(e, "event", aDate, period.id, undefined, aEv)} on:keydown={onCardKeydown}>
                   <span class="tp-agenda-period">{aeName}{#if aeTime.isPartial || aRun.run.length > 1}<br><span class="tp-agenda-range">{aeTime.range}</span>{/if}</span>
                   <span class="tp-agenda-main">{el.code}{#if el.meta} · {el.meta}{/if}</span>
@@ -2111,11 +2111,9 @@
   .tp-agenda-head { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-muted); padding:8px 2px 6px; position:sticky; top:0; background:var(--background-primary); z-index:2; }
   .tp-agenda-head--today { color:var(--interactive-accent); }
   .tp-agenda-dayname { text-transform:uppercase; letter-spacing:0.03em; }
-  .tp-agenda-row { display:flex; align-items:center; gap:8px; width:100%; text-align:left; border:none; border-radius:0 7px 7px 0; padding:8px 10px; margin-bottom:5px; color:var(--chip-fg, var(--text-normal)); cursor:pointer; font-size:13px; font-family:var(--font-interface); }
+  .tp-agenda-row { display:flex; align-items:center; gap:8px; width:100%; text-align:left; border:none; border-radius:0 7px 7px 0; padding:8px 10px; margin-bottom:5px; flex-shrink:0; color:var(--chip-fg, var(--text-normal)); cursor:pointer; font-size:13px; font-family:var(--font-interface); }
   .tp-agenda-period { font-size:11px; color:var(--text-muted); min-width:64px; flex-shrink:0; line-height:1.3; }
   .tp-agenda-range { font-size:10px; opacity:0.85; white-space:nowrap; }
-  /* A partial occurrence is inset from the row edge so it visibly does not fill the period */
-  .tp-agenda-row--partial { margin-left:10px; width:calc(100% - 10px); }
   .tp-agenda-main { flex:1; min-width:0; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-agenda-room { font-size:11px; font-style:italic; color:var(--text-muted); flex-shrink:0; }
   .tp-agenda-marks { --mark-size:18px; display:flex; gap:6px; align-items:center; flex-shrink:0; margin-left:4px; }
@@ -2124,16 +2122,17 @@
   /* ── Mobile day card list ─────────────────────────────────────────────── */
   .tp-daylist { flex:1; min-height:0; overflow:auto; padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
   .tp-daylist-empty { font-size:13px; color:var(--text-faint); font-style:italic; padding:14px; text-align:center; }
-  .tp-dcard { display:flex; gap:10px; align-items:flex-start; width:100%; text-align:left; border:none; border-radius:0 9px 9px 0; padding:9px 11px; min-height:62px; box-sizing:border-box; cursor:pointer; color:var(--chip-fg, var(--text-normal)); font-family:var(--font-interface); }
+  /* flex-shrink:0 matters: .tp-daylist is a flex column, so without it a long
+     day squeezed these cards below their own content and the last line of text
+     spilled out of the coloured box. */
+  .tp-dcard { display:flex; gap:10px; align-items:flex-start; width:100%; text-align:left; border:none; border-radius:0 9px 9px 0; padding:9px 11px; min-height:62px; flex-shrink:0; box-sizing:border-box; cursor:pointer; color:var(--chip-fg, var(--text-normal)); font-family:var(--font-interface); }
   .tp-dcard:active { filter:brightness(1.06); }
   .tp-dcard-time { font-size:11px; color:var(--text-muted); width:46px; flex-shrink:0; line-height:1.3; }
   .tp-dcard-time span { font-size:10px; opacity:0.8; white-space:nowrap; }
-  /* Partial occurrence: inset + shorter, so it reads as not filling the block */
-  .tp-dcard--partial { margin-left:12px; width:calc(100% - 12px); min-height:52px; }
   .tp-dcard-dur { display:inline-block; margin-left:6px; padding:0 5px; border-radius:8px; font-size:10px; font-weight:600; vertical-align:middle;
                   background:var(--background-modifier-border); color:var(--text-muted); }
   /* Free remainder of a block either side of a partial occurrence (mirrors the desktop grid strips) */
-  .tp-dfree { display:flex; align-items:center; height:20px; margin:0 0 3px 12px; padding:0 8px; border-radius:6px;
+  .tp-dfree { display:flex; align-items:center; height:20px; flex-shrink:0; margin:0 0 3px; padding:0 8px; border-radius:6px;
               border:1px dashed var(--background-modifier-border); font-size:10px; color:var(--text-faint); }
   .tp-dcard-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
   .tp-dcard-code { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -2141,7 +2140,7 @@
   .tp-dcard-note { font-size:11px; color:var(--chip-fg, var(--text-normal)); opacity:0.62; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tp-dcard-marks { --mark-size:20px; display:flex; gap:8px; align-items:center; flex-shrink:0; padding-top:1px; }
   .tp-dcard .tp-prep-tick { opacity:0.6; }
-  .tp-dslim { display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; background:var(--background-secondary); border-radius:8px; padding:6px 11px; min-height:34px; box-sizing:border-box; cursor:pointer; color:var(--text-muted); font-family:var(--font-interface); }
+  .tp-dslim { display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; background:var(--background-secondary); border-radius:8px; padding:6px 11px; min-height:34px; flex-shrink:0; box-sizing:border-box; cursor:pointer; color:var(--text-muted); font-family:var(--font-interface); }
   .tp-dslim-time { font-size:11px; color:var(--text-faint); width:40px; flex-shrink:0; }
   .tp-dslim-name { flex:1; font-size:11px; }
   .tp-dslim-add { font-size:15px; color:var(--text-faint); }
