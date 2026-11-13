@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, Modal, Setting, Notice } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import { isValidIsoDate } from "../utils/weekUtils";
@@ -48,19 +49,19 @@ export class EditPlannerModal extends Modal {
     let endDate = ay.endDate;
 
     contentEl.createEl("p", {
-      text: "Update this planner's name and date range. Holidays, INSET days, events and notes keep their own dates — only the planner window moves. The timetable and its A/B weeks realign to the new range.",
+      text: translateUi("Update this planner's name and date range. Holidays, INSET days, events and notes keep their own dates — only the planner window moves. The timetable and its A/B weeks realign to the new range."),
       cls: "setting-item-description",
     });
 
     new Setting(contentEl)
-      .setName("Planner name")
+      .setName(translateUi("Planner name"))
       .addText(t => {
         t.setValue(name);
         t.inputEl.addEventListener("input", () => { name = t.inputEl.value; });
       });
 
     new Setting(contentEl)
-      .setName("Start date")
+      .setName(translateUi("Start date"))
       .addText(t => {
         t.inputEl.type = "date";
         t.setValue(startDate);
@@ -68,7 +69,7 @@ export class EditPlannerModal extends Modal {
       });
 
     new Setting(contentEl)
-      .setName("End date")
+      .setName(translateUi("End date"))
       .addText(t => {
         t.inputEl.type = "date";
         t.setValue(endDate);
@@ -76,18 +77,18 @@ export class EditPlannerModal extends Modal {
       });
 
     new Setting(contentEl)
-      .addButton(btn => btn.setButtonText("Cancel").onClick(() => this.close()))
+      .addButton(btn => btn.setButtonText(translateUi("Cancel")).onClick(() => this.close()))
       .addButton(btn => btn
-        .setButtonText("Save changes")
+        .setButtonText(translateUi("Save changes"))
         .setCta()
         .onClick(async () => {
           const trimmedName = name.trim();
-          if (!trimmedName) { new Notice("Please enter a planner name."); return; }
+          if (!trimmedName) { new Notice(translateUi("Please enter a planner name.")); return; }
           if (!isValidIsoDate(startDate) || !isValidIsoDate(endDate)) {
-            new Notice("Please enter valid dates in YYYY-MM-DD format."); return;
+            new Notice(translateUi("Please enter valid dates in YYYY-MM-DD format.")); return;
           }
           if (endDate <= startDate) {
-            new Notice("End date must be after the start date."); return;
+            new Notice(translateUi("End date must be after the start date.")); return;
           }
 
           const oldStart = this.plugin.settings.academicYear.startDate;
@@ -107,7 +108,7 @@ export class EditPlannerModal extends Modal {
           }
 
           await this.plugin.saveSettings();
-          new Notice("Planner updated.");
+          new Notice(translateUi("Planner updated."));
           this.close();
           this.onSaved();
         }));

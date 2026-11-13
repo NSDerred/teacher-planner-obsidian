@@ -1,4 +1,6 @@
 <script lang="ts">
+import { t as translateUi } from "../i18n";
+
   import type TeacherPlannerPlugin from "../main";
   import type { SchoolDay } from "../types";
   import { getMondayOfWeek, weekKey, schoolDayOf } from "../utils/weekUtils";
@@ -113,7 +115,7 @@
   $: notesPlaceholder = (() => {
     const monday = getMondayOfWeek(currentWeek);
     const d = monday.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
-    return `Notes for week commencing ${d}:`;
+    return translateUi`Notes for week commencing ${d}:`;
   })();
 
   // ── Notes: edit / preview state ─────────────────────────────────────────
@@ -270,9 +272,9 @@
     // blurs the textarea first, and that blur's save is async, so the note can
     // hold text the reactive flag has not caught up with yet. Never clobber it.
     const current = useLive && liveHandle ? liveHandle.value : (textareaEl?.value ?? notesValue);
-    if (current.trim()) { new Notice("This week's note already has content."); return; }
+    if (current.trim()) { new Notice(translateUi("This week's note already has content.")); return; }
     const rendered = renderWeekNoteBody(body, plugin.settings, currentWeekKey);
-    if (!rendered.trim()) { new Notice("That template is empty."); return; }
+    if (!rendered.trim()) { new Notice(translateUi("That template is empty.")); return; }
     if (useLive && liveHandle) {
       liveHandle.setValue(rendered);
       liveEmpty = false;
@@ -284,7 +286,7 @@
 
   async function onTemplateClick(e: MouseEvent) {
     const mine = (await listWeekNoteTemplates(plugin.app, plugin.settings)).filter(t => !t.builtin);
-    if (mine.length === 0) { new Notice("No week note templates yet — save one in Settings."); return; }
+    if (mine.length === 0) { new Notice(translateUi("No week note templates yet — save one in Settings.")); return; }
     if (mine.length === 1) { await applyWeekTemplate(mine[0].body); return; }
     const defId = plugin.settings.defaultWeekNoteTemplateId ?? "";
     const menu = new Menu();
@@ -320,10 +322,10 @@
   // ── Notes: formatting toolbar ────────────────────────────────────────
   const HL_YELLOW = "#fff3a3";
   const HL_COLOURS = [
-    { name: "Yellow", value: HL_YELLOW },
-    { name: "Green",  value: "#c3f0c8" },
-    { name: "Blue",   value: "#b6dcfb" },
-    { name: "Pink",   value: "#f7c6da" },
+    { name: translateUi("Yellow"), value: HL_YELLOW },
+    { name: translateUi("Green"),  value: "#c3f0c8" },
+    { name: translateUi("Blue"),   value: "#b6dcfb" },
+    { name: translateUi("Pink"),   value: "#f7c6da" },
     { name: "Orange", value: "#ffd5a8" },
   ];
   let lastHighlight = HL_YELLOW;
@@ -400,9 +402,9 @@
   // Recalculates whenever settings change (_tick ensures Svelte tracks it as a dependency)
   $: dtCalc = _dep(_tick, dtEnabled ? calcDirectedTime(plugin.settings) : null);
 
-  const MONTH_NAMES = ["January","February","March","April","May","June",
-                       "July","August","September","October","November","December"];
-  const DAY_LABELS  = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+  const MONTH_NAMES = [translateUi("January"),translateUi("February"),translateUi("March"),translateUi("April"),translateUi("May"),translateUi("June"),
+                       translateUi("July"),translateUi("August"),translateUi("September"),translateUi("October"),translateUi("November"),translateUi("December")];
+  const DAY_LABELS  = [translateUi("MON"),translateUi("TUE"),translateUi("WED"),translateUi("THU"),translateUi("FRI"),translateUi("SAT"),translateUi("SUN")];
 </script>
 
 <svelte:window on:mousedown={closeSwatches} />
@@ -416,9 +418,9 @@
         {MONTH_NAMES[viewMonth]} <span class="tp-cal-year">{viewYear}</span>
       </h2>
       <div class="tp-cal-nav-group">
-        <button class="tp-cal-nav" on:click={prevMonth} aria-label="Previous month">‹</button>
+        <button class="tp-cal-nav" on:click={prevMonth} aria-label={translateUi("Previous month")}>‹</button>
         <button class="tp-cal-today-btn" on:click={goToday}>TODAY</button>
-        <button class="tp-cal-nav" on:click={nextMonth} aria-label="Next month">›</button>
+        <button class="tp-cal-nav" on:click={nextMonth} aria-label={translateUi("Next month")}>›</button>
       </div>
     </div>
 
@@ -449,28 +451,28 @@
   <div class="tp-sb-notes">
     <!-- Formatting toolbar -->
     <div class="tp-sb-notes-toolbar">
-      <button class="tp-fmt-btn" aria-label="Bold" title="Bold"
+      <button class="tp-fmt-btn" aria-label={translateUi("Bold")} title={translateUi("Bold")}
               on:mousedown|preventDefault={() => wrapSelection("**", "**")} use:icon={"bold"}></button>
-      <button class="tp-fmt-btn" aria-label="Italic" title="Italic"
+      <button class="tp-fmt-btn" aria-label={translateUi("Italic")} title={translateUi("Italic")}
               on:mousedown|preventDefault={() => wrapSelection("*", "*")} use:icon={"italic"}></button>
-      <button class="tp-fmt-btn" aria-label="Heading" title="Heading"
+      <button class="tp-fmt-btn" aria-label={translateUi("Heading")} title={translateUi("Heading")}
               on:mousedown|preventDefault={() => linePrefix("heading")} use:icon={"heading"}></button>
       <span class="tp-fmt-sep"></span>
-      <button class="tp-fmt-btn" aria-label="Bullet list" title="Bullet list"
+      <button class="tp-fmt-btn" aria-label={translateUi("Bullet list")} title={translateUi("Bullet list")}
               on:mousedown|preventDefault={() => linePrefix("bullet")} use:icon={"list"}></button>
-      <button class="tp-fmt-btn" aria-label="Numbered list" title="Numbered list"
+      <button class="tp-fmt-btn" aria-label={translateUi("Numbered list")} title={translateUi("Numbered list")}
               on:mousedown|preventDefault={() => linePrefix("number")} use:icon={"list-ordered"}></button>
       <span class="tp-fmt-sep"></span>
       <div class="tp-fmt-hl">
-        <button class="tp-fmt-btn tp-fmt-hl-main" aria-label="Highlight" title="Highlight"
+        <button class="tp-fmt-btn tp-fmt-hl-main" aria-label={translateUi("Highlight")} title={translateUi("Highlight")}
                 on:mousedown|preventDefault={() => applyHighlight(lastHighlight)}>
           <span use:icon={"highlighter"}></span>
           <span class="tp-fmt-hl-bar" style="background:{lastHighlight}"></span>
         </button>
-        <button class="tp-fmt-btn tp-fmt-hl-caret" aria-label="Highlight colour"
+        <button class="tp-fmt-btn tp-fmt-hl-caret" aria-label={translateUi("Highlight colour")}
                 on:mousedown|preventDefault={toggleSwatches} use:icon={"chevron-down"}></button>
         {#if showSwatches}
-          <div class="tp-fmt-swatches" role="toolbar" tabindex="-1" aria-label="Highlight colours" on:mousedown={(e) => e.stopPropagation()}>
+          <div class="tp-fmt-swatches" role="toolbar" tabindex="-1" aria-label={translateUi("Highlight colours")} on:mousedown={(e) => e.stopPropagation()}>
             {#each HL_COLOURS as c}
               <span class="tp-fmt-swatch" title={c.name} style="background:{c.value}"
                     class:tp-fmt-swatch--active={c.value === lastHighlight}
@@ -482,12 +484,12 @@
       </div>
       {#if hasTemplates && noteIsEmpty}
         <span class="tp-fmt-sep"></span>
-        <button class="tp-fmt-btn" aria-label="Insert a week note template" title="Insert template"
+        <button class="tp-fmt-btn" aria-label={translateUi("Insert a week note template")} title={translateUi("Insert template")}
                 on:click={onTemplateClick} use:icon={"clipboard-list"}></button>
       {/if}
       {#if useLive}
         <span class="tp-fmt-spacer"></span>
-        <button class="tp-fmt-btn" aria-label="Open week note in a pane" title="Open full note"
+        <button class="tp-fmt-btn" aria-label={translateUi("Open week note in a pane")} title="Open full note"
                 on:click={openWeekNoteInPane} use:icon={"maximize-2"}></button>
       {/if}
     </div>

@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, TFile, MarkdownView, normalizePath } from "obsidian";
 import type { TeacherPlannerSettings } from "../types";
 import type { NoteMove } from "./lessonShiftApply";

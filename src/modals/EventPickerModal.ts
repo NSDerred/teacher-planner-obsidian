@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, Modal } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 
@@ -20,7 +21,7 @@ export class EventPickerModal extends Modal {
     contentEl.empty();
     contentEl.addClass("tp-event-picker-modal");
 
-    this.setTitle("Add event");
+    this.setTitle(translateUi("Add event"));
 
     const classes    = this.plugin.settings.classes    ?? [];
     const activities = this.plugin.settings.activities ?? [];
@@ -30,7 +31,7 @@ export class EventPickerModal extends Modal {
 
     // Lessons
     if (classes.length > 0) {
-      list.createDiv({ text: "LESSONS", cls: "tp-epm-group-label" });
+      list.createDiv({ text: translateUi("LESSONS"), cls: "tp-epm-group-label" });
       const sortedSubjects = [...subjects].sort((a, b) => a.name.localeCompare(b.name));
       for (const subj of sortedSubjects) {
         const subjClasses = classes
@@ -51,7 +52,7 @@ export class EventPickerModal extends Modal {
     // Activities
     if (activities.length > 0) {
       if (classes.length > 0) list.createDiv({ cls: "tp-epm-divider" });
-      list.createDiv({ text: "DIRECTED TIME", cls: "tp-epm-group-label" });
+      list.createDiv({ text: translateUi("DIRECTED TIME"), cls: "tp-epm-group-label" });
       const sortedActs = [...activities].sort((a, b) => a.label.localeCompare(b.label));
       for (const act of sortedActs) {
         const btn = list.createEl("button", { cls: "tp-epm-item" });
@@ -65,7 +66,7 @@ export class EventPickerModal extends Modal {
     }
 
     const footer = contentEl.createDiv("tp-epm-footer");
-    footer.createEl("button", { text: "Cancel", cls: "tp-btn" })
+    footer.createEl("button", { text: translateUi("Cancel"), cls: "tp-btn" })
       .addEventListener("click", () => this.close());
   }
 

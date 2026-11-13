@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import type { TeacherPlannerSettings, TimetableSlot } from "../types";
 import { getAbWeekType, schoolDayOf } from "./weekUtils";
 import { eventPeriodIds, eventIsDirected } from "./eventUtils";
@@ -59,12 +60,12 @@ export function blockOccupants(
 ): BlockOccupant[] {
   const out: BlockOccupant[] = [];
   const slot = resolvedSlotForDate(s, dateIso, periodId);
-  if (slot) out.push({ kind: "lesson", id: slot.id, label: labelForId(s, slot.classId) || "Lesson", directed: idIsDirected(s, slot.classId) });
+  if (slot) out.push({ kind: "lesson", id: slot.id, label: labelForId(s, slot.classId) || translateUi("Lesson"), directed: idIsDirected(s, slot.classId) });
   for (const ev of s.dateEvents ?? []) {
     if (opts?.excludeEventId && ev.id === opts.excludeEventId) continue;
     if (ev.date !== dateIso) continue;
     if (!eventPeriodIds(ev).includes(periodId)) continue;
-    const label = (ev.title && ev.title.trim()) ? ev.title.trim() : (labelForId(s, ev.classId) || "Event");
+    const label = (ev.title && ev.title.trim()) ? ev.title.trim() : (labelForId(s, ev.classId) || translateUi("Event"));
     out.push({ kind: "event", id: ev.id, label, directed: eventIsDirected(ev, s) });
   }
   return out;

@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { ItemView, WorkspaceLeaf, ViewStateResult } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import WeekViewComponent from "./WeekView.svelte";
@@ -26,7 +27,7 @@ export class WeekView extends ItemView {
   }
 
   getViewType(): string { return WEEK_VIEW_TYPE; }
-  getDisplayText(): string { return "Teacher Planner"; }
+  getDisplayText(): string { return translateUi("Teacher Planner"); }
   getIcon(): string { return "calendar-days"; }
 
   async onOpen() {

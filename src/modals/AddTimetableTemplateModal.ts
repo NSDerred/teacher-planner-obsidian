@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, Modal } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { TimetableTemplate, TimetableSlot } from "../types";
@@ -33,9 +34,9 @@ export class AddTimetableTemplateModal extends Modal {
     contentEl.empty();
     contentEl.addClass("tp-modal");
 
-    this.setTitle("New timetable template");
+    this.setTitle(translateUi("New timetable template"));
     contentEl.createEl("p", {
-      text: "Create a new timetable from a chosen start date. The new template will run to the end of the academic year.",
+      text: translateUi("Create a new timetable from a chosen start date. The new template will run to the end of the academic year."),
       cls: "tp-modal-desc",
     });
 
@@ -59,7 +60,7 @@ export class AddTimetableTemplateModal extends Modal {
     this.label(form, "Copy slots from (optional)");
     const copySelect = form.createEl("select", { cls: "tp-modal-input" });
     copySelect.setCssStyles({ width: "100%", boxSizing: "border-box", marginBottom: "14px" });
-    copySelect.createEl("option", { value: "", text: "— Start blank —" });
+    copySelect.createEl("option", { value: "", text: translateUi("— Start blank —") });
     for (const tmpl of (this.plugin.settings.timetableTemplates ?? [])) {
       copySelect.createEl("option", { value: tmpl.id, text: `${tmpl.name} (${fmtDate(tmpl.startDate)} – ${fmtDate(tmpl.endDate)})` });
     }
@@ -81,7 +82,7 @@ export class AddTimetableTemplateModal extends Modal {
       const ay = this.plugin.settings.academicYear;
 
       if (startDate < ay.startDate || startDate > ay.endDate) {
-        infoEl.createEl("p", { text: "⚠️ Start date is outside the academic year.", cls: "tp-modal-warn" });
+        infoEl.createEl("p", { text: translateUi("⚠️ Start date is outside the academic year."), cls: "tp-modal-warn" });
         return;
       }
 
@@ -114,7 +115,7 @@ export class AddTimetableTemplateModal extends Modal {
           gapBox.createEl("p", {
             text: `⚠️ Gap detected: ${fmtDate(gapStart)} – ${fmtDate(gapEnd)} won't be covered by any template.`,
           }).setCssStyles({ margin: "0 0 8px", fontWeight: "600" });
-          gapBox.createEl("p", { text: "How should this gap be handled?" }).setCssStyles({ margin: "0 0 6px" });
+          gapBox.createEl("p", { text: translateUi("How should this gap be handled?") }).setCssStyles({ margin: "0 0 6px" });
 
           const radio = (value: "previous" | "blank", label: string) => {
             const row = gapBox.createDiv();
@@ -140,10 +141,10 @@ export class AddTimetableTemplateModal extends Modal {
 
     // ── Footer ────────────────────────────────────────────────────────────────
     const footer = form.createDiv("tp-modal-footer");
-    const cancelBtn = footer.createEl("button", { text: "Cancel", cls: "tp-btn" });
+    const cancelBtn = footer.createEl("button", { text: translateUi("Cancel"), cls: "tp-btn" });
     cancelBtn.addEventListener("click", () => this.close());
 
-    const createBtn = footer.createEl("button", { text: "Create Template", cls: "tp-btn tp-btn--primary" });
+    const createBtn = footer.createEl("button", { text: translateUi("Create Template"), cls: "tp-btn tp-btn--primary" });
     createBtn.addEventListener("click", () => { void (async () => {
       const name = nameInput.value.trim();
       const startDate = dateInput.value;

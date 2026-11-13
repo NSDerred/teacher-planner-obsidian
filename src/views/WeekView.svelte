@@ -1,4 +1,6 @@
 <script lang="ts">
+import { t as translateUi } from "../i18n";
+
   import type TeacherPlannerPlugin from "../main";
   import type { TimetableSlot, SchoolPeriod, DateEvent, SchoolDay, SlotExclusion } from "../types";
   import { Menu, Notice, Platform, setIcon, MarkdownView } from "obsidian";
@@ -42,13 +44,13 @@
 
   // ── Day columns ───────────────────────────────────────────────────────────
   const ALL_DAYS: { key: SchoolDay; label: string; offset: number }[] = [
-    { key: "monday",    label: "Mon", offset: 0 },
-    { key: "tuesday",   label: "Tue", offset: 1 },
-    { key: "wednesday", label: "Wed", offset: 2 },
-    { key: "thursday",  label: "Thu", offset: 3 },
-    { key: "friday",    label: "Fri", offset: 4 },
-    { key: "saturday",  label: "Sat", offset: 5 },
-    { key: "sunday",    label: "Sun", offset: 6 },
+    { key: "monday",    label: translateUi("Mon"), offset: 0 },
+    { key: "tuesday",   label: translateUi("Tue"), offset: 1 },
+    { key: "wednesday", label: translateUi("Wed"), offset: 2 },
+    { key: "thursday",  label: translateUi("Thu"), offset: 3 },
+    { key: "friday",    label: translateUi("Fri"), offset: 4 },
+    { key: "saturday",  label: translateUi("Sat"), offset: 5 },
+    { key: "sunday",    label: translateUi("Sun"), offset: 6 },
   ];
   $: DAYS = _dep(_tick, ALL_DAYS.filter(d =>
     (plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(d.key)
@@ -694,7 +696,7 @@
     const _hiddenSlot = _menuDay ? _slotMap[_menuDay + ":" + periodId] : undefined;
     if (_hiddenSlot && isSlotExcluded(_hiddenSlot.id, date)) {
       const _hiddenLbl = getSlotLabel(_hiddenSlot);
-      menu.addItem(i => i.setTitle(`Restore removed lesson (${_hiddenLbl.code})`).setIcon("undo-2")
+      menu.addItem(i => i.setTitle(translateUi`Restore removed lesson (${_hiddenLbl.code})`).setIcon("undo-2")
         .onClick(() => { void restoreSlotOnDate(_hiddenSlot.id, date); }));
       menu.addSeparator();
     }
@@ -704,20 +706,20 @@
       : !!_classes.find(c => c.id === event?.classId);
 
     if (type === "slot" && slot) {
-      menu.addItem(i => i.setTitle("Edit").setIcon("pencil").onClick(() => openNotesModal(slot, date, periodId)));
-      if (isClass) menu.addItem(i => i.setTitle("Lesson note").setIcon("book-open").onClick(() => openOrCreateLessonNote(slot, date)));
+      menu.addItem(i => i.setTitle(translateUi("Edit")).setIcon("pencil").onClick(() => openNotesModal(slot, date, periodId)));
+      if (isClass) menu.addItem(i => i.setTitle(translateUi("Lesson note")).setIcon("book-open").onClick(() => openOrCreateLessonNote(slot, date)));
       {
         const planPath = getSlotPlan(plugin.settings, slot.id, date)?.path;
         const itemLabel = getSlotLabel(slot).code;
         if (planPath) {
-          menu.addItem(i => i.setTitle("Open lesson plan").setIcon("file-text").onClick(() => openPlan(planPath)));
-          menu.addItem(i => i.setTitle("Unlink lesson plan").setIcon("unlink").onClick(async () => {
+          menu.addItem(i => i.setTitle(translateUi("Open lesson plan")).setIcon("file-text").onClick(() => openPlan(planPath)));
+          menu.addItem(i => i.setTitle(translateUi("Unlink lesson plan")).setIcon("unlink").onClick(async () => {
             clearSlotPlan(plugin.settings, slot.id, date);
             await plugin.saveSettings();
             invalidate();
           }));
         } else {
-          menu.addItem(i => i.setTitle("Link lesson plan…").setIcon("file-plus").onClick(() => linkPlanForSlot(slot, date)));
+          menu.addItem(i => i.setTitle(translateUi("Link lesson plan…")).setIcon("file-plus").onClick(() => linkPlanForSlot(slot, date)));
         }
         if (isClass) {
           const prepared = isSlotPrepared(plugin.settings, slot.id, date);
@@ -729,43 +731,43 @@
         if (!_isMobileApp) {
           const ext = getSlotExternal(plugin.settings, slot.id, date)?.path;
           if (ext) {
-            menu.addItem(i => i.setTitle("Open external resource").setIcon("external-link").onClick(() => openSystemPath(ext)));
-            menu.addItem(i => i.setTitle("Unlink external resource").setIcon("unlink").onClick(async () => {
+            menu.addItem(i => i.setTitle(translateUi("Open external resource")).setIcon("external-link").onClick(() => openSystemPath(ext)));
+            menu.addItem(i => i.setTitle(translateUi("Unlink external resource")).setIcon("unlink").onClick(async () => {
               clearSlotExternal(plugin.settings, slot.id, date);
               await plugin.saveSettings(); invalidate();
             }));
           } else {
-            menu.addItem(i => i.setTitle("Link external file…").setIcon("paperclip").onClick(async () => {
+            menu.addItem(i => i.setTitle(translateUi("Link external file…")).setIcon("paperclip").onClick(async () => {
               const p = await openOSFilePicker("Link a file to this lesson");
               if (p) { setSlotExternal(plugin.settings, slot.id, date, p, "file"); await plugin.saveSettings(); invalidate(); }
             }));
-            menu.addItem(i => i.setTitle("Link external folder…").setIcon("folder-open").onClick(async () => {
+            menu.addItem(i => i.setTitle(translateUi("Link external folder…")).setIcon("folder-open").onClick(async () => {
               const p = await openOSFolderPicker();
               if (p) { setSlotExternal(plugin.settings, slot.id, date, p, "folder"); await plugin.saveSettings(); invalidate(); }
             }));
           }
         }
       }
-      menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
+      menu.addItem(i => i.setTitle(translateUi("Add event")).setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
-      menu.addItem(i => i.setTitle("Change colour").setIcon("palette").onClick(() => changeColour(slot.classId)));
+      menu.addItem(i => i.setTitle(translateUi("Change colour")).setIcon("palette").onClick(() => changeColour(slot.classId)));
       {
         const [ry, rmo, rd] = date.split("-");
-        menu.addItem(i => i.setTitle("Remove this lesson (this date only)").setIcon("trash-2").onClick(() => confirmDelete(plugin, `Remove this lesson on ${rd}/${rmo}/${ry}? Other weeks and the timetable template are not affected — directed time for this week adjusts accordingly. You can restore it from the empty block.`, () => excludeSlotOnDate(slot.id, date))));
+        menu.addItem(i => i.setTitle(translateUi("Remove this lesson (this date only)")).setIcon("trash-2").onClick(() => confirmDelete(plugin, `Remove this lesson on ${rd}/${rmo}/${ry}? Other weeks and the timetable template are not affected — directed time for this week adjusts accordingly. You can restore it from the empty block.`, () => excludeSlotOnDate(slot.id, date))));
       }
     } else if (type === "event" && event) {
-      menu.addItem(i => i.setTitle("Edit").setIcon("pencil").onClick(() => onEditDateEvent(event)));
+      menu.addItem(i => i.setTitle(translateUi("Edit")).setIcon("pencil").onClick(() => onEditDateEvent(event)));
       {
         const planPath = getEventPlan(plugin.settings, event.id)?.path;
         if (planPath) {
-          menu.addItem(i => i.setTitle("Open lesson plan").setIcon("file-text").onClick(() => openPlan(planPath)));
-          menu.addItem(i => i.setTitle("Unlink lesson plan").setIcon("unlink").onClick(async () => {
+          menu.addItem(i => i.setTitle(translateUi("Open lesson plan")).setIcon("file-text").onClick(() => openPlan(planPath)));
+          menu.addItem(i => i.setTitle(translateUi("Unlink lesson plan")).setIcon("unlink").onClick(async () => {
             clearEventPlan(plugin.settings, event.id);
             await plugin.saveSettings();
             invalidate();
           }));
         } else {
-          menu.addItem(i => i.setTitle("Link lesson plan…").setIcon("file-plus").onClick(() => linkPlanForEvent(event)));
+          menu.addItem(i => i.setTitle(translateUi("Link lesson plan…")).setIcon("file-plus").onClick(() => linkPlanForEvent(event)));
         }
         if (isClass) {
           const prepared = isEventPrepared(plugin.settings, event.id);
@@ -777,25 +779,25 @@
         if (!_isMobileApp) {
           const ext = getEventExternal(plugin.settings, event.id)?.path;
           if (ext) {
-            menu.addItem(i => i.setTitle("Open external resource").setIcon("external-link").onClick(() => openSystemPath(ext)));
-            menu.addItem(i => i.setTitle("Unlink external resource").setIcon("unlink").onClick(async () => {
+            menu.addItem(i => i.setTitle(translateUi("Open external resource")).setIcon("external-link").onClick(() => openSystemPath(ext)));
+            menu.addItem(i => i.setTitle(translateUi("Unlink external resource")).setIcon("unlink").onClick(async () => {
               clearEventExternal(plugin.settings, event.id);
               await plugin.saveSettings(); invalidate();
             }));
           } else {
-            menu.addItem(i => i.setTitle("Link external file…").setIcon("paperclip").onClick(async () => {
+            menu.addItem(i => i.setTitle(translateUi("Link external file…")).setIcon("paperclip").onClick(async () => {
               const p = await openOSFilePicker("Link a file to this event");
               if (p) { setEventExternal(plugin.settings, event.id, p, "file"); await plugin.saveSettings(); invalidate(); }
             }));
-            menu.addItem(i => i.setTitle("Link external folder…").setIcon("folder-open").onClick(async () => {
+            menu.addItem(i => i.setTitle(translateUi("Link external folder…")).setIcon("folder-open").onClick(async () => {
               const p = await openOSFolderPicker();
               if (p) { setEventExternal(plugin.settings, event.id, p, "folder"); await plugin.saveSettings(); invalidate(); }
             }));
           }
         }
       }
-      if (isClass) menu.addItem(i => i.setTitle("Lesson note").setIcon("book-open").onClick(() => openOrCreateLessonNoteForEvent(event, date)));
-      if (!isClass) menu.addItem(i => i.setTitle("Event note").setIcon("book-open").onClick(() => {
+      if (isClass) menu.addItem(i => i.setTitle(translateUi("Lesson note")).setIcon("book-open").onClick(() => openOrCreateLessonNoteForEvent(event, date)));
+      if (!isClass) menu.addItem(i => i.setTitle(translateUi("Event note")).setIcon("book-open").onClick(() => {
         const periodName = _periods.find(p => p.id === event.periodId)?.name ?? "";
         const tpl = plugin.settings.eventNoteTitleTemplate ?? DEFAULT_EVENT_NOTE_TITLE_TEMPLATE;
         const defaultTitle = buildNoteTitle(tpl, {
@@ -810,13 +812,13 @@
           await createNoteIn(date, fileName, "");
         })(); }).open();
       }));
-      menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
+      menu.addItem(i => i.setTitle(translateUi("Add event")).setIcon("calendar-plus").onClick(() => openEventPickerDirect(date, periodId)));
       menu.addSeparator();
-      menu.addItem(i => i.setTitle("Change colour").setIcon("palette").onClick(() => {
+      menu.addItem(i => i.setTitle(translateUi("Change colour")).setIcon("palette").onClick(() => {
         if (event.title && event.title.trim()) changeEventColour(event);
         else changeColour(event.classId);
       }));
-      menu.addItem(i => i.setTitle("Remove event").setIcon("trash-2").onClick(() => confirmDelete(plugin, `Remove this event${event.title && event.title.trim() ? ` “${event.title.trim()}”` : ""}?`, () => removeDateEvent(event.id))));
+      menu.addItem(i => i.setTitle(translateUi("Remove event")).setIcon("trash-2").onClick(() => confirmDelete(plugin, translateUi`Remove this event${event.title && event.title.trim() ? ` “${event.title.trim()}”` : ""}?`, () => removeDateEvent(event.id))));
     }
     showMenuAt(menu, e);
   }
@@ -834,7 +836,7 @@
   }
 
   function changeEventColour(event: DateEvent) {
-    new ColourPickerModal(plugin.app, event.colour ?? "#888", event.title ?? "Event", async (colour: string) => {
+    new ColourPickerModal(plugin.app, event.colour ?? "#888", event.title ?? translateUi("Event"), async (colour: string) => {
       const ev = (plugin.settings.dateEvents ?? []).find(e => e.id === event.id);
       if (ev) ev.colour = colour;
       await plugin.saveSettings(); invalidate();
@@ -1010,15 +1012,15 @@
     const menu = new Menu();
     menu.addItem(i => i.setTitle(state).setIcon("calendar").setDisabled(true));
     menu.addSeparator();
-    menu.addItem(i => i.setTitle("Use automatic rotation").setIcon("rotate-ccw").setChecked(!cur).onClick(() => setAbOverride(null, false)));
+    menu.addItem(i => i.setTitle(translateUi("Use automatic rotation")).setIcon("rotate-ccw").setChecked(!cur).onClick(() => setAbOverride(null, false)));
     menu.addSeparator();
-    menu.addItem(i => i.setTitle("Relabel this week only").setDisabled(true));
-    menu.addItem(i => i.setTitle("Show this week as A").setChecked(!!cur && !cur.anchor && cur.value === "A").onClick(() => setAbOverride("A", false)));
-    menu.addItem(i => i.setTitle("Show this week as B").setChecked(!!cur && !cur.anchor && cur.value === "B").onClick(() => setAbOverride("B", false)));
+    menu.addItem(i => i.setTitle(translateUi("Relabel this week only")).setDisabled(true));
+    menu.addItem(i => i.setTitle(translateUi("Show this week as A")).setChecked(!!cur && !cur.anchor && cur.value === "A").onClick(() => setAbOverride("A", false)));
+    menu.addItem(i => i.setTitle(translateUi("Show this week as B")).setChecked(!!cur && !cur.anchor && cur.value === "B").onClick(() => setAbOverride("B", false)));
     menu.addSeparator();
-    menu.addItem(i => i.setTitle("Change pattern from here on").setDisabled(true));
-    menu.addItem(i => i.setTitle("Make this an A week (shift the rest)").setChecked(!!cur && cur.anchor && cur.value === "A").onClick(() => setAbOverride("A", true)));
-    menu.addItem(i => i.setTitle("Make this a B week (shift the rest)").setChecked(!!cur && cur.anchor && cur.value === "B").onClick(() => setAbOverride("B", true)));
+    menu.addItem(i => i.setTitle(translateUi("Change pattern from here on")).setDisabled(true));
+    menu.addItem(i => i.setTitle(translateUi("Make this an A week (shift the rest)")).setChecked(!!cur && cur.anchor && cur.value === "A").onClick(() => setAbOverride("A", true)));
+    menu.addItem(i => i.setTitle(translateUi("Make this a B week (shift the rest)")).setChecked(!!cur && cur.anchor && cur.value === "B").onClick(() => setAbOverride("B", true)));
     showMenuAt(menu, e);
   }
 
@@ -1036,10 +1038,10 @@
   function showOverflowMenu(e: MouseEvent) {
     e.stopPropagation();
     const menu = new Menu();
-    menu.addItem(i => i.setTitle("Lessons").setIcon("list-checks").onClick(onOpenOverview));
-    menu.addItem(i => i.setTitle("Today").setIcon("calendar").onClick(onToday));
-    menu.addItem(i => i.setTitle("Timetable").setIcon("layout-grid").onClick(onOpenTimetable));
-    menu.addItem(i => i.setTitle("Settings").setIcon("settings").onClick(onOpenSettings));
+    menu.addItem(i => i.setTitle(translateUi("Lessons")).setIcon("list-checks").onClick(onOpenOverview));
+    menu.addItem(i => i.setTitle(translateUi("Today")).setIcon("calendar").onClick(onToday));
+    menu.addItem(i => i.setTitle(translateUi("Timetable")).setIcon("layout-grid").onClick(onOpenTimetable));
+    menu.addItem(i => i.setTitle(translateUi("Settings")).setIcon("settings").onClick(onOpenSettings));
     showMenuAt(menu, e);
   }
 
@@ -1071,8 +1073,8 @@
     if (rawSlot && isSlotExcluded(rawSlot.id, dayDate)) {
       const menu = new Menu();
       const lbl = getSlotLabel(rawSlot);
-      menu.addItem(i => i.setTitle(`Restore removed lesson (${lbl.code})`).setIcon("undo-2").onClick(() => restoreSlotOnDate(rawSlot.id, dayDate)));
-      menu.addItem(i => i.setTitle("Add event").setIcon("calendar-plus").onClick(() => onAddEvent(dayDate, periodId)));
+      menu.addItem(i => i.setTitle(translateUi`Restore removed lesson (${lbl.code})`).setIcon("undo-2").onClick(() => restoreSlotOnDate(rawSlot.id, dayDate)));
+      menu.addItem(i => i.setTitle(translateUi("Add event")).setIcon("calendar-plus").onClick(() => onAddEvent(dayDate, periodId)));
       showMenuAt(menu, e);
       return;
     }
@@ -1183,19 +1185,19 @@
   // ── Bulk apply: confirm + journaled undo ──────────────────────────────────
   function doUndoBulkApply() {
     const journal = plugin.settings.lastBulkApply;
-    if (!journal) { new Notice("Nothing to undo."); return; }
+    if (!journal) { new Notice(translateUi("Nothing to undo.")); return; }
     new ConfirmModal(plugin.app, `Undo the last bulk plan apply (${journal.entries.length} lesson${journal.entries.length === 1 ? "" : "s"})? Previously linked plans will be restored.`, async () => {
       const n = undoBulkApply(plugin.settings);
       await plugin.saveSettings();
       invalidate();
       new Notice(`Bulk apply undone — ${n} lesson${n === 1 ? "" : "s"} reverted.`);
-    }, "Undo").open();
+    }, translateUi("Undo")).open();
   }
 
   function showBulkUndoNotice(count: number) {
     const frag = createFragment();
     frag.appendText(`Plan linked to ${count} lesson${count === 1 ? "" : "s"}. `);
-    const btn = frag.createEl("button", { text: "Undo", cls: "tp-btn tp-notice-undo" });
+    const btn = frag.createEl("button", { text: translateUi("Undo"), cls: "tp-btn tp-notice-undo" });
     const notice = new Notice(frag, 10000);
     btn.addEventListener("click", () => { notice.hide(); doUndoBulkApply(); });
   }
@@ -1216,7 +1218,7 @@
 
   function openPlan(path: string) {
     if (!plugin.app.vault.getFileByPath(path)) {
-      new Notice("Lesson plan note not found — it may have been deleted. Re-link from the lesson menu.");
+      new Notice(translateUi("Lesson plan note not found — it may have been deleted. Re-link from the lesson menu."));
       return;
     }
     plugin.app.workspace.openLinkText(path, "", false);
@@ -1327,44 +1329,44 @@
         {isDayMode ? selectedDayLong : weekLabel}
         {#if abEnabled && abWeekType}
           <button class="tp-week-ab-badge tp-week-ab-badge--{abWeekType.toLowerCase()}" class:tp-week-ab-badge--forced={abOverridden}
-            title={abOverridden ? "A/B forced for this week — click to change" : "Click to override this week's A/B"}
-            on:click={openAbMenu}>Week {abWeekType}</button>
+            title={abOverridden ? "A/B forced for this week — click to change" : translateUi("Click to override this week's A/B")}
+            on:click={openAbMenu}>{translateUi("Week")} {abWeekType}</button>
         {/if}
       </span>
       <span class="tp-date-range">{isDayMode ? selectedDayDateStr : dateRange}</span>
     </div>
-    <nav class="tp-nav" aria-label="Week navigation">
-      <button class="tp-btn tp-nav-arrow" on:click={onPrev} aria-label="Previous" title="Previous" disabled={!canGoPrev} use:obsIcon={"arrow-left"}></button>
+    <nav class="tp-nav" aria-label={translateUi("Week navigation")}>
+      <button class="tp-btn tp-nav-arrow" on:click={onPrev} aria-label={translateUi("Previous")} title={translateUi("Previous")} disabled={!canGoPrev} use:obsIcon={"arrow-left"}></button>
       <div class="tp-nav-jump">
         <button class="tp-btn tp-nav-centre" on:click={openDatePicker}
-          aria-haspopup="dialog" title="Jump to a date">
+          aria-haspopup="dialog" title={translateUi("Jump to a date")}>
           <span class="tp-nav-centre-icon" use:obsIcon={"calendar"}></span>
           <span class="tp-nav-centre-label">{navCentreLabel}</span>
           <span class="tp-nav-caret">▾</span>
         </button>
       </div>
-      <button class="tp-btn tp-nav-arrow" on:click={onNext} aria-label="Next" title="Next" disabled={!canGoNext} use:obsIcon={"arrow-right"}></button>
+      <button class="tp-btn tp-nav-arrow" on:click={onNext} aria-label={translateUi("Next")} title={translateUi("Next")} disabled={!canGoNext} use:obsIcon={"arrow-right"}></button>
     </nav>
     {#if !_isMobileApp}
     <div class="tp-header-actions">
-      <button class="tp-btn tp-action-btn" on:click={() => onAddEvent()} aria-label="Add event"><span use:obsIcon={"calendar-plus"} class="tp-btn-icon"></span>Event</button>
-      <button class="tp-btn tp-action-btn" on:click={onOpenOverview} aria-label="Lesson overview" title="Lesson overview"><span use:obsIcon={"list-checks"} class="tp-btn-icon"></span>Lessons</button>
-      <button class="tp-btn tp-action-btn" on:click={onOpenTimetable} aria-label="Edit timetable"><span use:obsIcon={"layout-grid"} class="tp-btn-icon"></span>Timetable</button>
-      <button class="tp-btn tp-action-btn tp-action-btn--icon-only" on:click={onOpenSettings} aria-label="Settings" use:obsIcon={"settings"}></button>
-      <button class="tp-btn tp-overflow-btn" on:click={showOverflowMenu} aria-label="More options" use:obsIcon={"more-horizontal"}></button>
+      <button class="tp-btn tp-action-btn" on:click={() => onAddEvent()} aria-label={translateUi("Add event")}><span use:obsIcon={"calendar-plus"} class="tp-btn-icon"></span>{translateUi("Event")}</button>
+      <button class="tp-btn tp-action-btn" on:click={onOpenOverview} aria-label={translateUi("Lesson overview")} title={translateUi("Lesson overview")}><span use:obsIcon={"list-checks"} class="tp-btn-icon"></span>{translateUi("Lessons")}</button>
+      <button class="tp-btn tp-action-btn" on:click={onOpenTimetable} aria-label={translateUi("Edit timetable")}><span use:obsIcon={"layout-grid"} class="tp-btn-icon"></span>{translateUi("Timetable")}</button>
+      <button class="tp-btn tp-action-btn tp-action-btn--icon-only" on:click={onOpenSettings} aria-label={translateUi("Settings")} use:obsIcon={"settings"}></button>
+      <button class="tp-btn tp-overflow-btn" on:click={showOverflowMenu} aria-label={translateUi("More options")} use:obsIcon={"more-horizontal"}></button>
     </div>
     {/if}
   </header>
 
   {#if _isMobileApp}
     <div class="tp-mobile-bar">
-      <div class="tp-mobile-modes" role="tablist" aria-label="View mode">
-        <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "day"}    role="tab" aria-selected={viewMode === "day"}    on:click={() => setMobileMode("day")}>Day</button>
-        <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "agenda"} role="tab" aria-selected={viewMode === "agenda"} on:click={() => setMobileMode("agenda")}>Week</button>
+      <div class="tp-mobile-modes" role="tablist" aria-label={translateUi("View mode")}>
+        <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "day"}    role="tab" aria-selected={viewMode === "day"}    on:click={() => setMobileMode("day")}>{translateUi("Day")}</button>
+        <button class="tp-mode-btn" class:tp-mode-btn--on={viewMode === "agenda"} role="tab" aria-selected={viewMode === "agenda"} on:click={() => setMobileMode("agenda")}>{translateUi("Week")}</button>
       </div>
       <div class="tp-mobile-acts">
-        <button class="tp-btn tp-mobile-act tp-mobile-act--add" on:click={() => onAddEvent()} aria-label="Add event" title="Add event" use:obsIcon={"calendar-plus"}></button>
-        <button class="tp-btn tp-mobile-act" on:click={showOverflowMenu} aria-label="More options" title="More" use:obsIcon={"more-horizontal"}></button>
+        <button class="tp-btn tp-mobile-act tp-mobile-act--add" on:click={() => onAddEvent()} aria-label={translateUi("Add event")} title={translateUi("Add event")} use:obsIcon={"calendar-plus"}></button>
+        <button class="tp-btn tp-mobile-act" on:click={showOverflowMenu} aria-label={translateUi("More options")} title={translateUi("More")} use:obsIcon={"more-horizontal"}></button>
       </div>
     </div>
   {/if}
@@ -1389,7 +1391,7 @@
     {@const dOverride = dayOverrideMap[selectedDay.key]}
     <div class="tp-daylist">
       {#if dOverride}
-        <div class="tp-daylist-empty">{dOverride === "holiday" ? "Holiday" : "INSET day"}</div>
+        <div class="tp-daylist-empty">{dOverride === "holiday" ? translateUi("Holiday") : translateUi("INSET day")}</div>
       {:else}
         {#each getPeriodsForDay(plugin.settings.academicYear, selectedDay.key) as period (period.id)}
           {@const dRaw = _slotMap[selectedDay.key + ":" + period.id]}
@@ -1414,15 +1416,15 @@
               <div class="tp-dcard-body">
                 <div class="tp-dcard-code">{subjectEmoji(dSlot.classId)} {lbl.code}{#if dTime.isPartial}<span class="tp-dcard-dur">{dTime.teachingMins}m</span>{/if}</div>
                 <div class="tp-dcard-sub">{[lbl.year, lbl.subjectName].filter(Boolean).join(" · ")}{#if dRoom} · {dRoom}{/if}</div>
-                <div class="tp-dcard-note">{dNote || "No notes"}</div>
+                <div class="tp-dcard-note">{dNote || translateUi("No notes")}</div>
               </div>
               <div class="tp-dcard-marks">
                 {#if _showPrepared && isClassId(dSlot.classId)}
-                  <button class="tp-prep-tick" class:tp-prep-tick--on={prep} aria-label="Toggle lesson prepared" aria-pressed={prep}
+                  <button class="tp-prep-tick" class:tp-prep-tick--on={prep} aria-label={translateUi("Toggle lesson prepared")} aria-pressed={prep}
                     on:click|stopPropagation={() => toggleSlotPrep(dSlot, dDate)} use:obsIcon={"check"}></button>
                 {/if}
                 {#if planPath}
-                  <button class="tp-plan-mark tp-plan-mark--linked" aria-label="Open lesson plan"
+                  <button class="tp-plan-mark tp-plan-mark--linked" aria-label={translateUi("Open lesson plan")}
                     on:click|stopPropagation={() => openPlan(planPath)} use:obsIcon={"file-text"}></button>
                 {/if}
               </div>
@@ -1454,11 +1456,11 @@
               </div>
               <div class="tp-dcard-marks">
                 {#if _showPrepared && (isClassId(dEv.classId) || !!(dEv.title && dEv.title.trim()))}
-                  <button class="tp-prep-tick" class:tp-prep-tick--on={eprep} aria-label="Toggle prepared" aria-pressed={eprep}
+                  <button class="tp-prep-tick" class:tp-prep-tick--on={eprep} aria-label={translateUi("Toggle prepared")} aria-pressed={eprep}
                     on:click|stopPropagation={() => toggleEventPrep(dEv)} use:obsIcon={"check"}></button>
                 {/if}
                 {#if eplan}
-                  <button class="tp-plan-mark tp-plan-mark--linked" aria-label="Open lesson plan"
+                  <button class="tp-plan-mark tp-plan-mark--linked" aria-label={translateUi("Open lesson plan")}
                     on:click|stopPropagation={() => openPlan(eplan)} use:obsIcon={"file-text"}></button>
                 {/if}
               </div>
@@ -1468,7 +1470,7 @@
             {/if}
           {/each}
           {#if !dSlot && dEvents.length === 0}
-            <button class="tp-dslim" on:click={(e) => openEventPicker(e, dDate, period.id, dRaw)} aria-label={"Add event to " + period.name}>
+            <button class="tp-dslim" on:click={(e) => openEventPicker(e, dDate, period.id, dRaw)} aria-label={translateUi("Add event to ") + period.name}>
               <span class="tp-dslim-time">{period.start}</span>
               <span class="tp-dslim-name">{period.name}</span>
               <span class="tp-dslim-add">＋</span>
@@ -1486,11 +1488,11 @@
         <div class="tp-agenda-day">
           <div class="tp-agenda-head" class:tp-agenda-head--today={isToday(day.offset, currentMonday)}>
             <span class="tp-agenda-dayname">{day.label} {addDaysLocal(currentMonday, day.offset).getDate()}</span>
-            {#if aOverride === "holiday"}<span class="tp-day-override-badge tp-day-override-badge--holiday">Holiday</span>
-            {:else if aOverride === "inset"}<span class="tp-day-override-badge tp-day-override-badge--inset">INSET</span>{/if}
+            {#if aOverride === "holiday"}<span class="tp-day-override-badge tp-day-override-badge--holiday">{translateUi("Holiday")}</span>
+            {:else if aOverride === "inset"}<span class="tp-day-override-badge tp-day-override-badge--inset">{translateUi("INSET")}</span>{/if}
           </div>
           {#if aOverride}
-            <div class="tp-agenda-empty">{aOverride === "holiday" ? "Holiday" : "INSET day"}</div>
+            <div class="tp-agenda-empty">{aOverride === "holiday" ? translateUi("Holiday") : translateUi("INSET day")}</div>
           {:else}
             {#each getPeriodsForDay(plugin.settings.academicYear, day.key) as period (period.id)}
               {@const aRaw = _slotMap[day.key + ":" + period.id]}
@@ -1509,11 +1511,11 @@
                   {#if effRoom(aSlot.id, aDate, sl.classroom)}<span class="tp-agenda-room">{effRoom(aSlot.id, aDate, sl.classroom)}</span>{/if}
                   <span class="tp-agenda-marks">
                     {#if _showPrepared && isClassId(aSlot.classId)}
-                      <button class="tp-prep-tick" class:tp-prep-tick--on={aPrep} aria-label="Toggle lesson prepared" aria-pressed={aPrep}
+                      <button class="tp-prep-tick" class:tp-prep-tick--on={aPrep} aria-label={translateUi("Toggle lesson prepared")} aria-pressed={aPrep}
                         on:click|stopPropagation={() => toggleSlotPrep(aSlot, aDate)} use:obsIcon={"check"}></button>
                     {/if}
                     {#if aPlan}
-                      <button class="tp-plan-mark tp-plan-mark--linked" aria-label="Open lesson plan"
+                      <button class="tp-plan-mark tp-plan-mark--linked" aria-label={translateUi("Open lesson plan")}
                         on:click|stopPropagation={() => openPlan(aPlan)} use:obsIcon={"file-text"}></button>
                     {/if}
                   </span>
@@ -1535,18 +1537,18 @@
                   {#if el.classroom}<span class="tp-agenda-room">{el.classroom}</span>{/if}
                   <span class="tp-agenda-marks">
                     {#if _showPrepared && (isClassId(aEv.classId) || !!(aEv.title && aEv.title.trim()))}
-                      <button class="tp-prep-tick" class:tp-prep-tick--on={aeP} aria-label="Toggle prepared" aria-pressed={aeP}
+                      <button class="tp-prep-tick" class:tp-prep-tick--on={aeP} aria-label={translateUi("Toggle prepared")} aria-pressed={aeP}
                         on:click|stopPropagation={() => toggleEventPrep(aEv)} use:obsIcon={"check"}></button>
                     {/if}
                     {#if aePlan}
-                      <button class="tp-plan-mark tp-plan-mark--linked" aria-label="Open lesson plan"
+                      <button class="tp-plan-mark tp-plan-mark--linked" aria-label={translateUi("Open lesson plan")}
                         on:click|stopPropagation={() => openPlan(aePlan)} use:obsIcon={"file-text"}></button>
                     {/if}
                   </span>
                 </div>
               {/each}
             {/each}
-            {#if !dayHasItems(day)}<div class="tp-agenda-empty">No lessons</div>{/if}
+            {#if !dayHasItems(day)}<div class="tp-agenda-empty">{translateUi("No lessons")}</div>{/if}
           {/if}
         </div>
       {/each}
@@ -1570,7 +1572,7 @@
                 <span class="tp-day-name">{day.label}</span>
                 <span class="tp-day-date">{getDayDate(day.offset, currentMonday)}</span>
               </span>
-              {#if dayOverride === "holiday"}<span class="tp-day-override-badge tp-day-override-badge--holiday">Holiday</span>
+              {#if dayOverride === "holiday"}<span class="tp-day-override-badge tp-day-override-badge--holiday">{translateUi("Holiday")}</span>
               {:else if dayOverride === "inset"}<span class="tp-day-override-badge tp-day-override-badge--inset">Inset</span>{/if}
             </div>
           </div>
@@ -1604,7 +1606,7 @@
             {/each}
 
             {#if dayOverride}
-              <div class="tp-axis-override-label">{dayOverride === "holiday" ? "Holiday" : "INSET"}</div>
+              <div class="tp-axis-override-label">{dayOverride === "holiday" ? translateUi("Holiday") : translateUi("INSET")}</div>
             {:else}
               {@const dayMerges = computeMerges(day.key, dayDate)}
               {#each getPeriodsForDay(plugin.settings.academicYear, day.key) as period (period.id)}
@@ -1675,15 +1677,15 @@
                             {#if _showPrepared && (isClassId(_mev.classId) || !!(_mev.title && _mev.title.trim()))}
                               <button class="tp-prep-tick" class:tp-prep-tick--on={_mPrep}
                                 title={_mPrep ? "Marked prepared — click to clear" : "Mark prepared"}
-                                aria-label="Toggle prepared" aria-pressed={_mPrep}
+                                aria-label={translateUi("Toggle prepared")} aria-pressed={_mPrep}
                                 on:click|stopPropagation={() => toggleEventPrep(_mev)} use:obsIcon={"check"}></button>
                             {/if}
                             {#if _mPlan}
-                              <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                              <button class="tp-plan-mark tp-plan-mark--linked" title={translateUi("Open lesson plan")} aria-label={translateUi("Open lesson plan")}
                                 on:click|stopPropagation={() => openPlan(_mPlan)} use:obsIcon={"file-text"}></button>
                             {/if}
                             {#if _mExt && !_isMobileApp}
-                              <button class="tp-ext-mark" title={_mExt.kind === "folder" ? "Open external folder" : "Open external file"} aria-label="Open external resource"
+                              <button class="tp-ext-mark" title={_mExt.kind === "folder" ? "Open external folder" : "Open external file"} aria-label={translateUi("Open external resource")}
                                 on:click|stopPropagation={() => openSystemPath(_mExt.path)} use:obsIcon={_mExt.kind === "folder" ? "folder" : "paperclip"}></button>
                             {/if}
                           </div>
@@ -1711,7 +1713,7 @@
                   {#if ((slot ? 1 : 0) + devEvents.length) >= 2}
                     {@const _dirOcc = (slot && slotIsDirected(slot) ? 1 : 0) + devEvents.filter(ev => eventIsDirected(ev, plugin.settings)).length}
                     <div class="tp-block-clash" class:tp-block-clash--directed={_showDirected && _dirOcc >= 2}
-                      title={(_showDirected && _dirOcc >= 2) ? "Double-booked — directed time is counted twice here" : "Double-booked block"}>⚠</div>
+                      title={(_showDirected && _dirOcc >= 2) ? translateUi("Double-booked — directed time is counted twice here") : translateUi("Double-booked block")}>⚠</div>
                   {/if}
                   {#if !slot && devEvents.length === 0}
                     <div class="tp-block-label">
@@ -1759,15 +1761,15 @@
                               {#if _showPrepared && isClassId(slot.classId)}
                                 <button class="tp-prep-tick" class:tp-prep-tick--on={slotPrepared}
                                   title={slotPrepared ? "Marked prepared — click to clear" : "Mark lesson prepared"}
-                                  aria-label="Toggle lesson prepared" aria-pressed={slotPrepared}
+                                  aria-label={translateUi("Toggle lesson prepared")} aria-pressed={slotPrepared}
                                   on:click|stopPropagation={() => toggleSlotPrep(slot, dayDate)} use:obsIcon={"check"}></button>
                               {/if}
                               {#if slotPlanPath}
-                                <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                                <button class="tp-plan-mark tp-plan-mark--linked" title={translateUi("Open lesson plan")} aria-label={translateUi("Open lesson plan")}
                                   on:click|stopPropagation={() => openPlan(slotPlanPath)} use:obsIcon={"file-text"}></button>
                               {/if}
                               {#if slotExternal && !_isMobileApp}
-                                <button class="tp-ext-mark" title={slotExternal.kind === "folder" ? "Open external folder" : "Open external file"} aria-label="Open external resource"
+                                <button class="tp-ext-mark" title={slotExternal.kind === "folder" ? "Open external folder" : "Open external file"} aria-label={translateUi("Open external resource")}
                                   on:click|stopPropagation={() => openSystemPath(slotExternal.path)} use:obsIcon={slotExternal.kind === "folder" ? "folder" : "paperclip"}></button>
                               {/if}
                             </div>
@@ -1811,15 +1813,15 @@
                               {#if _showPrepared && (isClassId(devEv.classId) || !!(devEv.title && devEv.title.trim()))}
                                 <button class="tp-prep-tick" class:tp-prep-tick--on={evPrepared}
                                   title={evPrepared ? "Marked prepared — click to clear" : "Mark lesson prepared"}
-                                  aria-label="Toggle lesson prepared" aria-pressed={evPrepared}
+                                  aria-label={translateUi("Toggle lesson prepared")} aria-pressed={evPrepared}
                                   on:click|stopPropagation={() => toggleEventPrep(devEv)} use:obsIcon={"check"}></button>
                               {/if}
                               {#if evPlanPath}
-                                <button class="tp-plan-mark tp-plan-mark--linked" title="Open lesson plan" aria-label="Open lesson plan"
+                                <button class="tp-plan-mark tp-plan-mark--linked" title={translateUi("Open lesson plan")} aria-label={translateUi("Open lesson plan")}
                                   on:click|stopPropagation={() => openPlan(evPlanPath)} use:obsIcon={"file-text"}></button>
                               {/if}
                               {#if evExternal && !_isMobileApp}
-                                <button class="tp-ext-mark" title={evExternal.kind === "folder" ? "Open external folder" : "Open external file"} aria-label="Open external resource"
+                                <button class="tp-ext-mark" title={evExternal.kind === "folder" ? "Open external folder" : "Open external file"} aria-label={translateUi("Open external resource")}
                                   on:click|stopPropagation={() => openSystemPath(evExternal.path)} use:obsIcon={evExternal.kind === "folder" ? "folder" : "paperclip"}></button>
                               {/if}
                             </div>
@@ -1830,7 +1832,7 @@
                   {:else}
                     <button
                       class="tp-cell-add-event"
-                      title="Add one-off event to this slot"
+                      title={translateUi("Add one-off event to this slot")}
                       tabindex={gridFocusKey === `${day.key}:${period.id}:add` ? 0 : -1}
                       data-gridkey={`${day.key}:${period.id}:add`}
                       on:keydown={onCellKeydown}

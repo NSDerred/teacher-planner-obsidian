@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, Modal } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import { setLessonNote, clearLessonNote, setLessonRoom, clearLessonRoom } from "../utils/planLinkUtils";
@@ -87,8 +88,8 @@ export class SlotNotesModal extends Modal {
 
     const confirmFooter = confirmSection.createDiv("tp-modal-footer");
     confirmFooter.setCssStyles({ display: "flex", justifyContent: "flex-end", gap: "8px", paddingTop: "0" });
-    const keepBtn = confirmFooter.createEl("button", { text: "Keep", cls: "tp-btn" });
-    const confirmDeleteBtn = confirmFooter.createEl("button", { text: "Remove", cls: "tp-btn tp-btn--danger" });
+    const keepBtn = confirmFooter.createEl("button", { text: translateUi("Keep"), cls: "tp-btn" });
+    const confirmDeleteBtn = confirmFooter.createEl("button", { text: translateUi("Remove"), cls: "tp-btn tp-btn--danger" });
 
     keepBtn.addEventListener("click", () => {
       confirmSection.setCssStyles({ display: "none" });
@@ -114,7 +115,7 @@ export class SlotNotesModal extends Modal {
     footer.setCssStyles({ display: "flex", justifyContent: "space-between", alignItems: "center" });
 
     // Left: delete button
-    const deleteBtn = footer.createEl("button", { text: "Remove from this date", cls: "tp-btn tp-btn--danger" });
+    const deleteBtn = footer.createEl("button", { text: translateUi("Remove from this date"), cls: "tp-btn tp-btn--danger" });
     deleteBtn.addEventListener("click", () => {
       form.setCssStyles({ display: "none" });
       footer.setCssStyles({ display: "none" });
@@ -124,15 +125,15 @@ export class SlotNotesModal extends Modal {
     // Right: cancel / clear / save
     const rightBtns = footer.createDiv();
     rightBtns.setCssStyles({ display: "flex", gap: "8px" });
-    const cancelBtn = rightBtns.createEl("button", { text: "Cancel", cls: "tp-btn" });
+    const cancelBtn = rightBtns.createEl("button", { text: translateUi("Cancel"), cls: "tp-btn" });
     cancelBtn.addEventListener("click", () => this.close());
-    const clearBtn = rightBtns.createEl("button", { text: "Clear", cls: "tp-btn" });
+    const clearBtn = rightBtns.createEl("button", { text: translateUi("Clear"), cls: "tp-btn" });
     clearBtn.addEventListener("click", () => { void (async () => {
       textarea.value = "";
       classroomInput.value = "";
       await this.saveSlot("", "");
     })(); });
-    const saveBtn = rightBtns.createEl("button", { text: "Save", cls: "tp-btn tp-btn--primary" });
+    const saveBtn = rightBtns.createEl("button", { text: translateUi("Save"), cls: "tp-btn tp-btn--primary" });
     saveBtn.addEventListener("click", () => { void (async () => {
       await this.saveSlot(textarea.value.trim(), classroomInput.value.trim());
     })(); });

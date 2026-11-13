@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, Modal, Notice, Platform } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import { buildXlsx } from "../utils/xlsxWriter";
@@ -23,11 +24,11 @@ export class DirectedTimeExportModal extends Modal {
     contentEl.empty();
     contentEl.addClass("tp-export-modal");
 
-    this.setTitle("Export directed time");
+    this.setTitle(translateUi("Export directed time"));
 
     const body = contentEl.createDiv("tp-modal-form");
     body.createEl("p", {
-      text: "Exports a detailed Excel workbook with a weekly breakdown and summary, suitable for sharing with your union or school management.",
+      text: translateUi("Exports a detailed Excel workbook with a weekly breakdown and summary, suitable for sharing with your union or school management."),
     });
 
     const dt = this.plugin.settings.directedTime!;
@@ -42,10 +43,10 @@ export class DirectedTimeExportModal extends Modal {
     renderDestinationPicker(body, this.destination, Platform.isMobile);
 
     const footer = contentEl.createDiv("tp-modal-footer");
-    footer.createEl("button", { text: "Cancel", cls: "tp-btn" })
+    footer.createEl("button", { text: translateUi("Cancel"), cls: "tp-btn" })
       .addEventListener("click", () => this.close());
 
-    const exportBtn = footer.createEl("button", { text: "Export XLSX…", cls: "tp-btn tp-btn--primary" });
+    const exportBtn = footer.createEl("button", { text: translateUi("Export XLSX…"), cls: "tp-btn tp-btn--primary" });
     exportBtn.addEventListener("click", () => { void (async () => {
       exportBtn.disabled = true;
       exportBtn.textContent = "Exporting…";
@@ -54,9 +55,9 @@ export class DirectedTimeExportModal extends Modal {
         this.close();
       } catch (err) {
         console.error("Directed time export error:", err);
-        new Notice("Export failed — see console for details.");
+        new Notice(translateUi("Export failed — see console for details."));
         exportBtn.disabled = false;
-        exportBtn.textContent = "Export XLSX…";
+        exportBtn.textContent = translateUi("Export XLSX…");
       }
     })(); });
   }
@@ -78,7 +79,7 @@ export class DirectedTimeExportModal extends Modal {
       ["Directed Time Summary", ayName],
       [],
       ["Contracted hours", minsToDecimalHours(calc.contractedMins)],
-      ["Timetable fraction (%)", s.directedTime!.timetablePercentage],
+      [translateUi("Timetable fraction (%)"), s.directedTime!.timetablePercentage],
       ["Effective maximum (hours)", minsToDecimalHours(calc.contractedMins)],
       [],
       ["Accrued to date (hours)", minsToDecimalHours(calc.accruedMins)],
@@ -91,14 +92,14 @@ export class DirectedTimeExportModal extends Modal {
           ? `Under by ${fmtMins(-diff)}`
           : "Exactly on contracted"],
       [],
-      ["Generated", new Date().toLocaleDateString("en-GB")],
+      [translateUi("Generated"), new Date().toLocaleDateString("en-GB")],
       ["Note", "This report is a guide only. Accuracy depends on planner data. Seek union advice for formal disputes."],
     ];
 
     // ── Weekly breakdown sheet ─────────────────────────────────────────────
     const header: (string | number)[] = [
       "Week commencing", "Status",
-      "Lessons", "Lesson mins",
+      translateUi("Lessons"), "Lesson mins",
       "Directed activities", "Activity mins",
       "Date events", "Event mins",
       "Total mins", "Total hours",
@@ -122,7 +123,7 @@ export class DirectedTimeExportModal extends Modal {
     }
     // ── Write ──────────────────────────────────────────────────────────────
     const buf = await buildXlsx([
-      { name: "Summary", rows: summaryData },
+      { name: translateUi("Summary"), rows: summaryData },
       { name: "Weekly Breakdown", rows: breakdownData },
     ]);
     const safeName = ayName.replace(/[^a-z0-9]/gi, "-");

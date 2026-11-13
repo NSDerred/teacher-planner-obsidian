@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, Modal, Notice, Platform } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import { buildXlsx, type SheetRows } from "../utils/xlsxWriter";
@@ -38,18 +39,18 @@ export class ExportModal extends Modal {
     contentEl.empty();
     contentEl.addClass("tp-export-modal");
 
-    this.setTitle("Export planner data");
+    this.setTitle(translateUi("Export planner data"));
 
     const form = contentEl.createDiv("tp-modal-form");
 
     // Dataset choice (hidden for iCal, which has its own content toggles)
     const datasetSection = form.createDiv();
-    datasetSection.createEl("p", { text: "What to export", cls: "tp-modal-label" });
+    datasetSection.createEl("p", { text: translateUi("What to export"), cls: "tp-modal-label" });
     const datasetGroup = datasetSection.createDiv("tp-export-option-group");
     for (const [val, label] of [
-      ["timetable", "Timetable (recurring slots)"],
-      ["events",    "Date Events (one-offs)"],
-      ["both",      "Both"],
+      ["timetable", translateUi("Timetable (recurring slots)")],
+      ["events",    translateUi("Date Events (one-offs)")],
+      ["both",      translateUi("Both")],
     ] as [ExportDataset, string][]) {
       const lbl = datasetGroup.createEl("label", { cls: "tp-export-option" });
       const inp = lbl.createEl("input", { type: "radio" });
@@ -66,7 +67,7 @@ export class ExportModal extends Modal {
     for (const [val, label] of [
       ["xlsx", "Excel (.xlsx)"],
       ["csv",  "CSV (.csv)"],
-      ["ical", "Calendar (.ics)"],
+      ["ical", translateUi("Calendar (.ics)")],
     ] as [ExportFormat, string][]) {
       const lbl = formatGroup.createEl("label", { cls: "tp-export-option" });
       const inp = lbl.createEl("input", { type: "radio" });
@@ -88,13 +89,13 @@ export class ExportModal extends Modal {
     if (!this.icalTo) this.icalTo = ay.endDate;
 
     const icalSection = form.createDiv("tp-export-ical-options");
-    icalSection.createEl("p", { text: "Include in calendar", cls: "tp-modal-label" });
+    icalSection.createEl("p", { text: translateUi("Include in calendar"), cls: "tp-modal-label" });
     const toggleGroup = icalSection.createDiv("tp-export-option-group");
     const toggles: [string, () => boolean, (v: boolean) => void][] = [
-      ["Lessons & activities",        () => this.icalLessons,    v => { this.icalLessons = v; }],
-      ["Date events (cover, trips…)", () => this.icalDateEvents, v => { this.icalDateEvents = v; }],
-      ["Holidays & INSET (all-day)",  () => this.icalOverrides,  v => { this.icalOverrides = v; }],
-      ["Breaks & registration",       () => this.icalNonLessons, v => { this.icalNonLessons = v; }],
+      [translateUi("Lessons & activities"),        () => this.icalLessons,    v => { this.icalLessons = v; }],
+      [translateUi("Date events (cover, trips…)"), () => this.icalDateEvents, v => { this.icalDateEvents = v; }],
+      [translateUi("Holidays & INSET (all-day)"),  () => this.icalOverrides,  v => { this.icalOverrides = v; }],
+      [translateUi("Breaks & registration"),       () => this.icalNonLessons, v => { this.icalNonLessons = v; }],
     ];
     for (const [label, get, set] of toggles) {
       const lbl = toggleGroup.createEl("label", { cls: "tp-export-option" });
@@ -104,14 +105,14 @@ export class ExportModal extends Modal {
       lbl.createSpan({ text: label });
     }
 
-    icalSection.createEl("p", { text: "Days to include", cls: "tp-modal-label" });
+    icalSection.createEl("p", { text: translateUi("Days to include"), cls: "tp-modal-label" });
     if (!this.icalDays) {
       this.icalDays = [...(this.plugin.settings.schoolDays ?? ["monday", "tuesday", "wednesday", "thursday", "friday"])];
     }
     const dayRow = icalSection.createDiv("tp-export-ical-days");
     const allDays: [SchoolDay, string][] = [
-      ["monday", "Mon"], ["tuesday", "Tue"], ["wednesday", "Wed"], ["thursday", "Thu"],
-      ["friday", "Fri"], ["saturday", "Sat"], ["sunday", "Sun"],
+      ["monday", translateUi("Mon")], ["tuesday", translateUi("Tue")], ["wednesday", translateUi("Wed")], ["thursday", translateUi("Thu")],
+      ["friday", translateUi("Fri")], ["saturday", translateUi("Sat")], ["sunday", translateUi("Sun")],
     ];
     for (const [day, label] of allDays) {
       const lbl = dayRow.createEl("label", { cls: "tp-export-ical-day" });
@@ -125,7 +126,7 @@ export class ExportModal extends Modal {
       lbl.createSpan({ text: label });
     }
 
-    icalSection.createEl("p", { text: "Date range", cls: "tp-modal-label" });
+    icalSection.createEl("p", { text: translateUi("Date range"), cls: "tp-modal-label" });
     const rangeRow = icalSection.createDiv("tp-export-ical-range");
     const fromInput = rangeRow.createEl("input", { type: "date" });
     fromInput.value = this.icalFrom;
@@ -148,23 +149,23 @@ export class ExportModal extends Modal {
 
     // Footer
     const footer = contentEl.createDiv("tp-modal-footer");
-    footer.createEl("button", { text: "Cancel", cls: "tp-btn" })
+    footer.createEl("button", { text: translateUi("Cancel"), cls: "tp-btn" })
       .addEventListener("click", () => this.close());
 
-    const exportBtn = footer.createEl("button", { text: "Export", cls: "tp-btn tp-btn--primary" });
+    const exportBtn = footer.createEl("button", { text: translateUi("Export"), cls: "tp-btn tp-btn--primary" });
     exportBtn.addEventListener("click", () => { void (async () => {
       exportBtn.disabled = true;
-      exportBtn.textContent = "Exporting...";
+      exportBtn.textContent = translateUi("Exporting...");
       try {
         if (this.format === "csv") await this.exportCSV();
-        else if (this.format === "ical") { if (!(await this.exportICal())) { exportBtn.disabled = false; exportBtn.textContent = "Export"; return; } }
+        else if (this.format === "ical") { if (!(await this.exportICal())) { exportBtn.disabled = false; exportBtn.textContent = translateUi("Export"); return; } }
         else await this.exportXLSX();
         this.close();
       } catch (err) {
         console.error("Export error:", err);
-        new Notice("Export failed - see console for details.");
+        new Notice(translateUi("Export failed - see console for details."));
         exportBtn.disabled = false;
-        exportBtn.textContent = "Export";
+        exportBtn.textContent = translateUi("Export");
       }
     })(); });
   }
@@ -175,8 +176,8 @@ export class ExportModal extends Modal {
     const { timetable, academicYear, classes, subjects, activities } = this.plugin.settings;
     const dayOrder = ["monday","tuesday","wednesday","thursday","friday"];
     const dayLabel: Record<string, string> = {
-      monday: "Monday", tuesday: "Tuesday", wednesday: "Wednesday",
-      thursday: "Thursday", friday: "Friday",
+      monday: translateUi("Monday"), tuesday: translateUi("Tuesday"), wednesday: translateUi("Wednesday"),
+      thursday: translateUi("Thursday"), friday: translateUi("Friday"),
     };
     const sorted = [...timetable].sort((a, b) => {
       const dd = dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
@@ -186,7 +187,7 @@ export class ExportModal extends Modal {
       return (pa?.start ?? "").localeCompare(pb?.start ?? "");
     });
     const rows: string[][] = [
-      ["Day","Period Name","Start","End","Class Code","Year Group","Subject","Classroom","Week Type","Notes"],
+      [translateUi("Day"),"Period Name",translateUi("Start"),"End","Class Code","Year Group",translateUi("Subject"),"Classroom","Week Type","Notes"],
     ];
     for (const slot of sorted) {
       const period = academicYear.periods.find(p => p.id === slot.periodId);
@@ -213,7 +214,7 @@ export class ExportModal extends Modal {
     const { dateEvents, academicYear, classes, subjects, activities } = this.plugin.settings;
     const sorted = [...dateEvents].sort((a, b) => a.date.localeCompare(b.date));
     const rows: string[][] = [
-      ["Date","Day","Period Name","Start","End","Class/Activity","Year Group","Subject","Classroom","Notes"],
+      ["Date",translateUi("Day"),"Period Name",translateUi("Start"),"End","Class/Activity","Year Group",translateUi("Subject"),"Classroom","Notes"],
     ];
     for (const ev of sorted) {
       const period = academicYear.periods.find(p => p.id === ev.periodId);
@@ -291,7 +292,7 @@ export class ExportModal extends Modal {
   private async exportXLSX() {
     const sheets: { name: string; rows: SheetRows }[] = [];
     if (this.dataset !== "events") {
-      sheets.push({ name: "Timetable", rows: this.buildTimetableRows() });
+      sheets.push({ name: translateUi("Timetable"), rows: this.buildTimetableRows() });
     }
     if (this.dataset !== "timetable") {
       sheets.push({ name: "Date Events", rows: this.buildEventsRows() });
@@ -310,23 +311,23 @@ export class ExportModal extends Modal {
       const existing = this.app.vault.getFileByPath(path);
       if (existing) await this.app.vault.modifyBinary(existing, buf);
       else await this.app.vault.createBinary(path, buf);
-      new Notice(`Exported to ${path}`);
+      new Notice(translateUi`Exported to ${path}`);
     }
   }
 
   /** Returns false on validation failure (modal stays open). */
   private async exportICal(): Promise<boolean> {
     if (!isValidIsoDate(this.icalFrom) || !isValidIsoDate(this.icalTo)) {
-      new Notice("Please enter valid from/to dates."); return false;
+      new Notice(translateUi("Please enter valid from/to dates.")); return false;
     }
     if (this.icalTo < this.icalFrom) {
-      new Notice("The 'to' date must not be before the 'from' date."); return false;
+      new Notice(translateUi("The 'to' date must not be before the 'from' date.")); return false;
     }
     if (!this.icalLessons && !this.icalDateEvents && !this.icalOverrides && !this.icalNonLessons) {
-      new Notice("Select at least one thing to include."); return false;
+      new Notice(translateUi("Select at least one thing to include.")); return false;
     }
     if (this.icalDays && this.icalDays.length === 0) {
-      new Notice("Select at least one day to include."); return false;
+      new Notice(translateUi("Select at least one day to include.")); return false;
     }
 
     const s = this.plugin.settings;
@@ -342,7 +343,7 @@ export class ExportModal extends Modal {
     });
 
     const safeName = (s.academicYear.name || "planner").replace(/[^a-z0-9]/gi, "-").toLowerCase();
-    const filename = `calendar-${safeName}.ics`;
+    const filename = translateUi`calendar-${safeName}.ics`;
 
     if (this.destination.mode === "system" && this.destination.systemPath) {
       const absPath = joinSystemPath(this.destination.systemPath, filename);
@@ -352,7 +353,7 @@ export class ExportModal extends Modal {
       const folder = this.destination.vaultPath || (this.plugin.settings.plannerFolder || "Teacher Planner") + "/exports";
       await this.ensureFolder(folder);
       await this.writeText(`${folder}/${filename}`, content);
-      new Notice(`Exported to ${folder}/${filename}`);
+      new Notice(translateUi`Exported to ${folder}/${filename}`);
     }
     return true;
   }

@@ -1,3 +1,4 @@
+import { t as translateUi } from "./i18n";
 import { Plugin, Platform } from "obsidian";
 import type { TeacherPlannerSettings, TimetableSlot, GlobalPluginData, PlannerRecord, WeekOverride } from "./types";
 import { DEFAULT_SETTINGS, DEFAULT_PLANNER, DEFAULT_GLOBAL_DATA } from "./settings";
@@ -99,12 +100,12 @@ export default class TeacherPlannerPlugin extends Plugin {
     this.registerView(CALENDAR_SIDEBAR_VIEW_TYPE, (leaf) => new CalendarSidebarView(leaf, this));
     this.registerView(LESSON_OVERVIEW_VIEW_TYPE, (leaf) => new LessonOverviewView(leaf, this));
 
-    this.addRibbonIcon("calendar-days", "Open Teacher Planner", () => { void this.activateView(); });
+    this.addRibbonIcon("calendar-days", translateUi("Open Teacher Planner"), () => { void this.activateView(); });
 
-    this.addCommand({ id: "open",                    name: "Open planner",             callback: () => { void this.activateView(); } });
-    this.addCommand({ id: "go-to-current-week",      name: "Go to current week",      callback: () => this.sendWeekViewCommand("current") });
-    this.addCommand({ id: "go-to-previous-week",     name: "Go to previous week",     callback: () => this.sendWeekViewCommand("prev") });
-    this.addCommand({ id: "go-to-next-week",         name: "Go to next week",         callback: () => this.sendWeekViewCommand("next") });
+    this.addCommand({ id: "open",                    name: translateUi("Open planner"),             callback: () => { void this.activateView(); } });
+    this.addCommand({ id: "go-to-current-week",      name: translateUi("Go to current week"),      callback: () => this.sendWeekViewCommand("current") });
+    this.addCommand({ id: "go-to-previous-week",     name: translateUi("Go to previous week"),     callback: () => this.sendWeekViewCommand("prev") });
+    this.addCommand({ id: "go-to-next-week",         name: translateUi("Go to next week"),         callback: () => this.sendWeekViewCommand("next") });
 
     this.addSettingTab(new TeacherPlannerSettingTab(this.app, this));
 
@@ -477,7 +478,7 @@ export default class TeacherPlannerPlugin extends Plugin {
   private migrateFromLegacy(raw: Partial<TeacherPlannerSettings> & LegacyArtifacts): GlobalPluginData {
     const planner: PlannerRecord = {
       id:                 "planner-" + Date.now(),
-      name:               raw.academicYear?.name ?? "My Planner",
+      name:               raw.academicYear?.name ?? translateUi("My Planner"),
       plannerFolder:      raw.plannerFolder ?? "Teacher Planner",
       academicYear:       raw.academicYear  ?? DEFAULT_PLANNER.academicYear,
       periodTypes:        raw.periodTypes   ?? DEFAULT_PLANNER.periodTypes,
@@ -539,17 +540,17 @@ export default class TeacherPlannerPlugin extends Plugin {
     }
     if (!this.settings.activities) this.settings.activities = [
       { id: "activity-ppt",     label: "PPT",     colour: "#b4befe" },
-      { id: "activity-cover",   label: "Cover",   colour: "#fab387" },
-      { id: "activity-meeting", label: "Meeting", colour: "#89dceb" },
-      { id: "activity-duty",    label: "Duty",    colour: "#cba6f7" },
+      { id: "activity-cover",   label: translateUi("Cover"),   colour: "#fab387" },
+      { id: "activity-meeting", label: translateUi("Meeting"), colour: "#89dceb" },
+      { id: "activity-duty",    label: translateUi("Duty"),    colour: "#cba6f7" },
     ];
     if (!this.settings.activities.find(a => a.id === "activity-duty")) {
-      this.settings.activities.push({ id: "activity-duty", label: "Duty", colour: "#cba6f7" });
+      this.settings.activities.push({ id: "activity-duty", label: translateUi("Duty"), colour: "#cba6f7" });
     }
     if (!this.settings.periodTypes) this.settings.periodTypes = [
-      { id: "lesson",         label: "Lesson",         colour: "theme:muted" },
-      { id: "break",          label: "Break",          colour: "theme:accent" },
-      { id: "registration",   label: "Registration",   colour: "theme:faint" },
+      { id: "lesson",         label: translateUi("Lesson"),         colour: "theme:muted" },
+      { id: "break",          label: translateUi("Break"),          colour: "theme:accent" },
+      { id: "registration",   label: translateUi("Registration"),   colour: "theme:faint" },
       { id: "administration", label: "Administration", colour: "theme:surface" },
     ];
     this.settings.periodTypes = this.settings.periodTypes.filter(pt => pt.id !== "free");
@@ -569,7 +570,7 @@ export default class TeacherPlannerPlugin extends Plugin {
       };
     }
     if (!this.settings.activities.find(a => a.id === "activity-tutor")) {
-      this.settings.activities.push({ id: "activity-tutor", label: "Tutor", colour: "#f0956a", activityType: "directed", durationMinutes: 30 });
+      this.settings.activities.push({ id: "activity-tutor", label: translateUi("Tutor"), colour: "#f0956a", activityType: "directed", durationMinutes: 30 });
     }
     if (!this.settings.academicYear.abWeekStartsOn) {
       this.settings.academicYear.abWeekStartsOn = "A";

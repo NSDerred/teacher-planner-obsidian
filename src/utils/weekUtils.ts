@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import type { WeekOverride, AcademicYear, SchoolDay, TeacherPlannerSettings } from "../types";
 
 /**
@@ -17,9 +18,9 @@ export function getWeekLabel(date: Date): string {
   const thisMonday = getMondayOfWeek(new Date());
   const diffMs = monday.getTime() - thisMonday.getTime();
   const diffWeeks = Math.round(diffMs / (7 * 24 * 60 * 60 * 1000));
-  if (diffWeeks === 0) return "This Week";
-  if (diffWeeks === -1) return "Previous Week";
-  if (diffWeeks === 1) return "Next Week";
+  if (diffWeeks === 0) return translateUi("This Week");
+  if (diffWeeks === -1) return translateUi("Previous Week");
+  if (diffWeeks === 1) return translateUi("Next Week");
   const yy = String(monday.getFullYear()).slice(-2);
   return `Week of ${monday.toLocaleDateString(undefined, { day: "numeric", month: "short" })} '${yy}`;
 }

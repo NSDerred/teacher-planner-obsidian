@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import CalendarSidebarComponent from "./CalendarSidebarComponent.svelte";
@@ -16,7 +17,7 @@ export class CalendarSidebarView extends ItemView {
   }
 
   getViewType(): string { return CALENDAR_SIDEBAR_VIEW_TYPE; }
-  getDisplayText(): string { return "Planner Calendar"; }
+  getDisplayText(): string { return translateUi("Planner Calendar"); }
   getIcon(): string { return "calendar-days"; }
 
   async onOpen() {

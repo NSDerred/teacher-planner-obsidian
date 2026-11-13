@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, Modal, Setting, Notice } from "obsidian";
 import type { SchoolPeriod, PeriodType } from "../types";
 
@@ -15,27 +16,27 @@ export class AddPeriodModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("tp-add-period-modal");
-    this.setTitle("Add period");
+    this.setTitle(translateUi("Add period"));
 
     let name = "";
     let start = "";
     let end = "";
     let type: PeriodType = "lesson";
 
-    new Setting(contentEl).setName("Period name").setDesc('e.g. Period 1, Break, Lunch')
+    new Setting(contentEl).setName(translateUi("Period name")).setDesc('e.g. Period 1, Break, Lunch')
       .addText(t => {
-        t.setPlaceholder("Period 1");
+        t.setPlaceholder(translateUi("Period 1"));
         t.inputEl.addEventListener("input", () => { name = t.inputEl.value; });
         window.setTimeout(() => t.inputEl.focus(), 50);
       });
 
-    new Setting(contentEl).setName("Start time").setDesc("HH:MM — 24-hour format")
+    new Setting(contentEl).setName(translateUi("Start time")).setDesc(translateUi("HH:MM — 24-hour format"))
       .addText(t => {
         t.setPlaceholder("08:50");
         t.inputEl.addEventListener("input", () => { start = t.inputEl.value; });
       });
 
-    new Setting(contentEl).setName("End time").setDesc("HH:MM — 24-hour format")
+    new Setting(contentEl).setName(translateUi("End time")).setDesc(translateUi("HH:MM — 24-hour format"))
       .addText(t => {
         t.setPlaceholder("10:05");
         t.inputEl.addEventListener("input", () => { end = t.inputEl.value; });
@@ -43,25 +44,25 @@ export class AddPeriodModal extends Modal {
 
     new Setting(contentEl).setName("Type")
       .addDropdown(d => {
-        d.addOption("lesson", "Lesson").addOption("break", "Break")
-          .addOption("registration", "Registration").addOption("free", "Free");
+        d.addOption("lesson", translateUi("Lesson")).addOption("break", translateUi("Break"))
+          .addOption("registration", translateUi("Registration")).addOption("free", translateUi("Free"));
         d.setValue("lesson");
         d.onChange(v => { type = v; });
       });
 
     const footer = contentEl.createDiv("tp-modal-footer");
-    const cancelBtn = footer.createEl("button", { text: "Cancel", cls: "tp-btn" });
+    const cancelBtn = footer.createEl("button", { text: translateUi("Cancel"), cls: "tp-btn" });
     cancelBtn.addEventListener("click", () => this.close());
-    const addBtn = footer.createEl("button", { text: "Add period", cls: "tp-btn tp-btn--primary" });
+    const addBtn = footer.createEl("button", { text: translateUi("Add period"), cls: "tp-btn tp-btn--primary" });
     addBtn.addEventListener("click", () => { void (async () => {
       const trimmedName = name.trim();
       const trimmedStart = start.trim();
       const trimmedEnd = end.trim();
-      if (!trimmedName) { new Notice("Please enter a period name."); return; }
+      if (!trimmedName) { new Notice(translateUi("Please enter a period name.")); return; }
       const timeRe = /^([01]\d|2[0-3]):[0-5]\d$/;
-      if (!timeRe.test(trimmedStart)) { new Notice("Start time must be HH:MM (e.g. 08:50)."); return; }
-      if (!timeRe.test(trimmedEnd)) { new Notice("End time must be HH:MM (e.g. 10:05)."); return; }
-      if (trimmedEnd <= trimmedStart) { new Notice("End time must be after the start time."); return; }
+      if (!timeRe.test(trimmedStart)) { new Notice(translateUi("Start time must be HH:MM (e.g. 08:50).")); return; }
+      if (!timeRe.test(trimmedEnd)) { new Notice(translateUi("End time must be HH:MM (e.g. 10:05).")); return; }
+      if (trimmedEnd <= trimmedStart) { new Notice(translateUi("End time must be after the start time.")); return; }
       await this.onAdd({ id: `period-${Date.now()}`, name: trimmedName, start: trimmedStart, end: trimmedEnd, type });
       this.close();
     })(); });

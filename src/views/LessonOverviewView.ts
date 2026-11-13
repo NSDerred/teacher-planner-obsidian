@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import LessonOverviewComponent from "../modals/LessonOverviewComponent.svelte";
@@ -16,7 +17,7 @@ export class LessonOverviewView extends ItemView {
   }
 
   getViewType(): string { return LESSON_OVERVIEW_VIEW_TYPE; }
-  getDisplayText(): string { return "Lessons"; }
+  getDisplayText(): string { return translateUi("Lessons"); }
   getIcon(): string { return "list-checks"; }
 
   async onOpen() {
