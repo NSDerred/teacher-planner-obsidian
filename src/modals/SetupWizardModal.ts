@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, Modal, Notice, Setting, setIcon, FuzzySuggestModal } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type {
@@ -36,13 +37,13 @@ interface WizardState {
 }
 
 const DAYS: { key: SchoolDay; label: string }[] = [
-  { key: "monday",    label: "Mon" },
-  { key: "tuesday",   label: "Tue" },
-  { key: "wednesday", label: "Wed" },
-  { key: "thursday",  label: "Thu" },
-  { key: "friday",    label: "Fri" },
-  { key: "saturday",  label: "Sat" },
-  { key: "sunday",    label: "Sun" },
+  { key: "monday",    label: translateUi("Mon") },
+  { key: "tuesday",   label: translateUi("Tue") },
+  { key: "wednesday", label: translateUi("Wed") },
+  { key: "thursday",  label: translateUi("Thu") },
+  { key: "friday",    label: translateUi("Fri") },
+  { key: "saturday",  label: translateUi("Sat") },
+  { key: "sunday",    label: translateUi("Sun") },
 ];
 
 const TOTAL_STEPS = 10;
@@ -78,7 +79,7 @@ export class SetupWizardModal extends Modal {
       abWeekEnabled:                false,
       abWeekStartsOn:               "A",
       periodTypes:                  DEFAULT_SETTINGS.periodTypes.map(p => ({ ...p })),
-      daySchedules:                 [{ id: "schedule-standard", name: "Standard day", periods: ay.periods.map(p => ({ ...p })) }],
+      daySchedules:                 [{ id: "schedule-standard", name: translateUi("Standard day"), periods: ay.periods.map(p => ({ ...p })) }],
       dayScheduleMap:               {},
       subjects:                     [],
       classes:                      [],
@@ -141,12 +142,12 @@ export class SetupWizardModal extends Modal {
   private footer(body: HTMLElement, onNext: () => boolean | void) {
     const footer = body.createDiv("tp-wizard-footer");
     if (this.step > 1) {
-      const back = footer.createEl("button", { text: "← Back", cls: "tp-btn" });
+      const back = footer.createEl("button", { text: translateUi("← Back"), cls: "tp-btn" });
       back.addEventListener("click", () => { this.step--; this.render(); });
     } else {
       footer.createDiv();
     }
-    const next = footer.createEl("button", { text: "Next →", cls: "tp-btn tp-btn--primary" });
+    const next = footer.createEl("button", { text: translateUi("Next →"), cls: "tp-btn tp-btn--primary" });
     next.addEventListener("click", () => {
       const ok = onNext();
       if (ok !== false) { this.step++; this.render(); }
@@ -155,7 +156,7 @@ export class SetupWizardModal extends Modal {
 
   private stepHeading(body: HTMLElement, step: number, title: string, desc: string) {
     const hdr = body.createDiv("tp-wizard-step-hdr");
-    hdr.createSpan({ text: `Step ${step} of ${TOTAL_STEPS}`, cls: "tp-wizard-step-label" });
+    hdr.createSpan({ text: translateUi`Step ${step} of ${TOTAL_STEPS}`, cls: "tp-wizard-step-label" });
     hdr.createDiv({ text: title, cls: "tp-wizard-title" });
     hdr.createEl("p",    { text: desc,  cls: "tp-wizard-desc" });
   }
@@ -170,7 +171,7 @@ export class SetupWizardModal extends Modal {
       let tpl: ParsedTemplate;
       try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
       catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
-      if (tpl.kind !== "holidays" || !tpl.holidays) { new Notice("That file is not a holiday calendar template."); return; }
+      if (tpl.kind !== "holidays" || !tpl.holidays) { new Notice(translateUi("That file is not a holiday calendar template.")); return; }
       const cl = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null)) as T;
       const tplOverrides = cl(tpl.holidays.overrides).filter(o => o.type === "holiday" || o.type === "inset");
       const keep = this.state.weekOverrides.filter(o => o.type !== "holiday" && o.type !== "inset");
@@ -189,12 +190,12 @@ export class SetupWizardModal extends Modal {
       let tpl: ParsedTemplate;
       try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
       catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
-      if (tpl.kind !== "structure" || !tpl.structure) { new Notice("That file is not a school structure template."); return; }
+      if (tpl.kind !== "structure" || !tpl.structure) { new Notice(translateUi("That file is not a school structure template.")); return; }
       const st = tpl.structure;
       const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v ?? null)) as T;
       let daySchedules: DaySchedule[] = clone(st.daySchedules) ?? [];
       if (daySchedules.length === 0 && (st.periods?.length ?? 0) > 0) {
-        daySchedules = [{ id: "sched-default", name: "Standard day", periods: clone(st.periods) }];
+        daySchedules = [{ id: "sched-default", name: translateUi("Standard day"), periods: clone(st.periods) }];
       }
       this.state.periodTypes = clone(st.periodTypes) ?? [];
       this.state.daySchedules = daySchedules;
@@ -211,12 +212,12 @@ export class SetupWizardModal extends Modal {
   }
 
   private renderStep1(body: HTMLElement) {
-    this.stepHeading(body, 1, "Name your planner",
-      "Give this planner a name — usually the academic year. It will also be used as the vault subfolder.");
+    this.stepHeading(body, 1, translateUi("Name your planner"),
+      translateUi("Give this planner a name — usually the academic year. It will also be used as the vault subfolder."));
 
     let nameInput: HTMLInputElement;
     new Setting(body)
-      .setName("Planner name")
+      .setName(translateUi("Planner name"))
       .setDesc('e.g. "2025-26 IB Science"')
       .addText(t => {
         t.setPlaceholder("2025-26").setValue(this.state.name);
@@ -227,18 +228,18 @@ export class SetupWizardModal extends Modal {
       });
 
     new Setting(body)
-      .setName("Start from a school structure template")
-      .setDesc("Optional. Load a saved school shell (periods, blocks, A/B pattern, school days, year dates) so the next steps come pre-filled.")
-      .addButton(btn => btn.setButtonText("Choose template…").onClick(() => this.loadStructureTemplate()));
+      .setName(translateUi("Start from a school structure template"))
+      .setDesc(translateUi("Optional. Load a saved school shell (periods, blocks, A/B pattern, school days, year dates) so the next steps come pre-filled."))
+      .addButton(btn => btn.setButtonText(translateUi("Choose template…")).onClick(() => this.loadStructureTemplate()));
 
     new Setting(body)
-      .setName("Start from a holiday calendar template")
-      .setDesc("Optional. Load saved holiday and INSET dates so step 4 comes pre-filled (nudge them there).")
-      .addButton(btn => btn.setButtonText("Choose template…").onClick(() => this.loadHolidayTemplate()));
+      .setName(translateUi("Start from a holiday calendar template"))
+      .setDesc(translateUi("Optional. Load saved holiday and INSET dates so step 4 comes pre-filled (nudge them there)."))
+      .addButton(btn => btn.setButtonText(translateUi("Choose template…")).onClick(() => this.loadHolidayTemplate()));
 
     this.footer(body, () => {
       const v = nameInput!.value.trim();
-      if (!v) { new Notice("Please enter a planner name."); return false; }
+      if (!v) { new Notice(translateUi("Please enter a planner name.")); return false; }
       this.state.name = v;
     });
   }
@@ -246,13 +247,13 @@ export class SetupWizardModal extends Modal {
   // ── Step 2: Directed time ───────────────────────────────────────────────────
 
   private renderStep2(body: HTMLElement) {
-    this.stepHeading(body, 2, "Directed time tracker",
-      "Track your statutory directed time (STPCD). Enable this to configure your contract details and add directed time activity types.");
+    this.stepHeading(body, 2, translateUi("Directed time tracker"),
+      translateUi("Track your statutory directed time (STPCD). Enable this to configure your contract details and add directed time activity types."));
 
     let dtPanel: HTMLElement;
     new Setting(body)
-      .setName("Enable directed time tracker")
-      .setDesc("Track cumulative directed time based on events in your planner.")
+      .setName(translateUi("Enable directed time tracker"))
+      .setDesc(translateUi("Track cumulative directed time based on events in your planner."))
       .addToggle(t => t.setValue(this.state.directedTimeEnabled).onChange(v => {
         this.state.directedTimeEnabled = v;
         dtPanel.setCssStyles({ display: v ? "" : "none" });
@@ -267,28 +268,28 @@ export class SetupWizardModal extends Modal {
     dtCallout.createEl("p", { text: "⚠️  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice — always consult your union representative for formal disputes." });
 
     new Setting(dtPanel)
-      .setName("Contracted directed time (hours)")
-      .setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD).")
+      .setName(translateUi("Contracted directed time (hours)"))
+      .setDesc(translateUi("Maximum directed time for a full-time teacher. Default: 1265 (STPCD)."))
       .addText(t => {
         t.setPlaceholder("1265").setValue(String(this.state.contractedHours));
         t.onChange(v => { const n = parseFloat(v); if (!isNaN(n) && n > 0) this.state.contractedHours = n; });
       });
 
     new Setting(dtPanel)
-      .setName("Timetable fraction (%)")
-      .setDesc("For part-time teachers. Default: 100 (full-time).")
+      .setName(translateUi("Timetable fraction (%)"))
+      .setDesc(translateUi("For part-time teachers. Default: 100 (full-time)."))
       .addText(t => {
         t.setPlaceholder("100").setValue(String(this.state.timetablePercentage));
         t.onChange(v => { const n = parseFloat(v); if (!isNaN(n) && n > 0 && n <= 100) this.state.timetablePercentage = n; });
       });
 
     dtPanel.createEl("p", {
-      text: "Each lesson, activity, and event counts the length of the block it sits in. You can set a different duration on any block later by clicking its duration badge in the timetable editor.",
+      text: translateUi("Each lesson, activity, and event counts the length of the block it sits in. You can set a different duration on any block later by clicking its duration badge in the timetable editor."),
       cls: "setting-item-description",
     });
 
     // ── Directed time activities ────────────────────────────────────────────
-    dtPanel.createEl("p", { text: "Directed time activities", cls: "tp-wizard-sublabel" });
+    dtPanel.createEl("p", { text: translateUi("Directed time activities"), cls: "tp-wizard-sublabel" });
 
     const activityHeaders = dtPanel.createDiv("tp-activity-row tp-activity-headers");
     activityHeaders.createDiv().setCssStyles({ width: "28px", flexShrink: "0" });
@@ -296,7 +297,7 @@ export class SetupWizardModal extends Modal {
       const h = activityHeaders.createSpan({ text, cls: "tp-activity-header-label" });
       if (extra) h.setCssStyles(extra);
     };
-    makeH("Name");
+    makeH(translateUi("Name"));
     activityHeaders.createDiv().setCssStyles({ width: "28px", flexShrink: "0" });
 
     const actList = dtPanel.createDiv("tp-activities-list");
@@ -304,7 +305,7 @@ export class SetupWizardModal extends Modal {
     const renderActs = () => {
       actList.empty();
       if (this.state.activities.length === 0) {
-        actList.createEl("p", { text: "No activities yet — add one below.", cls: "tp-wizard-empty-note" });
+        actList.createEl("p", { text: translateUi("No activities yet — add one below."), cls: "tp-wizard-empty-note" });
       }
       for (const act of this.state.activities) {
         const row = actList.createDiv("tp-activity-row");
@@ -330,10 +331,10 @@ export class SetupWizardModal extends Modal {
         });
       }
 
-      new Setting(actList).addButton(btn => btn.setButtonText("+ Add activity").setCta()
+      new Setting(actList).addButton(btn => btn.setButtonText(translateUi("+ Add activity")).setCta()
         .onClick(() => {
           const colour = CLASS_COLOUR_PALETTE[this.state.activities.length % CLASS_COLOUR_PALETTE.length];
-          this.state.activities.push({ id: "act-" + Date.now(), label: "New Activity", colour, activityType: "directed" });
+          this.state.activities.push({ id: "act-" + Date.now(), label: translateUi("New Activity"), colour, activityType: "directed" });
           renderActs();
         }));
     };
@@ -345,27 +346,27 @@ export class SetupWizardModal extends Modal {
   // ── Step 3: Academic year dates ─────────────────────────────────────────────
 
   private renderStep3(body: HTMLElement) {
-    this.stepHeading(body, 3, "Academic year dates",
-      "Set the start and end dates for this planner.");
+    this.stepHeading(body, 3, translateUi("Academic year dates"),
+      translateUi("Set the start and end dates for this planner."));
 
     let startInput: HTMLInputElement;
     let endInput: HTMLInputElement;
 
-    const startSetting = new Setting(body).setName("Start date").setDesc("YYYY-MM-DD");
+    const startSetting = new Setting(body).setName(translateUi("Start date")).setDesc("YYYY-MM-DD");
     startInput = startSetting.controlEl.createEl("input", { type: "date" });
     startInput.value = this.state.startDate;
 
-    const endSetting = new Setting(body).setName("End date").setDesc("YYYY-MM-DD");
+    const endSetting = new Setting(body).setName(translateUi("End date")).setDesc("YYYY-MM-DD");
     endInput = endSetting.controlEl.createEl("input", { type: "date" });
     endInput.value = this.state.endDate;
 
     this.footer(body, () => {
       const s = startInput.value, e = endInput.value;
-      if (!s || !e) { new Notice("Please enter both dates."); return false; }
+      if (!s || !e) { new Notice(translateUi("Please enter both dates.")); return false; }
       if (!isValidIsoDate(s) || !isValidIsoDate(e)) {
-        new Notice("Please enter valid dates in YYYY-MM-DD format."); return false;
+        new Notice(translateUi("Please enter valid dates in YYYY-MM-DD format.")); return false;
       }
-      if (s >= e)   { new Notice("End date must be after start date."); return false; }
+      if (s >= e)   { new Notice(translateUi("End date must be after start date.")); return false; }
       this.state.startDate = s;
       this.state.endDate   = e;
     });
@@ -374,15 +375,15 @@ export class SetupWizardModal extends Modal {
   // ── Step 4: Holidays & INSET ────────────────────────────────────────────────
 
   private renderStep4(body: HTMLElement) {
-    this.stepHeading(body, 4, "Holidays & INSET days",
-      "Mark holidays and INSET days. These are excluded from your directed time count. You can add more in settings later.");
+    this.stepHeading(body, 4, translateUi("Holidays & INSET days"),
+      translateUi("Mark holidays and INSET days. These are excluded from your directed time count. You can add more in settings later."));
 
     const listEl = body.createDiv("tp-overrides-list");
 
     const renderOverrides = () => {
       listEl.empty();
       if (this.state.weekOverrides.length === 0) {
-        listEl.createEl("p", { text: "No holidays or INSET days added yet.", cls: "tp-wizard-empty-note" });
+        listEl.createEl("p", { text: translateUi("No holidays or INSET days added yet."), cls: "tp-wizard-empty-note" });
       }
 
       for (const ov of [...this.state.weekOverrides].sort((a, b) => a.startDate.localeCompare(b.startDate))) {
@@ -410,7 +411,7 @@ export class SetupWizardModal extends Modal {
         });
 
         const typeSelect = row.controlEl.createEl("select", { cls: "tp-override-type-select" });
-        for (const [val, label] of [["holiday","Holiday"],["inset","INSET"]] as [string,string][]) {
+        for (const [val, label] of [["holiday",translateUi("Holiday")],["inset",translateUi("INSET")]] as [string,string][]) {
           const opt = typeSelect.createEl("option", { text: label, value: val });
           if (ov.type === val) opt.selected = true;
         }
@@ -431,7 +432,7 @@ export class SetupWizardModal extends Modal {
         const insetRow = wrapper.createDiv("tp-override-inset-row");
         insetRow.setCssStyles({ display: ov.type === "inset" && this.state.directedTimeEnabled ? "flex" : "none" });
 
-        insetRow.createSpan({ text: "Directed hours for this period:", cls: "tp-override-inset-label" });
+        insetRow.createSpan({ text: translateUi("Directed hours for this period:"), cls: "tp-override-inset-label" });
         const hoursInput = insetRow.createEl("input", { type: "number", cls: "tp-override-hours-input" });
         hoursInput.placeholder = "0"; hoursInput.min = "0"; hoursInput.max = "80"; hoursInput.step = "0.5";
         hoursInput.title = "Total directed hours for this entire INSET period";
@@ -449,13 +450,13 @@ export class SetupWizardModal extends Modal {
       }
 
       new Setting(listEl)
-        .addButton(btn => btn.setButtonText("+ Add holiday / INSET").setCta()
+        .addButton(btn => btn.setButtonText(translateUi("+ Add holiday / INSET")).setCta()
           .onClick(() => {
             const today = localIso(new Date());
             this.state.weekOverrides.push({ startDate: today, type: "holiday" });
             renderOverrides();
           }))
-        .addButton(btn => btn.setButtonText("Clear all").setClass("mod-warning")
+        .addButton(btn => btn.setButtonText(translateUi("Clear all")).setClass("mod-warning")
           .onClick(() => {
             if (this.state.weekOverrides.length === 0) return;
             new ConfirmModal(this.app, "Remove all holidays and INSET days?", () => {
@@ -469,7 +470,7 @@ export class SetupWizardModal extends Modal {
     this.footer(body, () => {
       const overlap = findOverlappingOverrides(this.state.weekOverrides);
       if (overlap) {
-        const name = (o: WeekOverride) => o.label || (o.type === "inset" ? "INSET" : "Holiday");
+        const name = (o: WeekOverride) => o.label || (o.type === "inset" ? translateUi("INSET") : translateUi("Holiday"));
         new Notice(
           `"${name(overlap[0])}" (from ${overlap[0].startDate}) and "${name(overlap[1])}" (from ${overlap[1].startDate}) overlap — please adjust the dates.`,
           6000
@@ -482,13 +483,13 @@ export class SetupWizardModal extends Modal {
   // ── Step 5: School days + A/B rotation ─────────────────────────────────────
 
   private renderStep5(body: HTMLElement) {
-    this.stepHeading(body, 5, "School days & timetable rotation",
-      "Choose which days are school days and optionally enable A/B week rotation.");
+    this.stepHeading(body, 5, translateUi("School days & timetable rotation"),
+      translateUi("Choose which days are school days and optionally enable A/B week rotation."));
 
     let abPanel: HTMLElement;
     new Setting(body)
-      .setName("Enable A/B week rotation")
-      .setDesc("Alternating fortnightly timetables.")
+      .setName(translateUi("Enable A/B week rotation"))
+      .setDesc(translateUi("Alternating fortnightly timetables."))
       .addToggle(t => t.setValue(this.state.abWeekEnabled).onChange(v => {
         this.state.abWeekEnabled = v;
         abPanel.setCssStyles({ display: v ? "" : "none" });
@@ -497,12 +498,12 @@ export class SetupWizardModal extends Modal {
     abPanel = body.createDiv();
     abPanel.setCssStyles({ display: this.state.abWeekEnabled ? "" : "none" });
     new Setting(abPanel)
-      .setName("Academic year starts on")
-      .addDropdown(d => d.addOption("A", "Week A").addOption("B", "Week B")
+      .setName(translateUi("Academic year starts on"))
+      .addDropdown(d => d.addOption("A", translateUi("Week A")).addOption("B", translateUi("Week B"))
         .setValue(this.state.abWeekStartsOn)
         .onChange(v => { this.state.abWeekStartsOn = v as "A" | "B"; }));
 
-    body.createEl("p", { text: "School days", cls: "tp-wizard-sublabel" });
+    body.createEl("p", { text: translateUi("School days"), cls: "tp-wizard-sublabel" });
     const dayRow = body.createDiv("tp-school-days-wrap");
     for (const d of DAYS) {
       const lbl = dayRow.createEl("label", { cls: "tp-school-day-label" });
@@ -516,21 +517,21 @@ export class SetupWizardModal extends Modal {
     }
 
     this.footer(body, () => {
-      if (this.state.schoolDays.length === 0) { new Notice("Please select at least one school day."); return false; }
+      if (this.state.schoolDays.length === 0) { new Notice(translateUi("Please select at least one school day.")); return false; }
     });
   }
 
   // ── Step 6: School day blocks (period types) ────────────────────────────────
 
   private renderStep6(body: HTMLElement) {
-    this.stepHeading(body, 6, "School day blocks",
-      "Define the types of block that make up your school day — lessons, breaks, registration, etc. You can assign these to periods in settings later.");
+    this.stepHeading(body, 6, translateUi("School day blocks"),
+      translateUi("Define the types of block that make up your school day — lessons, breaks, registration, etc. You can assign these to periods in settings later."));
 
     const listEl = body.createDiv("tp-activities-list");
     const renderList = () => {
       listEl.empty();
       if (this.state.periodTypes.length === 0) {
-        listEl.createEl("p", { text: "No block types yet — add one below, or skip.", cls: "tp-wizard-empty-note" });
+        listEl.createEl("p", { text: translateUi("No block types yet — add one below, or skip."), cls: "tp-wizard-empty-note" });
       }
       for (const pt of this.state.periodTypes) {
         const row = listEl.createDiv("tp-activity-row");
@@ -556,7 +557,7 @@ export class SetupWizardModal extends Modal {
         });
       }
 
-      new Setting(listEl).addButton(btn => btn.setButtonText("+ Add block type").setCta()
+      new Setting(listEl).addButton(btn => btn.setButtonText(translateUi("+ Add block type")).setCta()
         .onClick(() => {
           this.state.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: FALLBACK_PERIOD_TYPE_COLOUR });
           renderList();
@@ -580,8 +581,8 @@ export class SetupWizardModal extends Modal {
   }
 
   private renderStep7(body: HTMLElement) {
-    this.stepHeading(body, 7, "School periods",
-      "Your default periods are pre-loaded into the Standard day. If some days are shaped differently — a sports afternoon, a half-day Saturday — add another day schedule and assign those days to it. Everything can be changed in settings later.");
+    this.stepHeading(body, 7, translateUi("School periods"),
+      translateUi("Your default periods are pre-loaded into the Standard day. If some days are shaped differently — a sports afternoon, a half-day Saturday — add another day schedule and assign those days to it. Everything can be changed in settings later."));
 
     const barEl  = body.createDiv("tp-wizard-schedule-bar");
     const listEl = body.createDiv("tp-wizard-period-list");
@@ -591,21 +592,21 @@ export class SetupWizardModal extends Modal {
       const sel = this.wizSelectedSchedule();
 
       const bar = new Setting(barEl)
-        .setName("Day schedule")
-        .setDesc("Choose a schedule to edit. Click a day below to make it use the selected schedule.");
+        .setName(translateUi("Day schedule"))
+        .setDesc(translateUi("Choose a schedule to edit. Click a day below to make it use the selected schedule."));
       bar.addDropdown(d => {
         for (const sch of this.state.daySchedules) d.addOption(sch.id, sch.name);
         d.setValue(sel.id);
         d.onChange(v => { this.wizScheduleId = v; renderBar(); renderList(); });
       });
-      bar.addExtraButton(b => b.setIcon("pencil").setTooltip("Rename schedule").onClick(() => {
+      bar.addExtraButton(b => b.setIcon("pencil").setTooltip(translateUi("Rename schedule")).onClick(() => {
         new TextPromptModal(this.app, "Rename day schedule", sel.name, "Schedule name", (name) => {
           sel.name = name;
           renderBar();
         }).open();
       }));
-      bar.addExtraButton(b => b.setIcon("plus").setTooltip("New day schedule").onClick(() => {
-        new TextPromptModal(this.app, "New day schedule", "", "e.g. Saturday, Sports day", (name) => {
+      bar.addExtraButton(b => b.setIcon("plus").setTooltip(translateUi("New day schedule")).onClick(() => {
+        new TextPromptModal(this.app, translateUi("New day schedule"), "", "e.g. Saturday, Sports day", (name) => {
           const sch: DaySchedule = { id: "schedule-" + Date.now(), name, periods: [] };
           this.state.daySchedules.push(sch);
           this.wizScheduleId = sch.id;
@@ -613,9 +614,9 @@ export class SetupWizardModal extends Modal {
           renderList();
         }).open();
       }));
-      bar.addExtraButton(b => b.setIcon("trash").setTooltip("Delete schedule").onClick(() => {
-        if (this.state.daySchedules.length <= 1) { new Notice("At least one day schedule is required."); return; }
-        new ConfirmModal(this.app, `Delete schedule "${sel.name}"? Days using it fall back to the first schedule.`, () => {
+      bar.addExtraButton(b => b.setIcon("trash").setTooltip(translateUi("Delete schedule")).onClick(() => {
+        if (this.state.daySchedules.length <= 1) { new Notice(translateUi("At least one day schedule is required.")); return; }
+        new ConfirmModal(this.app, translateUi`Delete schedule "${sel.name}"? Days using it fall back to the first schedule.`, () => {
           this.state.daySchedules = this.state.daySchedules.filter(s => s.id !== sel.id);
           for (const key of Object.keys(this.state.dayScheduleMap) as SchoolDay[]) {
             if (this.state.dayScheduleMap[key] === sel.id) delete this.state.dayScheduleMap[key];
@@ -623,7 +624,7 @@ export class SetupWizardModal extends Modal {
           this.wizScheduleId = this.state.daySchedules[0].id;
           renderBar();
           renderList();
-        }, "Delete").open();
+        }, translateUi("Delete")).open();
       }));
 
       const pillRow = barEl.createDiv("tp-schedule-days");
@@ -637,7 +638,7 @@ export class SetupWizardModal extends Modal {
         pill.title = active ? `${label} uses "${sel.name}"` : `Click to use "${sel.name}" on ${label}`;
         pill.addEventListener("click", () => {
           if (this.state.daySchedules.length < 2) {
-            new Notice("All days use the only schedule. Click + to create a second schedule first.");
+            new Notice(translateUi("All days use the only schedule. Click + to create a second schedule first."));
             return;
           }
           if (active) { new Notice(`${label} already uses "${sel.name}". Select a different schedule to move it.`); return; }
@@ -647,7 +648,7 @@ export class SetupWizardModal extends Modal {
       }
       if (this.state.daySchedules.length < 2) {
         barEl.createEl("p", {
-          text: "All days currently use this schedule. Click + above to add e.g. a Saturday schedule, then click a day pill to assign it.",
+          text: translateUi("All days currently use this schedule. Click + above to add e.g. a Saturday schedule, then click a day pill to assign it."),
           cls: "setting-item-description",
         });
       }
@@ -664,10 +665,10 @@ export class SetupWizardModal extends Modal {
           .setDesc(`${p.start} – ${p.end}`);
 
         s.addText(t => {
-          t.setPlaceholder("Name").setValue(p.name);
+          t.setPlaceholder(translateUi("Name")).setValue(p.name);
           t.inputEl.addEventListener("change", () => {
             p.name = t.inputEl.value;
-            s.setName(p.name || "Period");
+            s.setName(p.name || translateUi("Period"));
           });
         });
         s.addText(t => {
@@ -689,27 +690,27 @@ export class SetupWizardModal extends Modal {
         s.addDropdown(d => {
           const types = this.state.periodTypes ?? [];
           if (types.length === 0) {
-            d.addOption("lesson", "Lesson").addOption("break", "Break")
-             .addOption("registration", "Registration").addOption("free", "Free");
+            d.addOption("lesson", translateUi("Lesson")).addOption("break", translateUi("Break"))
+             .addOption("registration", translateUi("Registration")).addOption("free", translateUi("Free"));
           } else {
             for (const pt of types) d.addOption(pt.id, pt.label);
           }
           d.setValue(p.type).onChange(v => { p.type = v; });
         });
-        s.addExtraButton(btn => btn.setIcon("trash").setTooltip("Remove").onClick(() => {
+        s.addExtraButton(btn => btn.setIcon("trash").setTooltip(translateUi("Remove")).onClick(() => {
           sched.periods = sched.periods.filter(x => x.id !== p.id);
           renderList();
         }));
       }
 
       new Setting(listEl)
-        .addButton(btn => btn.setButtonText("+ Add period").setCta()
+        .addButton(btn => btn.setButtonText(translateUi("+ Add period")).setCta()
           .onClick(() => {
             const defaultType = this.state.periodTypes?.[0]?.id ?? "lesson";
             sched.periods.push({ id: "p-" + Date.now(), name: "New Period", start: "09:00", end: "10:00", type: defaultType });
             renderList();
           }))
-        .addButton(btn => btn.setButtonText("Clear all").setClass("mod-warning")
+        .addButton(btn => btn.setButtonText(translateUi("Clear all")).setClass("mod-warning")
           .onClick(() => {
             if (sched.periods.length === 0) return;
             new ConfirmModal(this.app, `Remove all periods from "${sched.name}"?`, () => {
@@ -730,8 +731,8 @@ export class SetupWizardModal extends Modal {
   // ── Step 8: Subjects & classes ──────────────────────────────────────────────
 
   private renderStep8(body: HTMLElement) {
-    this.stepHeading(body, 8, "Subjects & classes",
-      "Add the subjects you teach and the class groups within each. You can add more in settings later.");
+    this.stepHeading(body, 8, translateUi("Subjects & classes"),
+      translateUi("Add the subjects you teach and the class groups within each. You can add more in settings later."));
 
     const listEl = body.createDiv("tp-wizard-subject-list");
     const renderList = () => {
@@ -755,7 +756,7 @@ export class SetupWizardModal extends Modal {
         nameIn.value = subj.name; nameIn.placeholder = "Subject name";
         nameIn.addEventListener("change", () => { subj.name = nameIn.value; });
 
-        const addCls = hdr.createEl("button", { text: "+ Class", cls: "tp-btn-small tp-btn-small--cta" });
+        const addCls = hdr.createEl("button", { text: translateUi("+ Class"), cls: "tp-btn-small tp-btn-small--cta" });
         addCls.addEventListener("click", () => {
           this.state.classes.push({
             id: "cls-" + Date.now(), year: "", code: "",
@@ -784,7 +785,7 @@ export class SetupWizardModal extends Modal {
             clsSwatch.title = "Override class colour";
             clsSwatch.addEventListener("click", () => { void (async () => {
               const { ColourPickerModal } = await import("../settings/SettingsTab");
-              new ColourPickerModal(this.app, cls.colour, cls.code || "Class", async (colour: string) => {
+              new ColourPickerModal(this.app, cls.colour, cls.code || translateUi("Class"), async (colour: string) => {
                 cls.colour = colour;
                 cls.colourOverridden = colour !== subj.colour;
                 clsSwatch.setCssStyles({ background: colour });
@@ -813,10 +814,10 @@ export class SetupWizardModal extends Modal {
         }
       }
 
-      new Setting(listEl).addButton(btn => btn.setButtonText("+ Add subject").setCta()
+      new Setting(listEl).addButton(btn => btn.setButtonText(translateUi("+ Add subject")).setCta()
         .onClick(() => {
           const colour = randomClassColour(this.state.subjects.map(s => s.colour));
-          this.state.subjects.push({ id: "subj-" + Date.now(), name: "New Subject", colour, emoji: "📚" });
+          this.state.subjects.push({ id: "subj-" + Date.now(), name: translateUi("New Subject"), colour, emoji: "📚" });
           renderList();
         }));
     };
@@ -824,39 +825,39 @@ export class SetupWizardModal extends Modal {
 
     // Custom footer — back + save & continue
     const footer = body.createDiv("tp-wizard-footer");
-    const back = footer.createEl("button", { text: "← Back", cls: "tp-btn" });
+    const back = footer.createEl("button", { text: translateUi("← Back"), cls: "tp-btn" });
     back.addEventListener("click", () => { this.step--; this.render(); });
-    const next = footer.createEl("button", { text: "Save & continue →", cls: "tp-btn tp-btn--primary" });
+    const next = footer.createEl("button", { text: translateUi("Save & continue →"), cls: "tp-btn tp-btn--primary" });
     next.addEventListener("click", () => { this.step++; this.render(); });
   }
 
   // ── Step 9: Timetable editor ────────────────────────────────────────────────
 
   private renderStep9(body: HTMLElement) {
-    this.stepHeading(body, 9, "Set up your timetable",
-      "The planner has been saved. Use the timetable editor to assign classes to periods — you can also do this later from the main view.");
+    this.stepHeading(body, 9, translateUi("Set up your timetable"),
+      translateUi("The planner has been saved. Use the timetable editor to assign classes to periods — you can also do this later from the main view."));
 
     void this.commitPlanner();
 
     const callout = body.createDiv("tp-wizard-callout");
-    callout.createEl("p", { text: "✅  Your planner has been created and is now active. You can close this wizard at any time and finish configuring your timetable from the main view." });
+    callout.createEl("p", { text: translateUi("✅  Your planner has been created and is now active. You can close this wizard at any time and finish configuring your timetable from the main view.") });
 
     const editorBtn = body.createEl("button", {
-      text: "Open timetable editor",
+      text: translateUi("Open timetable editor"),
       cls: "tp-btn tp-btn--primary tp-wizard-editor-btn",
     });
     editorBtn.addEventListener("click", () => { new TimetableEditorModal(this.app, this.plugin).open(); });
 
     const footer = body.createDiv("tp-wizard-footer");
     footer.createDiv();
-    const next = footer.createEl("button", { text: "Continue to summary →", cls: "tp-btn tp-btn--primary" });
+    const next = footer.createEl("button", { text: translateUi("Continue to summary →"), cls: "tp-btn tp-btn--primary" });
     next.addEventListener("click", () => { this.step++; this.render(); });
   }
 
   // ── Step 10: Summary ────────────────────────────────────────────────────────
 
   private renderStep10(body: HTMLElement) {
-    this.stepHeading(body, 10, "All done!", "Your planner is ready. Here’s a summary of what was set up.");
+    this.stepHeading(body, 10, translateUi("All done!"), translateUi("Your planner is ready. Here’s a summary of what was set up."));
 
     const summary = body.createDiv("tp-wizard-summary");
     const row = (label: string, value: string) => {
@@ -867,31 +868,31 @@ export class SetupWizardModal extends Modal {
 
     const s = this.plugin.settings;
     const dt = s.directedTime;
-    row("Planner name",     s.academicYear.name);
-    row("Academic year",    `${s.academicYear.startDate} → ${s.academicYear.endDate}`);
-    row("School days",      s.schoolDays?.map(d => d.charAt(0).toUpperCase() + d.slice(1, 3)).join(", ") ?? "Mon–Fri");
-    row("A/B rotation",     s.academicYear.abWeekEnabled ? `Enabled (starts Week ${s.academicYear.abWeekStartsOn})` : "Disabled");
-    row("Directed time",    dt?.enabled ? `Enabled — ${(dt.contractedHours * dt.timetablePercentage / 100).toFixed(0)}h effective` : "Disabled");
-    row("Holidays / INSET", `${s.weekOverrides.length} range${s.weekOverrides.length !== 1 ? "s" : ""} marked`);
-    row("Block types",      `${(s.periodTypes ?? []).length} defined`);
-    row("Day schedules",    (s.academicYear.daySchedules ?? []).map(d => `${d.name} (${d.periods.length})`).join(" · ") || `${s.academicYear.periods.length} periods`);
+    row(translateUi("Planner name"),     s.academicYear.name);
+    row(translateUi("Academic year"),    `${s.academicYear.startDate} → ${s.academicYear.endDate}`);
+    row(translateUi("School days"),      s.schoolDays?.map(d => d.charAt(0).toUpperCase() + d.slice(1, 3)).join(", ") ?? translateUi("Mon–Fri"));
+    row(translateUi("A/B rotation"),     s.academicYear.abWeekEnabled ? translateUi`Enabled (starts Week ${s.academicYear.abWeekStartsOn})` : translateUi("Disabled"));
+    row(translateUi("Directed time"),    dt?.enabled ? translateUi`Enabled — ${(dt.contractedHours * dt.timetablePercentage / 100).toFixed(0)}h effective` : translateUi("Disabled"));
+    row(translateUi("Holidays / INSET"), translateUi`${s.weekOverrides.length} range${s.weekOverrides.length !== 1 ? "s" : ""} marked`);
+    row(translateUi("Block types"),      `${(s.periodTypes ?? []).length} defined`);
+    row(translateUi("Day schedules"),    (s.academicYear.daySchedules ?? []).map(d => `${d.name} (${d.periods.length})`).join(" · ") || `${s.academicYear.periods.length} periods`);
     row("Subjects",         `${s.subjects.length} subject${s.subjects.length !== 1 ? "s" : ""}`);
     row("Classes",          `${s.classes.length} class group${s.classes.length !== 1 ? "s" : ""}`);
-    row("Planner folder",   s.plannerFolder);
+    row(translateUi("Planner folder"),   s.plannerFolder);
 
     const tplSection = body.createDiv();
     tplSection.createEl("p", {
-      text: "Want to reuse this setup next year, or share it? Save it as a template (kept in the plugin folder, no personal data).",
+      text: translateUi("Want to reuse this setup next year, or share it? Save it as a template (kept in the plugin folder, no personal data)."),
       cls: "setting-item-description",
     });
     new Setting(tplSection)
-      .setName("Save as a template")
-      .addButton(b => b.setButtonText("School structure…").onClick(() => this.saveStructureTemplateFromWizard()))
-      .addButton(b => b.setButtonText("Holiday calendar…").onClick(() => this.saveHolidayTemplateFromWizard()));
+      .setName(translateUi("Save as a template"))
+      .addButton(b => b.setButtonText(translateUi("School structure…")).onClick(() => this.saveStructureTemplateFromWizard()))
+      .addButton(b => b.setButtonText(translateUi("Holiday calendar…")).onClick(() => this.saveHolidayTemplateFromWizard()));
 
     const footer = body.createDiv("tp-wizard-footer");
     footer.createDiv();
-    const openBtn = footer.createEl("button", { text: "Open planner →", cls: "tp-btn tp-btn--primary" });
+    const openBtn = footer.createEl("button", { text: translateUi("Open planner →"), cls: "tp-btn tp-btn--primary" });
     openBtn.addEventListener("click", () => { void (async () => {
       this.close();
       await this.plugin.activateView();
@@ -902,16 +903,16 @@ export class SetupWizardModal extends Modal {
     new TextPromptModal(this.app, "Save school structure template", this.state.name, "Template name", (name) => { void (async () => {
       const n = name.trim(); if (!n) return;
       try { const path = await writeTemplateFile(this.plugin, "structure", n, buildStructureTemplate(this.plugin, n)); new Notice(`Saved structure template to ${path}`); }
-      catch (e) { console.error("Teacher Planner: save structure template failed.", e); new Notice("Could not save template — see console."); }
+      catch (e) { console.error("Teacher Planner: save structure template failed.", e); new Notice(translateUi("Could not save template — see console.")); }
     })(); }).open();
   }
 
   private saveHolidayTemplateFromWizard() {
-    if (holidayCount(this.plugin) === 0) { new Notice("No holidays or INSET days to save."); return; }
+    if (holidayCount(this.plugin) === 0) { new Notice(translateUi("No holidays or INSET days to save.")); return; }
     new TextPromptModal(this.app, "Save holiday calendar template", `${this.state.name} holidays`, "Template name", (name) => { void (async () => {
       const n = name.trim(); if (!n) return;
       try { const path = await writeTemplateFile(this.plugin, "holidays", n, buildHolidayTemplate(this.plugin, n)); new Notice(`Saved holiday template to ${path}`); }
-      catch (e) { console.error("Teacher Planner: save holiday template failed.", e); new Notice("Could not save template — see console."); }
+      catch (e) { console.error("Teacher Planner: save holiday template failed.", e); new Notice(translateUi("Could not save template — see console.")); }
     })(); }).open();
   }
 
@@ -1077,18 +1078,18 @@ class WizardCloseConfirmModal extends Modal {
 
   onOpen() {
     const { contentEl, titleEl } = this;
-    titleEl.setText("Exit setup wizard?");
+    titleEl.setText(translateUi("Exit setup wizard?"));
     contentEl.createEl("p", {
-      text: "Your planner has not been saved yet. If you exit now, all progress will be lost and you will need to start the setup again.",
+      text: translateUi("Your planner has not been saved yet. If you exit now, all progress will be lost and you will need to start the setup again."),
       cls: "setting-item-description",
     });
     new Setting(contentEl)
       .addButton(btn => btn
-        .setButtonText("Continue setup")
+        .setButtonText(translateUi("Continue setup"))
         .setCta()
         .onClick(() => this.close()))
       .addButton(btn => btn
-        .setButtonText("Exit without saving")
+        .setButtonText(translateUi("Exit without saving"))
         .setClass("mod-warning")
         .onClick(() => { this.close(); this.onConfirm(); }));
   }

@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 
 import { App, PluginSettingTab, Setting, Notice, Modal, ButtonComponent, setIcon, FuzzySuggestModal, Platform, Menu } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
@@ -124,15 +125,15 @@ export class TextPromptModal extends Modal {
     input.placeholder = this.placeholder;
     const submit = () => {
       const v = input.value.trim();
-      if (!v) { new Notice("Please enter a name."); return; }
+      if (!v) { new Notice(translateUi("Please enter a name.")); return; }
       this.close();
       this.onSubmit(v);
     };
     input.addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Enter") submit(); });
     const footer = contentEl.createDiv("tp-modal-footer");
-    footer.createEl("button", { text: "Cancel", cls: "tp-btn" })
+    footer.createEl("button", { text: translateUi("Cancel"), cls: "tp-btn" })
       .addEventListener("click", () => this.close());
-    footer.createEl("button", { text: "Save", cls: "tp-btn tp-btn--primary" })
+    footer.createEl("button", { text: translateUi("Save"), cls: "tp-btn tp-btn--primary" })
       .addEventListener("click", submit);
     window.setTimeout(() => { input.focus(); input.select(); }, 30);
   }
@@ -158,7 +159,7 @@ export class ConfirmModal extends Modal {
     titleEl.setText("Are you sure?");
     contentEl.createEl("p", { text: this.message, cls: "setting-item-description" });
     const footer = contentEl.createDiv("tp-modal-footer");
-    footer.createEl("button", { text: "Cancel", cls: "tp-btn" })
+    footer.createEl("button", { text: translateUi("Cancel"), cls: "tp-btn" })
       .addEventListener("click", () => this.close());
     footer.createEl("button", { text: this.confirmLabel, cls: "tp-btn tp-btn--primary" })
       .addEventListener("click", () => {
@@ -181,7 +182,7 @@ export function confirmDelete(
   onConfirm: () => void | Promise<void>,
 ): void {
   if (plugin.settings.confirmBeforeDelete === false) { void onConfirm(); return; }
-  new ConfirmModal(plugin.app, message, onConfirm, "Delete").open();
+  new ConfirmModal(plugin.app, message, onConfirm, translateUi("Delete")).open();
 }
 
 /** Live-updatable elements of a mobile accordion summary row (0.3.5). */
@@ -252,30 +253,30 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     this.renderPlannersSection(containerEl);
 
     // ── Academic Year ──────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Academic year").setHeading();
-    new Setting(containerEl).setName("Planner name").setDesc('e.g. "2025-26 IB Science"')
+    new Setting(containerEl).setName(translateUi("Academic year")).setHeading();
+    new Setting(containerEl).setName(translateUi("Planner name")).setDesc('e.g. "2025-26 IB Science"')
       .addText(t => t.setPlaceholder("2025-26").setValue(this.plugin.settings.academicYear.name)
         .onChange(v => { this.plugin.settings.academicYear.name = v; this.plugin.requestSave(); }));
-    new Setting(containerEl).setName("Start date").setDesc("YYYY-MM-DD")
+    new Setting(containerEl).setName(translateUi("Start date")).setDesc("YYYY-MM-DD")
       .addText(t => t.setPlaceholder("2025-09-01").setValue(this.plugin.settings.academicYear.startDate)
         .onChange(v => { this.plugin.settings.academicYear.startDate = v; this.plugin.requestSave(); }));
-    new Setting(containerEl).setName("End date").setDesc("YYYY-MM-DD")
+    new Setting(containerEl).setName(translateUi("End date")).setDesc("YYYY-MM-DD")
       .addText(t => t.setPlaceholder("2026-07-15").setValue(this.plugin.settings.academicYear.endDate)
         .onChange(v => { this.plugin.settings.academicYear.endDate = v; this.plugin.requestSave(); }));
 
     // ── School days ────────────────────────────────────────────────────────
     const schoolDayOptions: { key: SchoolDay; label: string }[] = [
-      { key: "monday",    label: "Mon" },
-      { key: "tuesday",  label: "Tue" },
-      { key: "wednesday",label: "Wed" },
-      { key: "thursday", label: "Thu" },
-      { key: "friday",   label: "Fri" },
-      { key: "saturday", label: "Sat" },
-      { key: "sunday",   label: "Sun" },
+      { key: "monday",    label: translateUi("Mon") },
+      { key: "tuesday",  label: translateUi("Tue") },
+      { key: "wednesday",label: translateUi("Wed") },
+      { key: "thursday", label: translateUi("Thu") },
+      { key: "friday",   label: translateUi("Fri") },
+      { key: "saturday", label: translateUi("Sat") },
+      { key: "sunday",   label: translateUi("Sun") },
     ];
     const schoolDaysSetting = new Setting(containerEl)
-      .setName("School days")
-      .setDesc("Enable Saturday or Sunday for boarding or Saturday schools.");
+      .setName(translateUi("School days"))
+      .setDesc(translateUi("Enable Saturday or Sunday for boarding or Saturday schools."));
     if (Platform.isMobile) {
       // 0.3.5: toggle chips — same pattern as the timetable day pills, no
       // checkboxes, no truncated labels.
@@ -315,15 +316,15 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     }
 
     // ── Directed Time Tracker ──────────────────────────────────────────────
-    new Setting(containerEl).setName("Directed time tracker").setHeading();
+    new Setting(containerEl).setName(translateUi("Directed time tracker")).setHeading();
     if (!this.plugin.settings.directedTime) {
       this.plugin.settings.directedTime = { enabled: false, contractedHours: 1265, timetablePercentage: 100, defaultLessonDurationMinutes: 60 };
     }
     const dt = this.plugin.settings.directedTime;
 
     new Setting(containerEl)
-      .setName("Enable directed time tracker")
-      .setDesc("Track cumulative directed time based on events in your planner.")
+      .setName(translateUi("Enable directed time tracker"))
+      .setDesc(translateUi("Track cumulative directed time based on events in your planner."))
       .addToggle(t => t.setValue(dt.enabled)
         .onChange(async v => {
           dt.enabled = v;
@@ -344,8 +345,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       callout.createEl("p", { text: "⚠️  This tracker is a guide only. Accuracy depends entirely on the information you enter. It does not constitute legal advice — always consult your union representative for formal disputes." });
 
       new Setting(dtPanel)
-        .setName("Contracted directed time (hours)")
-        .setDesc("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts.")
+        .setName(translateUi("Contracted directed time (hours)"))
+        .setDesc(translateUi("Maximum directed time for a full-time teacher. Default: 1265 (STPCD). Override for schools on different contracts."))
         .addText(t => t.setPlaceholder("1265").setValue(String(dt.contractedHours))
           .onChange(v => {
             const n = parseFloat(v);
@@ -353,8 +354,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           }));
 
       new Setting(dtPanel)
-        .setName("Timetable fraction (%)")
-        .setDesc("For part-time teachers. Your directed time maximum = contracted hours × this %. Default: 100 (full-time).")
+        .setName(translateUi("Timetable fraction (%)"))
+        .setDesc(translateUi("For part-time teachers. Your directed time maximum = contracted hours × this %. Default: 100 (full-time)."))
         .addText(t => t.setPlaceholder("100").setValue(String(dt.timetablePercentage))
           .onChange(v => {
             const n = parseFloat(v);
@@ -362,19 +363,19 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           }));
 
       new Setting(dtPanel)
-        .setName("Lesson and activity duration")
-        .setDesc("Each lesson, activity, or event counts the length of the block it sits in. To count a different amount (a half period, say), click the duration badge on that block in the timetable editor.");
+        .setName(translateUi("Lesson and activity duration"))
+        .setDesc(translateUi("Each lesson, activity, or event counts the length of the block it sits in. To count a different amount (a half period, say), click the duration badge on that block in the timetable editor."));
 
       new Setting(dtPanel)
-        .setName("Export directed time")
-        .setDesc("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management.")
-        .addButton(btn => btn.setButtonText("Export XLSX…").setCta()
+        .setName(translateUi("Export directed time"))
+        .setDesc(translateUi("Download a weekly breakdown of directed hours as an Excel workbook, suitable for sharing with your union or school management."))
+        .addButton(btn => btn.setButtonText(translateUi("Export XLSX…")).setCta()
           .onClick(() => new DirectedTimeExportModal(this.app, this.plugin).open()));
 
       new Setting(dtPanel)
-        .setName("Directed time guide")
-        .setDesc("Open the guide note explaining how the tracker works and your statutory rights.")
-        .addButton(btn => btn.setButtonText("Open guide")
+        .setName(translateUi("Directed time guide"))
+        .setDesc(translateUi("Open the guide note explaining how the tracker works and your statutory rights."))
+        .addButton(btn => btn.setButtonText(translateUi("Open guide"))
           .onClick(async () => {
             await this.createDirectedTimeGuideNote();
             const path = (this.plugin.settings.plannerFolder || "Teacher Planner") + "/Directed Time — Guide.md";
@@ -384,14 +385,14 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     }
 
     // ── Holidays & INSET Days ──────────────────────────────────────────────
-    new Setting(containerEl).setName("Holidays and INSET days").setHeading();
+    new Setting(containerEl).setName(translateUi("Holidays and INSET days")).setHeading();
     containerEl.createEl("p", {
-      text: "Mark date ranges as holidays or INSET training days. Individual day columns are greyed out in the planner.",
+      text: translateUi("Mark date ranges as holidays or INSET training days. Individual day columns are greyed out in the planner."),
       cls: "setting-item-description"
     });
     const overridesContainer = containerEl.createDiv("tp-overrides-list");
     this.renderWeekOverridesList(overridesContainer);
-    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add holiday / INSET range").setCta()
+    new Setting(containerEl).addButton(btn => btn.setButtonText(translateUi("+ Add holiday / INSET range")).setCta()
       .onClick(async () => {
         const today = localIso(new Date());
         const newOverride: WeekOverride = { startDate: today, type: "holiday", label: "" };
@@ -403,23 +404,23 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Block Types ────────────────────────────────────────────────────────
-    new Setting(containerEl).setName("School day blocks").setHeading();
+    new Setting(containerEl).setName(translateUi("School day blocks")).setHeading();
     containerEl.createEl("p", {
-      text: "Define the types of block that make up your school day — lessons, breaks, registration, admin time, and so on. Each block type has a colour that appears as a shaded band in the week view, making it easy to see your day structure at a glance. Assign block types to individual periods in School Timetable.",
+      text: translateUi("Define the types of block that make up your school day — lessons, breaks, registration, admin time, and so on. Each block type has a colour that appears as a shaded band in the week view, making it easy to see your day structure at a glance. Assign block types to individual periods in School Timetable."),
       cls: "setting-item-description"
     });
     if (!this.plugin.settings.periodTypes) this.plugin.settings.periodTypes = [];
     const periodTypesContainer = containerEl.createDiv("tp-activities-list");
     this.renderPeriodTypesList(periodTypesContainer);
-    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add block type").setCta()
+    new Setting(containerEl).addButton(btn => btn.setButtonText(translateUi("+ Add block type")).setCta()
       .onClick(async () => {
-        this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: "New Type", colour: FALLBACK_PERIOD_TYPE_COLOUR });
+        this.plugin.settings.periodTypes.push({ id: "type-" + Date.now(), label: translateUi("New Type"), colour: FALLBACK_PERIOD_TYPE_COLOUR });
         await this.plugin.saveSettings();
         periodTypesContainer.empty();
         this.renderPeriodTypesList(periodTypesContainer);
       }))
-      .addButton(btn => btn.setButtonText("Reset all colours to theme")
-        .setTooltip("Discard custom block colours and follow your Obsidian theme")
+      .addButton(btn => btn.setButtonText(translateUi("Reset all colours to theme"))
+        .setTooltip(translateUi("Discard custom block colours and follow your Obsidian theme"))
         .onClick(() => {
           new ConfirmModal(this.app, "Reset all block type colours to your Obsidian theme defaults? Custom colours will be discarded.", async () => {
           for (const pt of this.plugin.settings.periodTypes) {
@@ -428,19 +429,19 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
           periodTypesContainer.empty();
           this.renderPeriodTypesList(periodTypesContainer);
-          new Notice("Block colours reset to theme defaults.");
+          new Notice(translateUi("Block colours reset to theme defaults."));
           }).open();
         }));
 
     // ── Periods / day schedules ────────────────────────────────────────────
-    new Setting(containerEl).setName("School timetable").setHeading();
+    new Setting(containerEl).setName(translateUi("School timetable")).setHeading();
     containerEl.createEl("p", {
-      text: "Periods are grouped into day schedules. Most schools only need the Standard day. Add another schedule for days shaped differently — a sports afternoon, a half-day Saturday — and assign it to those days. Colours and types are configured in School Day Blocks above.",
+      text: translateUi("Periods are grouped into day schedules. Most schools only need the Standard day. Add another schedule for days shaped differently — a sports afternoon, a half-day Saturday — and assign it to those days. Colours and types are configured in School Day Blocks above."),
       cls: "setting-item-description"
     });
 
     // ── Timetable Rotation (within School Timetable section) ────────────
-    new Setting(containerEl).setName("Enable A/B week rotation").setDesc("Alternating fortnightly timetables.")
+    new Setting(containerEl).setName(translateUi("Enable A/B week rotation")).setDesc(translateUi("Alternating fortnightly timetables."))
       .addToggle(t => t.setValue(this.plugin.settings.academicYear.abWeekEnabled)
         .onChange(async v => {
           this.plugin.settings.academicYear.abWeekEnabled = v;
@@ -451,12 +452,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // A/B start week — always in DOM, visibility controlled by toggle
     const abPanel = containerEl.createDiv();
     abPanel.setCssStyles({ display: this.plugin.settings.academicYear.abWeekEnabled ? "" : "none" });
-    new Setting(abPanel).setName("Academic year starts on")
-      .addDropdown(d => d.addOption("A", "Week A").addOption("B", "Week B")
+    new Setting(abPanel).setName(translateUi("Academic year starts on"))
+      .addDropdown(d => d.addOption("A", translateUi("Week A")).addOption("B", translateUi("Week B"))
         .setValue(this.plugin.settings.academicYear.abWeekStartsOn)
         .onChange(async (v: string) => { this.plugin.settings.academicYear.abWeekStartsOn = v as "A" | "B"; await this.plugin.saveSettings(); }));
-    new Setting(abPanel).setName("Continue rotation across holidays")
-      .setDesc("Skip fully-holiday weeks so the A/B pattern carries on seamlessly after a break. Recomputes automatically when holidays change.")
+    new Setting(abPanel).setName(translateUi("Continue rotation across holidays"))
+      .setDesc(translateUi("Skip fully-holiday weeks so the A/B pattern carries on seamlessly after a break. Recomputes automatically when holidays change."))
       .addToggle(t => t.setValue(this.plugin.settings.academicYear.abWeekHolidayAware !== false)
         .onChange(async v => { this.plugin.settings.academicYear.abWeekHolidayAware = v; await this.plugin.saveSettings(); }));
 
@@ -472,22 +473,22 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       const sel = this.getSelectedSchedule();
 
       const bar = new Setting(scheduleBar)
-        .setName("Day schedule")
-        .setDesc("Choose which schedule to edit. Click a day below to make it use the selected schedule.");
+        .setName(translateUi("Day schedule"))
+        .setDesc(translateUi("Choose which schedule to edit. Click a day below to make it use the selected schedule."));
       bar.addDropdown(d => {
         for (const sch of ay.daySchedules!) d.addOption(sch.id, sch.name);
         d.setValue(sel.id);
         d.onChange(v => { this.selectedScheduleId = v; renderScheduleBar(); refreshPeriods(); });
       });
-      bar.addExtraButton(b => b.setIcon("pencil").setTooltip("Rename schedule").onClick(() => {
+      bar.addExtraButton(b => b.setIcon("pencil").setTooltip(translateUi("Rename schedule")).onClick(() => {
         new TextPromptModal(this.app, "Rename day schedule", sel.name, "Schedule name", (name) => { void (async () => {
           sel.name = name;
           await this.plugin.saveSettings();
           renderScheduleBar();
         })(); }).open();
       }));
-      bar.addExtraButton(b => b.setIcon("plus").setTooltip("New day schedule").onClick(() => {
-        new TextPromptModal(this.app, "New day schedule", "", "e.g. Saturday, Sports day", (name) => { void (async () => {
+      bar.addExtraButton(b => b.setIcon("plus").setTooltip(translateUi("New day schedule")).onClick(() => {
+        new TextPromptModal(this.app, translateUi("New day schedule"), "", "e.g. Saturday, Sports day", (name) => { void (async () => {
           const sch: DaySchedule = { id: "schedule-" + Date.now(), name, periods: [] };
           ay.daySchedules!.push(sch);
           this.selectedScheduleId = sch.id;
@@ -496,10 +497,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           refreshPeriods();
         })(); }).open();
       }));
-      bar.addExtraButton(b => b.setIcon("trash").setTooltip("Delete schedule").onClick(() => {
-        if (ay.daySchedules!.length <= 1) { new Notice("At least one day schedule is required."); return; }
+      bar.addExtraButton(b => b.setIcon("trash").setTooltip(translateUi("Delete schedule")).onClick(() => {
+        if (ay.daySchedules!.length <= 1) { new Notice(translateUi("At least one day schedule is required.")); return; }
         const fallbackName = ay.daySchedules![0].id === sel.id ? ay.daySchedules![1].name : ay.daySchedules![0].name;
-        new ConfirmModal(this.app, `Delete schedule "${sel.name}"? Days using it fall back to "${fallbackName}". Periods unique to it disappear from the timetable (assigned lessons are kept but hidden).`, async () => {
+        new ConfirmModal(this.app, translateUi`Delete schedule "${sel.name}"? Days using it fall back to "${fallbackName}". Periods unique to it disappear from the timetable (assigned lessons are kept but hidden).`, async () => {
           ay.daySchedules = ay.daySchedules!.filter(s => s.id !== sel.id);
           for (const key of Object.keys(ay.dayScheduleMap ?? {}) as SchoolDay[]) {
             if (ay.dayScheduleMap?.[key] === sel.id) delete ay.dayScheduleMap?.[key];
@@ -508,13 +509,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
           renderScheduleBar();
           refreshPeriods();
-        }, "Delete").open();
+        }, translateUi("Delete")).open();
       }));
 
       const pillRow = scheduleBar.createDiv("tp-schedule-days");
       const dayDefs: [SchoolDay, string][] = [
-        ["monday","Mon"], ["tuesday","Tue"], ["wednesday","Wed"], ["thursday","Thu"],
-        ["friday","Fri"], ["saturday","Sat"], ["sunday","Sun"],
+        ["monday",translateUi("Mon")], ["tuesday",translateUi("Tue")], ["wednesday",translateUi("Wed")], ["thursday",translateUi("Thu")],
+        ["friday",translateUi("Fri")], ["saturday",translateUi("Sat")], ["sunday",translateUi("Sun")],
       ];
       const schoolDays = this.plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"];
       for (const [day, label] of dayDefs) {
@@ -528,7 +529,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           : `${label} uses "${daySched?.name ?? "?"}" — click to switch it to "${sel.name}"`;
         pill.addEventListener("click", () => { void (async () => {
           if (ay.daySchedules!.length < 2) {
-            new Notice("All days use the only schedule. Click + to create a second schedule, then assign days to it.");
+            new Notice(translateUi("All days use the only schedule. Click + to create a second schedule, then assign days to it."));
             return;
           }
           if (active) {
@@ -543,7 +544,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }
       if (ay.daySchedules!.length < 2) {
         scheduleBar.createEl("p", {
-          text: "All days currently use this schedule. Click + above to create a second schedule (e.g. Saturday), then click a day pill to assign it.",
+          text: translateUi("All days currently use this schedule. Click + above to create a second schedule (e.g. Saturday), then click a day pill to assign it."),
           cls: "setting-item-description",
         });
       }
@@ -551,7 +552,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     renderScheduleBar();
 
     this.renderPeriodsList(periodsContainer);
-    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add period").setCta()
+    new Setting(containerEl).addButton(btn => btn.setButtonText(translateUi("+ Add period")).setCta()
       .onClick(() => {
         new AddPeriodModal(this.app, async (period) => {
           this.getSelectedSchedule().periods.push(period);
@@ -562,26 +563,26 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     // ── Lessons ────────────────────────────────────────────────────────────
-    new Setting(containerEl).setName("My classes").setHeading();
+    new Setting(containerEl).setName(translateUi("My classes")).setHeading();
     containerEl.createEl("p", {
-      text: "Define your subjects and class groups. Colours appear on lesson blocks in the week view.",
+      text: translateUi("Define your subjects and class groups. Colours appear on lesson blocks in the week view."),
       cls: "setting-item-description"
     });
     const classesContainer = containerEl.createDiv("tp-classes-list");
     this.renderSubjectsList(classesContainer);
-    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add subject").setCta()
+    new Setting(containerEl).addButton(btn => btn.setButtonText(translateUi("+ Add subject")).setCta()
       .onClick(async () => {
         const colour = randomClassColour(this.plugin.settings.subjects.map(s => s.colour));
-        this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: "New Subject", colour, emoji: "📚" });
+        this.plugin.settings.subjects.push({ id: `subj-${Date.now()}`, name: translateUi("New Subject"), colour, emoji: "📚" });
         await this.plugin.saveSettings();
         classesContainer.empty();
         this.renderSubjectsList(classesContainer);
       }));
 
     // ── Directed time activities ───────────────────────────────────────────
-    new Setting(containerEl).setName("Recurring events: directed time").setHeading();
+    new Setting(containerEl).setName(translateUi("Recurring events: directed time")).setHeading();
     containerEl.createEl("p", {
-      text: "These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Each one counts the length of the block you put it in; to count a different amount, click the duration badge on that block in the timetable editor.",
+      text: translateUi("These activities count toward your directed time total. Add them to the planner by clicking any empty slot. Each one counts the length of the block you put it in; to count a different amount, click the duration badge on that block in the timetable editor."),
       cls: "setting-item-description"
     });
     if (!this.plugin.settings.activities) this.plugin.settings.activities = [];
@@ -594,7 +595,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         const cls = "tp-activity-header-label" + (extraCls ? " " + extraCls : "");
         return activityHeaders.createSpan({ text, cls });
       };
-      makeHeader("Name");
+      makeHeader(translateUi("Name"));
       makeHeader("Info");
       makeHeader("Classroom");
       activityHeaders.createDiv("tp-activity-header-spacer"); // archive btn placeholder
@@ -603,40 +604,40 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     const activitiesContainer = containerEl.createDiv("tp-activities-list");
     this.renderActivitiesList(activitiesContainer, "directed");
-    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add activity").setCta()
+    new Setting(containerEl).addButton(btn => btn.setButtonText(translateUi("+ Add activity")).setCta()
       .onClick(async () => {
-        this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Activity", colour: "#cba6f7", activityType: "directed" });
+        this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: translateUi("New Activity"), colour: "#cba6f7", activityType: "directed" });
         await this.plugin.saveSettings();
         activitiesContainer.empty();
         this.renderActivitiesList(activitiesContainer, "directed");
       }));
 
     // ── Other Events ───────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Recurring events: non-directed time").setHeading();
+    new Setting(containerEl).setName(translateUi("Recurring events: non-directed time")).setHeading();
     containerEl.createEl("p", {
       text: "⚠️  Items in this section appear in the planner but are excluded from the directed time count. Use these for personal appointments, reminders, or any non-directed activity.",
       cls: "setting-item-description"
     });
     const otherContainer = containerEl.createDiv("tp-activities-list");
     this.renderActivitiesList(otherContainer, "other");
-    new Setting(containerEl).addButton(btn => btn.setButtonText("+ Add other event").setCta()
+    new Setting(containerEl).addButton(btn => btn.setButtonText(translateUi("+ Add other event")).setCta()
       .onClick(async () => {
-        this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: "New Other Event", colour: "#888888", activityType: "other" });
+        this.plugin.settings.activities.push({ id: `activity-${Date.now()}`, label: translateUi("New Other Event"), colour: "#888888", activityType: "other" });
         await this.plugin.saveSettings();
         otherContainer.empty();
         this.renderActivitiesList(otherContainer, "other");
       }));
 
     // ── Vault ──────────────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Vault").setHeading();
-    new Setting(containerEl).setName("Planner folder").setDesc("Where lesson notes will be created")
+    new Setting(containerEl).setName(translateUi("Vault")).setHeading();
+    new Setting(containerEl).setName(translateUi("Planner folder")).setDesc(translateUi("Where lesson notes will be created"))
       .addText(t => t.setPlaceholder("Teacher Planner").setValue(this.plugin.settings.plannerFolder)
         .onChange(v => { this.plugin.settings.plannerFolder = v; this.plugin.requestSave(); }));
 
     // -- Lesson notes (note titles + note templates, merged 0.3.6) -----------
-    new Setting(containerEl).setName("Lesson notes").setHeading();
+    new Setting(containerEl).setName(translateUi("Lesson notes")).setHeading();
     containerEl.createEl("p", {
-      text: "Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{year}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default.",
+      text: translateUi("Templates for generated lesson- and event-note titles. Tokens: {{date}} {{period}} {{year}} {{class}} {{subject}} {{emoji}} {{event}}. Empty tokens are dropped, so a missing value never leaves a dangling separator. Clear a field to restore its default."),
       cls: "setting-item-description",
     });
 
@@ -646,15 +647,15 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     const renderLessonTitle = (tpl: string) => buildNoteTitle(tpl, {
       dateIso: _sampleDate,
-      periodName: "Period 1",
+      periodName: translateUi("Period 1"),
       year: _sampleCls?.year ?? "10",
       classCode: _sampleCls?.code ?? "10A",
-      subjectName: _sampleSubj?.name ?? "Biology",
+      subjectName: _sampleSubj?.name ?? translateUi("Biology"),
       emoji: _sampleSubj?.emoji ?? "🌱",
     });
     const renderEventTitle = (tpl: string) => buildNoteTitle(tpl, {
       dateIso: _sampleDate,
-      periodName: "Break",
+      periodName: translateUi("Break"),
       eventName: "Bake sale",
     });
 
@@ -662,48 +663,48 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     let eventTitlePreview: HTMLElement;
 
     const lessonTitleSetting = new Setting(containerEl)
-      .setName("Lesson note title")
+      .setName(translateUi("Lesson note title"))
       .addText(t => {
         t.setPlaceholder(DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
         t.setValue(this.plugin.settings.lessonNoteTitleTemplate ?? DEFAULT_LESSON_NOTE_TITLE_TEMPLATE);
         t.inputEl.addClass("tp-title-template-input");
         t.onChange(v => {
           this.plugin.settings.lessonNoteTitleTemplate = v.trim() || undefined;
-          lessonTitlePreview.setText("Preview:  " + renderLessonTitle(v.trim() || DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
+          lessonTitlePreview.setText(translateUi("Preview:  ") + renderLessonTitle(v.trim() || DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
           this.plugin.requestSave();
         });
       });
     lessonTitlePreview = lessonTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
-    lessonTitlePreview.setText("Preview:  " + renderLessonTitle(this.plugin.settings.lessonNoteTitleTemplate ?? DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
+    lessonTitlePreview.setText(translateUi("Preview:  ") + renderLessonTitle(this.plugin.settings.lessonNoteTitleTemplate ?? DEFAULT_LESSON_NOTE_TITLE_TEMPLATE));
 
     const eventTitleSetting = new Setting(containerEl)
-      .setName("Event note title")
+      .setName(translateUi("Event note title"))
       .addText(t => {
         t.setPlaceholder(DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
         t.setValue(this.plugin.settings.eventNoteTitleTemplate ?? DEFAULT_EVENT_NOTE_TITLE_TEMPLATE);
         t.inputEl.addClass("tp-title-template-input");
         t.onChange(v => {
           this.plugin.settings.eventNoteTitleTemplate = v.trim() || undefined;
-          eventTitlePreview.setText("Preview:  " + renderEventTitle(v.trim() || DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
+          eventTitlePreview.setText(translateUi("Preview:  ") + renderEventTitle(v.trim() || DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
           this.plugin.requestSave();
         });
       });
     eventTitlePreview = eventTitleSetting.descEl.createDiv({ cls: "setting-item-description tp-title-template-preview" });
-    eventTitlePreview.setText("Preview:  " + renderEventTitle(this.plugin.settings.eventNoteTitleTemplate ?? DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
+    eventTitlePreview.setText(translateUi("Preview:  ") + renderEventTitle(this.plugin.settings.eventNoteTitleTemplate ?? DEFAULT_EVENT_NOTE_TITLE_TEMPLATE));
 
     // Note body templates — same "Lesson notes" section as the title patterns above.
     const noteTemplatesArea = containerEl.createDiv("tp-note-templates-area");
     void this.buildNoteTemplatesUI(noteTemplatesArea);
 
     // ── Lesson overview ────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Lesson overview").setHeading();
+    new Setting(containerEl).setName(translateUi("Lesson overview")).setHeading();
     new Setting(containerEl)
-      .setName("Main line shows")
-      .setDesc("What to show on each lesson row in the overview. Notes are the per-lesson note field; plan title is the linked lesson-plan filename.")
+      .setName(translateUi("Main line shows"))
+      .setDesc(translateUi("What to show on each lesson row in the overview. Notes are the per-lesson note field; plan title is the linked lesson-plan filename."))
       .addDropdown(d => d
-        .addOption("notes-plan", "Notes, then plan title")
-        .addOption("notes", "Notes only")
-        .addOption("plan", "Plan title")
+        .addOption("notes-plan", translateUi("Notes, then plan title"))
+        .addOption("notes", translateUi("Notes only"))
+        .addOption("plan", translateUi("Plan title"))
         .setValue(this.plugin.settings.lessonOverviewMainLine ?? "notes-plan")
         .onChange(async (v: string) => {
           this.plugin.settings.lessonOverviewMainLine = v as "notes-plan" | "notes" | "plan";
@@ -711,12 +712,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         }));
 
     // ── Grid Visuals ───────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Grid visuals").setHeading();
+    new Setting(containerEl).setName(translateUi("Grid visuals")).setHeading();
     const GREY_PALETTE = ["#dddddd", "#bbbbbb", "#999999", "#777777", "#555555", "#444444", "#333333"];
 
     const blockColourSetting = new Setting(containerEl)
-      .setName("Period block border colour")
-      .setDesc("Border on the top and bottom edge of each period band.");
+      .setName(translateUi("Period block border colour"))
+      .setDesc(translateUi("Border on the top and bottom edge of each period band."));
     blockColourSetting.controlEl.setCssStyles({ display: "flex" });
     blockColourSetting.controlEl.setCssStyles({ alignItems: "center" });
     blockColourSetting.controlEl.setCssStyles({ gap: "8px" });
@@ -760,7 +761,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       blockPresetSwatches.push(chip);
     }
 
-    new Setting(containerEl).setName("Period block border weight").setDesc("Thickness of period band borders in pixels (1-4).")
+    new Setting(containerEl).setName(translateUi("Period block border weight")).setDesc(translateUi("Thickness of period band borders in pixels (1-4)."))
       .addSlider(s => {
         const valueLabel = createSpan({ cls: "tp-slider-value", text: `${this.plugin.settings.blockBorderWeight ?? 1}px` });
         s.setLimits(1, 4, 1).setValue(this.plugin.settings.blockBorderWeight ?? 1)
@@ -769,8 +770,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       });
 
     const gridColourSetting = new Setting(containerEl)
-      .setName("Time grid line colour")
-      .setDesc("Colour of the day-column borders and row dividers.");
+      .setName(translateUi("Time grid line colour"))
+      .setDesc(translateUi("Colour of the day-column borders and row dividers."));
     gridColourSetting.controlEl.setCssStyles({ display: "flex" });
     gridColourSetting.controlEl.setCssStyles({ alignItems: "center" });
     gridColourSetting.controlEl.setCssStyles({ gap: "8px" });
@@ -815,8 +816,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     }
 
     const todayColourSetting = new Setting(containerEl)
-      .setName("Today's column colour")
-      .setDesc("Tint used to highlight today's column in the week grid.");
+      .setName(translateUi("Today's column colour"))
+      .setDesc(translateUi("Tint used to highlight today's column in the week grid."));
     todayColourSetting.controlEl.setCssStyles({ display: "flex" });
     todayColourSetting.controlEl.setCssStyles({ alignItems: "center" });
     todayColourSetting.controlEl.setCssStyles({ gap: "8px" });
@@ -861,7 +862,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       todayPresetSwatches.push(chip);
     }
 
-    new Setting(containerEl).setName("Time grid line weight").setDesc("Thickness of the grid dividers in pixels (1-4).")
+    new Setting(containerEl).setName(translateUi("Time grid line weight")).setDesc(translateUi("Thickness of the grid dividers in pixels (1-4)."))
       .addSlider(s => {
         const valueLabel = createSpan({ cls: "tp-slider-value", text: `${this.plugin.settings.gridLineWeight ?? 1}px` });
         s.setLimits(1, 4, 1).setValue(this.plugin.settings.gridLineWeight ?? 1)
@@ -869,8 +870,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         s.sliderEl.after(valueLabel);
       });
 
-    new Setting(containerEl).setName("Grid zoom (this device)")
-      .setDesc("Height of the week grid, in pixels per hour. Stored per device — not synced, so each device keeps its own zoom.")
+    new Setting(containerEl).setName(translateUi("Grid zoom (this device)"))
+      .setDesc(translateUi("Height of the week grid, in pixels per hour. Stored per device — not synced, so each device keeps its own zoom."))
       .addSlider(s => {
         const valueLabel = createSpan({ cls: "tp-slider-value", text: `${this.plugin.getGridScale()} px/hr` });
         s.setLimits(60, 240, 10).setValue(this.plugin.getGridScale())
@@ -878,8 +879,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         s.sliderEl.after(valueLabel);
       });
 
-    new Setting(containerEl).setName("Timetable editor zoom (this device)")
-      .setDesc("Vertical zoom of the timetable editor, in pixels per hour. Stored per device — not synced. Also adjustable from the editor's own zoom control.")
+    new Setting(containerEl).setName(translateUi("Timetable editor zoom (this device)"))
+      .setDesc(translateUi("Vertical zoom of the timetable editor, in pixels per hour. Stored per device — not synced. Also adjustable from the editor's own zoom control."))
       .addSlider(s => {
         const valueLabel = createSpan({ cls: "tp-slider-value", text: `${this.plugin.getEditorScale()} px/hr` });
         s.setLimits(60, 240, 6).setValue(this.plugin.getEditorScale())
@@ -887,9 +888,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         s.sliderEl.after(valueLabel);
       });
 
-    new Setting(containerEl).setName("Reset grid visuals")
-      .setDesc("Restore both colours to your Obsidian theme and weights to 1px.")
-      .addButton(btn => btn.setButtonText("Reset to theme defaults").setClass("mod-warning")
+    new Setting(containerEl).setName(translateUi("Reset grid visuals"))
+      .setDesc(translateUi("Restore both colours to your Obsidian theme and weights to 1px."))
+      .addButton(btn => btn.setButtonText(translateUi("Reset to theme defaults")).setClass("mod-warning")
         .onClick(async () => {
           this.plugin.settings.blockBorderColour = GRID_THEME_TOKEN;
           this.plugin.settings.gridLineColour = GRID_THEME_TOKEN;
@@ -897,15 +898,15 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           this.plugin.settings.gridLineWeight = 1;
           this.plugin.settings.todayHighlightColour = "theme:accent";
           await this.plugin.saveSettings();
-          new Notice("Grid visuals reset to theme defaults.");
+          new Notice(translateUi("Grid visuals reset to theme defaults."));
           this.render();
         }));
 
     // ── Export ────────────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Lesson plans").setHeading();
+    new Setting(containerEl).setName(translateUi("Lesson plans")).setHeading();
     new Setting(containerEl)
-      .setName("Plans folder")
-      .setDesc("Where new lesson plans are created and listed first in the picker. Leave empty for \"<planner folder>/Plans\".")
+      .setName(translateUi("Plans folder"))
+      .setDesc(translateUi("Where new lesson plans are created and listed first in the picker. Leave empty for \"<planner folder>/Plans\"."))
       .addText(t => {
         t.setPlaceholder((this.plugin.settings.plannerFolder || "Teacher Planner") + "/Plans");
         t.setValue(this.plugin.settings.lessonPlansFolder ?? "");
@@ -915,8 +916,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         })(); });
       });
     new Setting(containerEl)
-      .setName("Show lesson-prepared marker")
-      .setDesc("Adds a green tick you can click on each lesson to mark it prepared — independent of linking a plan. Turn off if you only use plan links.")
+      .setName(translateUi("Show lesson-prepared marker"))
+      .setDesc(translateUi("Adds a green tick you can click on each lesson to mark it prepared — independent of linking a plan. Turn off if you only use plan links."))
       .addToggle(t => t.setValue(this.plugin.settings.showPreparedMark ?? true)
         .onChange(async v => {
           this.plugin.settings.showPreparedMark = v;
@@ -927,17 +928,17 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const planTemplatesArea = containerEl.createDiv("tp-plan-templates-area");
     void this.buildPlanTemplatesUI(planTemplatesArea);
 
-    new Setting(containerEl).setName("Note files").setHeading();
+    new Setting(containerEl).setName(translateUi("Note files")).setHeading();
     new Setting(containerEl)
-      .setName("Organise notes into weekly folders")
-      .setDesc("Create lesson and event notes inside \"WC - <Monday date>\" folders under the planner folder. Existing notes stay where they are and keep opening.")
+      .setName(translateUi("Organise notes into weekly folders"))
+      .setDesc(translateUi("Create lesson and event notes inside \"WC - <Monday date>\" folders under the planner folder. Existing notes stay where they are and keep opening."))
       .addToggle(t => t.setValue(this.plugin.settings.weeklyNoteFolders ?? true)
         .onChange(async v => {
           this.plugin.settings.weeklyNoteFolders = v;
           await this.plugin.saveSettings();
         }));
     new Setting(containerEl)
-      .setName("Store week notes as vault files")
+      .setName(translateUi("Store week notes as vault files"))
       .setDesc("Save each week's sidebar note as a markdown file (\"Week note - <Monday date>\") so it's searchable and linkable, and enables the live (formatted) editor in the sidebar. Enabling moves existing week notes out of the plugin data file.")
       .addToggle(t => t.setValue(this.plugin.settings.weekNoteFiles ?? false)
         .onChange(async v => {
@@ -954,8 +955,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         }));
     if (this.plugin.settings.weekNoteFiles) {
       new Setting(containerEl)
-        .setName("Week notes folder")
-        .setDesc("Folder for week-note files. Leave empty for \"<planner folder>/Week notes\".")
+        .setName(translateUi("Week notes folder"))
+        .setDesc(translateUi("Folder for week-note files. Leave empty for \"<planner folder>/Week notes\"."))
         .addText(t => {
           t.setPlaceholder((this.plugin.settings.plannerFolder || "Teacher Planner") + "/Week notes");
           t.setValue(this.plugin.settings.weekNotesFolder ?? "");
@@ -965,12 +966,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           })(); });
         });
       new Setting(containerEl)
-        .setName("Open week note in")
-        .setDesc("Where the open-in-pane button opens the full week note.")
+        .setName(translateUi("Open week note in"))
+        .setDesc(translateUi("Where the open-in-pane button opens the full week note."))
         .addDropdown(d => d
-          .addOption("tab", "New tab")
-          .addOption("split", "Split right")
-          .addOption("current", "Current pane")
+          .addOption("tab", translateUi("New tab"))
+          .addOption("split", translateUi("Split right"))
+          .addOption("current", translateUi("Current pane"))
           .setValue(this.plugin.settings.weekNoteOpenIn ?? "tab")
           .onChange(v => { this.plugin.settings.weekNoteOpenIn = v as "tab" | "split" | "current"; this.plugin.requestSave(); }));
     }
@@ -979,25 +980,25 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const weekNoteTemplatesArea = containerEl.createDiv("tp-week-note-templates-area");
     void this.buildWeekNoteTemplatesUI(weekNoteTemplatesArea);
 
-    new Setting(containerEl).setName("Export").setHeading();
+    new Setting(containerEl).setName(translateUi("Export")).setHeading();
     new Setting(containerEl)
-      .setName("Export planner data")
-      .setDesc("Export timetable and events as Excel or CSV, or as an iCal calendar (.ics) for Google, Apple or Outlook calendar — to your Planner folder or anywhere on your computer.")
-      .addButton(btn => btn.setButtonText("Export data…").setCta()
+      .setName(translateUi("Export planner data"))
+      .setDesc(translateUi("Export timetable and events as Excel or CSV, or as an iCal calendar (.ics) for Google, Apple or Outlook calendar — to your Planner folder or anywhere on your computer."))
+      .addButton(btn => btn.setButtonText(translateUi("Export data…")).setCta()
         .onClick(() => new ExportModal(this.app, this.plugin).open()));
 
     // ── Reset ──────────────────────────────────────────────────────────────
-    new Setting(containerEl).setName("Reset").setHeading();
-    new Setting(containerEl).setName("Confirm before deleting")
-      .setDesc("Ask for confirmation before destructive actions — removing an event or lesson, or deleting a subject, class, activity or block type. Applies across all planners.")
+    new Setting(containerEl).setName(translateUi("Reset")).setHeading();
+    new Setting(containerEl).setName(translateUi("Confirm before deleting"))
+      .setDesc(translateUi("Ask for confirmation before destructive actions — removing an event or lesson, or deleting a subject, class, activity or block type. Applies across all planners."))
       .addToggle(t => t.setValue(this.plugin.settings.confirmBeforeDelete !== false)
         .onChange(v => { this.plugin.settings.confirmBeforeDelete = v; this.plugin.requestSave(); }));
     new Setting(containerEl)
-      .setName("Tidy up leftover records")
-      .setDesc("Plan links, prepared marks, per-lesson notes and rooms, and one-off lesson removals are attached to a lesson. Older versions left them behind when a lesson was deleted from the timetable. This counts what is left over before removing anything.")
-      .addButton(btn => btn.setButtonText("Check").onClick(() => {
+      .setName(translateUi("Tidy up leftover records"))
+      .setDesc(translateUi("Plan links, prepared marks, per-lesson notes and rooms, and one-off lesson removals are attached to a lesson. Older versions left them behind when a lesson was deleted from the timetable. This counts what is left over before removing anything."))
+      .addButton(btn => btn.setButtonText(translateUi("Check")).onClick(() => {
         const report = findOrphans(this.plugin.settings);
-        if (report.total === 0) { new Notice("Nothing left over — your planner is tidy."); return; }
+        if (report.total === 0) { new Notice(translateUi("Nothing left over — your planner is tidy.")); return; }
         const lines = describeOrphans(report).join(", ");
         new ConfirmModal(
           this.app,
@@ -1007,17 +1008,17 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
             new Notice(`Removed ${removed.total} leftover record${removed.total === 1 ? "" : "s"}.`);
           },
-          "Remove",
+          translateUi("Remove"),
         ).open();
       }));
-    new Setting(containerEl).setName("Reset periods to defaults")
-      .addButton(btn => btn.setButtonText("Reset periods").setClass("mod-warning")
+    new Setting(containerEl).setName(translateUi("Reset periods to defaults"))
+      .addButton(btn => btn.setButtonText(translateUi("Reset periods")).setClass("mod-warning")
         .onClick(async () => {
           this.getSelectedSchedule().periods = DEFAULT_SETTINGS.academicYear.periods.map(p => ({ ...p }));
           await this.plugin.saveSettings();
           periodsContainer.empty();
           this.renderPeriodsList(periodsContainer);
-          new Notice("Periods reset to defaults.");
+          new Notice(translateUi("Periods reset to defaults."));
         }));
     this.wrapSectionsCollapsible(containerEl);
 
@@ -1028,15 +1029,15 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const support = containerEl.createDiv("tp-support-section");
     new Setting(support)
       .setName(`What's new in Teacher Planner ${this.plugin.manifest.version}`)
-      .setDesc("See recent updates and improvements.")
-      .addButton(b => b.setButtonText("View recent updates")
+      .setDesc(translateUi("See recent updates and improvements."))
+      .addButton(b => b.setButtonText(translateUi("View recent updates"))
         .onClick(() => window.open(`${TP_REPO_URL}/releases`, "_blank")));
     new Setting(support)
-      .setName("Support development")
-      .setDesc("If you find Teacher Planner useful, please consider supporting its continued development.")
-      .addButton(b => b.setButtonText("⭐ Star on GitHub")
+      .setName(translateUi("Support development"))
+      .setDesc(translateUi("If you find Teacher Planner useful, please consider supporting its continued development."))
+      .addButton(b => b.setButtonText(translateUi("⭐ Star on GitHub"))
         .onClick(() => window.open(TP_REPO_URL, "_blank")))
-      .addButton(b => b.setButtonText("☕ Buy me a coffee").setCta()
+      .addButton(b => b.setButtonText(translateUi("☕ Buy me a coffee")).setCta()
         .onClick(() => window.open(TP_FUNDING_URL, "_blank")));
   }
 
@@ -1051,12 +1052,12 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const subj = cls ? s.subjects?.find(x => x.id === cls.subjectId) : s.subjects?.[0];
     return {
       classCode: cls?.code ?? "10B",
-      subjectName: subj?.name ?? "Science",
+      subjectName: subj?.name ?? translateUi("Science"),
       emoji: subj?.emoji ?? "🔬",
       year: cls?.year ?? "10",
       academicYear: s.academicYear?.name,
       lessonDate: localIso(new Date()),
-      period: "Period 2",
+      period: translateUi("Period 2"),
       room: cls?.classroom ?? "B310",
     };
   }
@@ -1064,7 +1065,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   /** A labelled live preview block bound to a template textarea. */
   private buildTemplatePreview(host: HTMLElement, getText: () => string, ctx?: TemplateContext): () => void {
     const box = host.createDiv("tp-template-preview");
-    box.createDiv({ cls: "tp-template-preview-label", text: "Preview" });
+    box.createDiv({ cls: "tp-template-preview-label", text: translateUi("Preview") });
     const pre = box.createEl("pre", { cls: "tp-template-preview-body" });
     const refresh = () => {
       const { body } = renderTemplateBody(getText(), ctx ?? this.sampleTemplateContext());
@@ -1077,9 +1078,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   /** Guide button (top of the tab) + the plan/note template editors. */
   private renderTemplatesGuideButton(container: HTMLElement) {
     const setting = new Setting(container)
-      .setName("Lesson plan & note templates")
-      .setDesc("New in 0.3.5 — customise the templates used for lesson plans and notes.")
-      .addButton(b => b.setButtonText("Open templates guide").setCta()
+      .setName(translateUi("Lesson plan & note templates"))
+      .setDesc(translateUi("New in 0.3.5 — customise the templates used for lesson plans and notes."))
+      .addButton(b => b.setButtonText(translateUi("Open templates guide")).setCta()
         .onClick(() => { void this.openTemplatesGuide(); }));
     setting.settingEl.addClass("tp-guide-cta");
   }
@@ -1094,7 +1095,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         try { await this.app.vault.createFolder(folder); } catch { /* race/exists */ }
       }
       try { existing = await this.app.vault.create(path, buildTemplatesGuide()); }
-      catch (e) { console.error("Teacher Planner: could not create templates guide.", e); new Notice("Could not create the guide note — see console."); return; }
+      catch (e) { console.error("Teacher Planner: could not create templates guide.", e); new Notice(translateUi("Could not create the guide note — see console.")); return; }
     }
     (this.app as unknown as { setting?: { close(): void } }).setting?.close();
     void this.app.workspace.openLinkText(path, "", false);
@@ -1110,7 +1111,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       : DEFAULT_PLAN_TEMPLATE_ID;
 
     new Setting(area)
-      .setName("Default plan template")
+      .setName(translateUi("Default plan template"))
       .setDesc('Used by "＋ Create new plan…". Editing the text below customises it.')
       .addDropdown(d => {
         for (const t of templates) d.addOption(t.id, t.builtin ? t.name : `${t.name} (yours)`);
@@ -1145,8 +1146,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     });
 
     new Setting(area)
-      .addButton(b => b.setButtonText("Save as template…").setCta().onClick(() => {
-        new TextPromptModal(this.app, "Save plan template", "", "Template name", (name) => { void (async () => {
+      .addButton(b => b.setButtonText(translateUi("Save as template…")).setCta().onClick(() => {
+        new TextPromptModal(this.app, "Save plan template", "", translateUi("Template name"), (name) => { void (async () => {
           const path = await saveUserTemplate(this.app, s, name, ta.value);
           s.defaultPlanTemplateId = path;
           s.lessonPlanTemplate = undefined;
@@ -1155,8 +1156,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           void this.buildPlanTemplatesUI(area);
         })(); }).open();
       }))
-      .addButton(b => b.setButtonText("Reset to built-in")
-        .setTooltip("Discard in-place edits and show the selected template's original text")
+      .addButton(b => b.setButtonText(translateUi("Reset to built-in"))
+        .setTooltip(translateUi("Discard in-place edits and show the selected template's original text"))
         .onClick(async () => {
           s.lessonPlanTemplate = undefined;
           await this.plugin.saveSettings();
@@ -1164,8 +1165,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         }));
 
     // Manage list
-    new Setting(area).setName("Manage templates")
-      .setDesc("Edit or remove any template. Your templates are markdown files; built-ins hide with a restore option.");
+    new Setting(area).setName(translateUi("Manage templates"))
+      .setDesc(translateUi("Edit or remove any template. Your templates are markdown files; built-ins hide with a restore option."));
     const list = area.createDiv("tp-manage-list");
     for (const t of templates) this.renderManageTemplateRow(list, t, defId, area);
     for (const t of hiddenBuiltins(s)) this.renderHiddenTemplateRow(list, t, area);
@@ -1198,14 +1199,14 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }
     })(); });
 
-    const delBtn = actions.createEl("button", { cls: "tp-icon-btn tp-icon-btn--danger", attr: { "aria-label": "Remove template" } });
+    const delBtn = actions.createEl("button", { cls: "tp-icon-btn tp-icon-btn--danger", attr: { "aria-label": translateUi("Remove template") } });
     setIcon(delBtn, "trash-2");
     delBtn.addEventListener("click", () => {
       if (t.builtin) {
         void (async () => {
           // Never allow hiding the last visible template.
           const templates = await listPlanTemplates(this.app, s);
-          if (templates.length <= 1) { new Notice("At least one template must stay visible."); return; }
+          if (templates.length <= 1) { new Notice(translateUi("At least one template must stay visible.")); return; }
           confirmDelete(this.plugin, `Hide the built-in template "${t.name}"? You can restore it any time.`, async () => {
             s.hiddenBuiltinTemplateIds = [...(s.hiddenBuiltinTemplateIds ?? []), t.id];
             if ((s.defaultPlanTemplateId ?? DEFAULT_PLAN_TEMPLATE_ID) === t.id) {
@@ -1237,8 +1238,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const row = list.createDiv("tp-manage-row tp-manage-row--hidden");
     const info = row.createDiv("tp-manage-info");
     info.createSpan({ cls: "tp-manage-name", text: t.name });
-    info.createSpan({ cls: "tp-manage-meta", text: "Built-in · hidden" });
-    const restore = row.createDiv("tp-manage-actions").createEl("button", { cls: "tp-btn", text: "Restore" });
+    info.createSpan({ cls: "tp-manage-meta", text: translateUi("Built-in · hidden") });
+    const restore = row.createDiv("tp-manage-actions").createEl("button", { cls: "tp-btn", text: translateUi("Restore") });
     restore.addEventListener("click", () => { void (async () => {
       s.hiddenBuiltinTemplateIds = (s.hiddenBuiltinTemplateIds ?? []).filter(id => id !== t.id);
       await this.plugin.saveSettings();
@@ -1256,8 +1257,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       : DEFAULT_NOTE_TEMPLATE_ID;
 
     new Setting(area)
-      .setName("Default note template")
-      .setDesc('Preselected in the "New lesson note" dialog. Default: Blank.')
+      .setName(translateUi("Default note template"))
+      .setDesc(translateUi('Preselected in the "New lesson note" dialog. Default: Blank.'))
       .addDropdown(d => {
         for (const t of templates) d.addOption(t.id, t.builtin ? t.name : `${t.name} (yours)`);
         d.setValue(defId);
@@ -1269,8 +1270,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       });
 
     // Standard template editor — backed by the existing lessonNoteTemplate setting
-    new Setting(area).setName("Standard template")
-      .setDesc("The editable house note template. Changes apply to new notes created from Standard.");
+    new Setting(area).setName(translateUi("Standard template"))
+      .setDesc(translateUi("The editable house note template. Changes apply to new notes created from Standard."));
     const editorWrap = area.createDiv("tp-template-editor-wrap");
     const ta = editorWrap.createEl("textarea", { cls: "tp-template-editor" });
     ta.value = s.lessonNoteTemplate ?? DEFAULT_LESSON_TEMPLATE;
@@ -1284,8 +1285,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     });
 
     new Setting(area)
-      .addButton(b => b.setButtonText("Save as template…").setCta().onClick(() => {
-        new TextPromptModal(this.app, "Save note template", "", "Template name", (name) => { void (async () => {
+      .addButton(b => b.setButtonText(translateUi("Save as template…")).setCta().onClick(() => {
+        new TextPromptModal(this.app, "Save note template", "", translateUi("Template name"), (name) => { void (async () => {
           const path = await saveUserNoteTemplate(this.app, s, name, ta.value);
           s.defaultNoteTemplateId = path;
           await this.plugin.saveSettings();
@@ -1293,16 +1294,16 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           void this.buildNoteTemplatesUI(area);
         })(); }).open();
       }))
-      .addButton(b => b.setButtonText("Reset Standard")
-        .setTooltip("Restore the built-in Standard note body")
+      .addButton(b => b.setButtonText(translateUi("Reset Standard"))
+        .setTooltip(translateUi("Restore the built-in Standard note body"))
         .onClick(async () => {
           s.lessonNoteTemplate = DEFAULT_LESSON_TEMPLATE;
           await this.plugin.saveSettings();
           void this.buildNoteTemplatesUI(area);
         }));
 
-    new Setting(area).setName("Manage templates")
-      .setDesc("Edit or remove any note template. Your templates are markdown files; built-ins hide with a restore option.");
+    new Setting(area).setName(translateUi("Manage templates"))
+      .setDesc(translateUi("Edit or remove any note template. Your templates are markdown files; built-ins hide with a restore option."));
     const list = area.createDiv("tp-manage-list");
     for (const t of templates) this.renderNoteManageRow(list, t, defId, area);
     for (const t of hiddenNoteBuiltins(s)) this.renderHiddenNoteRow(list, t, area);
@@ -1320,10 +1321,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const stored = s.defaultWeekNoteTemplateId ?? BLANK_WEEK_TEMPLATE_ID;
     const defId = templates.some(t => t.id === stored) ? stored : BLANK_WEEK_TEMPLATE_ID;
 
-    new Setting(area).setName("Week note templates").setHeading();
+    new Setting(area).setName(translateUi("Week note templates")).setHeading();
     new Setting(area)
-      .setName("Default week note template")
-      .setDesc("Offered first by the Insert template button in the week-notes toolbar, which appears on an empty week note once you have saved a template. Nothing but Blank ships — write your own layout below.")
+      .setName(translateUi("Default week note template"))
+      .setDesc(translateUi("Offered first by the Insert template button in the week-notes toolbar, which appears on an empty week note once you have saved a template. Nothing but Blank ships — write your own layout below."))
       .addDropdown(d => {
         for (const t of templates) d.addOption(t.id, t.builtin ? t.name : `${t.name} (yours)`);
         d.setValue(defId);
@@ -1334,8 +1335,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         });
       });
 
-    new Setting(area).setName("New week note template")
-      .setDesc("Tokens: {{week}} (the Monday), {{weekEnd}} (the Friday), {{date}}, {{dateUK}}, {{academicYear}}, {{cursor}}.");
+    new Setting(area).setName(translateUi("New week note template"))
+      .setDesc(translateUi("Tokens: {{week}} (the Monday), {{weekEnd}} (the Friday), {{date}}, {{dateUK}}, {{academicYear}}, {{cursor}}."));
     const editorWrap = area.createDiv("tp-template-editor-wrap");
     const ta = editorWrap.createEl("textarea", { cls: "tp-template-editor" });
     ta.rows = 7;
@@ -1348,9 +1349,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     ta.addEventListener("input", () => refreshPreview());
 
     new Setting(area)
-      .addButton(b => b.setButtonText("Save as template…").setCta().onClick(() => {
-        if (!ta.value.trim()) { new Notice("Write the template first."); return; }
-        new TextPromptModal(this.app, "Save week note template", "", "Template name", (name) => { void (async () => {
+      .addButton(b => b.setButtonText(translateUi("Save as template…")).setCta().onClick(() => {
+        if (!ta.value.trim()) { new Notice(translateUi("Write the template first.")); return; }
+        new TextPromptModal(this.app, "Save week note template", "", translateUi("Template name"), (name) => { void (async () => {
           const path = await saveUserWeekNoteTemplate(this.app, s, name, ta.value);
           s.defaultWeekNoteTemplateId = path;
           await this.plugin.saveSettings();
@@ -1360,8 +1361,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }));
 
     if (templates.some(t => !t.builtin)) {
-      new Setting(area).setName("Manage week note templates")
-        .setDesc("Your templates are ordinary markdown files — edit one to open it in the vault.");
+      new Setting(area).setName(translateUi("Manage week note templates"))
+        .setDesc(translateUi("Your templates are ordinary markdown files — edit one to open it in the vault."));
       const list = area.createDiv("tp-manage-list");
       for (const t of templates.filter(x => !x.builtin)) this.renderWeekNoteManageRow(list, t, defId, area);
     }
@@ -1383,7 +1384,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       void this.app.workspace.openLinkText(t.path, "", false);
     });
 
-    const delBtn = actions.createEl("button", { cls: "tp-icon-btn tp-icon-btn--danger", attr: { "aria-label": "Remove template" } });
+    const delBtn = actions.createEl("button", { cls: "tp-icon-btn tp-icon-btn--danger", attr: { "aria-label": translateUi("Remove template") } });
     setIcon(delBtn, "trash-2");
     delBtn.addEventListener("click", () => {
       if (!t.path) return;
@@ -1410,7 +1411,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     setIcon(editBtn, "pencil");
     editBtn.addEventListener("click", () => { void (async () => {
       if (t.id === "standard") {
-        new Notice("Edit the Standard template in the editor above.");
+        new Notice(translateUi("Edit the Standard template in the editor above."));
       } else if (t.builtin) {
         const path = await saveUserNoteTemplate(this.app, s, `${t.name} (copy)`, t.body);
         s.defaultNoteTemplateId = path;
@@ -1424,13 +1425,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       }
     })(); });
 
-    const delBtn = actions.createEl("button", { cls: "tp-icon-btn tp-icon-btn--danger", attr: { "aria-label": "Remove template" } });
+    const delBtn = actions.createEl("button", { cls: "tp-icon-btn tp-icon-btn--danger", attr: { "aria-label": translateUi("Remove template") } });
     setIcon(delBtn, "trash-2");
     delBtn.addEventListener("click", () => {
       if (t.builtin) {
         void (async () => {
           const all = await listNoteTemplates(this.app, s);
-          if (all.length <= 1) { new Notice("At least one template must stay visible."); return; }
+          if (all.length <= 1) { new Notice(translateUi("At least one template must stay visible.")); return; }
           confirmDelete(this.plugin, `Hide the built-in template "${t.name}"? You can restore it any time.`, async () => {
             s.hiddenNoteTemplateIds = [...(s.hiddenNoteTemplateIds ?? []), t.id];
             if ((s.defaultNoteTemplateId ?? DEFAULT_NOTE_TEMPLATE_ID) === t.id) {
@@ -1458,8 +1459,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const row = list.createDiv("tp-manage-row tp-manage-row--hidden");
     const info = row.createDiv("tp-manage-info");
     info.createSpan({ cls: "tp-manage-name", text: t.name });
-    info.createSpan({ cls: "tp-manage-meta", text: "Built-in · hidden" });
-    const restore = row.createDiv("tp-manage-actions").createEl("button", { cls: "tp-btn", text: "Restore" });
+    info.createSpan({ cls: "tp-manage-meta", text: translateUi("Built-in · hidden") });
+    const restore = row.createDiv("tp-manage-actions").createEl("button", { cls: "tp-btn", text: translateUi("Restore") });
     restore.addEventListener("click", () => { void (async () => {
       s.hiddenNoteTemplateIds = (s.hiddenNoteTemplateIds ?? []).filter(id => id !== t.id);
       await this.plugin.saveSettings();
@@ -1468,9 +1469,9 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   }
 
   private renderPlannersSection(container: HTMLElement) {
-    new Setting(container).setName("Planners").setHeading();
+    new Setting(container).setName(translateUi("Planners")).setHeading();
     container.createEl("p", {
-      text: "Each planner has its own timetable, classes and academic year. Switch between planners here or create a new one.",
+      text: translateUi("Each planner has its own timetable, classes and academic year. Switch between planners here or create a new one."),
       cls: "setting-item-description",
     });
 
@@ -1490,7 +1491,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       const info = card.createDiv("tp-planner-card-info");
       const nameRow = info.createDiv("tp-planner-card-name-row");
       nameRow.createSpan({ text: p.name, cls: "tp-planner-card-name" });
-      if (isActive) nameRow.createSpan({ text: "Active", cls: "tp-planner-badge" });
+      if (isActive) nameRow.createSpan({ text: translateUi("Active"), cls: "tp-planner-badge" });
       info.createSpan({
         text: Platform.isMobile
           ? this.mFmtDate(p.academicYear.startDate) + " → " + this.mFmtDate(p.academicYear.endDate)
@@ -1502,7 +1503,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
       const doExport = () => { void (async () => {
         try { const path = await backupPlanner(this.plugin, p); new Notice(`Backed up to ${path}`); }
-        catch (e) { console.error("Teacher Planner: export failed.", e); new Notice("Backup failed — see console."); }
+        catch (e) { console.error("Teacher Planner: export failed.", e); new Notice(translateUi("Backup failed — see console.")); }
       })(); };
       const doSwitch = () => { void (async () => {
         await this.plugin.switchPlanner(p.id);
@@ -1518,11 +1519,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         // 0.3.5: stacked card — name gets the full width, actions on their own
         // row beneath, delete tucked into an overflow menu so it can never be
         // mis-tapped next to Switch/Edit.
-        const primary = actions.createEl("button", { text: isActive ? "Edit" : "Switch", cls: "tp-btn tp-btn--primary" });
+        const primary = actions.createEl("button", { text: isActive ? translateUi("Edit") : translateUi("Switch"), cls: "tp-btn tp-btn--primary" });
         primary.addEventListener("click", isActive ? doEdit : doSwitch);
-        const exportBtn = actions.createEl("button", { text: "Export", cls: "tp-btn" });
+        const exportBtn = actions.createEl("button", { text: translateUi("Export"), cls: "tp-btn" });
         exportBtn.addEventListener("click", doExport);
-        const moreBtn = actions.createEl("button", { cls: "tp-btn tp-btn--icon", attr: { "aria-label": "More options" } });
+        const moreBtn = actions.createEl("button", { cls: "tp-btn tp-btn--icon", attr: { "aria-label": translateUi("More options") } });
         setIcon(moreBtn, "more-horizontal");
         moreBtn.addEventListener("click", (e) => {
           const menu = new Menu();
@@ -1535,20 +1536,20 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           menu.showAtMouseEvent(e);
         });
       } else {
-        const exportBtn = actions.createEl("button", { text: "Export", cls: "tp-btn" });
+        const exportBtn = actions.createEl("button", { text: translateUi("Export"), cls: "tp-btn" });
         exportBtn.addEventListener("click", doExport);
 
         if (!isActive) {
-          const switchBtn = actions.createEl("button", { text: "Switch", cls: "tp-btn tp-btn--primary" });
+          const switchBtn = actions.createEl("button", { text: translateUi("Switch"), cls: "tp-btn tp-btn--primary" });
           switchBtn.addEventListener("click", doSwitch);
-          const delBtn = actions.createEl("button", { text: "Delete", cls: "tp-btn tp-btn--danger" });
+          const delBtn = actions.createEl("button", { text: translateUi("Delete"), cls: "tp-btn tp-btn--danger" });
           delBtn.addEventListener("click", doDelete);
         } else {
-          const editBtn = actions.createEl("button", { text: "Edit", cls: "tp-btn tp-btn--primary" });
+          const editBtn = actions.createEl("button", { text: translateUi("Edit"), cls: "tp-btn tp-btn--primary" });
           editBtn.addEventListener("click", doEdit);
           // Active planner — delete disabled with tooltip
           const disabledDel = actions.createEl("button", {
-            text: "Delete",
+            text: translateUi("Delete"),
             cls: "tp-btn tp-btn--danger",
             attr: { disabled: "true", title: "Switch to another planner before deleting this one" },
           });
@@ -1559,7 +1560,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     }
 
     // "+ New planner" button — primary action, directly under the planner list
-    new Setting(container).addButton(btn => btn.setButtonText("+ New planner").setCta()
+    new Setting(container).addButton(btn => btn.setButtonText(translateUi("+ New planner")).setCta()
       .onClick(() => {
         // Close the settings window BEFORE opening the wizard. Opening first and
         // closing settings after cascades a close onto the just-opened wizard,
@@ -1572,30 +1573,30 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     // Backups: export (select + destination) / import (library or file)
     const backupSetting = new Setting(container)
-      .setName("Backups")
-      .setDesc("Saved as .json in the plugin folder (hidden, no vault clutter); the auto-backup taken before deleting a planner goes here too. Export lets you also save a copy to a vault folder or your computer.")
-      .addButton(btn => btn.setButtonText("Export…").onClick(() => new BackupExportModal(this.app, this.plugin, () => this.render()).open()))
-      .addButton(btn => btn.setButtonText("Import from library…").onClick(() => this.importBackupFromLibrary()));
+      .setName(translateUi("Backups"))
+      .setDesc(translateUi("Saved as .json in the plugin folder (hidden, no vault clutter); the auto-backup taken before deleting a planner goes here too. Export lets you also save a copy to a vault folder or your computer."))
+      .addButton(btn => btn.setButtonText(translateUi("Export…")).onClick(() => new BackupExportModal(this.app, this.plugin, () => this.render()).open()))
+      .addButton(btn => btn.setButtonText(translateUi("Import from library…")).onClick(() => this.importBackupFromLibrary()));
     if (!Platform.isMobile) {
-      backupSetting.addButton(btn => btn.setButtonText("Import from file…").onClick(() => this.importBackupFromFile()));
+      backupSetting.addButton(btn => btn.setButtonText(translateUi("Import from file…")).onClick(() => this.importBackupFromFile()));
     }
 
     // School templates: reusable shell + holiday calendar (shareable .json files)
-    new Setting(container).setName("Templates").setHeading();
+    new Setting(container).setName(translateUi("Templates")).setHeading();
     container.createEl("p", {
       text: `Reusable setups saved as .json under "${this.plugin.plannerData.rootPlannerFolder || "Teacher Planner"}/Templates". A template holds the school shell only (including the year start/end dates as a starting point), never your classes, timetable, or notes. Share one by dropping its file into the matching folder.`,
       cls: "setting-item-description",
     });
     new Setting(container)
-      .setName("School structure")
-      .setDesc("Periods, block types, A/B pattern, school days and year dates.")
-      .addButton(btn => btn.setButtonText("Save current…").onClick(() => this.saveStructureTemplate()))
-      .addButton(btn => btn.setButtonText("Apply template…").onClick(() => this.applyStructureTemplateFlow()));
+      .setName(translateUi("School structure"))
+      .setDesc(translateUi("Periods, block types, A/B pattern, school days and year dates."))
+      .addButton(btn => btn.setButtonText(translateUi("Save current…")).onClick(() => this.saveStructureTemplate()))
+      .addButton(btn => btn.setButtonText(translateUi("Apply template…")).onClick(() => this.applyStructureTemplateFlow()));
     new Setting(container)
-      .setName("Holiday calendar")
-      .setDesc("Holiday and INSET dates to drop in and nudge each year.")
-      .addButton(btn => btn.setButtonText("Save current…").onClick(() => this.saveHolidayTemplate()))
-      .addButton(btn => btn.setButtonText("Load template…").onClick(() => this.loadHolidayTemplateFlow()));
+      .setName(translateUi("Holiday calendar"))
+      .setDesc(translateUi("Holiday and INSET dates to drop in and nudge each year."))
+      .addButton(btn => btn.setButtonText(translateUi("Save current…")).onClick(() => this.saveHolidayTemplate()))
+      .addButton(btn => btn.setButtonText(translateUi("Load template…")).onClick(() => this.loadHolidayTemplateFlow()));
 
   }
 
@@ -1747,16 +1748,16 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       item: period,
       summary: el => { refs = this.maccSummary(el, { name: period.name, sub: subOf() }); },
       actions: el => {
-        this.mIconBtn(el, "trash", "Remove", () => { void (async () => {
+        this.mIconBtn(el, "trash", translateUi("Remove"), () => { void (async () => {
           this.getSelectedSchedule().periods.splice(index, 1);
           await this.plugin.saveSettings();
           container.empty(); this.renderPeriodsList(container);
         })(); }, true);
       },
       body: el => {
-        const nameInput = this.mField(el, "Name").createEl("input", { type: "text" });
+        const nameInput = this.mField(el, translateUi("Name")).createEl("input", { type: "text" });
         nameInput.value = period.name;
-        nameInput.placeholder = "Name";
+        nameInput.placeholder = translateUi("Name");
         nameInput.addEventListener("blur", () => { void (async () => {
           period.name = nameInput.value;
           refs.nameEl.setText(period.name);
@@ -1767,7 +1768,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         startInput.value = period.start;
         startInput.placeholder = "HH:MM";
         const commitStart = async () => {
-          const norm = this.cleanPeriodTime(startInput.value, "Start time");
+          const norm = this.cleanPeriodTime(startInput.value, translateUi("Start time"));
           if (norm === null) { startInput.value = period.start; return; }
           startInput.value = norm;
           if (norm === period.start) return;
@@ -1785,7 +1786,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         endInput.value = period.end;
         endInput.placeholder = "HH:MM";
         endInput.addEventListener("blur", () => { void (async () => {
-          const norm = this.cleanPeriodTime(endInput.value, "End time");
+          const norm = this.cleanPeriodTime(endInput.value, translateUi("End time"));
           if (norm === null) { endInput.value = period.end; return; }
           endInput.value = norm;
           if (norm === period.end) return;
@@ -1795,7 +1796,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         })(); });
         const typeSel = this.mField(el, "Block type").createEl("select");
         if (types.length === 0) {
-          for (const [v, l] of [["lesson", "Lesson"], ["break", "Break"], ["registration", "Registration"], ["free", "Free"]] as [string, string][]) {
+          for (const [v, l] of [["lesson", translateUi("Lesson")], ["break", translateUi("Break")], ["registration", translateUi("Registration")], ["free", translateUi("Free")]] as [string, string][]) {
             const opt = typeSel.createEl("option", { text: l, value: v });
             if (period.type === v) opt.selected = true;
           }
@@ -1863,7 +1864,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         const swatch = crow.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
         swatch.setCssStyles({ background: cls.colour });
         swatch.title = "Override class colour";
-        const resetBtn = crow.createEl("button", { cls: "tp-btn", text: "Use subject colour" });
+        const resetBtn = crow.createEl("button", { cls: "tp-btn", text: translateUi("Use subject colour") });
         resetBtn.setCssStyles({ display: cls.colourOverridden && !isArchived ? "" : "none" });
         swatch.addEventListener("click", () => {
           new ColourPickerModal(this.app, cls.colour, cls.code, async colour => {
@@ -1901,19 +1902,19 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       item: activity,
       summary: el => { refs = this.maccSummary(el, { colour: activity.colour, name: activity.label, sub: subOf() }); },
       actions: el => {
-        this.mIconBtn(el, isArchived ? "rotate-ccw" : "archive", isArchived ? "Restore" : "Archive (hides from timetable editor)", () => { void (async () => {
+        this.mIconBtn(el, isArchived ? "rotate-ccw" : "archive", isArchived ? translateUi("Restore") : "Archive (hides from timetable editor)", () => { void (async () => {
           activity.archived = !isArchived;
           await this.plugin.saveSettings();
           outerContainer.empty(); this.renderActivitiesList(outerContainer, typeFilter);
         })(); });
-        this.mIconBtn(el, "trash-2", "Delete", () => confirmDelete(this.plugin, `Delete "${activity.label}"?`, async () => {
+        this.mIconBtn(el, "trash-2", translateUi("Delete"), () => confirmDelete(this.plugin, `Delete "${activity.label}"?`, async () => {
           this.plugin.settings.activities = this.plugin.settings.activities.filter(a => a.id !== activity.id);
           await this.plugin.saveSettings();
           outerContainer.empty(); this.renderActivitiesList(outerContainer, typeFilter);
         }), true);
       },
       body: el => {
-        const nameInput = this.mField(el, "Name").createEl("input", { type: "text" });
+        const nameInput = this.mField(el, translateUi("Name")).createEl("input", { type: "text" });
         nameInput.value = activity.label;
         nameInput.placeholder = "Activity name";
         nameInput.addEventListener("change", () => { void (async () => {
@@ -1967,7 +1968,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         }), true);
       },
       body: el => {
-        const nameInput = this.mField(el, "Name").createEl("input", { type: "text" });
+        const nameInput = this.mField(el, translateUi("Name")).createEl("input", { type: "text" });
         nameInput.value = pt.label;
         nameInput.placeholder = "Type name";
         nameInput.addEventListener("change", () => { void (async () => {
@@ -1979,7 +1980,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         const swatch = crow.createEl("button", { cls: "tp-colour-swatch-btn tp-colour-swatch-btn--small" });
         swatch.setCssStyles({ background: resolveColour(pt.colour) });
         swatch.title = isThemeToken(pt.colour) ? "Following your Obsidian theme" : "Custom colour";
-        const resetBtn = crow.createEl("button", { cls: "tp-btn", text: "Reset to theme" });
+        const resetBtn = crow.createEl("button", { cls: "tp-btn", text: translateUi("Reset to theme") });
         swatch.addEventListener("click", () => {
           new ColourPickerModal(this.app, pt.colour, pt.label, async colour => {
             pt.colour = colour;
@@ -2002,11 +2003,11 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
   private renderWeekOverrideRowMobile(container: HTMLElement, override: WeekOverride) {
     const isInset = () => override.type === "inset";
-    const nameOf = () => (override.label ?? "").trim() || (isInset() ? "INSET" : "Holiday");
+    const nameOf = () => (override.label ?? "").trim() || (isInset() ? translateUi("INSET") : translateUi("Holiday"));
     let refs!: MaccSummaryRefs;
     const setBadge = () => {
       if (!refs.badgeEl) return;
-      refs.badgeEl.setText(isInset() ? "INSET" : "Holiday");
+      refs.badgeEl.setText(isInset() ? translateUi("INSET") : translateUi("Holiday"));
       refs.badgeEl.className = "tp-macc-badge " + (isInset() ? "tp-macc-badge--inset" : "tp-macc-badge--holiday");
     };
     this.renderMobileAccordion(container, {
@@ -2016,18 +2017,18 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
           name: nameOf(),
           sub: this.mFmtRange(override.startDate, override.endDate),
           badge: {
-            text: isInset() ? "INSET" : "Holiday",
+            text: isInset() ? translateUi("INSET") : translateUi("Holiday"),
             cls: isInset() ? "tp-macc-badge--inset" : "tp-macc-badge--holiday",
           },
         });
       },
       actions: el => {
-        this.mIconBtn(el, "trash", "Remove", () => { void (async () => {
+        this.mIconBtn(el, "trash", translateUi("Remove"), () => { void (async () => {
           this.plugin.settings.weekOverrides = this.plugin.settings.weekOverrides.filter(w => w !== override);
           await this.plugin.saveSettings();
           el.closest(".tp-macc")?.remove();
           if (this.plugin.settings.weekOverrides.length === 0) {
-            container.createEl("p", { text: "No holidays or INSET days marked.", cls: "setting-item-description" });
+            container.createEl("p", { text: translateUi("No holidays or INSET days marked."), cls: "setting-item-description" });
           }
         })(); }, true);
       },
@@ -2056,8 +2057,8 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         })(); });
 
         const seg = this.mField(el, "Type").createDiv("tp-mseg");
-        const holBtn = seg.createEl("button", { text: "Holiday" });
-        const insBtn = seg.createEl("button", { text: "INSET" });
+        const holBtn = seg.createEl("button", { text: translateUi("Holiday") });
+        const insBtn = seg.createEl("button", { text: translateUi("INSET") });
         const dtEnabled = () => this.plugin.settings.directedTime?.enabled ?? false;
         const syncType = () => {
           holBtn.toggleClass("tp-mseg--on", !isInset());
@@ -2075,7 +2076,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         holBtn.addEventListener("click", () => setType("holiday"));
         insBtn.addEventListener("click", () => setType("inset"));
 
-        const nameInput = this.mField(el, "Name").createEl("input", { type: "text" });
+        const nameInput = this.mField(el, translateUi("Name")).createEl("input", { type: "text" });
         nameInput.value = override.label ?? "";
         nameInput.placeholder = "e.g. Christmas";
         nameInput.addEventListener("change", () => { void (async () => {
@@ -2087,7 +2088,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
         const hoursField = this.mField(el, "Directed hours for this period");
         const hoursInput = hoursField.createEl("input", { type: "number" });
         hoursInput.placeholder = "0"; hoursInput.min = "0"; hoursInput.max = "80"; hoursInput.step = "0.5";
-        hoursInput.title = "Total directed hours for this entire INSET period";
+        hoursInput.title = translateUi("Total directed hours for this entire INSET period");
         hoursInput.value = override.insetHours != null ? String(override.insetHours) : "";
         hoursInput.addEventListener("change", () => { void (async () => {
           const n = parseFloat(hoursInput.value);
@@ -2121,7 +2122,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   private renderPeriodsList(container: HTMLElement) {
     const periods = this.getSelectedSchedule().periods;
     if (periods.length === 0) {
-      container.createEl("p", { text: "No periods defined.", cls: "setting-item-description" });
+      container.createEl("p", { text: translateUi("No periods defined."), cls: "setting-item-description" });
       return;
     }
     this.sortPeriods();
@@ -2133,7 +2134,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     new Setting(container)
       .setName(period.name).setDesc(`${period.start} - ${period.end}`)
       .addText(t => {
-        t.setPlaceholder("Name").setValue(period.name);
+        t.setPlaceholder(translateUi("Name")).setValue(period.name);
         t.inputEl.addEventListener("blur", () => { void (async () => {
           period.name = t.inputEl.value;
           await this.plugin.saveSettings();
@@ -2142,7 +2143,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addText(t => {
         t.setPlaceholder("HH:MM").setValue(period.start);
         const commitStart = async () => {
-          const norm = this.cleanPeriodTime(t.inputEl.value, "Start time");
+          const norm = this.cleanPeriodTime(t.inputEl.value, translateUi("Start time"));
           if (norm === null) { t.inputEl.value = period.start; return; }
           t.inputEl.value = norm;
           if (norm === period.start) return;
@@ -2158,7 +2159,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addText(t => {
         t.setPlaceholder("HH:MM").setValue(period.end);
         t.inputEl.addEventListener("blur", () => { void (async () => {
-          const norm = this.cleanPeriodTime(t.inputEl.value, "End time");
+          const norm = this.cleanPeriodTime(t.inputEl.value, translateUi("End time"));
           if (norm === null) { t.inputEl.value = period.end; return; }
           t.inputEl.value = norm;
           if (norm === period.end) return;
@@ -2169,13 +2170,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       .addDropdown(d => {
         const types = this.plugin.settings.periodTypes ?? [];
         if (types.length === 0) {
-          d.addOption("lesson","Lesson").addOption("break","Break").addOption("registration","Registration").addOption("free","Free");
+          d.addOption("lesson",translateUi("Lesson")).addOption("break",translateUi("Break")).addOption("registration",translateUi("Registration")).addOption("free",translateUi("Free"));
         } else {
           for (const pt of types) d.addOption(pt.id, pt.label);
         }
         d.setValue(period.type).onChange(async (v: string) => { period.type = v; await this.plugin.saveSettings(); });
       })
-      .addExtraButton(btn => btn.setIcon("trash").setTooltip("Remove").onClick(async () => {
+      .addExtraButton(btn => btn.setIcon("trash").setTooltip(translateUi("Remove")).onClick(async () => {
         this.getSelectedSchedule().periods.splice(index, 1);
         await this.plugin.saveSettings();
         container.empty(); this.renderPeriodsList(container);
@@ -2185,7 +2186,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   private renderSubjectsList(container: HTMLElement) {
     const { subjects, classes } = this.plugin.settings;
     if (subjects.length === 0) {
-      container.createEl("p", { text: "No subjects yet. Click '+ Add subject' to start.", cls: "setting-item-description" });
+      container.createEl("p", { text: translateUi("No subjects yet. Click '+ Add subject' to start."), cls: "setting-item-description" });
       return;
     }
     const sorted = [...subjects].sort((a, b) => a.name.localeCompare(b.name));
@@ -2218,7 +2219,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     nameInput.placeholder = "Subject name";
     nameInput.addEventListener("change", () => { void (async () => { subject.name = nameInput.value; await this.plugin.saveSettings(); })(); });
 
-    const addClassBtn = header.createEl("button", { text: "+ Class", cls: "tp-btn-small tp-btn-small--cta" });
+    const addClassBtn = header.createEl("button", { text: translateUi("+ Class"), cls: "tp-btn-small tp-btn-small--cta" });
     addClassBtn.addEventListener("click", () => { void (async () => {
       this.plugin.settings.classes.push({
         id: `cls-${Date.now()}`, year: "", code: "NEW 00",
@@ -2335,19 +2336,19 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
    * typeFilter "other" shows activities where activityType === "other".
    */
   private saveStructureTemplate() {
-    new TextPromptModal(this.app, "Save school structure template", "", "Template name (e.g. School main)", (name) => { void (async () => {
+    new TextPromptModal(this.app, "Save school structure template", "", translateUi("Template name (e.g. School main)"), (name) => { void (async () => {
       const n = name.trim(); if (!n) return;
       try { const path = await writeTemplateFile(this.plugin, "structure", n, buildStructureTemplate(this.plugin, n)); new Notice(`Saved structure template to ${path}`); }
-      catch (e) { console.error("Teacher Planner: save structure template failed.", e); new Notice("Could not save template — see console."); }
+      catch (e) { console.error("Teacher Planner: save structure template failed.", e); new Notice(translateUi("Could not save template — see console.")); }
     })(); }).open();
   }
 
   private saveHolidayTemplate() {
-    if (holidayCount(this.plugin) === 0) { new Notice("No holidays or INSET days to save yet."); return; }
-    new TextPromptModal(this.app, "Save holiday calendar template", "", "Template name (e.g. 2026-27 holidays)", (name) => { void (async () => {
+    if (holidayCount(this.plugin) === 0) { new Notice(translateUi("No holidays or INSET days to save yet.")); return; }
+    new TextPromptModal(this.app, "Save holiday calendar template", "", translateUi("Template name (e.g. 2026-27 holidays)"), (name) => { void (async () => {
       const n = name.trim(); if (!n) return;
       try { const path = await writeTemplateFile(this.plugin, "holidays", n, buildHolidayTemplate(this.plugin, n)); new Notice(`Saved holiday template to ${path}`); }
-      catch (e) { console.error("Teacher Planner: save holiday template failed.", e); new Notice("Could not save template — see console."); }
+      catch (e) { console.error("Teacher Planner: save holiday template failed.", e); new Notice(translateUi("Could not save template — see console.")); }
     })(); }).open();
   }
 
@@ -2359,13 +2360,13 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       let tpl: ParsedTemplate;
       try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
       catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
-      if (tpl.kind !== "structure" || !tpl.structure) { new Notice("That file is not a school structure template."); return; }
+      if (tpl.kind !== "structure" || !tpl.structure) { new Notice(translateUi("That file is not a school structure template.")); return; }
       const structure = tpl.structure;
       new ConfirmModal(this.app,
         "Apply this school structure to the current planner? It replaces your periods, block types, A/B pattern and school days. It also sets the year start/end dates from the template (nudge them afterwards). Any classes already placed on the timetable will be detached, since their slots point at the old periods. Your classes and notes are kept.",
         () => { void (async () => {
-          try { await applyStructureTemplate(this.plugin, structure); new Notice("School structure applied."); this.render(); }
-          catch (e) { console.error("Teacher Planner: apply structure failed.", e); new Notice("Could not apply template — see console."); }
+          try { await applyStructureTemplate(this.plugin, structure); new Notice(translateUi("School structure applied.")); this.render(); }
+          catch (e) { console.error("Teacher Planner: apply structure failed.", e); new Notice(translateUi("Could not apply template — see console.")); }
         })(); },
         "Apply structure").open();
     })(); }).open();
@@ -2380,7 +2381,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       let tpl: ParsedTemplate;
       try { tpl = parseTemplate(await readTemplateText(this.plugin, file.path)); }
       catch (e) { new Notice(e instanceof Error ? e.message : "Could not read template."); return; }
-      if (tpl.kind !== "holidays" || !tpl.holidays) { new Notice("That file is not a holiday calendar template."); return; }
+      if (tpl.kind !== "holidays" || !tpl.holidays) { new Notice(translateUi("That file is not a holiday calendar template.")); return; }
       const holidays = tpl.holidays;
       new TextPromptModal(this.app, "Shift dates (optional)", "0", "Days to shift (364 ≈ next year, 0 to keep as saved)", (val) => { void (async () => {
         const days = parseInt(val); const d = isNaN(days) ? 0 : days;
@@ -2396,7 +2397,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   private importBackupFromLibrary() {
     void (async () => {
       const files = await listLibraryBackups(this.plugin);
-      if (files.length === 0) { new Notice("No saved backups in the plugin library yet."); return; }
+      if (files.length === 0) { new Notice(translateUi("No saved backups in the plugin library yet.")); return; }
       new BackupPickModal(this.app, this.plugin, files, () => this.render()).open();
     })();
   }
@@ -2496,7 +2497,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     const archiveBtn = row.createEl("button", {
       cls: "tp-icon-btn",
-      title: isArchived ? "Restore" : "Archive (hides from timetable editor)",
+      title: isArchived ? translateUi("Restore") : "Archive (hides from timetable editor)",
     });
     setIcon(archiveBtn, isArchived ? "rotate-ccw" : "archive");
     archiveBtn.addEventListener("click", () => { void (async () => {
@@ -2505,7 +2506,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
       outerContainer.empty(); this.renderActivitiesList(outerContainer, typeFilter);
     })(); });
 
-    const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: "Delete" });
+    const delBtn = row.createEl("button", { cls: "tp-icon-btn", title: translateUi("Delete") });
     setIcon(delBtn, "trash-2");
     delBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete "${activity.label}"?`, async () => {
       this.plugin.settings.activities = this.plugin.settings.activities.filter(a => a.id !== activity.id);
@@ -2517,7 +2518,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   private renderPeriodTypesList(container: HTMLElement) {
     const types = this.plugin.settings.periodTypes ?? [];
     if (types.length === 0) {
-      container.createEl("p", { text: "No block types defined.", cls: "setting-item-description" });
+      container.createEl("p", { text: translateUi("No block types defined."), cls: "setting-item-description" });
       return;
     }
     for (const pt of types) this.renderPeriodTypeRow(container, pt);
@@ -2566,7 +2567,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   private renderWeekOverridesList(container: HTMLElement) {
     const { weekOverrides } = this.plugin.settings;
     if (weekOverrides.length === 0) {
-      container.createEl("p", { text: "No holidays or INSET days marked.", cls: "setting-item-description" });
+      container.createEl("p", { text: translateUi("No holidays or INSET days marked."), cls: "setting-item-description" });
       return;
     }
     const sorted = [...weekOverrides].sort((a, b) => a.startDate.localeCompare(b.startDate));
@@ -2577,7 +2578,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
   private warnIfOverridesOverlap() {
     const overlap = findOverlappingOverrides(this.plugin.settings.weekOverrides);
     if (overlap) {
-      const name = (o: WeekOverride) => o.label || (o.type === "inset" ? "INSET" : "Holiday");
+      const name = (o: WeekOverride) => o.label || (o.type === "inset" ? translateUi("INSET") : translateUi("Holiday"));
       new Notice(
         `Warning: "${name(overlap[0])}" (from ${overlap[0].startDate}) and "${name(overlap[1])}" (from ${overlap[1].startDate}) overlap. Directed time may be miscounted.`,
         6000
@@ -2595,7 +2596,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // ── From date ──────────────────────────────────────────────────────────
     const fromInput = row.controlEl.createEl("input", { type: "date", cls: "tp-override-date-input" });
     fromInput.value = override.startDate;
-    fromInput.title = "First day of the holiday/INSET period";
+    fromInput.title = translateUi("First day of the holiday/INSET period");
     fromInput.addEventListener("change", () => { void (async () => {
       override.startDate = fromInput.value;
       // Keep endDate >= startDate
@@ -2612,7 +2613,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // ── To date ────────────────────────────────────────────────────────────
     const toInput = row.controlEl.createEl("input", { type: "date", cls: "tp-override-date-input" });
     toInput.value = override.endDate ?? override.startDate;
-    toInput.title = "Last day of the holiday/INSET period (same as start = single day)";
+    toInput.title = translateUi("Last day of the holiday/INSET period (same as start = single day)");
     toInput.addEventListener("change", () => { void (async () => {
       const val = toInput.value;
       // If same as startDate, clear endDate (single-day override)
@@ -2623,7 +2624,7 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
 
     // ── Type ───────────────────────────────────────────────────────────────
     const typeSelect = row.controlEl.createEl("select", { cls: "tp-override-type-select" });
-    for (const [val, label] of [["holiday", "Holiday"], ["inset", "INSET"]] as [string, string][]) {
+    for (const [val, label] of [["holiday", translateUi("Holiday")], ["inset", translateUi("INSET")]] as [string, string][]) {
       const opt = typeSelect.createEl("option", { text: label, value: val });
       if (override.type === val) opt.selected = true;
     }
@@ -2631,20 +2632,20 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     // ── Label (always visible — used for both holidays and INSET) ──────────
     const labelInput = row.controlEl.createEl("input", { type: "text", cls: "tp-override-label-input" });
     labelInput.value = override.label ?? "";
-    labelInput.placeholder = "Label (e.g. Christmas)";
+    labelInput.placeholder = translateUi("Label (e.g. Christmas)");
     labelInput.addEventListener("change", () => { void (async () => {
       override.label = labelInput.value;
       await this.plugin.saveSettings();
     })(); });
 
     // ── Delete ─────────────────────────────────────────────────────────────
-    new ButtonComponent(row.controlEl).setIcon("trash").setTooltip("Remove").onClick(async () => {
+    new ButtonComponent(row.controlEl).setIcon("trash").setTooltip(translateUi("Remove")).onClick(async () => {
       this.plugin.settings.weekOverrides = this.plugin.settings.weekOverrides.filter(w => w !== override);
       await this.plugin.saveSettings();
       // Remove the entire wrapper (Setting row + INSET sub-row)
       wrapper.remove();
       if (this.plugin.settings.weekOverrides.length === 0) {
-        container.createEl("p", { text: "No holidays or INSET days marked.", cls: "setting-item-description" });
+        container.createEl("p", { text: translateUi("No holidays or INSET days marked."), cls: "setting-item-description" });
       }
     });
 
@@ -2653,10 +2654,10 @@ export class TeacherPlannerSettingTab extends PluginSettingTab {
     const dtEnabled = () => this.plugin.settings.directedTime?.enabled ?? false;
     insetRow.setCssStyles({ display: override.type === "inset" && dtEnabled() ? "flex" : "none" });
 
-    insetRow.createSpan({ text: "Directed hours for this period:", cls: "tp-override-inset-label" });
+    insetRow.createSpan({ text: translateUi("Directed hours for this period:"), cls: "tp-override-inset-label" });
     const hoursInput = insetRow.createEl("input", { type: "number", cls: "tp-override-hours-input" });
     hoursInput.placeholder = "0"; hoursInput.min = "0"; hoursInput.max = "80"; hoursInput.step = "0.5";
-    hoursInput.title = "Total directed hours for this entire INSET period";
+    hoursInput.title = translateUi("Total directed hours for this entire INSET period");
     hoursInput.value = override.insetHours != null ? String(override.insetHours) : "";
     insetRow.createSpan({ text: "h", cls: "tp-override-hours-label" });
     hoursInput.addEventListener("change", () => { void (async () => {
@@ -2782,17 +2783,17 @@ class SettingsAppliedModal extends Modal {
     const { contentEl, titleEl } = this;
     titleEl.setText("Settings saved");
     contentEl.createEl("p", {
-      text: "Your changes have been saved and the planner has been updated.",
+      text: translateUi("Your changes have been saved and the planner has been updated."),
       cls: "setting-item-description",
     });
 
     new Setting(contentEl)
       .addButton(btn => btn
-        .setButtonText("Got it")
+        .setButtonText(translateUi("Got it"))
         .setCta()
         .onClick(() => this.close()))
       .addButton(btn => btn
-        .setButtonText("Revert changes")
+        .setButtonText(translateUi("Revert changes"))
         .setClass("mod-warning")
         .onClick(async () => {
           const original = JSON.parse(this.snapshot) as Partial<TeacherPlannerSettings>;
@@ -2878,7 +2879,7 @@ class DeletePlannerModal extends Modal {
     });
 
     new Setting(contentEl)
-      .addButton(btn => btn.setButtonText("Cancel").onClick(() => this.close()))
+      .addButton(btn => btn.setButtonText(translateUi("Cancel")).onClick(() => this.close()))
       .addButton(btn => btn
         .setButtonText(this.isLast ? "Delete & restart wizard" : "Delete planner")
         .setClass("mod-warning")
@@ -2908,7 +2909,7 @@ class BackupPickModal extends FuzzySuggestModal<LibFile> {
     this.plugin = plugin;
     this.files = files;
     this.onDone = onDone;
-    this.setPlaceholder("Pick a backup to import…");
+    this.setPlaceholder(translateUi("Pick a backup to import…"));
   }
   getItems(): LibFile[] { return this.files; }
   getItemText(f: LibFile): string { return f.basename; }
@@ -2948,8 +2949,8 @@ class BackupExportModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("tp-modal-form");
-    this.setTitle("Export backup");
-    contentEl.createEl("p", { text: "Choose which planners to back up and where to save. The default plugin folder keeps it out of your vault and listed under Import.", cls: "setting-item-description" });
+    this.setTitle(translateUi("Export backup"));
+    contentEl.createEl("p", { text: translateUi("Choose which planners to back up and where to save. The default plugin folder keeps it out of your vault and listed under Import."), cls: "setting-item-description" });
     const list = contentEl.createDiv();
     for (const pl of this.plugin.plannerData.planners) {
       new Setting(list).setName(pl.name)
@@ -2958,10 +2959,10 @@ class BackupExportModal extends Modal {
     renderDestinationPicker(contentEl, this.destination, Platform.isMobile);
     const footer = contentEl.createDiv("tp-modal-footer");
     footer.setCssStyles({ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" });
-    footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
-    footer.createEl("button", { text: "Export", cls: "tp-btn tp-btn--primary" }).addEventListener("click", () => { void (async () => {
+    footer.createEl("button", { text: translateUi("Cancel"), cls: "tp-btn" }).addEventListener("click", () => this.close());
+    footer.createEl("button", { text: translateUi("Export"), cls: "tp-btn tp-btn--primary" }).addEventListener("click", () => { void (async () => {
       const chosen = this.plugin.plannerData.planners.filter(pl => this.selected.has(pl.id));
-      if (chosen.length === 0) { new Notice("Select at least one planner."); return; }
+      if (chosen.length === 0) { new Notice(translateUi("Select at least one planner.")); return; }
       try {
         const label = chosen.length === 1 ? chosen[0].name : `${chosen.length} planners`;
         const filename = `Teacher Planner backup - ${label} - ${this.stamp()}.json`;
@@ -2969,7 +2970,7 @@ class BackupExportModal extends Modal {
         new Notice(`Backed up ${chosen.length} planner${chosen.length === 1 ? "" : "s"} to ${path}`);
         this.onDone();
         this.close();
-      } catch (e) { console.error("Teacher Planner: backup export failed.", e); new Notice("Backup failed — see console."); }
+      } catch (e) { console.error("Teacher Planner: backup export failed.", e); new Notice(translateUi("Backup failed — see console.")); }
     })(); });
   }
   onClose() { this.contentEl.empty(); }

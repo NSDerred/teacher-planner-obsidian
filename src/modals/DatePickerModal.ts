@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, Modal, Platform, setIcon } from "obsidian";
 import { localIso } from "../utils/weekUtils";
 
@@ -11,7 +12,7 @@ export interface DatePickerOptions {
   onPick: (iso: string) => void;
 }
 
-const DOW = ["M", "T", "W", "T", "F", "S", "S"];
+const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => translateUi(day).charAt(0));
 
 /**
  * A single, shared month-grid date picker used across the plugin (week view on
@@ -56,7 +57,7 @@ export class DatePickerModal extends Modal {
     // Header: month nav
     const head = contentEl.createDiv("tp-datepicker-head");
     const prev = head.createEl("button", { cls: "tp-datepicker-nav" });
-    prev.setAttribute("aria-label", "Previous month");
+    prev.setAttribute("aria-label", translateUi("Previous month"));
     setIcon(prev, "arrow-left");
     prev.addEventListener("click", () => this.shift(-1));
 
@@ -66,7 +67,7 @@ export class DatePickerModal extends Modal {
     });
 
     const next = head.createEl("button", { cls: "tp-datepicker-nav" });
-    next.setAttribute("aria-label", "Next month");
+    next.setAttribute("aria-label", translateUi("Next month"));
     setIcon(next, "arrow-right");
     next.addEventListener("click", () => this.shift(1));
 
@@ -97,7 +98,7 @@ export class DatePickerModal extends Modal {
       const sd = new Date(this.selected + "T12:00:00");
       label.setText("Selected: " + sd.toLocaleDateString(undefined, { day: "numeric", month: "short" }));
     }
-    const today = foot.createEl("button", { cls: "tp-btn tp-datepicker-today", text: "Today" });
+    const today = foot.createEl("button", { cls: "tp-btn tp-datepicker-today", text: translateUi("Today") });
     today.addEventListener("click", () => {
       const t = localIso(new Date());
       const clamped = this.opts.min && t < this.opts.min ? this.opts.min

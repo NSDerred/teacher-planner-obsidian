@@ -1,4 +1,6 @@
 <script lang="ts">
+import { t as translateUi } from "../i18n";
+
   import type TeacherPlannerPlugin from "../main";
   import type { TimetableEditorModal } from "./TimetableEditorModal";
   import type { TimetableSlot, SchoolPeriod, TimetableTemplate, SchoolDay } from "../types";
@@ -20,13 +22,13 @@
   const isMobile = Platform.isMobile;
 
   const ALL_DAYS: { key: SchoolDay; label: string }[] = [
-    { key: "monday",    label: "Mon" },
-    { key: "tuesday",   label: "Tue" },
-    { key: "wednesday", label: "Wed" },
-    { key: "thursday",  label: "Thu" },
-    { key: "friday",    label: "Fri" },
-    { key: "saturday",  label: "Sat" },
-    { key: "sunday",    label: "Sun" },
+    { key: "monday",    label: translateUi("Mon") },
+    { key: "tuesday",   label: translateUi("Tue") },
+    { key: "wednesday", label: translateUi("Wed") },
+    { key: "thursday",  label: translateUi("Thu") },
+    { key: "friday",    label: translateUi("Fri") },
+    { key: "saturday",  label: translateUi("Sat") },
+    { key: "sunday",    label: translateUi("Sun") },
   ];
   $: DAYS = _dep(_tick, ALL_DAYS.filter(d =>
     (plugin.settings.schoolDays ?? ["monday","tuesday","wednesday","thursday","friday"]).includes(d.key)
@@ -516,7 +518,7 @@
       activeTemplateId = remaining[remaining.length - 1]?.id ?? "";
       const tmpl = remaining.find(t => t.id === activeTemplateId);
       slots = JSON.parse(JSON.stringify(tmpl?.slots ?? []));
-    }, "Delete").open();
+    }, translateUi("Delete")).open();
   }
 
   // ── Picker positioning ─────────────────────────────────────────────────────
@@ -577,16 +579,16 @@
   function renameActiveTemplate() {
     const tmpl = activeTemplate;
     if (!tmpl) return;
-    new TextPromptModal(plugin.app, "Rename template", tmpl.name, "Template name", async (name: string) => {
+    new TextPromptModal(plugin.app, translateUi("Rename template"), tmpl.name, "Template name", async (name: string) => {
       const v = name.trim(); if (!v) return;
       tmpl.name = v; await plugin.saveSettings(); invalidate();
     }).open();
   }
   function openMobileTemplateMenu(e: MouseEvent) {
     const menu = new Menu();
-    menu.addItem(i => i.setTitle("New template").setIcon("plus").onClick(() => openAddTemplate()));
-    if (activeTemplate) menu.addItem(i => i.setTitle("Rename template").setIcon("pencil").onClick(() => renameActiveTemplate()));
-    if (allTemplates.length > 1) menu.addItem(i => i.setTitle("Delete template").setIcon("trash-2").onClick(() => deleteTemplate()));
+    menu.addItem(i => i.setTitle(translateUi("New template")).setIcon("plus").onClick(() => openAddTemplate()));
+    if (activeTemplate) menu.addItem(i => i.setTitle(translateUi("Rename template")).setIcon("pencil").onClick(() => renameActiveTemplate()));
+    if (allTemplates.length > 1) menu.addItem(i => i.setTitle(translateUi("Delete template")).setIcon("trash-2").onClick(() => deleteTemplate()));
     menu.showAtMouseEvent(e);
   }
   $: _axisStart = periods.length ? Math.min(...periods.map(p => timeMins(p.start))) : 8 * 60;
@@ -616,7 +618,7 @@
           <option value={tmpl.id} selected={tmpl.id === activeTemplateId}>{tmpl.name}</option>
         {/each}
       </select>
-      <button class="tp-te-mtmpl-menu" aria-label="Template options" on:click={openMobileTemplateMenu} use:icon={"more-vertical"}></button>
+      <button class="tp-te-mtmpl-menu" aria-label={translateUi("Template options")} on:click={openMobileTemplateMenu} use:icon={"more-vertical"}></button>
     </div>
   {/if}
   {#if !isMobile}
@@ -653,7 +655,7 @@
     <div class="tp-te-tmpl-actions">
       <button class="tp-te-tmpl-add-btn" on:click={openAddTemplate}>+ New Template</button>
       {#if allTemplates.length > 1}
-        <button class="tp-te-tmpl-del-btn" title="Delete this template" on:click={deleteTemplate} use:icon={"trash-2"}></button>
+        <button class="tp-te-tmpl-del-btn" title={translateUi("Delete this template")} on:click={deleteTemplate} use:icon={"trash-2"}></button>
       {/if}
     </div>
   </div>
@@ -671,7 +673,7 @@
         <span>⚠️ This template ended {fmtDate(activeTemplate.endDate)}. Saving will change historical records. Continue?</span>
         <div class="tp-te-edit-warn-actions">
           <button class="tp-te-past-confirm-btn" on:click={confirmPastSave}>Yes, save anyway</button>
-          <button class="tp-te-past-cancel-btn" on:click={() => showPastConfirm = false}>Cancel</button>
+          <button class="tp-te-past-cancel-btn" on:click={() => showPastConfirm = false}>{translateUi("Cancel")}</button>
         </div>
       </div>
     {:else}
@@ -686,7 +688,7 @@
           </div>
         </div>
         <div class="tp-te-edit-warn-actions">
-          <button class="tp-te-past-cancel-btn" title="Dismiss warning" on:click={() => warnCollapsed = true}>Dismiss</button>
+          <button class="tp-te-past-cancel-btn" title={translateUi("Dismiss warning")} on:click={() => warnCollapsed = true}>{translateUi("Dismiss")}</button>
         </div>
       </div>
     {/if}
@@ -699,12 +701,12 @@
         class="tp-te-week-tab"
         class:tp-te-week-tab--active={activeWeek === "A"}
         on:click={() => { activeWeek = "A"; closePicker(); }}
-      >Week A</button>
+      >{translateUi("Week A")}</button>
       <button
         class="tp-te-week-tab tp-te-week-tab--b"
         class:tp-te-week-tab--active={activeWeek === "B"}
         on:click={() => { activeWeek = "B"; closePicker(); }}
-      >Week B</button>
+      >{translateUi("Week B")}</button>
     </div>
   {/if}
 
@@ -712,10 +714,10 @@
   {#if !isMobile}
     <div class="tp-te-zoom">
       <span class="tp-te-zoom-label">Zoom</span>
-      <button class="tp-te-zoom-btn" title="Zoom out" aria-label="Zoom out" on:click={() => nudgeZoom(-12)} use:icon={"minus"}></button>
+      <button class="tp-te-zoom-btn" title={translateUi("Zoom out")} aria-label={translateUi("Zoom out")} on:click={() => nudgeZoom(-12)} use:icon={"minus"}></button>
       <input class="tp-te-zoom-slider" type="range" min="60" max="240" step="6"
-        value={_teScale} on:input={(e) => setZoom(+e.currentTarget.value)} aria-label="Timetable editor zoom" />
-      <button class="tp-te-zoom-btn" title="Zoom in" aria-label="Zoom in" on:click={() => nudgeZoom(12)} use:icon={"plus"}></button>
+        value={_teScale} on:input={(e) => setZoom(+e.currentTarget.value)} aria-label={translateUi("Timetable editor zoom")} />
+      <button class="tp-te-zoom-btn" title={translateUi("Zoom in")} aria-label={translateUi("Zoom in")} on:click={() => nudgeZoom(12)} use:icon={"plus"}></button>
     </div>
   {/if}
 
@@ -808,7 +810,7 @@
                     {/if}
                   </div>
                   {#if isCustomised(slot, period)}
-                    <span class="tp-te-cust" title="Custom start / length — click to edit">{slotStartOf(slot, period)} · {getSlotDuration(slot)}m</span>
+                    <span class="tp-te-cust" title={translateUi("Custom start / length — click to edit")}>{slotStartOf(slot, period)} · {getSlotDuration(slot)}m</span>
                   {/if}
                 {:else}
                   <div class="tp-te-blk-label">
@@ -851,7 +853,7 @@
             <div class="tp-te-detail">
               <div class="tp-te-detail-grid">
                 <label class="tp-te-detail-field">
-                  <span class="tp-te-detail-label">Start</span>
+                  <span class="tp-te-detail-label">{translateUi("Start")}</span>
                   <input type="time" value={slotStartOf(_ps, _pp)}
                     on:click|stopPropagation
                     on:change={(e) => commitSlotStart(_ps, _pp, e.currentTarget.value)} />
@@ -864,7 +866,7 @@
                 </label>
               </div>
               <label class="tp-te-detail-field">
-                <span class="tp-te-detail-label">Room</span>
+                <span class="tp-te-detail-label">{translateUi("Room")}</span>
                 <input type="text" placeholder={defaultRoomOf(_ps)} value={_ps.classroom ?? ""}
                   on:click|stopPropagation
                   on:change={(e) => commitSlotRoom(_ps, e.currentTarget.value)} />
@@ -874,7 +876,7 @@
             <div class="tp-te-detail">
               <div class="tp-te-detail-grid">
                 <label class="tp-te-detail-field">
-                  <span class="tp-te-detail-label">Start</span>
+                  <span class="tp-te-detail-label">{translateUi("Start")}</span>
                   <input type="time" value={draftStart || _pp.start}
                     on:click|stopPropagation
                     on:change={(e) => draftStart = e.currentTarget.value} />
@@ -887,8 +889,8 @@
                 </label>
               </div>
               <label class="tp-te-detail-field">
-                <span class="tp-te-detail-label">Room</span>
-                <input type="text" placeholder="Room" value={draftRoom}
+                <span class="tp-te-detail-label">{translateUi("Room")}</span>
+                <input type="text" placeholder={translateUi("Room")} value={draftRoom}
                   on:click|stopPropagation
                   on:change={(e) => draftRoom = e.currentTarget.value} />
               </label>
@@ -901,7 +903,7 @@
           <button
             class="tp-te-picker-clear"
             on:click={() => { if (pickerDay && pickerPeriodId) clearSlot(pickerDay, pickerPeriodId, currentWeek); closePicker(); }}
-          ><span use:icon={"x"}></span> Remove</button>
+          ><span use:icon={"x"}></span> {translateUi("Remove")}</button>
           <div class="tp-te-picker-divider"></div>
         {/if}
 
@@ -924,7 +926,7 @@
                     {#if secondary}<span class="tp-te-picker-room">{secondary}</span>{/if}
                   </span>
                 </button>
-                <button class="tp-te-archive-btn" title="Archive class" on:click|stopPropagation={() => toggleArchiveClass(cls.id)} use:icon={"archive"}></button>
+                <button class="tp-te-archive-btn" title={translateUi("Archive class")} on:click|stopPropagation={() => toggleArchiveClass(cls.id)} use:icon={"archive"}></button>
               </div>
             {/each}
           {/each}
@@ -932,7 +934,7 @@
 
         {#if pickerFilteredDirected.length}
           <div class="tp-te-picker-divider"></div>
-          <div class="tp-te-picker-group-label">Directed time</div>
+          <div class="tp-te-picker-group-label">{translateUi("Directed time")}</div>
           {#each pickerFilteredDirected as act}
             <div class="tp-te-picker-row">
               <button
@@ -946,7 +948,7 @@
                   {#if act.classroom}<span class="tp-te-picker-room">{act.classroom}</span>{/if}
                 </span>
               </button>
-              <button class="tp-te-archive-btn" title="Archive activity" on:click|stopPropagation={() => toggleArchiveActivity(act.id)} use:icon={"archive"}></button>
+              <button class="tp-te-archive-btn" title={translateUi("Archive activity")} on:click|stopPropagation={() => toggleArchiveActivity(act.id)} use:icon={"archive"}></button>
             </div>
           {/each}
         {/if}
@@ -967,7 +969,7 @@
                   {#if act.classroom}<span class="tp-te-picker-room">{act.classroom}</span>{/if}
                 </span>
               </button>
-              <button class="tp-te-archive-btn" title="Archive activity" on:click|stopPropagation={() => toggleArchiveActivity(act.id)} use:icon={"archive"}></button>
+              <button class="tp-te-archive-btn" title={translateUi("Archive activity")} on:click|stopPropagation={() => toggleArchiveActivity(act.id)} use:icon={"archive"}></button>
             </div>
           {/each}
         {/if}
@@ -987,7 +989,7 @@
                     <span class="tp-te-picker-code">{cls.code}</span>
                   </span>
                 </span>
-                <button class="tp-te-archive-btn" title="Restore" on:click={() => toggleArchiveClass(cls.id)} use:icon={"rotate-ccw"}></button>
+                <button class="tp-te-archive-btn" title={translateUi("Restore")} on:click={() => toggleArchiveClass(cls.id)} use:icon={"rotate-ccw"}></button>
               </div>
             {/each}
             {#each activities.filter(a => a.archived) as act}
@@ -998,7 +1000,7 @@
                     <span class="tp-te-picker-code">{act.label}</span>
                   </span>
                 </span>
-                <button class="tp-te-archive-btn" title="Restore" on:click={() => toggleArchiveActivity(act.id)} use:icon={"rotate-ccw"}></button>
+                <button class="tp-te-archive-btn" title={translateUi("Restore")} on:click={() => toggleArchiveActivity(act.id)} use:icon={"rotate-ccw"}></button>
               </div>
             {/each}
           {/if}
@@ -1013,7 +1015,7 @@
       <div class="tp-te-unsaved-dialog">
         <p class="tp-te-unsaved-msg">You have unsaved changes. What would you like to do?</p>
         <div class="tp-te-unsaved-actions">
-          <button class="tp-te-btn tp-te-btn-primary" on:click={confirmUnsaved_save}>Save</button>
+          <button class="tp-te-btn tp-te-btn-primary" on:click={confirmUnsaved_save}>{translateUi("Save")}</button>
           <button class="tp-te-btn tp-te-btn-danger" on:click={confirmUnsaved_discard}>Discard</button>
           <button class="tp-te-btn" on:click={confirmUnsaved_cancel}>Keep editing</button>
         </div>
@@ -1023,7 +1025,7 @@
 
   <!-- ── Footer ────────────────────────────────────────────────────────────── -->
   <div class="tp-te-footer">
-    <button class="tp-te-btn" on:click={onCancel}>Cancel</button>
+    <button class="tp-te-btn" on:click={onCancel}>{translateUi("Cancel")}</button>
     <button class="tp-te-btn tp-te-btn-primary" on:click={() => void save()}>Save Timetable</button>
   </div>
 </div>

@@ -1,4 +1,6 @@
 <script lang="ts">
+import { t as translateUi } from "../i18n";
+
   import { onMount } from "svelte";
   import { CLASS_COLOUR_PALETTE } from "../settings";
   import { THEME_COLOUR_TOKENS, isThemeToken, resolveColour, hexToRgba } from "../utils/themeColours";
@@ -191,7 +193,7 @@
     bind:this={squareEl}
     on:mousedown={onSquareMouseDown}
     role="slider"
-    aria-label="Colour picker"
+    aria-label={translateUi("Colour picker")}
     aria-valuemin="0"
     aria-valuemax="100"
     aria-valuenow={Math.round(value * 100)}
@@ -216,7 +218,7 @@
     bind:this={hueEl}
     on:mousedown={onHueMouseDown}
     role="slider"
-    aria-label="Hue"
+    aria-label={translateUi("Hue")}
     aria-valuemin="0"
     aria-valuemax="360"
     aria-valuenow={Math.round(hue)}
@@ -239,7 +241,7 @@
         value={hexInput}
         on:input={onHexInput}
         spellcheck="false"
-        aria-label="Hex colour value"
+        aria-label={translateUi("Hex colour value")}
       />
     </div>
     <div
@@ -260,7 +262,7 @@
             class:cp-swatch--active={selectedToken === t.token}
             on:click={() => pickThemeToken(t.token)}
             title={t.label}
-            aria-label="Pick theme colour {t.label}"
+            aria-label={translateUi`Pick theme colour ${t.label}`}
           ></button>
         {/each}
       </div>
@@ -275,14 +277,14 @@
         style="background: {colour};"
         class:cp-swatch--active={currentHex.toLowerCase() === colour.toLowerCase()}
         on:click={() => pickPalette(colour)}
-        aria-label="Pick colour {colour}"
+        aria-label={translateUi`Pick colour ${colour}`}
       ></button>
     {/each}
   </div>
 
   <!-- Footer -->
   <div class="cp-footer">
-    <button class="tp-btn" on:click={onCancel}>Cancel</button>
+    <button class="tp-btn" on:click={onCancel}>{translateUi("Cancel")}</button>
     <button class="tp-btn tp-btn--primary" on:click={save}>Save colour</button>
   </div>
 </div>

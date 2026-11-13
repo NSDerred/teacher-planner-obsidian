@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, FuzzySuggestModal, MarkdownView, Notice, TFile } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import { defaultPlansFolder } from "../utils/planLinkUtils";
@@ -53,7 +54,7 @@ export function createPlanFromBody(
     const safe = name.replace(/[\\/:*?"<>|]/g, "-");
     const path = `${folder}/${safe}.md`;
     if (app.vault.getFileByPath(path)) {
-      new Notice("A note with that name already exists — linking it instead.");
+      new Notice(translateUi("A note with that name already exists — linking it instead."));
       onPick(path);
       return;
     }
@@ -64,7 +65,7 @@ export function createPlanFromBody(
       await openPlanNote(app, path, cursorOffset);
     } catch (err) {
       console.error("Teacher Planner: failed to create lesson plan.", err);
-      new Notice("Could not create the plan note — see console.");
+      new Notice(translateUi("Could not create the plan note — see console."));
     }
   })(); }).open();
 }
@@ -78,7 +79,7 @@ class TemplateChooserModal extends FuzzySuggestModal<PlanTemplate> {
     private onChoose: (t: PlanTemplate) => void,
   ) {
     super(app);
-    this.setPlaceholder("Choose a template…");
+    this.setPlaceholder(translateUi("Choose a template…"));
   }
   getItems(): PlanTemplate[] { return this.templates; }
   getItemText(t: PlanTemplate): string {
@@ -104,7 +105,7 @@ export class LessonPlanSuggestModal extends FuzzySuggestModal<PlanChoice> {
     this.plugin = plugin;
     this.ctx = ctx;
     this.onPick = onPick;
-    this.setPlaceholder("Pick a lesson plan note, or create a new one…");
+    this.setPlaceholder(translateUi("Pick a lesson plan note, or create a new one…"));
   }
 
   getItems(): PlanChoice[] {

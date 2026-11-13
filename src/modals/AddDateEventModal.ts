@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, Modal, Notice, Platform, setIcon } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import type { DateEvent, SchoolPeriod } from "../types";
@@ -100,9 +101,9 @@ export class AddDateEventModal extends Modal {
     const isEdit = !!this.existingEvent;
     const directedTimeEnabled = this.plugin.settings.directedTime?.enabled ?? false;
 
-    contentEl.createDiv({ cls: "tp-modal-title", text: isEdit ? "Edit event" : "Add event" });
+    contentEl.createDiv({ cls: "tp-modal-title", text: isEdit ? "Edit event" : translateUi("Add event") });
     contentEl.createEl("p", {
-      text: "A one-off on your timetable — a meeting, cover, trip, duty or anything else. Name it, pick the block(s) it covers, add details.",
+      text: translateUi("A one-off on your timetable — a meeting, cover, trip, duty or anything else. Name it, pick the block(s) it covers, add details."),
       cls: "tp-modal-desc",
     });
 
@@ -166,7 +167,7 @@ export class AddDateEventModal extends Modal {
     // ── Event name (search combobox) + colour swatch ─────────────────────
     const nameRow = form.createDiv("tp-modal-row tp-modal-row--col");
     const nameHead = nameRow.createDiv("tp-modal-label-row");
-    nameHead.createEl("label", { text: "Event name", cls: "tp-modal-label" });
+    nameHead.createEl("label", { text: translateUi("Event name"), cls: "tp-modal-label" });
 
     const colourField = nameHead.createDiv("tp-colour-field");
     colourField.createSpan({ text: "colour", cls: "tp-colour-cap" });
@@ -190,7 +191,7 @@ export class AddDateEventModal extends Modal {
       cItems.push({ primary: c.code, secondary: [c.year, subj?.name].filter(Boolean).join(" · "), colour: c.colour, directed: true, classroom: c.classroom ?? "", group: "Classes" });
     }
     for (const a of [...this.plugin.settings.activities].filter(a => !a.archived).sort((a, b) => a.label.localeCompare(b.label))) {
-      cItems.push({ primary: a.label, secondary: a.activityType !== "other" ? "Directed time" : "Other event", colour: a.colour, directed: a.activityType !== "other", classroom: a.classroom ?? "", group: "Activities" });
+      cItems.push({ primary: a.label, secondary: a.activityType !== "other" ? translateUi("Directed time") : "Other event", colour: a.colour, directed: a.activityType !== "other", classroom: a.classroom ?? "", group: translateUi("Activities") });
     }
 
     const renderCombo = (q: string) => {
@@ -281,13 +282,13 @@ export class AddDateEventModal extends Modal {
     });
 
     const startCol = dateRow.createDiv("tp-modal-field");
-    startCol.createEl("label", { text: "Start time", cls: "tp-modal-label" });
+    startCol.createEl("label", { text: translateUi("Start time"), cls: "tp-modal-label" });
     const startInput = startCol.createEl("input", { type: "time", cls: "tp-modal-input" });
     const paintStart = () => { startInput.value = effStart(); };
     startInput.addEventListener("input", () => { start = startInput.value; recalcDuration(); paintDuration(); });
 
     const durCol = dateRow.createDiv("tp-modal-field tp-modal-field--dur");
-    durCol.createEl("label", { text: "Duration", cls: "tp-modal-label" });
+    durCol.createEl("label", { text: translateUi("Duration"), cls: "tp-modal-label" });
     const durLine = durCol.createDiv("tp-modal-input-inline");
     const durInput = durLine.createEl("input", { type: "number", cls: "tp-modal-input tp-modal-input--short" });
     durInput.min = "0"; durInput.max = "600"; durInput.placeholder = "mins";
@@ -301,7 +302,7 @@ export class AddDateEventModal extends Modal {
 
     // ── Period blocks (multi-select dropdown) ────────────────────────────
     const periodRow = form.createDiv("tp-modal-row tp-modal-row--col");
-    periodRow.createEl("label", { text: "Period block(s)", cls: "tp-modal-label" });
+    periodRow.createEl("label", { text: translateUi("Period block(s)"), cls: "tp-modal-label" });
     const periodWrap = periodRow.createDiv("tp-combo-wrap");
     const periodField = periodWrap.createDiv("tp-period-field");
     const periodPanel = periodWrap.createDiv("tp-combo-panel tp-period-panel");
@@ -323,7 +324,7 @@ export class AddDateEventModal extends Modal {
       periodField.empty();
       const ordered = periodsForDate(date).filter(p => selected.has(p.id));
       if (ordered.length === 0) {
-        periodField.createSpan({ text: "Choose one or more blocks", cls: "tp-period-placeholder" });
+        periodField.createSpan({ text: translateUi("Choose one or more blocks"), cls: "tp-period-placeholder" });
       } else {
         for (const p of ordered) {
           const tag = periodField.createSpan({ cls: "tp-period-tag" });
@@ -342,7 +343,7 @@ export class AddDateEventModal extends Modal {
       optionList.empty();
       const ql = q.trim().toLowerCase();
       const periods = periodsForDate(date).filter(p => !ql || p.name.toLowerCase().includes(ql));
-      if (periods.length === 0) { optionList.createDiv({ text: "No blocks", cls: "tp-picker-empty" }); return; }
+      if (periods.length === 0) { optionList.createDiv({ text: translateUi("No blocks"), cls: "tp-picker-empty" }); return; }
       for (const p of periods) {
         const opt = optionList.createDiv("tp-period-option");
         if (p.type !== "lesson") opt.addClass("tp-period-option--nonlesson");
@@ -379,7 +380,7 @@ export class AddDateEventModal extends Modal {
 
     // ── Location + Notes (always visible) ────────────────────────────────
     const locRow = form.createDiv("tp-modal-row tp-modal-row--col");
-    locRow.createEl("label", { text: "Location", cls: "tp-modal-label" });
+    locRow.createEl("label", { text: translateUi("Location"), cls: "tp-modal-label" });
     const classroomInput = locRow.createEl("input", { type: "text", cls: "tp-modal-input" });
     classroomInput.value = classroom; classroomInput.placeholder = "e.g. Room 303, Lab 3";
     classroomInput.addEventListener("input", () => { classroom = classroomInput.value; });
@@ -406,7 +407,7 @@ export class AddDateEventModal extends Modal {
     // ── Footer ───────────────────────────────────────────────────────────
     const footer = contentEl.createDiv("tp-modal-footer");
     if (isEdit) {
-      const delBtn = footer.createEl("button", { text: "Delete event", cls: "tp-btn tp-btn--danger" });
+      const delBtn = footer.createEl("button", { text: translateUi("Delete event"), cls: "tp-btn tp-btn--danger" });
       delBtn.setCssStyles({ marginRight: "auto" });
       delBtn.addEventListener("click", () => confirmDelete(this.plugin, `Delete this event${title.trim() ? ` “${title.trim()}”` : ""}?`, async () => {
         if (!this.existingEvent) return;
@@ -416,7 +417,7 @@ export class AddDateEventModal extends Modal {
         this.onSaved(); this.close();
       }));
     }
-    footer.createEl("button", { text: "Cancel", cls: "tp-btn" }).addEventListener("click", () => this.close());
+    footer.createEl("button", { text: translateUi("Cancel"), cls: "tp-btn" }).addEventListener("click", () => this.close());
 
     const orderedSelected = () => periodsForDate(date).filter(p => selected.has(p.id)).map(p => p.id);
 
@@ -431,7 +432,7 @@ export class AddDateEventModal extends Modal {
         const b = selectedBlocks();
         if (b.length) {
           const fs = timeMins(b[0].start), fe = timeMins(b[0].end), sv = timeMins(start);
-          if (sv < fs || sv >= fe) { new Notice("Start time must be within the first period block — reset to the block start."); start = ""; }
+          if (sv < fs || sv >= fe) { new Notice(translateUi("Start time must be within the first period block — reset to the block start.")); start = ""; }
         }
       }
       const fields = {
@@ -485,7 +486,7 @@ export class AddDateEventModal extends Modal {
 
       const head = card.createDiv("tp-clash-head");
       const hIcon = head.createSpan("tp-clash-head-icon"); setIcon(hIcon, "alert-triangle");
-      head.createSpan({ text: "Block already in use" });
+      head.createSpan({ text: translateUi("Block already in use") });
 
       const list = card.createDiv("tp-clash-list");
       for (const c of clashes) {
@@ -496,7 +497,7 @@ export class AddDateEventModal extends Modal {
 
       if (directedTimeEnabled && directed && clashes.some(c => c.occ.some(o => o.directed))) {
         card.createEl("p", { cls: "tp-clash-warn",
-          text: "Directed-time tracker is on — keeping both counts this period's time twice." });
+          text: translateUi("Directed-time tracker is on — keeping both counts this period's time twice.") });
       }
 
       const occAll = clashes.flatMap(c => c.occ);
@@ -530,15 +531,15 @@ export class AddDateEventModal extends Modal {
 
       const back = card.createEl("button", { cls: "tp-clash-back" });
       const bIcon = back.createSpan("tp-clash-back-icon"); setIcon(bIcon, "arrow-left");
-      back.createSpan({ text: "Back" });
+      back.createSpan({ text: translateUi("Back") });
       back.addEventListener("click", () => overlay.remove());
     };
 
-    const saveBtn = footer.createEl("button", { text: isEdit ? "Save changes" : "Add event", cls: "tp-btn tp-btn--primary" });
+    const saveBtn = footer.createEl("button", { text: isEdit ? translateUi("Save changes") : translateUi("Add event"), cls: "tp-btn tp-btn--primary" });
     saveBtn.addEventListener("click", () => { void (async () => {
-      if (!title.trim()) { new Notice("Please give the event a name."); return; }
-      if (!date) { new Notice("Please choose a date."); return; }
-      if (selected.size === 0) { new Notice("Please select at least one period block."); return; }
+      if (!title.trim()) { new Notice(translateUi("Please give the event a name.")); return; }
+      if (!date) { new Notice(translateUi("Please choose a date.")); return; }
+      if (selected.size === 0) { new Notice(translateUi("Please select at least one period block.")); return; }
 
       const periodsList = periodsForDate(date);
       const clashes = orderedSelected()

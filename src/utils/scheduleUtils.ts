@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import type { AcademicYear, DaySchedule, SchoolDay, SchoolPeriod } from "../types";
 
 /**
@@ -16,7 +17,7 @@ export function ensureDaySchedules(ay: AcademicYear): void {
   if (!ay.daySchedules || ay.daySchedules.length === 0) {
     ay.daySchedules = [{
       id: "schedule-standard",
-      name: "Standard day",
+      name: translateUi("Standard day"),
       periods: ay.periods ?? [],
     }];
   }

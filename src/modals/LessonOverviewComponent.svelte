@@ -1,4 +1,6 @@
 <script lang="ts">
+import { t as translateUi } from "../i18n";
+
   import type TeacherPlannerPlugin from "../main";
   import type { ClassGroup } from "../types";
   import { setIcon, Platform } from "obsidian";
@@ -88,7 +90,7 @@
     const m = new Map<string, string>();
     for (const c of classes) {
       const nx = nextOccurrence(classOccurrences(plugin.settings, c.id), todayIso);
-      if (!nx) { m.set(c.id, "No lessons"); continue; }
+      if (!nx) { m.set(c.id, translateUi("No lessons")); continue; }
       const d = new Date(nx.date + "T12:00:00");
       m.set(c.id, `${d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · ${shortPeriod(nx.periodName)}`);
     }
@@ -114,11 +116,11 @@
     const mode = plugin.settings.lessonOverviewMainLine ?? "notes-plan";
     const notes = (lessonNote(o) || o.notes || "").replace(/\s+/g, " ").trim();
     const plan = planTitle(o);
-    if (mode === "notes") return notes ? { text: notes, faint: false } : { text: "No notes", faint: true };
+    if (mode === "notes") return notes ? { text: notes, faint: false } : { text: translateUi("No notes"), faint: true };
     if (mode === "plan") return plan ? { text: plan, faint: false } : { text: "—", faint: true };
     if (notes) return { text: notes, faint: false };
-    if (plan) return { text: "No notes  -  " + plan, faint: true };
-    return { text: "No notes", faint: true };
+    if (plan) return { text: translateUi("No notes  -  ") + plan, faint: true };
+    return { text: translateUi("No notes"), faint: true };
   }
   function toggleMenu(o: LessonOccurrence) {
     if (menuKey === keyOf(o)) { void savePanel(o); menuKey = null; }
@@ -270,7 +272,7 @@
 </script>
 
 <div class="tp-lo" bind:this={_prepRootEl} style="--tp-prep-fg:{_prepFg}">
-  <div class="tp-lo-head"><h3 class="tp-lo-title">Lesson overview</h3></div>
+  <div class="tp-lo-head"><h3 class="tp-lo-title">{translateUi("Lesson overview")}</h3></div>
   {#if isMobile}
     <div class="tp-lo-classpick">
       <select class="tp-lo-select" on:change={onPickClass}>
@@ -307,7 +309,7 @@
   {#if selectedClassId}
     <div class="tp-lo-subhead">
       <h3 class="tp-lo-title">{emojiFor(selectedClass)} {selectedClass?.code ?? ""} · lessons</h3>
-      <button class="tp-lo-jump" title="Jump to a date" on:click={openJump} aria-label="Jump to a date">
+      <button class="tp-lo-jump" title={translateUi("Jump to a date")} on:click={openJump} aria-label={translateUi("Jump to a date")}>
         <span use:obsIcon={"calendar-search"}></span>
         <span class="tp-lo-jump-label">Jump to date</span>
       </button>
@@ -317,7 +319,7 @@
         <button class="tp-sec-toggle" on:click={toggleStats} aria-expanded={statsOpen}>
           <span class="tp-sec-chev" use:obsIcon={statsOpen ? "chevron-down" : "chevron-right"}></span>
           <span class="tp-sec-label">Overview</span>
-          <span class="tp-sec-sum">Taught <b>{stats.taught}</b> of {stats.total} · {stats.remaining} to go</span>
+          <span class="tp-sec-sum">{translateUi("Taught")} <b>{stats.taught}</b> of {stats.total} · {stats.remaining} to go</span>
         </button>
         {#if statsOpen}
           <div class="tp-cs-body">
@@ -331,7 +333,7 @@
                   <div class="tp-cs-box-val">{stats.thisWeek.pct}%{#if stats.thisWeek.pct === 100} 🎉{/if} <span class="tp-cs-box-sub">{stats.thisWeek.prepared}/{stats.thisWeek.total}</span></div>
                   <div class="tp-cs-week-bar"><div class="tp-cs-week-fill" style="width:{stats.thisWeek.pct}%"></div></div>
                 {:else}
-                  <div class="tp-cs-box-none">No lessons</div>
+                  <div class="tp-cs-box-none">{translateUi("No lessons")}</div>
                 {/if}
               </div>
               <div class="tp-cs-box" class:tp-cs-box--done={stats.nextWeek !== null && stats.nextWeek.pct === 100}>
@@ -341,7 +343,7 @@
                   <div class="tp-cs-box-val">{stats.nextWeek.pct}%{#if stats.nextWeek.pct === 100} 🎉{/if} <span class="tp-cs-box-sub">{stats.nextWeek.prepared}/{stats.nextWeek.total}</span></div>
                   <div class="tp-cs-week-bar"><div class="tp-cs-week-fill" style="width:{stats.nextWeek.pct}%"></div></div>
                 {:else}
-                  <div class="tp-cs-box-none">No lessons</div>
+                  <div class="tp-cs-box-none">{translateUi("No lessons")}</div>
                 {/if}
               </div>
               <div class="tp-cs-box">
@@ -399,17 +401,17 @@
                 </span>
               </button>
               <span class="tp-lo-icons">
-                {#if past}<span class="tp-lo-taught" title="Taught" use:obsIcon={"circle-check"}></span>{/if}
+                {#if past}<span class="tp-lo-taught" title={translateUi("Taught")} use:obsIcon={"circle-check"}></span>{/if}
                 <button class="tp-lo-prep" class:tp-lo-prep--on={isSlotPrepared(plugin.settings, o.slotId, o.date)}
                   title={isSlotPrepared(plugin.settings, o.slotId, o.date) ? "Marked prepared — click to clear" : "Mark prepared"}
-                  aria-label="Toggle prepared" aria-pressed={isSlotPrepared(plugin.settings, o.slotId, o.date)}
+                  aria-label={translateUi("Toggle prepared")} aria-pressed={isSlotPrepared(plugin.settings, o.slotId, o.date)}
                   on:click|stopPropagation={() => togglePrep(o)} use:obsIcon={"check"}></button>
                 {#if getSlotPlan(plugin.settings, o.slotId, o.date)}
-                  <button class="tp-lo-ic tp-lo-ic--plan" title="Open lesson plan" on:click|stopPropagation={() => openPlan(o)} use:obsIcon={"file-text"}></button>
+                  <button class="tp-lo-ic tp-lo-ic--plan" title={translateUi("Open lesson plan")} on:click|stopPropagation={() => openPlan(o)} use:obsIcon={"file-text"}></button>
                 {/if}
                 {#if getSlotExternal(plugin.settings, o.slotId, o.date)}
                   {@const ext = getSlotExternal(plugin.settings, o.slotId, o.date)}
-                  <button class="tp-lo-ic" title="Open external resource" on:click|stopPropagation={() => openExternal(o)}
+                  <button class="tp-lo-ic" title={translateUi("Open external resource")} on:click|stopPropagation={() => openExternal(o)}
                     use:obsIcon={ext && externalKindOf(ext) === "folder" ? "folder" : "paperclip"}></button>
                 {/if}
                 {#if menuKey === keyOf(o)}<span class="tp-lo-editing">editing</span>{/if}
@@ -425,25 +427,25 @@
                     bind:value={panelNote} on:blur={() => savePanel(o)}></textarea>
                 </label>
                 <label class="tp-lo-field">
-                  <span class="tp-lo-field-label">Room</span>
-                  <input class="tp-lo-roomedit" type="text" placeholder={defaultRoom(o) || "Room"}
+                  <span class="tp-lo-field-label">{translateUi("Room")}</span>
+                  <input class="tp-lo-roomedit" type="text" placeholder={defaultRoom(o) || translateUi("Room")}
                     bind:value={panelRoom} on:blur={() => savePanel(o)} />
                 </label>
                 <div class="tp-lo-menu">
-                  <button on:click={() => doLessonNote(o)}><span use:obsIcon={"book-open"}></span> Lesson note</button>
+                  <button on:click={() => doLessonNote(o)}><span use:obsIcon={"book-open"}></span> {translateUi("Lesson note")}</button>
                   {#if getSlotPlan(plugin.settings, o.slotId, o.date)}
-                    <button on:click={() => openPlan(o)}><span use:obsIcon={"file-text"}></span> Open lesson plan</button>
-                    <button on:click={() => unlinkPlan(o)}><span use:obsIcon={"unlink"}></span> Unlink lesson plan</button>
+                    <button on:click={() => openPlan(o)}><span use:obsIcon={"file-text"}></span> {translateUi("Open lesson plan")}</button>
+                    <button on:click={() => unlinkPlan(o)}><span use:obsIcon={"unlink"}></span> {translateUi("Unlink lesson plan")}</button>
                   {:else}
-                    <button on:click={() => linkPlan(o)}><span use:obsIcon={"file-plus"}></span> Link lesson plan…</button>
+                    <button on:click={() => linkPlan(o)}><span use:obsIcon={"file-plus"}></span> {translateUi("Link lesson plan…")}</button>
                   {/if}
                   <button on:click={() => togglePrep(o)}><span use:obsIcon={isSlotPrepared(plugin.settings, o.slotId, o.date) ? "x" : "check"}></span> {isSlotPrepared(plugin.settings, o.slotId, o.date) ? "Clear prepared mark" : "Mark prepared"}</button>
                   {#if getSlotExternal(plugin.settings, o.slotId, o.date)}
-                    <button on:click={() => openExternal(o)}><span use:obsIcon={"external-link"}></span> Open external resource</button>
-                    <button on:click={() => unlinkExternal(o)}><span use:obsIcon={"unlink"}></span> Unlink external resource</button>
+                    <button on:click={() => openExternal(o)}><span use:obsIcon={"external-link"}></span> {translateUi("Open external resource")}</button>
+                    <button on:click={() => unlinkExternal(o)}><span use:obsIcon={"unlink"}></span> {translateUi("Unlink external resource")}</button>
                   {:else if !isMobile}
-                    <button on:click={() => linkExtFile(o)}><span use:obsIcon={"paperclip"}></span> Link external file…</button>
-                    <button on:click={() => linkExtFolder(o)}><span use:obsIcon={"folder-open"}></span> Link external folder…</button>
+                    <button on:click={() => linkExtFile(o)}><span use:obsIcon={"paperclip"}></span> {translateUi("Link external file…")}</button>
+                    <button on:click={() => linkExtFolder(o)}><span use:obsIcon={"folder-open"}></span> {translateUi("Link external folder…")}</button>
                   {/if}
                   <div class="tp-lo-menu-sep"></div>
                   <button on:click={() => shiftFwd(o)}><span use:obsIcon={"chevrons-right"}></span> Push lessons forward</button>
@@ -460,7 +462,7 @@
         <div class="tp-lo-unplaced">
           <div class="tp-lo-unplaced-head"><span use:obsIcon={"alert-triangle"}></span> Unplaced lessons ({unplacedForClass.length})</div>
           {#each unplacedForClass as u (u.id)}
-            <div class="tp-lo-unplaced-row">{u.label ?? "Lesson"}</div>
+            <div class="tp-lo-unplaced-row">{u.label ?? translateUi("Lesson")}</div>
           {/each}
           <div class="tp-lo-unplaced-hint">Pushed off the end of the year. Pull a run back, or free up a slot, to drop these back in.</div>
         </div>
@@ -473,8 +475,8 @@
     {#if toast}
       <div class="tp-lo-toast">
         <span>{toast}</span>
-        <button on:click={undoShift}><span use:obsIcon={"arrow-back-up"}></span> Undo</button>
-        <button class="tp-lo-toast-x" on:click={() => toast = ""} use:obsIcon={"x"} aria-label="Dismiss"></button>
+        <button on:click={undoShift}><span use:obsIcon={"arrow-back-up"}></span> {translateUi("Undo")}</button>
+        <button class="tp-lo-toast-x" on:click={() => toast = ""} use:obsIcon={"x"} aria-label={translateUi("Dismiss")}></button>
       </div>
     {/if}
   {:else}

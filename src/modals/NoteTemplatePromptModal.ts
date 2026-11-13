@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import { App, Modal, Notice, Setting } from "obsidian";
 import type TeacherPlannerPlugin from "../main";
 import { renderTemplateBody, type TemplateContext } from "../utils/planTemplates";
@@ -54,7 +55,7 @@ export class NoteTemplatePromptModal extends Modal {
     }
 
     new Setting(contentEl)
-      .setName("Template")
+      .setName(translateUi("Template"))
       .addDropdown(d => {
         for (const t of this.templates) d.addOption(t.id, t.builtin ? t.name : `${t.name} (yours)`);
         d.setValue(this.selectedId);
@@ -67,7 +68,7 @@ export class NoteTemplatePromptModal extends Modal {
 
     const submit = () => {
       const name = titleInput.value.trim();
-      if (!name) { new Notice("Please enter a note title."); return; }
+      if (!name) { new Notice(translateUi("Please enter a note title.")); return; }
       const chosen = this.templates.find(t => t.id === this.selectedId);
       const { body: rendered, cursorOffset } = renderTemplateBody(chosen?.body ?? "", this.opts.ctx);
       const full = this.opts.fmPrefix + rendered;
@@ -78,9 +79,9 @@ export class NoteTemplatePromptModal extends Modal {
     titleInput.addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Enter") submit(); });
 
     const footer = contentEl.createDiv("tp-modal-footer");
-    footer.createEl("button", { text: "Cancel", cls: "tp-btn" })
+    footer.createEl("button", { text: translateUi("Cancel"), cls: "tp-btn" })
       .addEventListener("click", () => this.close());
-    footer.createEl("button", { text: "Save", cls: "tp-btn tp-btn--primary" })
+    footer.createEl("button", { text: translateUi("Save"), cls: "tp-btn tp-btn--primary" })
       .addEventListener("click", submit);
     window.setTimeout(() => { titleInput.focus(); titleInput.select(); }, 30);
   }

@@ -1,3 +1,4 @@
+import { t as translateUi } from "../i18n";
 import type { TeacherPlannerSettings, UnplacedLesson } from "../types";
 import { classOccurrences, type LessonOccurrence } from "./lessonOccurrences";
 import { planForward, planBackward } from "./lessonShift";
@@ -49,7 +50,7 @@ function writeBundle(s: TeacherPlannerSettings, o: LessonOccurrence, b: Bundle):
 function labelFromBundle(b: Bundle): string {
   if (b.plan) return (b.plan.split("/").pop() ?? b.plan).replace(/\.md$/, "");
   if (b.note) return b.note.length > 40 ? b.note.slice(0, 40) + "…" : b.note;
-  return "Lesson";
+  return translateUi("Lesson");
 }
 function toUnplaced(classId: string, b: Bundle, fromDate: string): UnplacedLesson {
   return {
